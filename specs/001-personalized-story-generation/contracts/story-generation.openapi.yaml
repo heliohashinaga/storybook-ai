@@ -1,0 +1,224 @@
+openapi: 3.1.0
+info:
+  title: Storybook AI Story Generation API
+  version: 1.0.0
+  description: |
+    Generates a non-persistent, safety-approved story for the active browser session. The contract
+    deliberately accepts no child name, other direct identifier, or exact age. The browser derives
+    ageBand locally and sends only age band, locale, and an allow-listed theme.
+servers:
+  - url: /api
+paths:
+  /stories:
+    post:
+      operationId: generateStory
+      tags: [Story generation]
+      summary: Generate a safe three-scene story with illustrations
+      description: |
+        Validates an allow-listed locale, age band, and theme; generates and moderates a story;
+        regenerates one time if the first candidate is unsafe; then returns only the approved story
+        and its optimized scene illustrations. The response must not be cached or logged with
+        request content.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateStoryRequest'
+            examples:
+              portugueseCourage:
+                summary: Default Brazilian Portuguese request
+                value:
+                  ageBand: 5-7
+                  locale: pt-BR
+                  theme: courage
+      responses:
+        '200':
+          description: Safety-approved story generated successfully.
+          headers:
+            Cache-Control:
+              description: Prevents intermediary/browser persistence of the anonymous story response.
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedStory'
+              examples:
+                portugueseStory:
+                  summary: Safe Portuguese story with no child identifier.
+                  value:
+                    locale: pt-BR
+                    ageBand: 5-7
+                    theme: courage
+                    safetyDecision: approved
+                    title: 'A pequena aventura na ponte'
+                    scenes:
+                      - ordinal: 1
+                        title: 'Um novo começo'
+                        body: 'Uma criança encontrou uma ponte pequena no parque e respirou fundo.'
+                        illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
+                        altText: 'Uma criança diante de uma pequena ponte em um parque ensolarado.'
+                      - ordinal: 2
+                        title: 'Um passo de cada vez'
+                        body: 'Com cuidado e coragem, a criança atravessou a ponte com um sorriso.'
+                        illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
+                        altText: 'Uma criança atravessando uma ponte com confiança.'
+                      - ordinal: 3
+                        title: 'Coragem compartilhada'
+                        body: 'A criança voltou para contar aos amigos que coragem cresce a cada passo.'
+                        illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
+                        altText: 'Crianças sorrindo juntas em um parque.'
+        '400':
+          description: The request does not match the allow-listed input contract.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: invalid_input
+                messageKey: story.error.invalidInput
+                retryable: false
+        '422':
+          description: No safe story could be produced after the bounded automatic regeneration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: unsafe_unrecoverable
+                messageKey: story.error.safeAlternativeUnavailable
+                retryable: true
+        '429':
+          description: The anonymous request limit has been reached.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                minimum: 1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: rate_limited
+                messageKey: story.error.tryAgainLater
+                retryable: true
+        '502':
+          description: A required generation provider did not return a valid result.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: generation_unavailable
+                messageKey: story.error.generationUnavailable
+                retryable: true
+        '504':
+          description: Generation did not complete within the request time budget.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: generation_timeout
+                messageKey: story.error.generationTimeout
+                retryable: true
+components:
+  schemas:
+    GenerateStoryRequest:
+      type: object
+      additionalProperties: false
+      required: [ageBand, locale, theme]
+      properties:
+        ageBand:
+          $ref: '#/components/schemas/AgeBand'
+        locale:
+          $ref: '#/components/schemas/Locale'
+        theme:
+          $ref: '#/components/schemas/Theme'
+      description: |
+        Contains no child name, direct identifier, or exact age. Clients derive ageBand locally.
+        Unknown fields, including name, are rejected.
+    GeneratedStory:
+      type: object
+      additionalProperties: false
+      required: [locale, ageBand, theme, safetyDecision, title, scenes]
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+        ageBand:
+          $ref: '#/components/schemas/AgeBand'
+        theme:
+          $ref: '#/components/schemas/Theme'
+        safetyDecision:
+          type: string
+          enum: [approved, regenerated]
+          description: No unsafe candidate content is included in this response.
+        title:
+          type: string
+          minLength: 1
+          maxLength: 140
+          description: Localized plain text without template markers or identifiers.
+        scenes:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/GeneratedScene'
+    GeneratedScene:
+      type: object
+      additionalProperties: false
+      required: [ordinal, title, body, illustrationDataUri, altText]
+      properties:
+        ordinal:
+          type: integer
+          minimum: 1
+          maximum: 3
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        body:
+          type: string
+          minLength: 1
+          maxLength: 1600
+          description: Localized plain text without template markers or identifiers.
+        illustrationDataUri:
+          type: string
+          pattern: '^data:image/webp;base64,'
+          description: Optimized, session-only scene illustration. It is not an object-store URL.
+        altText:
+          type: string
+          minLength: 1
+          maxLength: 300
+          description: Localized, age-appropriate illustration description.
+    AgeBand:
+      type: string
+      enum: ['2-4', '5-7', '8-12']
+    Locale:
+      type: string
+      enum: [pt-BR, en]
+    Theme:
+      type: string
+      enum: [courage, friendship, kindness]
+    GenerationError:
+      type: object
+      additionalProperties: false
+      required: [code, messageKey, retryable]
+      properties:
+        code:
+          type: string
+          enum:
+            - invalid_input
+            - unsupported_locale
+            - unsafe_unrecoverable
+            - rate_limited
+            - generation_unavailable
+            - generation_timeout
+        messageKey:
+          type: string
+          description: Localized UI message identifier; never a raw provider error.
+        retryable:
+          type: boolean
