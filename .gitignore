@@ -58,6 +58,4 @@ Thumbs.db
 *.pid.lock
 *.pem
 
-
-# --- pi runtime artifacts (never commit transcripts) ---
 .pi-subagents/

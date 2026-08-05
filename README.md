@@ -15,17 +15,17 @@ Gerador de histórias infantis personalizadas, **anônimo por design**. A crian�
 
 ## Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Framework | Next.js 16 (App Router) + React 19 |
-| Linguagem | TypeScript estrito (sem `any`) |
-| Estilo | Tailwind (tokens do design system) |
-| i18n | next-intl |
-| Validação | Zod |
-| IA (server-only) | OpenAI SDK via adapter isolado + pipeline de segurança |
-| Imagens | sharp (WebP, runtime Node) |
-| PDF | @react-pdf/renderer (lazy, no browser) |
-| Testes | Vitest + Testing Library, Storybook, Playwright (E2E/visual) |
+| Camada           | Tecnologia                                                   |
+| ---------------- | ------------------------------------------------------------ |
+| Framework        | Next.js 16 (App Router) + React 19                           |
+| Linguagem        | TypeScript estrito (sem `any`)                               |
+| Estilo           | Tailwind (tokens do design system)                           |
+| i18n             | next-intl                                                    |
+| Validação        | Zod                                                          |
+| IA (server-only) | OpenAI SDK via adapter isolado + pipeline de segurança       |
+| Imagens          | sharp (WebP, runtime Node)                                   |
+| PDF              | @react-pdf/renderer (lazy, no browser)                       |
+| Testes           | Vitest + Testing Library, Storybook, Playwright (E2E/visual) |
 
 ## Pré-requisitos
 
@@ -73,16 +73,16 @@ pnpm test:visual
 pnpm build
 ```
 
-| Comando | Resultado esperado |
-|---|---|
-| `pnpm lint` / `pnpm format:check` | Sem warnings de lint ou mudanças de formatação |
-| `pnpm typecheck` | TypeScript estrito sem `any` novo em código de produção |
-| `pnpm test` | Unit, componente, contrato de API e pipeline passam com fixtures/fakes |
-| `pnpm test:coverage` | ≥80% geral; ≥90% em safety, validação, exclusão de identificadores e orquestração |
-| `pnpm storybook:test` | Todas as stories (default/loading/error/edge) e acessibilidade passam |
-| `pnpm test:e2e` | Jornadas pt-BR e EN com provider fake; nenhuma chamada a IA real |
-| `pnpm test:visual` | Sem diff não intencional nos screenshots aprovados |
-| `pnpm build` | Build de produção serve o fluxo anônimo |
+| Comando                           | Resultado esperado                                                                |
+| --------------------------------- | --------------------------------------------------------------------------------- |
+| `pnpm lint` / `pnpm format:check` | Sem warnings de lint ou mudanças de formatação                                    |
+| `pnpm typecheck`                  | TypeScript estrito sem `any` novo em código de produção                           |
+| `pnpm test`                       | Unit, componente, contrato de API e pipeline passam com fixtures/fakes            |
+| `pnpm test:coverage`              | ≥80% geral; ≥90% em safety, validação, exclusão de identificadores e orquestração |
+| `pnpm storybook:test`             | Todas as stories (default/loading/error/edge) e acessibilidade passam             |
+| `pnpm test:e2e`                   | Jornadas pt-BR e EN com provider fake; nenhuma chamada a IA real                  |
+| `pnpm test:visual`                | Sem diff não intencional nos screenshots aprovados                                |
+| `pnpm build`                      | Build de produção serve o fluxo anônimo                                           |
 
 ## Estrutura (planejada)
 

@@ -1,0 +1,96 @@
+@import "tailwindcss";
+
+/* Load the semantic design-token theme (Tailwind 4 @config). */
+@config "../../tailwind.config.ts";
+
+/* Design tokens — single source of truth, consumed by the Tailwind theme. */
+:root {
+  /* Color (semantic) */
+  --color-background: #faf8f5;
+  --color-surface: #ffffff;
+  --color-text: #1f2328;
+  --color-text-subtle: #57606a;
+  --color-accent: #5b21b6;
+  --color-accent-hover: #4c1d95;
+  --color-focus: #2563eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-disabled: #e5e7eb;
+
+  /* Typography */
+  --font-sans: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --text-display: 2rem;
+  --text-title: 1.25rem;
+  --text-body: 1rem;
+  --text-caption: 0.875rem;
+  --weight-display: 800;
+  --weight-title: 700;
+  --weight-body: 400;
+  --weight-caption: 400;
+  --leading-display: 1.15;
+  --leading-title: 1.3;
+  --leading-body: 1.5;
+  --leading-caption: 1.4;
+
+  /* Spacing (consistent scale) */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  /* Radius */
+  --radius-sm: 0.25rem;
+  --radius: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
+  --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.12);
+
+  /* Motion (respect prefers-reduced-motion in base styles) */
+  --motion-fast: 100ms;
+  --motion-base: 200ms;
+  --motion-slow: 400ms;
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-disabled);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
