@@ -1,0 +1,110 @@
+# AGENTS.md
+
+Instructions for AI coding agents working in this repository. Root file — applies
+to all work here. When a task touches `src/`, `.storybook/`, or tests, also load
+the project skill `.pi/skills/nextjs/SKILL.md`.
+
+## Project
+
+**storybook-ai** — a Next.js 16 (App Router) + React 19 web app that generates
+personalized children's stories, **anonymous by design**. The child picks age,
+locale, and theme; the app returns a 3-scene story with illustrations. No name or
+direct identifier is ever collected, sent, logged, or stored.
+
+Repo is currently in **planning phase**: `specs/` contains the feature artifacts
+(spec, plan, quickstart, tasks, OpenAPI contract) and `.specify/memory/constitution.md`
+holds the governing constitution. Implementation has not been scaffolded yet;
+`package.json` does not exist. Do not invent package scripts — match the names in
+`specs/001-personalized-story-generation/quickstart.md`.
+
+## Non-Negotiable Privacy Rules
+
+- **No direct identifiers, ever.** Never add a name/child-identifier field to UI,
+  API, logs, analytics, or provider payloads.
+- The browser derives `ageBand` (`2-4 | 5-7 | 8-12`) from exact age in memory; the
+  server receives **only** `ageBand`, `locale` (`pt-BR` default | `en`), `theme`
+  (`courage | friendship | kindness`).
+- **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
+  cache. Exact age and generated stories live in React in-memory state only.
+- All AI-vendor calls stay behind a **server-only provider adapter**
+  (`story-generation/server`); UI never sees raw provider output. Modules importing
+  the provider/OpenAI SDK/sharp must be `server-only`.
+- `POST /api/stories` responds `Cache-Control: no-store` and is the **only** server
+  entry point.
+- Unsafe provider output must never be shown, logged, or returned: moderate →
+  regenerate **once** with stronger constraints → else return a generic localized
+  safe error. Partial illustration sets are never a successful story.
+
+## Commands
+
+Run these from the repo root after implementation exists (they are the required
+scripts, not yet present):
+
+```bash
+pnpm dev             # dev server, http://localhost:3000 (pt-BR default)
+pnpm lint            # no warnings allowed
+pnpm format:check    # prettier, no drift
+pnpm typecheck       # strict TS, no new `any` in production code
+pnpm test            # Vitest: unit, component, API-contract, pipeline (fixtures/fakes only)
+pnpm test:coverage   # ≥80% overall; ≥90% safety/validation/orchestration
+pnpm storybook:test  # every story (default/loading/error/edge) + a11y checks
+pnpm test:e2e        # Playwright: pt-BR + EN journeys, fake provider
+pnpm test:visual     # approved screenshots, no unintended diff
+pnpm build           # production build must pass
+```
+
+**Tests never call a live AI service.** Use deterministic provider fakes/MSW.
+Never commit `.env.local` or real credentials.
+
+## Code Style
+
+- TypeScript **strict**, no `any` in production code (justify and approve exceptions).
+- Feature-based structure: `src/features/<feature>/{components,client,server,locales}`,
+  shared primitives in `src/components/ui`, helpers in `src/lib`. No large sprawl.
+- `'use client'` only where interactivity/hooks/browser state require it; Server
+  Components by default.
+- Validate with Zod at the boundary: client schema for fast field errors, **server
+  re-validation** in the route before any provider call.
+- UI: tokenized Tailwind design system + shared primitives only — no ad-hoc values.
+  All user-facing strings (incl. validation/error/retry copy) through next-intl
+  catalogs (`pt-BR` + `en`); no hardcoded strings.
+- Remove dead code and unused deps before finishing; no commented-out blocks.
+
+## Testing Rules
+
+- **Test-first:** write a failing test, confirm it fails for the right reason,
+  implement until green, refactor.
+- Tests are deterministic: no wall-clock, network, or ordering dependence; fix or
+  delete flaky tests — never skip silently. Name tests by behavior, not
+  implementation.
+- Tiers: unit (pure logic/schemas/safety), integration/contract (route + pipeline
+  against `story-generation.openapi.yaml`, APIs faked), E2E (Playwright),
+  visual (reader regression).
+- Assert privacy invariants in tests: no direct identifier accepted by form/API,
+  none in HTTP payloads, logs, or provider fakes.
+- Every component ships co-located `.stories.tsx` covering default/edge/error
+  states; Storybook behavior must match the app.
+
+## Performance Budgets (enforced in CI)
+
+- Full generation (story + safety + 3 images) ≤120 s end-to-end.
+- Initial form/reader LCP p75 ≤2.5 s (mid-tier mobile/4G).
+- Initial route JS ≤250 KiB gzip (excludes scene images; **lazy-import**
+  `@react-pdf/renderer` only on export — never in the initial bundle).
+- Scene navigation ≤100 ms p75 after assets load.
+
+## Definition of Done
+
+Before a PR/commit: all required checks pass; coverage gates met; no direct
+identifier in payloads/logs/storage; stories + a11y pass; Storybook behavior
+matches the app; budgets respected; spec/OpenAPI updated if a contract changed.
+
+Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
+`:sparkles: feat(story-generation): add safety pipeline`.
+
+## Deeper Docs
+
+- Feature artifacts: `specs/001-personalized-story-generation/` (`spec.md`,
+  `plan.md`, `quickstart.md`, `tasks.md`, `contracts/story-generation.openapi.yaml`)
+- Constitution (principles, quality gates): `.specify/memory/constitution.md`
+- Framework/project conventions: `.pi/skills/nextjs/SKILL.md`
