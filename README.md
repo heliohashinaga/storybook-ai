@@ -38,8 +38,6 @@ illustrations.
 
 - Node.js 22 LTS
 - pnpm enabled through Corepack
-- An approved development credential for the AI provider (never production)
-  and approval for data processing before real traffic involving children.
 
 ## Setup
 
