@@ -1,6 +1,18 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3000;
+const DEFAULT_NATIVE_LIBRARY_PATH = "/usr/local/lib";
+
+// Chromium may need native libraries on Linux. Keep this runtime-only fallback
+// out of .env.example; preserve an explicit environment value when provided.
+if (
+  process.platform === "linux" &&
+  !process.env.LD_LIBRARY_PATH &&
+  existsSync(DEFAULT_NATIVE_LIBRARY_PATH)
+) {
+  process.env.LD_LIBRARY_PATH = DEFAULT_NATIVE_LIBRARY_PATH;
+}
 
 export default defineConfig({
   testDir: "./tests",
