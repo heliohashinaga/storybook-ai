@@ -74,3 +74,46 @@
 - **Findings:** Crit/High/Med/Low none; synthetic `Luna` fixture is non-sensitive and asserted-rejected
 - **Docs status:** not-applicable
 - **Residual risks:** do not merge independently into a green-required branch; re-review name-rejection when T010 makes schema executable
+
+## T010 — reviewer — Attempt 1 — 2026-08-05T22:21:00Z
+- **Feature/slice:** Phase 2 Foundational / T010 (implementation)
+- **Gate:** reviewer (general code + build/tests + security skill)
+- **Commit SHA + paths:** `c41a2d7`; `src/features/story-request/client/age-band.ts`, `src/features/story-request/client/story-preferences-schema.ts`
+- **Verdict:** CHANGES_REQUESTED
+- **Security:** SECURE
+- **Route:** worker-simple
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (21); `pnpm build` pass; git ancestry + clean worktree pass; manual secret scan pass
+- **Findings:** High — required typed primitives `Locale` and `Theme` not exported (only allow-list tuples); suggested `export type Locale = (typeof localeValues)[number]` / `Theme`
+- **Docs status:** not-applicable
+- **Residual risks:** missing `Locale`/`Theme` blocks downstream request/server contracts; name-rejection executable and passing
+
+## T010 — reviewer — Attempt 2 — 2026-08-05T22:23:51Z
+- **Gate:** reviewer (re-review after remediation)
+- **Commit SHA + paths:** `c41a2d7..d8d9fdd`; `src/features/story-request/client/story-preferences-schema.ts`
+- **Verdict:** APPROVED
+- **Security:** SECURE
+- **Route:** none
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (21); `pnpm build` pass; ancestry + `git diff --check` pass; `pnpm audit --prod --audit-level=high` pass
+- **Findings:** High none (Locale/Theme now exported); Medium none; Low — `deriveAgeBand` throws RangeError interpolating exact age (future telemetry hardening; no current sink)
+- **Docs status:** not-applicable
+- **Residual risks:** client validation is not a server trust boundary; server route/schema must independently accept only `ageBand`/`locale`/`theme` without logging exact age
+
+## T010 — tester — Attempt 1 — 2026-08-05T22:21:00Z
+- **Gate:** tester (conformance)
+- **Commit SHA + paths:** `c41a2d7`; `tests/unit/age-band.test.ts`, `tests/unit/story-preferences-schema.test.ts`
+- **Verdict:** MEETS_TASK
+- **Route:** none
+- **Commands run/results:** `pnpm test` pass (4 files / 21 tests); 100% coverage; `pnpm typecheck` pass
+- **Findings:** none; T009 residual (strict name-rejection) now executable and passing — `.strict()` without it would fail
+- **Docs status:** not-applicable
+- **Residual risks:** none
+
+## T010 — security-reviewer — Attempt 1 — 2026-08-05T22:21:00Z
+- **Gate:** security-reviewer (deep appsec, final state)
+- **Commit SHA + paths:** `c41a2d7`; `src/features/story-request/client/age-band.ts`, `src/features/story-request/client/story-preferences-schema.ts`
+- **Verdict:** SECURE
+- **Route:** none
+- **Commands run/results:** manual secret scan of diff pass; OWASP areas checked (sensitive-data exposure, injection/input, secrets, dependency/SCA, persistence, logging)
+- **Findings:** Crit/High/Med none; Low — exact-age in RangeError message is defense-in-depth hardening
+- **Docs status:** not-applicable
+- **Residual risks:** client-side Zod is not a server trust boundary; planned server schema must accept only `ageBand`/`locale`/`theme` and not serialize/log exact age
