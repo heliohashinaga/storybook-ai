@@ -1,0 +1,29 @@
+# Build / cache / test artifacts
+node_modules
+.next
+out
+build
+dist
+coverage
+storybook-static
+playwright-report
+test-results
+.pnpm-store
+
+# Lockfiles (generated; pnpm manages its own formatting)
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Spec Kit / planning artifacts and internal tooling (not app source)
+.pi
+.specify
+specs
+.piper
+
+# devloop harness output
+.pi-subagents
+
+# Local env (never formatted/checked)
+.env
+.env.*
+!.env.example
