@@ -1,0 +1,12 @@
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  core-js-pure: true
+  esbuild: true
+  msw: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - icu-minify@4.13.5
+  - next-intl-swc-plugin-extractor@4.13.5
+  - next-intl@4.13.5
+  - use-intl@4.13.5
