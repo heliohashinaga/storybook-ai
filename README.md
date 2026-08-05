@@ -1,12 +1,12 @@
+<p align="center">
+  <img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
+</p>
+
 # storybook-ai
 
 Personalized children's story generator, **anonymous by design**. Choose an age
 range, language, and theme; the app generates a three-scene story with
 illustrations.
-
-<p align="center">
-  <img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
-</p>
 
 > **Status: planning.** The repository currently contains only specification
 > artifacts (`specs/`). The app will be scaffolded in Next.js based on this plan.
