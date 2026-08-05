@@ -4,7 +4,7 @@
 
 # storybook-ai
 
-Personalized children's story generator, **anonymous by design**. Choose an age
+Personalized children's story generator I created for my daughter. Choose an age
 range, language, and theme; the app generates a three-scene story with
 illustrations.
 
