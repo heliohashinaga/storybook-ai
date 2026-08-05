@@ -4,6 +4,9 @@ export const ageBandValues = ["2-4", "5-7", "8-12"] as const;
 export const localeValues = ["pt-BR", "en"] as const;
 export const themeValues = ["courage", "friendship", "kindness"] as const;
 
+export type Locale = (typeof localeValues)[number];
+export type Theme = (typeof themeValues)[number];
+
 /**
  * Client-side validation for the anonymous StoryPreferences form. The exact
  * `age` is held in browser memory only and is NEVER sent to the network; it is
