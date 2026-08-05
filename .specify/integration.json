@@ -2,14 +2,14 @@
   "version": "0.15.3.dev0",
   "integration_state_schema": 1,
   "installed_integrations": [
-    "copilot"
+    "pi"
   ],
   "integration_settings": {
-    "copilot": {
+    "pi": {
       "script": "sh",
-      "invoke_separator": "-"
+      "invoke_separator": "."
     }
   },
-  "integration": "copilot",
-  "default_integration": "copilot"
+  "integration": "pi",
+  "default_integration": "pi"
 }
