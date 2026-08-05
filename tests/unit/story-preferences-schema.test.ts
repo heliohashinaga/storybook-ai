@@ -43,6 +43,18 @@ describe("storyPreferencesSchema", () => {
     expect(storyPreferencesSchema.safeParse({ ...valid, age: "6" }).success).toBe(false);
   });
 
+  it("rejects a wrong-typed locale", () => {
+    for (const locale of [123, null]) {
+      expect(storyPreferencesSchema.safeParse({ ...valid, locale }).success).toBe(false);
+    }
+  });
+
+  it("rejects a wrong-typed theme", () => {
+    for (const theme of [456, null]) {
+      expect(storyPreferencesSchema.safeParse({ ...valid, theme }).success).toBe(false);
+    }
+  });
+
   it("rejects any direct child identifier (anonymous by design)", () => {
     const withName = { ...valid, name: "Luna" };
     expect(storyPreferencesSchema.safeParse(withName).success).toBe(false);
