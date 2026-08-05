@@ -25,13 +25,21 @@ MVP task list.
 **Purpose**: Initialize the TypeScript/Next.js application and its quality tooling.
 
 - [ ] T001 Initialize the pnpm project, Node 22 engine constraint, and required scripts in `package.json`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T002 Configure strict TypeScript and Next.js App Router in `tsconfig.json`, `next.config.ts`, and `src/app/layout.tsx`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T003 [P] Configure ESLint and Prettier with zero-warning checks in `eslint.config.mjs`, `.prettierrc.json`, and `package.json`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T004 [P] Configure Tailwind semantic design tokens (color/typography/spacing/radius/shadow/motion, token-only, no ad-hoc values) and global base styles in `tailwind.config.ts`, `postcss.config.mjs`, and `src/app/globals.css`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T005 [P] Configure Vitest, React Testing Library, MSW, coverage reporting, and test scripts in `vitest.config.ts`, `tests/setup.ts`, and `package.json`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T006 [P] Configure Storybook with the Next.js integration and accessibility addon in `.storybook/main.ts` and `.storybook/preview.ts`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T007 [P] Configure Playwright for Chromium E2E and visual-regression runs in `playwright.config.ts` and `package.json`.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 - [ ] T008 [P] Create secret-safe environment and ignore rules in `.env.example` and `.gitignore`; include only provider-model variable names, never user data.
+    - Review: CHANGES_REQUESTED · SECURE · attempt 1 · route worker-simple · [reviews.md](reviews.md#phase-1-tooling-t001t008--review--attempt-1--2026-08-05t0523z)
 
 **Checkpoint**: `pnpm install`, lint, format, typecheck, test, Storybook, and Playwright commands are defined before feature work begins.
 
