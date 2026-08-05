@@ -1,0 +1,59 @@
+# --- Dependencies ---
+node_modules/
+.pnp
+.pnp.*
+
+# --- Next.js build output ---
+.next/
+out/
+dist/
+build/
+
+# --- Vercel ---
+.vercel/
+
+# --- Environment (never commit secrets or local overrides) ---
+.env
+.env.*
+!.env.example
+
+# --- TypeScript / build caches ---
+*.tsbuildinfo
+next-env.d.ts
+
+# --- Lint / format caches ---
+.eslintcache
+*.eslintcache
+
+# --- Test artifacts ---
+coverage/
+.vitest/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# --- Storybook ---
+storybook-static/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+
+# --- OS / editor cruft ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# --- Misc generated files ---
+*.pid
+*.seed
+*.pid.lock
+*.pem
