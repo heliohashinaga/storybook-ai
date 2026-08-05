@@ -22,9 +22,9 @@ requires:
     any:
       - "alquimia"
       - "claude"
-      - "copilot"
       - "gemini"
       - "opencode"
+      - "pi"
 
 inputs:
   spec:
@@ -34,7 +34,7 @@ inputs:
   integration:
     type: string
     default: "auto"
-    prompt: "Integration to use (e.g. claude, copilot, gemini; 'auto' uses the project's initialized integration)"
+    prompt: "Integration to use (e.g. claude, pi, gemini; 'auto' uses the project's initialized integration)"
   scope:
     type: string
     default: "full"
