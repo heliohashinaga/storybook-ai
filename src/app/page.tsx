@@ -7,5 +7,5 @@
  * features, no identifiers, no feature copy — that is owned by T033.
  */
 export default function HomePage() {
-  return <section aria-label="Storybook AI" />;
+  return <section />;
 }
