@@ -58,5 +58,4 @@ Thumbs.db
 *.pid.lock
 *.pem
 
-# --- devloop subagent harness output (never commit) ---
 .pi-subagents/

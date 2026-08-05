@@ -1,8 +1,9 @@
 # AGENTS.md
 
 Instructions for AI coding agents working in this repository. Root file — applies
-to all work here. When a task touches `src/`, `.storybook/`, or tests, also load
-the project skill `.pi/skills/nextjs/SKILL.md`.
+to all work here. When a task touches `src/`, `.storybook/`, or tests, also
+load the user-level generic `nextjs` and `design-system` skills (framework and
+UI conventions).
 
 ## Project
 
@@ -66,9 +67,14 @@ Never commit `.env.local` or real credentials.
 - Validate with Zod at the boundary: client schema for fast field errors, **server
   re-validation** in the route before any provider call.
 - UI: tokenized Tailwind design system + shared primitives only — no ad-hoc values.
-  All user-facing strings (incl. validation/error/retry copy) through next-intl
-  catalogs (`pt-BR` + `en`); no hardcoded strings.
+  Use semantic design tokens (`background`/`text`/`accent`), never raw hex or
+  color literals in component code. All user-facing strings (incl.
+  validation/error/retry copy) through next-intl catalogs (`pt-BR` + `en`); no
+  hardcoded strings.
 - Remove dead code and unused deps before finishing; no commented-out blocks.
+- Accessibility bar (all UI): AA contrast (≥ 4.5:1) for normal text, visible
+  focus and full keyboard navigation, honor `prefers-reduced-motion`, and use
+  `aria-live`/`aria-busy` for async/loading states.
 
 ## Testing Rules
 
@@ -107,4 +113,4 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 - Feature artifacts: `specs/001-personalized-story-generation/` (`spec.md`,
   `plan.md`, `quickstart.md`, `tasks.md`, `contracts/story-generation.openapi.yaml`)
 - Constitution (principles, quality gates): `.specify/memory/constitution.md`
-- Framework/project conventions: `.pi/skills/nextjs/SKILL.md`
+- Framework/project conventions: user-level generic `nextjs` + `design-system` skills
