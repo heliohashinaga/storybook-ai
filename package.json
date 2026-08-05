@@ -1,0 +1,63 @@
+{
+  "name": "storybook-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22 <23"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "storybook:test": "storybook test",
+    "test:e2e": "playwright test",
+    "test:visual": "playwright test tests/visual",
+    "build": "next build"
+  },
+  "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
+    "next": "^16.3.0",
+    "next-intl": "^4.13.5",
+    "openai": "^7.4.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "sharp": "^0.35.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.62.1",
+    "@storybook/addon-a11y": "^10.5.6",
+    "@storybook/nextjs": "^10.5.6",
+    "@storybook/react": "^10.5.6",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.3",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.0.5",
+    "@vitest/coverage-v8": "^4.1.10",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.0",
+    "jsdom": "^30.0.1",
+    "msw": "^2.15.0",
+    "playwright": "^1.62.1",
+    "prettier": "^3.9.6",
+    "storybook": "^10.5.6",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.66.0",
+    "vitest": "^4.1.10"
+  }
+}
