@@ -31,3 +31,46 @@
 - **Docs status:** in-sync (README/quickstart consistent with bootstrap)
 - **Residual risks:** sandbox-only pnpm PATH + Chromium LD_LIBRARY_PATH workarounds (not committed); visual test is root-render smoke (approved baselines deferred to later feature tasks); per-module 90% safety coverage unexercisable until Phase 2; Gitleaks/Trivy unavailable (manual secret scan + prod audit clean)
 - **Route disposition:** APPROVED+SECURE → dispatch integrator to open/update PR from feat/phase-1-tooling
+
+## T009 — reviewer — Attempt 1 — 2026-08-05T21:55:13Z
+- **Feature/slice:** Phase 2 Foundational / T009 (test-first red)
+- **Gate:** reviewer (general code + build/tests + security skill)
+- **Commit SHA + paths:** `c35be4c`; `tests/unit/age-band.test.ts`, `tests/unit/story-preferences-schema.test.ts`
+- **Verdict:** CHANGES_REQUESTED
+- **Security:** SECURE
+- **Route:** worker-simple
+- **Commands run/results:** `pnpm test` expected-red (import-resolution only); `pnpm exec prettier --check tests/unit` pass; `git diff --check` pass; manual secret scan pass; gitleaks N/A
+- **Findings:** High — wrong-type rejection only covered for `age`; add numeric/null wrong-type cases for `locale` and `theme` before T010
+- **Docs status:** not-applicable
+- **Residual risks:** intentionally red until T010; strict schema required for name-rejection
+
+## T009 — reviewer — Attempt 2 — 2026-08-05T22:04:23Z
+- **Gate:** reviewer (re-review after remediation)
+- **Commit SHA + paths:** `c35be4c..HEAD`; `tests/unit/story-preferences-schema.test.ts`
+- **Verdict:** APPROVED
+- **Security:** SECURE
+- **Route:** none
+- **Commands run/results:** `pnpm test` expected-red (import-resolution only); prettier pass; `git diff --check` pass; manual secret scan pass
+- **Findings:** High none; Medium none; Low none
+- **Docs status:** not-applicable
+- **Residual risks:** assertions cannot run until T010; strict schema required for name rejection
+
+## T009 — tester — Attempt 1 — 2026-08-05T22:04:23Z
+- **Gate:** tester (conformance)
+- **Commit SHA + paths:** `c35be4c..HEAD`; T009 test files
+- **Verdict:** MEETS_TASK
+- **Route:** none
+- **Commands run/results:** `pnpm test` expected-red (2 fail on import, 4 pass); prettier pass; `src/features/` absent (correct)
+- **Findings:** none
+- **Docs status:** not-applicable
+- **Residual risks:** conformance held; executions blocked until T010
+
+## T009 — security-reviewer — Attempt 1 — 2026-08-05T22:04:23Z
+- **Gate:** security-reviewer (deep appsec, final state)
+- **Commit SHA + paths:** `c35be4c..b8f6c3c`; T009 test files
+- **Verdict:** SECURE
+- **Route:** none
+- **Commands run/results:** `pnpm test` expected-red; manual secret scan of diff pass; OWASP areas checked
+- **Findings:** Crit/High/Med/Low none; synthetic `Luna` fixture is non-sensitive and asserted-rejected
+- **Docs status:** not-applicable
+- **Residual risks:** do not merge independently into a green-required branch; re-review name-rejection when T010 makes schema executable
