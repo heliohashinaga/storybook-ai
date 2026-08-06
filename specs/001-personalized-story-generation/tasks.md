@@ -62,7 +62,8 @@ that every user story depends on.
     - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T012)
 - [x] T013 [P] Implement the platform-adaptable anonymous rate-limit interface in `src/lib/rate-limit.ts`; short-lived pseudo-anonymous key (e.g., salted, rotated hash of IP) with localized `429`, never retaining direct identifiers or story content.
     - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T013)
-- [ ] T014 [P] Configure `next-intl` and baseline Brazilian Portuguese UI messages in `src/i18n/config.ts` and `src/features/story-request/locales/pt-BR.json`.
+- [x] T014 [P] Configure `next-intl` and baseline Brazilian Portuguese UI messages in `src/i18n/config.ts` and `src/features/story-request/locales/pt-BR.json`.
+    - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T014)
 - [ ] T015 [P] Write failing schema/contract-shape tests for a three-scene safe story and for rejection of unknown/name fields in `tests/unit/story-response.test.ts`.
 - [ ] T016 Implement Zod schemas for `GenerateStoryRequest`, generated stories/scenes, typed failures, and direct-identifier rejection in `src/features/story-generation/server/schemas.ts`.
 - [ ] T017 Define the server-only `StoryGenerationProvider` interface and a deterministic fake-provider seam in `src/features/story-generation/server/story-generation-provider.ts` and `tests/fixtures/story-generation/provider-fixtures.ts`.

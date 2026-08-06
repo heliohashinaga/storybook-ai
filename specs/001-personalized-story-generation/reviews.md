@@ -108,6 +108,33 @@
 - **Docs status:** not-applicable
 - **Residual risks:** none
 
+## T014 — reviewer — Attempt 2 — 2026-08-05T23:40:00Z
+- **Gate:** reviewer-simple (re-review after lint remediation `528350a`; Attempt 1 returned no verdict)
+- **Commit SHA + paths:** `39c2e9b` + `528350a`; `src/i18n/config.ts`, `src/i18n/request.ts`, `src/features/story-request/locales/pt-BR.json`, `tests/unit/i18n-config.test.ts`
+- **Verdict:** APPROVED
+- **Route:** integrator (tester MEETS_TASK, security LOW_RISK)
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass; `pnpm lint` pass (zero warnings, _locale removed)
+- **Findings:** High none; Medium none; Low none
+- **Residual risks:** none
+
+## T014 — tester — Attempt 1 — 2026-08-05T23:36:00Z
+- **Gate:** tester-simple (conformance)
+- **Commit SHA + paths:** `39c2e9b`; `tests/unit/i18n-config.test.ts`
+- **Verdict:** MEETS_TASK (flagged lint warning `_locale` in production → remediated in `528350a`)
+- **Route:** worker-simple (lint) → security-triage
+- **Commands run/results:** `pnpm test tests/unit/i18n-config.test.ts` 4/4 pass; all 6 http-error messageKeys present; baseline strings localized
+- **Findings:** warning resolved (production `src/i18n/config.ts:15` unused `_locale`)
+- **Residual risks:** none
+
+## T014 — security-triage — Attempt 1 — 2026-08-05T23:36:51Z
+- **Gate:** security-triage (screening)
+- **Commit SHA + paths:** `39c2e9b`; `src/features/story-request/locales/pt-BR.json`, `src/i18n/config.ts`, `src/i18n/request.ts`
+- **Verdict:** LOW_RISK · non securitySensitive · no triggers
+- **Route:** none
+- **Commands run/results:** static UI strings only; no PII/child identifiers; next-intl sanitizes server-rendered content; no injection vector
+- **Findings:** Crit/High/Med/Low none
+- **Residual risks:** none
+
 ## T013 — reviewer — Attempt 2 — 2026-08-05T23:34:00Z
 - **Gate:** reviewer-simple (re-run after empty Attempt 1; general code + build/tests)
 - **Commit SHA + paths:** `2c54bfa` (impl), `dad0acd` (tests)
