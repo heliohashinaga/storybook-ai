@@ -1,22 +1,33 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { createRef } from "react";
 import { Button } from "./button";
 
 describe("Button", () => {
-  it("renders its children and defaults to the primary button type", () => {
+  it("renders children and defaults to type button", () => {
     render(<Button>Começar</Button>);
     const button = screen.getByRole("button", { name: "Começar" });
     expect(button).toBeInTheDocument();
     expect(button).toHaveAttribute("type", "button");
   });
 
-  it("applies the secondary variant class", () => {
-    render(<Button variant="secondary">Ler</Button>);
-    expect(screen.getByRole("button", { name: "Ler" })).toHaveClass(
-      "border",
-      "border-[color:var(--color-disabled)]"
-    );
+  it("forwards its ref to the native button element", () => {
+    const ref = createRef<HTMLButtonElement>();
+    render(<Button ref={ref}>Rótulo</Button>);
+    expect(ref.current).toBeInstanceOf(HTMLButtonElement);
+  });
+
+  it("is disabled when the disabled prop is set", () => {
+    render(<Button disabled>Desabilitado</Button>);
+    expect(screen.getByRole("button", { name: "Desabilitado" })).toBeDisabled();
+  });
+
+  it("announces loading state with aria-busy and disables interaction", () => {
+    render(<Button loading>Processando</Button>);
+    const button = screen.getByRole("button", { name: "Processando" });
+    expect(button).toHaveAttribute("aria-busy", "true");
+    expect(button).toBeDisabled();
   });
 
   it("runs onClick when clicked", async () => {
