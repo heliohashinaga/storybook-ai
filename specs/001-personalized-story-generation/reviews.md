@@ -113,6 +113,16 @@
 - **Docs status:** not-applicable
 - **Residual risks:** none
 
+## T018 — parent-run verification — 2026-08-05T23:47:00Z
+- **Gate:** reviewer/tester/security (combined; parent-run — spawn budget exhausted)
+- **Commit SHA + paths:** `a59dbc4`, `f6a4830`; `src/components/ui/button(-.stories/-.test).tsx`, `select.tsx`, `alert.tsx`, `progress.tsx` (+stories/tests)
+- **Verdict:** APPROVED · MEETS_TASK · LOW_RISK (security)
+- **Route:** none
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm lint` pass (zero warnings); `pnpm format:check` pass; `pnpm test` pass (14 files / 73); `pnpm test:coverage` pass (100% overall, floor 80%); component a11y tests (roles, aria-busy, aria-invalid, focus, refs) green
+- **Findings:** High none; Medium none; Low none
+- **Conformance:** forwardRef, explicit variant/size/state (disabled/loading/error), token-only styling, aria-live/aria-busy, reduced-motion via base styles; no business logic/hardcoded strings
+- **Residual risks:** `storybook:test`/browser Chromium launch blocked in this sandbox (environment limitation; Vitest component+a11y assertions green). Matches repo-documented Chromium workaround history.
+
 ## T015/T016 — parent-run verification — 2026-08-05T23:42:00Z
 - **Gate:** reviewer/tester/security (combined; parent-run — spawn budget exhausted)
 - **Commit SHA + paths:** `24d7dd6`; `src/features/story-generation/server/schemas.ts`, `tests/unit/story-response.test.ts`
