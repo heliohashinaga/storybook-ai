@@ -108,6 +108,33 @@
 - **Docs status:** not-applicable
 - **Residual risks:** none
 
+## T013 — reviewer — Attempt 2 — 2026-08-05T23:34:00Z
+- **Gate:** reviewer-simple (re-run after empty Attempt 1; general code + build/tests)
+- **Commit SHA + paths:** `2c54bfa` (impl), `dad0acd` (tests)
+- **Verdict:** APPROVED
+- **Route:** tester-simple → security-triage
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (9 files / 50; 6 T013 tests incl. injected-now determinism)
+- **Findings:** High none; Medium none; Low none
+- **Residual risks:** none
+
+## T013 — tester — Attempt 1 — 2026-08-05T23:33:00Z
+- **Gate:** tester-simple (conformance)
+- **Commit SHA + paths:** `dad0acd`; `tests/unit/rate-limit.test.ts` (test artifact only)
+- **Verdict:** MEETS_TASK
+- **Route:** security-triage
+- **Commands run/results:** `pnpm test` pass; all acceptance criteria (opaque stable key, salt/ip rotation, sliding window, injected now, independent keys) covered and green
+- **Findings:** none
+- **Residual risks:** none
+
+## T013 — security-triage — Attempt 1 — 2026-08-05T23:35:00Z
+- **Gate:** security-triage (screening)
+- **Commit SHA + paths:** `2c54bfa..dad0acd`; `src/lib/rate-limit.ts`
+- **Verdict:** LOW_RISK · non securitySensitive · no triggers
+- **Route:** none (no security-reviewer required)
+- **Commands run/results:** salted SHA-256 opaque bucket key; raw IP not logged/stored; bucket holds timestamps only; no child identifiers/story content; sha256 acceptable for short-lived pseudo-anonymity
+- **Findings:** Crit/High/Med/Low none
+- **Residual risks:** none
+
 ## T012 — reviewer — Attempt 1 — 2026-08-05T23:27:00Z
 - **Gate:** reviewer-simple (general code + build/tests)
 - **Commit SHA + paths:** `5e2ae36`; `src/lib/env.ts`, `src/lib/http-errors.ts`, `tests/unit/env.test.ts`, `tests/unit/http-errors.test.ts`, `vitest.config.ts`, `package.json`, `pnpm-lock.yaml`
