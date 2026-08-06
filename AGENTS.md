@@ -54,6 +54,25 @@ pnpm test:visual     # approved screenshots, no unintended diff
 pnpm build           # production build must pass
 ```
 
+### Chromium native deps (Playwright / Storybook / visual tests)
+
+On a minimal Linux host, the headless Chromium that `storybook:test`, `test:e2e`
+and `test:visual` launch may be missing a native library (`libasound.so.2`;
+check with `ldd <chrome-headless-shell-binary> | grep "not found"`). If a test
+fails at browser launch, first run the dependency setup, then re-run:
+
+```bash
+# Recommended (requires root): install all system deps Playwright needs
+pnpm exec playwright install --with-deps chromium
+# Or, without root: vendor the missing lib into .playwright-deps/ (gitignored)
+sh scripts/setup-chromium-deps.sh
+```
+
+The three test scripts already wrap the runner via `scripts/run-with-chromium.sh`,
+which prepends `.playwright-deps/lib` to `LD_LIBRARY_PATH`. This is an
+environment/tooling concern, not part of the product; it is recorded in
+`specs/001-personalized-story-generation/reviews.md` (infra note, commit `f1ca309`).
+
 **Tests never call a live AI service.** Use deterministic provider fakes/MSW.
 Never commit `.env.local` or real credentials.
 

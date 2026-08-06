@@ -17,9 +17,9 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
-    "storybook:test": "start-server-and-test \"storybook dev -p 6006\" http://localhost:6006 \"test-storybook --url http://localhost:6006\"",
-    "test:e2e": "playwright test",
-    "test:visual": "playwright test tests/visual",
+    "storybook:test": "start-server-and-test \"storybook dev -p 6006\" http://localhost:6006 \"sh scripts/run-with-chromium.sh test-storybook --url http://localhost:6006\"",
+    "test:e2e": "sh scripts/run-with-chromium.sh playwright test",
+    "test:visual": "sh scripts/run-with-chromium.sh playwright test tests/visual",
     "build": "next build"
   },
   "dependencies": {
@@ -29,6 +29,7 @@
     "openai": "^7.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "server-only": "^0.0.1",
     "sharp": "^0.35.3",
     "zod": "^4.4.3"
   },

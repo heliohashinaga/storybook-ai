@@ -1,11 +1,20 @@
 import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3000;
-const DEFAULT_NATIVE_LIBRARY_PATH = "/usr/local/lib";
+// Chromium may need native libraries (e.g. libasound.so.2) to launch on a
+// minimal Linux host. Point at the project-local vendored copies produced by
+// `scripts/setup-chromium-deps.sh` (gitignored). scripts/run-with-chromium.sh
+// prepends the same path so the Playwright and Storybook test runners both
+// pick it up even when launched outside this config.
+const DEFAULT_NATIVE_LIBRARY_PATH = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  ".playwright-deps",
+  "lib"
+);
 
-// Chromium may need native libraries on Linux. Keep this runtime-only fallback
-// out of .env.example; preserve an explicit environment value when provided.
 if (
   process.platform === "linux" &&
   !process.env.LD_LIBRARY_PATH &&

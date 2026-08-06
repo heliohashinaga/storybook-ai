@@ -1,26 +1,71 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+
+export type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+export type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: "primary" | "secondary";
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Loading state: disables interaction, renders a spinner, aria-busy. */
+  loading?: boolean;
 }
 
-/**
- * Minimal shared button primitive. Semantic tokens only (no ad-hoc values).
- * Full a11y + token styling coverage lands with the design-system work in
- * Phase 3; this stub exists to validate the Storybook/a11y test pipeline.
- */
-export function Button({ children, variant = "primary", type = "button", ...rest }: ButtonProps) {
-  const base =
-    "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors";
-  const styles =
-    variant === "primary"
-      ? "bg-[color:var(--color-accent)] text-white hover:bg-[color:var(--color-accent-hover)]"
-      : "bg-[color:var(--color-surface)] text-[color:var(--color-text)] border border-[color:var(--color-disabled)]";
+const base =
+  "inline-flex items-center justify-center gap-xs rounded-md font-title transition-colors duration-base " +
+  "disabled:pointer-events-none disabled:opacity-60 disabled:bg-disabled disabled:text-text-subtle";
 
+const variants: Record<ButtonVariant, string> = {
+  primary: "bg-accent text-white hover:bg-accent-hover",
+  secondary: "bg-surface text-text border border-disabled hover:border-text-subtle",
+  danger: "bg-danger text-white hover:opacity-90",
+  ghost: "bg-transparent text-text hover:bg-disabled",
+};
+
+const sizes: Record<ButtonSize, string> = {
+  sm: "px-sm py-xs text-caption",
+  md: "px-md py-sm text-body",
+  lg: "px-lg py-md text-body",
+};
+
+const Spinner = () => (
+  <span
+    aria-hidden="true"
+    className="inline-block size-sm animate-spin rounded-full border-2 border-current border-t-transparent"
+  />
+);
+
+/**
+ * Shared button primitive. Token-only styling, no business logic. Forwarded
+ * ref, explicit variant/size/state API (disabled, loading, error). Loading is
+ * announced with aria-busy and disabled so the control cannot be re-activated.
+ */
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  {
+    children,
+    variant = "primary",
+    size = "md",
+    loading = false,
+    className,
+    type = "button",
+    disabled,
+    ...rest
+  },
+  ref
+) {
+  const isDisabled = disabled || loading;
   return (
-    <button type={type} className={`${base} ${styles}`} {...rest}>
+    <button
+      ref={ref}
+      type={type}
+      className={`${base} ${variants[variant]} ${sizes[size]} ${className ?? ""}`}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
+      aria-disabled={isDisabled || undefined}
+      {...rest}
+    >
+      {loading ? <Spinner /> : null}
       {children}
     </button>
   );
-}
+});

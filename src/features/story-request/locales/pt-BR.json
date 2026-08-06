@@ -1,0 +1,32 @@
+{
+  "story": {
+    "form": {
+      "title": "Crie uma história personalizada",
+      "age": {
+        "label": "Idade da criança",
+        "placeholder": "Digite a idade (2 a 12)",
+        "hint": "A idade fica apenas no seu navegador e nunca é enviada."
+      },
+      "locale": {
+        "label": "Idioma da história"
+      },
+      "theme": {
+        "label": "Tema da história"
+      },
+      "submit": "Criar história",
+      "submitting": "Criando sua história…"
+    },
+    "progress": {
+      "generating": "Escrevendo e ilustrando sua história…",
+      "reviewing": "Verificando a segurança do conteúdo…"
+    },
+    "error": {
+      "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
+      "unsupportedLocale": "Idioma não suportado. Escolha entre português (Brasil) e inglês.",
+      "safeAlternativeUnavailable": "Não foi possível gerar uma história segura. Tente novamente.",
+      "tryAgainLater": "Muitas solicitações. Aguarde um pouco e tente novamente.",
+      "generationUnavailable": "O gerador de histórias está indisponível no momento. Tente novamente.",
+      "generationTimeout": "A geração da história demorou demais. Tente novamente."
+    }
+  }
+}

@@ -1,8 +1,17 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
+import { fileURLToPath } from "node:url";
+
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      // server-only is a no-op outside the Next.js server boundary; allow
+      // server modules (src/lib/env) to be imported by Node tests.
+      "server-only": fileURLToPath(new URL("./node_modules/server-only/empty.js", import.meta.url)),
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,
