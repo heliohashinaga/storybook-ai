@@ -83,7 +83,13 @@ async function moderateCandidate(
   if (hasForbiddenContent(candidate.title)) return null;
 
   for (const scene of candidate.scenes) {
-    if (hasForbiddenContent(scene.title) || hasForbiddenContent(scene.body)) return null;
+    if (
+      hasForbiddenContent(scene.title) ||
+      hasForbiddenContent(scene.body) ||
+      hasForbiddenContent(scene.illustrationPrompt)
+    ) {
+      return null;
+    }
 
     const text = await provider.moderateText(scene.body);
     if (!text.safe) return null;

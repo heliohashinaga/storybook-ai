@@ -104,6 +104,21 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     expect(await screen.findByText(/entre 2 e 12 anos/i)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
+
+  it("blocks an empty age locally without submitting", async () => {
+    const onSubmit = vi.fn(
+      async (_r: GenerateStoryRequest): Promise<SubmitResult> => {
+        void _r;
+        return { ok: true };
+      },
+    );
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    expect(await screen.findByText(/entre 2 e 12 anos/i)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 });
 
 describe("StoryRequestForm — submission states", () => {

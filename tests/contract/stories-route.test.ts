@@ -94,14 +94,16 @@ describe("POST /api/stories — route", () => {
   it("maps provider timeout to 504 and availability failure to 502", async () => {
     const timeout = createFakeProvider({ scenario: "timeout" });
     const h1 = createStoriesHandler(makeDeps({ provider: timeout.provider }));
-    expect(
-      (await post(h1, { ageBand: "5-7", locale: "pt-BR", theme: "courage" })).status,
-    ).toBe(504);
+    const res504 = await post(h1, { ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(res504.status).toBe(504);
+    expect(res504.headers.get("cache-control")).toBe("no-store");
+    expect((await res504.json()).code).toBe("generation_timeout");
 
     const unavailable = createFakeProvider({ scenario: "unavailable" });
     const h2 = createStoriesHandler(makeDeps({ provider: unavailable.provider }));
-    expect(
-      (await post(h2, { ageBand: "5-7", locale: "pt-BR", theme: "courage" })).status,
-    ).toBe(502);
+    const res502 = await post(h2, { ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(res502.status).toBe(502);
+    expect(res502.headers.get("cache-control")).toBe("no-store");
+    expect((await res502.json()).code).toBe("generation_unavailable");
   });
 });

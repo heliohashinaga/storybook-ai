@@ -181,6 +181,8 @@ describe("provider pipeline — response-size guard", () => {
       maxIllustrationDataUriLength: 128,
     });
     expect(result.ok).toBe(true);
+    // A retry happened: the first attempt failed (oversize) and the set was generated again.
+    expect(calls).toBeGreaterThan(3);
   });
 
   it("reports generation_unavailable when every attempt is oversized", async () => {

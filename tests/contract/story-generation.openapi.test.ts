@@ -26,13 +26,9 @@ import {
  * error bodies with a stable `code` + localized `messageKey` + `retryable`.
  *
  * Route-level HTTP assertions (real status codes and headers from the handler)
- * are added by T028 once `src/app/api/stories/route.ts` exists.
+ * live in `tests/contract/stories-route.test.ts` (T028), which asserts
+ * `Cache-Control: no-store` on success and every error response.
  */
-
-// Header contract: the anonymous story response must never be persisted by an
-// intermediary or the browser. T028 must emit this exact value on success and
-// on every error response.
-const STORY_CACHE_CONTROL = "no-store" as const;
 
 const request = { ageBand: "5-7", locale: "pt-BR", theme: "courage" } as const;
 
@@ -193,10 +189,6 @@ describe("POST /api/stories — error contract (GenerationError + status codes)"
 });
 
 describe("POST /api/stories — response header contract", () => {
-  it("declares Cache-Control: no-store so the anonymous story is never persisted", () => {
-    expect(STORY_CACHE_CONTROL).toBe("no-store");
-  });
-
   it("has retryable=true on the 429 so the client knows it may retry after cooling off", () => {
     expect(rateLimited.retryable).toBe(true);
   });

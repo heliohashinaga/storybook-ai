@@ -182,8 +182,24 @@ describe("safety pipeline — template-marker and identifier rejection", () => {
       if (result.ok) return;
       expect(result.error.code).toBe("unsafe_unrecoverable");
       expect(count()).toBe(2);
-      // No marker ever leaks into a returned candidate (there is none to return).
-      expect(result).not.toBeUndefined();
+      // The offending marker/identifier never leaks into the error body either.
+      expect(JSON.stringify(result.error)).not.toContain(marker);
     },
   );
+
+  it("rejects a template marker in an illustration prompt and regenerates", async () => {
+    const { provider, count } = sequentialFake([
+      (i) =>
+        mutateScene(buildSafeCandidate(i), 0, (s) => {
+          s.illustrationPrompt = `${s.illustrationPrompt} {{child}}`;
+        }),
+      (i) => buildSafeCandidate(i),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.candidate.safetyDecision).toBe("regenerated");
+    expect(count()).toBe(2);
+    expect(JSON.stringify(result.candidate)).not.toContain("{{child}}");
+  });
 });
