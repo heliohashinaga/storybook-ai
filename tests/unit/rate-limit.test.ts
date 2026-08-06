@@ -63,4 +63,13 @@ describe("InMemoryRateLimiter sliding window", () => {
     expect((await limiter.consume("kb")).allowed).toBe(true);
     expect((await limiter.consume("ka")).allowed).toBe(false);
   });
+
+  it("accepts an injected now timestamp (no wall-clock dependence)", async () => {
+    const limiter = new InMemoryRateLimiter({ windowMs: 10_000, limit: 1 });
+    expect((await limiter.consume("kn", 1000)).allowed).toBe(true);
+    expect((await limiter.consume("kn", 2000)).allowed).toBe(false);
+    // At now=12000 the earliest hit (1000) and the denied hit (2000) are both
+    // outside the sliding window (start 2000, exclusive), so a new window opens.
+    expect((await limiter.consume("kn", 12_000)).allowed).toBe(true);
+  });
 });
