@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createFakeProvider, buildSafeCandidate } from "../fixtures/story-generation/provider-fixtures";
+import {
+  createFakeProvider,
+  buildSafeCandidate,
+} from "../fixtures/story-generation/provider-fixtures";
 import { ProviderError } from "../../src/features/story-generation/server/story-generation-provider";
 
 const input = { ageBand: "5-7", locale: "pt-BR", theme: "courage" } as const;
@@ -10,7 +13,9 @@ describe("fake provider fixtures", () => {
     const story = await fake.provider.generateStory(input);
     expect(story.scenes).toHaveLength(3);
     expect(await fake.provider.moderateText(story.scenes[0]!.body)).toEqual({ safe: true });
-    expect(await fake.provider.moderateImage(story.scenes[0]!.illustrationPrompt)).toEqual({ safe: true });
+    expect(await fake.provider.moderateImage(story.scenes[0]!.illustrationPrompt)).toEqual({
+      safe: true,
+    });
   });
 
   it("unsafe-then-safe: first candidate is rejected, second is safe, counted for regeneration", async () => {

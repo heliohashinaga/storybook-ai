@@ -61,7 +61,14 @@ describe("three-scene safe story schema", () => {
   });
 
   it("rejects a scene whose illustration is not an optimized webp data URI", () => {
-    const badScene = { ...validStory(), scenes: [validScene(1), validScene(2), { ...validScene(3), illustrationDataUri: "https://cdn.example.com/a.png" }] };
+    const badScene = {
+      ...validStory(),
+      scenes: [
+        validScene(1),
+        validScene(2),
+        { ...validScene(3), illustrationDataUri: "https://cdn.example.com/a.png" },
+      ],
+    };
     expect(storyResponseSchema.safeParse(badScene).success).toBe(false);
   });
 

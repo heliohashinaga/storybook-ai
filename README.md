@@ -82,16 +82,16 @@ pnpm test:visual
 pnpm build
 ```
 
-| Command                           | Expected result                                                                  |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| `pnpm lint` / `pnpm format:check` | No lint warnings or formatting changes                                           |
-| `pnpm typecheck`                  | Strict TypeScript with no new `any` in production code                           |
-| `pnpm test`                       | Unit, component, API contract, and pipeline tests pass with fixtures/fakes        |
+| Command                           | Expected result                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `pnpm lint` / `pnpm format:check` | No lint warnings or formatting changes                                             |
+| `pnpm typecheck`                  | Strict TypeScript with no new `any` in production code                             |
+| `pnpm test`                       | Unit, component, API contract, and pipeline tests pass with fixtures/fakes         |
 | `pnpm test:coverage`              | ≥80% overall; ≥90% for safety, validation, identifier exclusion, and orchestration |
-| `pnpm storybook:test`             | All stories (default/loading/error/edge) and accessibility checks pass            |
-| `pnpm test:e2e`                   | pt-BR and EN journeys with a fake provider; no live AI calls                     |
-| `pnpm test:visual`                | No unintended diff in approved screenshots                                       |
-| `pnpm build`                      | Production build serves the anonymous flow                                       |
+| `pnpm storybook:test`             | All stories (default/loading/error/edge) and accessibility checks pass             |
+| `pnpm test:e2e`                   | pt-BR and EN journeys with a fake provider; no live AI calls                       |
+| `pnpm test:visual`                | No unintended diff in approved screenshots                                         |
+| `pnpm build`                      | Production build serves the anonymous flow                                         |
 
 ## Structure (planned)
 

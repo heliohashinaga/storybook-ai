@@ -1,4 +1,10 @@
-import { ProviderError, type GeneratedStoryCandidate, type ModerationDecision, type ProviderStoryInput, type StoryGenerationProvider } from "../../../src/features/story-generation/server/story-generation-provider";
+import {
+  ProviderError,
+  type GeneratedStoryCandidate,
+  type ModerationDecision,
+  type ProviderStoryInput,
+  type StoryGenerationProvider,
+} from "../../../src/features/story-generation/server/story-generation-provider";
 
 /**
  * Deterministic fake provider for tests. Never calls a live AI service and
@@ -9,7 +15,12 @@ import { ProviderError, type GeneratedStoryCandidate, type ModerationDecision, t
 /** Marker content that the fake's moderation rejects by default. */
 const UNSAFE = "unsafecontent";
 
-function scene(ordinal: number): { ordinal: number; title: string; body: string; illustrationPrompt: string } {
+function scene(ordinal: number): {
+  ordinal: number;
+  title: string;
+  body: string;
+  illustrationPrompt: string;
+} {
   return {
     ordinal,
     title: `Título ${ordinal}`,
@@ -26,12 +37,7 @@ export function buildSafeCandidate(input: ProviderStoryInput): GeneratedStoryCan
 }
 
 export type FakeScenario =
-  | "safe"
-  | "unsafe-then-safe"
-  | "double-unsafe"
-  | "unavailable"
-  | "timeout"
-  | "invalid";
+  "safe" | "unsafe-then-safe" | "double-unsafe" | "unavailable" | "timeout" | "invalid";
 
 export interface FakeProvider {
   provider: StoryGenerationProvider;
@@ -68,9 +74,7 @@ export function createFakeProvider(options: Options = {}): FakeProvider {
       const bad = buildSafeCandidate(input);
       return {
         title: bad.title,
-        scenes: bad.scenes.map((s, i) =>
-          i === 0 ? { ...s, body: `${s.body} ${UNSAFE}` } : s,
-        ),
+        scenes: bad.scenes.map((s, i) => (i === 0 ? { ...s, body: `${s.body} ${UNSAFE}` } : s)),
       };
     }
     if (scenario === "double-unsafe" && generateCalls === 2) {
