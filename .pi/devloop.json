@@ -1,6 +1,6 @@
 {
   "tasksPath": "specs/001-personalized-story-generation/tasks.md",
   "stageTimeoutMs": {
-    "planner": 600000
+    "planner": 1200000
   }
 }
