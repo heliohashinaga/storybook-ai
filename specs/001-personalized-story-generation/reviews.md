@@ -2,6 +2,14 @@
 > allowance depleted), so reviewer/tester/security gates for T015–T018 were run **directly by the
 > parent orchestrator** (real typecheck/lint/test/coverage + manual secret/privacy scan), not by
 > dispatched subagents. Results are recorded with the same severity taxonomy.
+>
+> **Infra — Chromium native lib fix (`f1ca309`):** `storybook:test` / `test:e2e` / `test:visual` were
+> un-blocked. Root cause was a single missing host library (`libasound.so.2`); fixed by adding
+> `scripts/setup-chromium-deps.sh` (uses `playwright install --with-deps` with root, or vendors the
+> lib into gitignored `.playwright-deps/` without root) and `scripts/run-with-chromium.sh`. The
+> scripts wrap the three test commands and `playwright.config.ts` points at the project-local lib.
+> Verified: `test:e2e` 1 passed, `storybook:test` 4 suites / 18 tests green (0 a11y violations),
+> `test:visual` 1 passed. Recorded in AGENTS.md under Commands.
 
 ## Phase 1 tooling (T001–T008) — Review — Attempt 1 — 2026-08-05T05:23Z
 
