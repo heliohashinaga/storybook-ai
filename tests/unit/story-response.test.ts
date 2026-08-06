@@ -1,20 +1,15 @@
 import { describe, expect, it } from "vitest";
-import {
-  generateRequestSchema,
-  storyResponseSchema,
-} from "../../src/features/story-generation/server/schemas";
+import { parseStoryResponse } from "../../src/features/story-reader/client/story-response";
 
-const request = { ageBand: "5-7", locale: "pt-BR", theme: "courage" } as const;
+const webpDataUri = "data:image/webp;base64,QUJDRA";
 
-const dataUri = "data:image/webp;base64,AAAA";
-
-function validScene(ordinal: number) {
+function scene(ordinal: number) {
   return {
     ordinal,
-    title: `Scene ${ordinal}`,
-    body: `Body text for scene ${ordinal}.`,
-    illustrationDataUri: dataUri,
-    altText: `Alt text for scene ${ordinal}.`,
+    title: `Título ${ordinal}`,
+    body: `Texto da cena ${ordinal}.`,
+    illustrationDataUri: webpDataUri,
+    altText: `Ilustração da cena ${ordinal}.`,
   };
 }
 
@@ -24,56 +19,88 @@ function validStory() {
     ageBand: "5-7",
     theme: "courage",
     safetyDecision: "approved",
-    title: "A timely adventure",
-    scenes: [validScene(1), validScene(2), validScene(3)],
+    title: "A missão da estrelinha",
+    scenes: [scene(1), scene(2), scene(3)],
   };
 }
 
-describe("GenerateStoryRequest schema", () => {
-  it("accepts only ageBand, locale, and theme", () => {
-    expect(generateRequestSchema.safeParse(request).success).toBe(true);
+function jsonResponse(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+describe("story-response — approved story parsing", () => {
+  it("parses a 200 approved story into a validated GeneratedStory", async () => {
+    const result = await parseStoryResponse(jsonResponse(validStory(), 200));
+    expect(result.status).toBe("success");
+    if (result.status !== "success") return;
+    expect(result.story.title).toBe("A missão da estrelinha");
+    expect(result.story.scenes).toHaveLength(3);
+    expect(result.story.safetyDecision).toBe("approved");
   });
 
-  it("rejects an unknown or direct-identifier field such as name", () => {
-    const result = generateRequestSchema.safeParse({ ...request, name: "Luna" });
-    expect(result.success).toBe(false);
+  it("surfaces a typed error when a 200 body is not a valid story", async () => {
+    const bad = validStory();
+    bad.scenes = [scene(1), scene(2)];
+    const result = await parseStoryResponse(jsonResponse(bad, 200));
+    expect(result.status).toBe("error");
+    if (result.status !== "error") return;
+    expect(result.error.code).toBe("generation_unavailable");
+    expect(JSON.stringify(result.error)).not.toMatch(/openai|provider/);
   });
 
-  it("rejects an unsupported theme and age band", () => {
-    expect(generateRequestSchema.safeParse({ ...request, theme: "spooky" }).success).toBe(false);
-    expect(generateRequestSchema.safeParse({ ...request, ageBand: "99" }).success).toBe(false);
+  it("surfaces a typed error when the 200 body is not JSON", async () => {
+    const result = await parseStoryResponse(
+      new Response("<html>oops</html>", { status: 200 }),
+    );
+    expect(result.status).toBe("error");
+    if (result.status !== "error") return;
+    expect(result.error.retryable).toBe(true);
   });
 });
 
-describe("three-scene safe story schema", () => {
-  it("accepts a complete three-scene approved story", () => {
-    expect(storyResponseSchema.safeParse(validStory()).success).toBe(true);
+describe("story-response — typed error mapping", () => {
+  it("passes through a valid server error body", async () => {
+    const result = await parseStoryResponse(
+      jsonResponse({ code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true }, 429),
+    );
+    expect(result).toEqual({
+      status: "error",
+      error: { code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true },
+    });
   });
 
-  it("rejects a story that is not exactly three scenes", () => {
-    const twoScenes = { ...validStory(), scenes: [validScene(1), validScene(2)] };
-    expect(storyResponseSchema.safeParse(twoScenes).success).toBe(false);
+  it("never surfaces raw provider content from an error body", async () => {
+    const body = { code: "invalid_input", messageKey: "story.error.invalidInput", retryable: false };
+    const result = await parseStoryResponse(jsonResponse(body, 400));
+    expect(result.status).toBe("error");
+    if (result.status !== "error") return;
+    expect(Object.keys(result.error).sort()).toEqual(["code", "messageKey", "retryable"]);
+    expect(JSON.stringify(result.error)).not.toMatch(/openai|status|stack/);
   });
 
-  it("rejects an unknown or direct-identifier field", () => {
-    const withName = { ...validStory(), name: "Luna" };
-    expect(storyResponseSchema.safeParse(withName).success).toBe(false);
+  it("falls back to a status-derived error when the body is invalid or missing", async () => {
+    const result = await parseStoryResponse(jsonResponse({ "not-an-error": true }, 504));
+    expect(result.status).toBe("error");
+    if (result.status !== "error") return;
+    expect(result.error.code).toBe("generation_timeout");
+    expect(result.error.messageKey).toBe("story.error.generationTimeout");
+    expect(result.error.retryable).toBe(true);
   });
 
-  it("rejects a scene whose illustration is not an optimized webp data URI", () => {
-    const badScene = {
-      ...validStory(),
-      scenes: [
-        validScene(1),
-        validScene(2),
-        { ...validScene(3), illustrationDataUri: "https://cdn.example.com/a.png" },
-      ],
-    };
-    expect(storyResponseSchema.safeParse(badScene).success).toBe(false);
-  });
-
-  it("accepts a regenerated (safety-approved) story", () => {
-    const regen = { ...validStory(), safetyDecision: "regenerated" };
-    expect(storyResponseSchema.safeParse(regen).success).toBe(true);
+  it("falls back per status for 400/422/429 and defaults for unknown statuses", async () => {
+    const codes = await Promise.all(
+      [400, 422, 429, 599].map((status) =>
+        parseStoryResponse(jsonResponse("nope", status)),
+      ),
+    );
+    expect(codes.map((r) => (r.status === "error" ? r.error.code : null))).toEqual([
+      "invalid_input",
+      "unsafe_unrecoverable",
+      "rate_limited",
+      "generation_unavailable",
+    ]);
   });
 });

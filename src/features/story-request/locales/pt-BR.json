@@ -28,6 +28,11 @@
       "tryAgainLater": "Muitas solicitações. Aguarde um pouco e tente novamente.",
       "generationUnavailable": "O gerador de histórias está indisponível no momento. Tente novamente.",
       "generationTimeout": "A geração da história demorou demais. Tente novamente."
+    },
+    "reader": {
+      "title": "Sua história",
+      "sceneLabel": "Cena {ordinal}",
+      "newStory": "Criar outra história"
     }
   }
 }
