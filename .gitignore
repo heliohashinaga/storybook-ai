@@ -33,6 +33,9 @@ playwright-report/
 blob-report/
 playwright/.cache/
 
+# Vendored Chromium native libraries (see scripts/setup-chromium-deps.sh)
+.playwright-deps/
+
 # --- Storybook ---
 storybook-static/
 
