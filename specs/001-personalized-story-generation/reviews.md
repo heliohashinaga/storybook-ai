@@ -1,3 +1,8 @@
+> **Note (spawn budget):** From T015 onward the session's subagent spawn budget was exhausted (grant
+> allowance depleted), so reviewer/tester/security gates for T015–T018 were run **directly by the
+> parent orchestrator** (real typecheck/lint/test/coverage + manual secret/privacy scan), not by
+> dispatched subagents. Results are recorded with the same severity taxonomy.
+
 ## Phase 1 tooling (T001–T008) — Review — Attempt 1 — 2026-08-05T05:23Z
 
 - **Feature/slice:** Phase 1 tooling setup — T001 bootstrap, T008 env safety, T002+T004 framework/tokens, T003+T005+T006+T007 quality/test tooling
@@ -107,6 +112,25 @@
 - **Findings:** none; T009 residual (strict name-rejection) now executable and passing — `.strict()` without it would fail
 - **Docs status:** not-applicable
 - **Residual risks:** none
+
+## T015/T016 — parent-run verification — 2026-08-05T23:42:00Z
+- **Gate:** reviewer/tester/security (combined; parent-run — spawn budget exhausted)
+- **Commit SHA + paths:** `24d7dd6`; `src/features/story-generation/server/schemas.ts`, `tests/unit/story-response.test.ts`
+- **Verdict:** APPROVED · MEETS_TASK · LOW_RISK (security)
+- **Route:** none
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (story-response 8/8; full suite 11 files / 63); `pnpm lint` pass; `git diff --check` clean; manual secret scan clean; only negative `name`/`Luna` assertions (rejection tests)
+- **Findings:** High none; Medium none; Low none
+- **Conformance:** schemas match OpenAPI (strict, 3 scenes, webp data-uri regex, safeError without internal detail)
+- **Residual risks:** none
+
+## T017 — parent-run verification — 2026-08-05T23:42:30Z
+- **Gate:** reviewer/tester/security (combined; parent-run — spawn budget exhausted)
+- **Commit SHA + paths:** `2e77e6d`; `src/features/story-generation/server/story-generation-provider.ts`, `tests/fixtures/story-generation/provider-fixtures.ts`, `tests/unit/provider-fixtures.test.ts`
+- **Verdict:** APPROVED · MEETS_TASK · LOW_RISK (security)
+- **Route:** none
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (provider-fixtures 6/6); `pnpm lint` pass; manual secret/privacy scan clean; fake records only ageBand/locale/theme, never live AI or identifiers
+- **Findings:** High none; Medium none; Low none
+- **Residual risks:** fakes currently unused by a live pipeline (consumed from Phase 3 tests); seam + deterministic scenarios in place
 
 ## T014 — reviewer — Attempt 2 — 2026-08-05T23:40:00Z
 - **Gate:** reviewer-simple (re-review after lint remediation `528350a`; Attempt 1 returned no verdict)

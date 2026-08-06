@@ -64,9 +64,12 @@ that every user story depends on.
     - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T013)
 - [x] T014 [P] Configure `next-intl` and baseline Brazilian Portuguese UI messages in `src/i18n/config.ts` and `src/features/story-request/locales/pt-BR.json`.
     - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T014)
-- [ ] T015 [P] Write failing schema/contract-shape tests for a three-scene safe story and for rejection of unknown/name fields in `tests/unit/story-response.test.ts`.
-- [ ] T016 Implement Zod schemas for `GenerateStoryRequest`, generated stories/scenes, typed failures, and direct-identifier rejection in `src/features/story-generation/server/schemas.ts`.
-- [ ] T017 Define the server-only `StoryGenerationProvider` interface and a deterministic fake-provider seam in `src/features/story-generation/server/story-generation-provider.ts` and `tests/fixtures/story-generation/provider-fixtures.ts`.
+- [x] T015 [P] Write failing schema/contract-shape tests for a three-scene safe story and for rejection of unknown/name fields in `tests/unit/story-response.test.ts`.
+    - Review: APPROVED/MEETS_TASK/LOW_RISK (parent-run) · test-first red→green with T016 · [reviews.md](reviews.md#T015/T016)
+- [x] T016 Implement Zod schemas for `GenerateStoryRequest`, generated stories/scenes, typed failures, and direct-identifier rejection in `src/features/story-generation/server/schemas.ts`.
+    - Review: APPROVED/MEETS_TASK/LOW_RISK (parent-run) · [reviews.md](reviews.md#T015/T016)
+- [x] T017 Define the server-only `StoryGenerationProvider` interface and a deterministic fake-provider seam in `src/features/story-generation/server/story-generation-provider.ts` and `tests/fixtures/story-generation/provider-fixtures.ts`.
+    - Review: APPROVED/MEETS_TASK/LOW_RISK (parent-run) · [reviews.md](reviews.md#T017)
 - [ ] T018 Create accessible shared UI primitives for buttons, form controls, alerts, and progress states in `src/components/ui/button.tsx`, `src/components/ui/select.tsx`, `src/components/ui/alert.tsx`, and `src/components/ui/progress.tsx`; explicit variant/size/state API (disabled, loading, error), forwarded refs, no business logic, and the a11y bar (AA 4.5:1 contrast, keyboard navigation, visible focus, `aria-live`/`aria-busy`, `prefers-reduced-motion`).
 
 **Checkpoint**: Shared validation, catalogs, error types, locale baseline, provider seam, rate-limit seam, and reusable accessible primitives are ready. No client or API boundary accepts a name/direct identifier.
