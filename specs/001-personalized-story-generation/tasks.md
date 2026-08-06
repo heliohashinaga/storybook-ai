@@ -52,9 +52,11 @@ that every user story depends on.
 
 **⚠️ CRITICAL**: Complete this phase before any user-story implementation.
 
-- [ ] T009 [P] Write failing age-band and story-preferences validation tests in `tests/unit/age-band.test.ts` and `tests/unit/story-preferences-schema.test.ts` for ages 2–12, `pt-BR`/`en`, and allow-listed themes.
+- [x] T009 [P] Write failing age-band and story-preferences validation tests in `tests/unit/age-band.test.ts` and `tests/unit/story-preferences-schema.test.ts` for ages 2–12, `pt-BR`/`en`, and allow-listed themes.
+    - Review: APPROVED (reviewer) · MEETS_TASK (tester) · SECURE (security-reviewer) · [reviews.md](reviews.md#T009)
   - Review: APPROVED + SECURE (reviewer), MEETS_TASK (tester), SECURE (security-reviewer), attempt 2 — [reviews.md](reviews.md#T009—reviewer—Attempt-1—2026-08-05T21-55-13Z)
-- [ ] T010 Implement `AgeBand`, `Locale`, `Theme`, age derivation, and browser-only `StoryPreferences` schemas in `src/features/story-request/client/age-band.ts` and `src/features/story-request/client/story-preferences-schema.ts`.
+- [x] T010 Implement `AgeBand`, `Locale`, `Theme`, age derivation, and browser-only `StoryPreferences` schemas in `src/features/story-request/client/age-band.ts` and `src/features/story-request/client/story-preferences-schema.ts`.
+    - Review: APPROVED (reviewer) · MEETS_TASK (tester) · SECURE (security-reviewer) · [reviews.md](reviews.md#T010)
     - Review: APPROVED + SECURE (reviewer, after remediation d8d9fdd), MEETS_TASK (tester), SECURE (security-reviewer) — [reviews.md](reviews.md#T010—reviewer—Attempt-1—2026-08-05T22-21-00Z)
 - [x] T011 [P] Define the typed locale/theme catalogs and default `pt-BR` behavior in `src/lib/story-catalog.ts`.
     - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T011)
