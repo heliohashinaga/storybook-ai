@@ -11,13 +11,8 @@ import {
 } from "../../src/lib/http-errors";
 
 describe("i18n message catalog", () => {
-  it("returns the pt-BR baseline catalog for the default locale", () => {
-    expect(getMessages("pt-BR")).toBe(ptBR);
-  });
-
-  it("falls back to pt-BR catalog when a catalog is not yet localised", () => {
-    // English catalogs land in Phase 6 (US4); until then en falls back safely.
-    expect(getMessages("en")).toBe(ptBR);
+  it("returns the pt-BR baseline catalog", () => {
+    expect(getMessages()).toBe(ptBR);
   });
 
   it("contains every messageKey referenced by the typed HTTP errors", () => {
