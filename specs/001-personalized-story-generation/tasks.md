@@ -56,7 +56,8 @@ that every user story depends on.
   - Review: APPROVED + SECURE (reviewer), MEETS_TASK (tester), SECURE (security-reviewer), attempt 2 — [reviews.md](reviews.md#T009—reviewer—Attempt-1—2026-08-05T21-55-13Z)
 - [ ] T010 Implement `AgeBand`, `Locale`, `Theme`, age derivation, and browser-only `StoryPreferences` schemas in `src/features/story-request/client/age-band.ts` and `src/features/story-request/client/story-preferences-schema.ts`.
     - Review: APPROVED + SECURE (reviewer, after remediation d8d9fdd), MEETS_TASK (tester), SECURE (security-reviewer) — [reviews.md](reviews.md#T010—reviewer—Attempt-1—2026-08-05T22-21-00Z)
-- [ ] T011 [P] Define the typed locale/theme catalogs and default `pt-BR` behavior in `src/lib/story-catalog.ts`.
+- [x] T011 [P] Define the typed locale/theme catalogs and default `pt-BR` behavior in `src/lib/story-catalog.ts`.
+    - Review: APPROVED (reviewer) · MEETS_TASK (tester) · LOW_RISK (security-triage) · [reviews.md](reviews.md#T011)
 - [ ] T012 [P] Implement validated server environment access and typed sanitized HTTP errors in `src/lib/env.ts` and `src/lib/http-errors.ts`.
 - [ ] T013 [P] Implement the platform-adaptable anonymous rate-limit interface in `src/lib/rate-limit.ts`; short-lived pseudo-anonymous key (e.g., salted, rotated hash of IP) with localized `429`, never retaining direct identifiers or story content.
 - [ ] T014 [P] Configure `next-intl` and baseline Brazilian Portuguese UI messages in `src/i18n/config.ts` and `src/features/story-request/locales/pt-BR.json`.

@@ -108,6 +108,38 @@
 - **Docs status:** not-applicable
 - **Residual risks:** none
 
+## T011 — reviewer — Attempt 1 — 2026-08-05T23:23:00Z
+- **Feature/slice:** Phase 2 Foundational / T011 (implementation)
+- **Gate:** reviewer-simple (general code + build/tests)
+- **Commit SHA + paths:** `9f03ed6`; `src/lib/story-catalog.ts`, `tests/unit/story-catalog.test.ts`
+- **Verdict:** APPROVED
+- **Security:** delegated to security-triage (this gate does not run appsec)
+- **Route:** tester-simple
+- **Commands run/results:** `pnpm typecheck` pass; `pnpm test` pass (5 files / 29); work committed on `feat/phase-2-foundational`
+- **Findings:** High none; Medium none; Low none
+- **Docs status:** not-applicable (reviews.md/tasks.md are infra)
+- **Residual risks:** none
+
+## T011 — tester — Attempt 1 — 2026-08-05T23:24:15Z
+- **Gate:** tester-simple (conformance)
+- **Commit SHA + paths:** `d4b5d6c`; `tests/unit/story-catalog.test.ts` (test artifact only)
+- **Verdict:** MEETS_TASK
+- **Route:** security-triage
+- **Commands run/results:** `pnpm test` pass (5 files / 31 tests, +2 no-drift/exact-label); `pnpm typecheck` pass; prettier pass; `git diff --check` clean
+- **Findings:** none; added no-drift tests comparing catalog to schema values (single source of truth) and exact locale/theme labels/descriptions
+- **Docs status:** not-applicable
+- **Residual risks:** none
+
+## T011 — security-triage — Attempt 1 — 2026-08-05T23:24:30Z
+- **Gate:** security-triage (screening)
+- **Commit SHA + paths:** `9f03ed6..d4b5d6c`; `src/lib/story-catalog.ts`, `tests/unit/story-catalog.test.ts`
+- **Verdict:** LOW_RISK · non securitySensitive · no triggers
+- **Route:** none (no security-reviewer required)
+- **Commands run/results:** read-only OWASP screening; no user identifiers, PII, storage, or external I/O
+- **Findings:** Crit/High/Med/Low none
+- **Docs status:** not-applicable
+- **Residual risks:** none
+
 ## T010 — security-reviewer — Attempt 1 — 2026-08-05T22:21:00Z
 - **Gate:** security-reviewer (deep appsec, final state)
 - **Commit SHA + paths:** `c41a2d7`; `src/features/story-request/client/age-band.ts`, `src/features/story-request/client/story-preferences-schema.ts`
