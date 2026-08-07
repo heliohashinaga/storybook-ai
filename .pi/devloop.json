@@ -1,5 +1,8 @@
 {
   "tasksPath": "specs/001-personalized-story-generation/tasks.md",
+  "stack": {
+    "base": "feat/phase-3-story-generation"
+  },
   "stageTimeoutMs": {
     "planner": 600000,
     "task-qa": 600000,
