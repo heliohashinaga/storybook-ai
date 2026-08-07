@@ -5,7 +5,7 @@
     "task-qa": 600000,
     "code": 600000,
     "review": 600000,
-    "test": 600000,
+    "test": 900000,
     "security": 600000,
     "documentation": 600000,
     "integrate": 600000
