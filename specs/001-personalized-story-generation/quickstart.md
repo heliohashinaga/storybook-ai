@@ -22,9 +22,10 @@ cp .env.example .env.local
 Set the development-only server secrets in `.env.local`:
 
 ```dotenv
-OPENAI_API_KEY=replace-with-development-key
-OPENAI_TEXT_MODEL=replace-with-approved-structured-output-model
-OPENAI_IMAGE_MODEL=replace-with-approved-image-model
+OPENROUTER_API_KEY=replace-with-development-key
+OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
+OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
+OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
 ```
 
 `.env.local` must be gitignored. It must never contain child data, generated stories, or exported

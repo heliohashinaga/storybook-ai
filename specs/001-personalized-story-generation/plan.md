@@ -22,8 +22,8 @@ identifier is collected, sent to the server/provider, or retained by the applica
 **Language/Version**: TypeScript 5.x in strict mode (`strict`, `noUncheckedIndexedAccess`); Node.js 22 LTS.
 
 **Primary Dependencies**: Next.js 16 App Router + React 19; Zod for input/provider schemas;
-`next-intl` for UI localization; Tailwind CSS for tokenized UI styling; OpenAI SDK behind a
-server-only provider adapter; `sharp` for transient WebP optimization; `@react-pdf/renderer` for
+`next-intl` for UI localization; Tailwind CSS for tokenized UI styling; the OpenRouter SDK/
+compatible client behind a server-only provider adapter; `sharp` for transient WebP optimization; `@react-pdf/renderer` for
 lazily loaded client-side export.
 
 **Storage**: No database, object store, account store, cookies, browser durable storage, or server
@@ -136,7 +136,7 @@ src/
 │   │   └── server/
 │   │       ├── schemas.ts
 │   │       ├── story-generation-provider.ts
-│   │       ├── openai-story-generation-provider.ts
+│   │       ├── openrouter-story-generation-provider.ts
 │   │       ├── safety-pipeline.ts
 │   │       ├── image-optimizer.ts
 │   │       └── generate-story.ts

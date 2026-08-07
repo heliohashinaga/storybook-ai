@@ -60,7 +60,7 @@ age-appropriate protagonist and never receive direct child-identifying data.
 ## Decision 3: Use an AI-provider adapter with structured story output
 
 **Decision**: Introduce a server-only `StoryGenerationProvider` interface. The first adapter uses
-OpenAI's API for structured narrative generation, image generation, and available moderation
+OpenRouter's API for structured narrative generation, image generation, and moderation
 capabilities. Provider model identifiers stay in environment variables rather than source code.
 
 The provider MUST return JSON matching the server's schema: exactly three ordered scenes, each with
@@ -92,9 +92,15 @@ approved settings before real user traffic. This is a release gate, not applicat
 
 **References**:
 
-- [OpenAI Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs)
-- [OpenAI moderation guide](https://platform.openai.com/docs/guides/moderation)
-- [OpenAI enterprise privacy overview](https://openai.com/enterprise-privacy/)
+- [OpenRouter Structured Outputs guide](https://openrouter.ai/docs/features/structured-outputs)
+- [OpenRouter moderation approaches](https://openrouter.ai/docs)
+- [OpenRouter privacy & data policy](https://openrouter.ai/docs/legal/privacy)
+
+> Note: OpenRouter is an OpenAI-compatible provider gateway. The actual models behind narrative,
+> image, and moderation are configurable via `OPENROUTER_*` model variables. If the chosen models
+> sit behind a tight data-retention guarantee that differs from the original vendor, the approved
+> provider data-processing review (release gate below) MUST re-verify OpenRouter's data-use/
+> retention controls before real user traffic.
 
 ## Decision 4: Enforce a defense-in-depth safety pipeline
 

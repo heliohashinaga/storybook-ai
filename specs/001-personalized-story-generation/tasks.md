@@ -98,7 +98,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Implement the server-only OpenAI narrative/image/moderation adapter in `src/features/story-generation/server/openai-story-generation-provider.ts`, reading model identifiers only from `src/lib/env.ts`.
+- [ ] T024 [US1] Implement the server-only OpenRouter narrative/image/moderation adapter in `src/features/story-generation/server/openrouter-story-generation-provider.ts`, reading model identifiers only from `src/lib/env.ts`.
 - [ ] T025 [US1] Implement the schema-validation, text **and image** moderation, bounded-regeneration, and safe-error pipeline in `src/features/story-generation/server/safety-pipeline.ts`.
 - [ ] T026 [US1] Implement transient WebP image optimization and response-size guarding in `src/features/story-generation/server/image-optimizer.ts`.
 - [ ] T027 [US1] Implement `N`-scene generation orchestration (`N = 3` validated constant, scene-count extension point), shared style/character consistency across the illustration set, bounded image retry, and provider error mapping in `src/features/story-generation/server/generate-story.ts`.
@@ -188,7 +188,7 @@ text and alt text match the chosen locale, and assert an unsupported locale cann
 
 - [ ] T055 [US4] Add reviewed English static UI messages and locale-switch labels in `src/features/story-request/locales/en.json` and `src/features/story-request/locales/pt-BR.json`.
 - [ ] T056 [US4] Implement the locale-provider/selector wiring and localized unsupported-language recovery UX in `src/i18n/config.ts`, `src/features/story-request/components/story-request-form.tsx`, and `src/app/layout.tsx`.
-- [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openai-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
+- [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openrouter-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
 
 **Checkpoint**: User Stories 1–4 work in both supported languages; default `pt-BR` and English have
 localized UI, story text, scene descriptions, and pre-provider rejection for unsupported locales.
