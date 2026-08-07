@@ -94,7 +94,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 - [x] T020 [P] [US1] Write safety-pipeline unit tests in `tests/unit/safety-pipeline.test.ts` for unsafe-candidate discard (story text **and each illustration**), one safe regeneration, identifier/template-marker rejection, and safe unrecoverable failure.
 - [x] T021 [P] [US1] Write provider-pipeline integration tests with deterministic fixtures in `tests/integration/provider-pipeline.test.ts` for structured narrative, text **and image** moderation, three image prompts, illustration-set consistency, missing-image retry, and no unsafe result leakage.
 - [x] T022 [P] [US1] Write request-form component tests in `tests/unit/story-request-form.test.tsx` for valid input, invalid age/theme, loading state, and absence of a name/direct-identifier field.
-- [ ] T023 [P] [US1] Write the default `pt-BR` generation E2E journey in `tests/e2e/generate-pt-br.spec.ts`, including request-payload inspection and a no-identifier assertion.
+- [x] T023 [P] [US1] Write the default `pt-BR` generation E2E journey in `tests/e2e/generate-pt-br.spec.ts`, including request-payload inspection and a no-identifier assertion.
 
 ### Implementation for User Story 1
 
