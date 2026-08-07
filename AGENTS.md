@@ -105,6 +105,13 @@ Never commit `.env.local` or real credentials.
 - Tiers: unit (pure logic/schemas/safety), integration/contract (route + pipeline
   against `story-generation.openapi.yaml`, APIs faked), E2E (Playwright),
   visual (reader regression).
+- **Devloop `testPlan` alignment:** when a devloop slice carries a `testPlan`
+  (authored by `feature-planner`, validated by `task-qa`, persisted in
+  `.pi/devloop-sessions/<taskId>-plan.json`), its tiers map to the ones above:
+  `unit` = Vitest unit, `contract` = API-contract/integration vs the OpenAPI
+  contract, `e2e` = Playwright journeys (pt-BR + en), `visual` = Storybook
+  stories (default/edge/error + a11y). Workers author tests against it;
+  `tester-simple`/`tester-complex` verify its intents are fulfilled per tier.
 - Assert privacy invariants in tests: no direct identifier accepted by form/API,
   none in HTTP payloads, logs, or provider fakes.
 - Every component ships co-located `.stories.tsx` covering default/edge/error

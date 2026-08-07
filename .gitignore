@@ -62,3 +62,8 @@ Thumbs.db
 *.pem
 
 .pi-subagents/
+# Devloop chain registry — local-only bookkeeping of stacked devloop runs
+.pi/devloop-stack.json
+.pi/devloop-stack.json.lock
+# Devloop session/plan artifacts — ephemeral per-run state, never commit
+.pi/devloop-sessions/
