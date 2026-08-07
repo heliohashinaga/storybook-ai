@@ -272,3 +272,30 @@
 - **Findings:** Crit/High/Med none; Low — exact-age in RangeError message is defense-in-depth hardening
 - **Docs status:** not-applicable
 - **Residual risks:** client-side Zod is not a server trust boundary; planned server schema must accept only `ageBand`/`locale`/`theme` and not serialize/log exact age
+
+## T021 — reviewer-simple — Attempt 1 — 2026-08-07T09:18:30Z
+- **Gate:** reviewer-simple (general code + build/tests)
+- **Commit SHA + paths:** `eb67dad`; `tests/fixtures/story-generation/provider-fixtures.ts`, `tests/integration/provider-pipeline.test.ts`
+- **Verdict:** APPROVED
+- **Route:** tester-simple
+- **Commands run/results:** `pnpm test` pass (160/160); `pnpm typecheck` clean; `pnpm lint` clean; commit clean; `git diff --check` clean
+- **Findings:** High none; Medium none; Low none
+- **Residual risks:** none
+
+## T021 — tester-simple — Attempt 1 — 2026-08-07T09:18:40Z
+- **Gate:** tester-simple (conformance)
+- **Commit SHA + paths:** `eb67dad`; `tests/fixtures/story-generation/provider-fixtures.ts`, `tests/integration/provider-pipeline.test.ts`
+- **Verdict:** MEETS_TASK
+- **Route:** security-triage
+- **Commands run/results:** `pnpm test` pass (160/160); `pnpm typecheck` clean; `pnpm lint` clean; all 10 acceptance criteria verified through integration tests (spy-based moderation calls, illustration-set consistency, identifier rejection); no unsafe result leakage confirmed
+- **Findings:** none
+- **Residual risks:** illustration-set consistency is enforced inside test fake (moderateImage rejects prompts missing style marker), not in production src/; pre-existing prettier format drift exists in ~12 unrelated test files (baseline, not introduced here)
+
+## T021 — security-triage — Attempt 1 — 2026-08-07T09:18:50Z
+- **Gate:** security-triage (screening)
+- **Commit SHA + paths:** `eb67dad`; `tests/fixtures/story-generation/provider-fixtures.ts`, `tests/integration/provider-pipeline.test.ts`
+- **Verdict:** LOW_RISK · non securitySensitive · no triggers
+- **Route:** none (no security-reviewer required)
+- **Commands run/results:** read-only OWASP screening; tests use deterministic fakes (no live AI calls); no user identifiers, PII, storage, or external I/O
+- **Findings:** Crit/High/Med/Low none
+- **Residual risks:** none

@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "taskId": "T021",
+  "startedAt": "2026-08-07T08:50:44.426Z",
+  "updatedAt": "2026-08-07T09:19:00.000Z",
+  "plan": {
+    "summary": "Enhance provider-pipeline integration tests (tests/integration/provider-pipeline.test.ts) with deterministic fixtures to cover: illustration moderation as a distinct gate (moderateImage per prompt), illustration-set consistency (shared style/character descriptors across three prompts), unsafe illustration-prompt blocking, direct identifier / template marker rejection in narrative and prompts, and explicit verification that both moderateText and moderateImage are called. The existing file already covers structured narrative, safety integration (text + combined), missing-image retry, response-size guards, and provider error mapping. This slice closes the remaining spec gaps: per-illustration moderation visibility and illustration-set consistency.",
+    "startingWorker": "worker-simple",
+    "skills": [
+      "typescript",
+      "security",
+      "nextjs"
+    ],
+    "acceptanceCriteria": [
+      "All tests in tests/integration/provider-pipeline.test.ts pass with pnpm test using deterministic fixtures (no live AI calls)",
+      "Structured narrative: validated three-scene story with title and scene body text",
+      "Text moderation: unsafe text blocked, moderateText called for each scene body",
+      "Image moderation: unsafe illustration prompts blocked, moderateImage called for each scene prompt",
+      "Three distinct illustration prompts (one per scene), each inspected for shared style/character consistency markers",
+      "Illustration-set inconsistency triggers bounded whole-set retry fallback (or safe error)",
+      "Missing-image retry: flaky illustrator recovers within bound; exhausted retries return generation_unavailable",
+      "No unsafe result leakage: unsafe first attempt never appears in returned story; double-unsafe returns safe generic error",
+      "Direct identifier / template marker rejection: content containing {name}, [NAME], child's name patterns rejected at integration level",
+      "Provider error mapping: unavailable → 502 (generation_unavailable), timeout → 504 (generation_timeout)"
+    ],
+    "docsNeeded": false,
+    "generatedAt": "2026-08-07T08:52:26.000Z"
+  },
+  "ledger": [
+    {
+      "stage": "planner",
+      "agent": "feature-planner",
+      "verdict": "PLANNED",
+      "summary": "Enhance provider-pipeline integration tests (tests/integration/provider-pipeline.test.ts) with deterministic fixtures to cover: illustration moderation as a distinct gate (moderateImage per prompt), illustration-set consistency (shared style/character descriptors across three prompts), unsafe illustration-prompt blocking, direct identifier / template marker rejection in narrative and prompts, and explicit verification that both moderateText and moderateImage are called. The existing file already covers structured narrative, safety integration (text + combined), missing-image retry, response-size guards, and provider error mapping. This slice closes the remaining spec gaps: per-illustration moderation visibility and illustration-set consistency.",
+      "timestamp": "2026-08-07T08:52:25.999Z"
+    },
+    {
+      "stage": "task-qa",
+      "agent": "task-qa",
+      "verdict": "CLARIFY_NEEDED",
+      "summary": "The planner's slice correctly identifies the gaps (per-illustration moderation visibility and illustration-set consistency) but the acceptance criteria contain three critical ambiguities that make them untestable as written: (1) Criteria 3-4 state 'moderateText/moderateImage called for each scene' without specifying how to verify—requires new fixture scenarios or spy mechanisms not currently defined; (2) Criterion 5 says 'each inspected for shared style/character consistency markers' without defining what these markers are or how inspection occurs—the fake provider doesn't generate prompts with consistency descriptors per the spec; (3) Criterion 6 references 'illustration-set inconsistency' without defining what constitutes inconsistency or the 'consistency check' mechanism mentioned in the plan. Additionally, criterion 9 references template markers at 'integration level' but the existing safety-pipeline unit tests already cover this—the slice should specify what's unique about the integration-level verification.",
+      "timestamp": "2026-08-07T08:54:45.373Z",
+      "corrections": [
+        "1. For criterion 3 ('Text moderation: unsafe text blocked, moderateText called for each scene body'), clarify the test mechanism. Either: (a) 'Add new fixture scenarios (e.g., 'unsafe-text-scene-0-then-safe', 'unsafe-text-scene-2-then-safe') that verify regeneration occurs when specific scenes are unsafe', OR (b) 'Use vi.spyOn on provider.moderateText and assert it was called exactly 3 times with the scene bodies'. The current criteria don't specify how to verify the calls.",
+        "2. For criterion 4 ('Image moderation: unsafe illustration prompts blocked, moderateImage called for each scene prompt'), apply the same clarification as criterion 3. Specify the test mechanism: new fixture scenarios OR spy verification with exact call count and parameters.",
+        "3. For criterion 5 ('Three distinct illustration prompts... each inspected for shared style/character consistency markers'), define what the test inspects for. Per spec.md FR-004 clarification: 'The image prompt reuses a fixed style descriptor plus a stable character description derived from the age band across all scenes.' Rewrite as: 'Three distinct illustration prompts (one per scene); each prompt contains shared style descriptors and character traits derived from the age band; verify that all prompts reuse the same fixed style descriptor and character description across scenes.'",
+        "4. For criterion 5, also require updating the fake provider's buildSafeCandidate function to generate prompts with consistency markers (e.g., 'watercolor style, 7-year-old child character') so the test can verify they are present and shared across prompts.",
+        "5. For criterion 6 ('Illustration-set inconsistency triggers bounded whole-set retry fallback'), define what constitutes 'inconsistency'. Per the plan's consistency check requirement, specify: 'When the illustration set lacks shared style/character consistency markers across all three scenes (e.g., one prompt omits the fixed style descriptor or uses a different character description), the set is rejected and a bounded retry occurs before returning generation_unavailable.'",
+        "6. For criterion 6, clarify the expected behavior: specify whether 'inconsistency' should be a new fixture scenario, an explicit check in the test, or an assertion about prompt structure. The current wording is too vague to implement.",
+        "7. For criterion 9 ('Direct identifier / template marker rejection: content containing {name}, [NAME], child's name patterns rejected at integration level'), clarify what's unique about integration-level verification versus the existing safety-pipeline unit tests. Specify: 'Using a new fixture scenario where the provider returns content with {name}, [NAME], or child's name patterns, verify that generateStory triggers regeneration or returns unsafe_unrecoverable at the orchestration level.'"
+      ]
+    },
+    {
+      "stage": "planner-rescue",
+      "agent": "controller",
+      "verdict": "IMPLEMENTED_DIRECTLY",
+      "summary": "feature-planner run 75be03cd 'failed' due to a stage/role mismatch: the read-only planner (tools: read,grep,find,ls,bash,contact_supervisor — no edit/write) correctly returned a structured plan on the post-CLARIFY re-run, but the harness heuristic flagged it as an implementation task with no edits. Not a permissions bug — the planner is by design non-editing (never implements or edits source). Applied the implementation directly here: updated provider-fixtures.ts (shared style/character consistency markers per FR-004; new scenarios unsafe-text-scene-0/2-then-safe, unsafe-illustration-scene-1-then-safe, inconsistent-illustrations, template-marker-leak; moderateImage now rejects prompts lacking the style marker) and provider-pipeline.test.ts (spy-based moderateText/moderateImage call-count tests, illustration-set consistency, inconsistency-triggered retry, template-marker rejection). pnpm test: 160/160 pass (20 files); typecheck + lint clean; my files prettier-formatted (repo has pre-existing format drift elsewhere).",
+      "timestamp": "2026-08-07T09:04:40.000Z"
+    },
+    {
+      "stage": "planner-rescue",
+      "agent": "controller",
+      "verdict": "PUBLISHER_COMPLETE",
+      "summary": "T021 provider-pipeline integration tests implemented and gates passed (reviewer-simple APPROVED, tester-simple MEETS_TASK, security-triage LOW_RISK). No production code changes (test-only fixture + integration test). All verifications green (pnpm test: 160/160, typecheck clean, lint clean). T021 marked complete in tasks.md; gate records added to reviews.md. devloop session marked completed.",
+      "timestamp": "2026-08-07T09:19:00.000Z"
+    }
+  ],
+  "status": "completed",
+  "currentStage": "completed"
+}
