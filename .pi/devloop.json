@@ -2,6 +2,12 @@
   "tasksPath": "specs/001-personalized-story-generation/tasks.md",
   "stageTimeoutMs": {
     "planner": 600000,
-    "task-qa": 600000
+    "task-qa": 600000,
+    "code": 600000,
+    "review": 600000,
+    "test": 600000,
+    "security": 600000,
+    "documentation": 600000,
+    "integrate": 600000
   }
 }
