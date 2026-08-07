@@ -23,7 +23,7 @@ function post(handler: ReturnType<typeof createStoriesHandler>, body: unknown) {
       method: "POST",
       headers: { "content-type": "application/json", "x-forwarded-for": "198.51.100.7" },
       body: JSON.stringify(body),
-    }),
+    })
   );
 }
 

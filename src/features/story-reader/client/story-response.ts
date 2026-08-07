@@ -14,8 +14,7 @@ import {
  */
 
 export type StoryLoadResult =
-  | { status: "success"; story: GeneratedStory }
-  | { status: "error"; error: SafeError };
+  { status: "success"; story: GeneratedStory } | { status: "error"; error: SafeError };
 
 async function readJson(response: Response): Promise<unknown> {
   try {

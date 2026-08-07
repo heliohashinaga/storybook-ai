@@ -25,9 +25,7 @@ export interface GenerateStoryRequest {
   theme: Theme;
 }
 
-export type SubmitResult =
-  | { ok: true }
-  | { ok: false; messageKey: string };
+export type SubmitResult = { ok: true } | { ok: false; messageKey: string };
 
 export type StoryRequestStatus = "idle" | "submitting" | "success";
 

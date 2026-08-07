@@ -58,11 +58,9 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
 
     const rate = await deps.rateLimiter.consume(key);
     if (!rate.allowed) {
-      return json(
-        429,
-        toErrorJson(rateLimited),
-        { "Retry-After": String(rate.retryAfterSeconds ?? 1) },
-      );
+      return json(429, toErrorJson(rateLimited), {
+        "Retry-After": String(rate.retryAfterSeconds ?? 1),
+      });
     }
 
     let payload: unknown;

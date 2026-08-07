@@ -1,9 +1,5 @@
 import "server-only";
-import {
-  InMemoryRateLimiter,
-  generateSalt,
-  type RateLimiter,
-} from "../../../lib/rate-limit";
+import { InMemoryRateLimiter, generateSalt, type RateLimiter } from "../../../lib/rate-limit";
 import {
   createDevelopmentIllustration,
   createDevelopmentStoryProvider,

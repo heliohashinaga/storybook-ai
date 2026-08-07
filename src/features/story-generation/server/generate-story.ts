@@ -1,9 +1,5 @@
 import "server-only";
-import {
-  generationTimeout,
-  generationUnavailable,
-  toErrorJson,
-} from "../../../lib/http-errors";
+import { generationTimeout, generationUnavailable, toErrorJson } from "../../../lib/http-errors";
 import type { SafeError } from "./schemas";
 import { storyResponseSchema, type GeneratedStory } from "./schemas";
 import { runSafetyPipeline } from "./safety-pipeline";
@@ -52,8 +48,7 @@ export interface GenerateStoryOptions {
 }
 
 export type GenerateStoryResult =
-  | { ok: true; story: GeneratedStory }
-  | { ok: false; error: SafeError };
+  { ok: true; story: GeneratedStory } | { ok: false; error: SafeError };
 
 /** Maps provider transport errors to the typed, localized HTTP error contract. */
 function mapProviderError(error: unknown): SafeError {
@@ -75,9 +70,10 @@ function isValidIllustration(dataUri: string, maxLength: number): boolean {
  */
 async function illustrateSet(
   prompts: string[],
-  options: GenerateStoryOptions,
+  options: GenerateStoryOptions
 ): Promise<string[] | null> {
-  const maxLength = options.maxIllustrationDataUriLength ?? DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH;
+  const maxLength =
+    options.maxIllustrationDataUriLength ?? DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH;
   const retries = options.imageRetries ?? 1;
 
   for (let attempt = 0; ; attempt += 1) {
@@ -98,9 +94,14 @@ async function illustrateSet(
 }
 
 /** Deterministic, localized, age-safe alt text (never a direct identifier). */
-function altTextFor(locale: "pt-BR" | "en", theme: "courage" | "friendship" | "kindness", ordinal: number): string {
+function altTextFor(
+  locale: "pt-BR" | "en",
+  theme: "courage" | "friendship" | "kindness",
+  ordinal: number
+): string {
   if (locale === "en") {
-    const themeEn = theme === "courage" ? "courage" : theme === "friendship" ? "friendship" : "kindness";
+    const themeEn =
+      theme === "courage" ? "courage" : theme === "friendship" ? "friendship" : "kindness";
     return `Scene ${ordinal} of a story about ${themeEn}.`;
   }
   const themePt = theme === "courage" ? "coragem" : theme === "friendship" ? "amizade" : "bondade";
@@ -111,9 +112,7 @@ function altTextFor(locale: "pt-BR" | "en", theme: "courage" | "friendship" | "k
  * Runs the full anonymous generation pipeline and returns either a validated
  * three-scene story or a typed, localized safe error.
  */
-export async function generateStory(
-  options: GenerateStoryOptions,
-): Promise<GenerateStoryResult> {
+export async function generateStory(options: GenerateStoryOptions): Promise<GenerateStoryResult> {
   const { input, provider } = options;
 
   let safetyDecision: "approved" | "regenerated";
@@ -132,7 +131,7 @@ export async function generateStory(
 
   const dataUris = await illustrateSet(
     scenes.map((scene) => scene.illustrationPrompt),
-    options,
+    options
   );
   if (!dataUris) {
     return { ok: false, error: toErrorJson(generationUnavailable) };

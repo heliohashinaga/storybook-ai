@@ -63,8 +63,7 @@ export interface RunSafetyPipelineOptions {
 }
 
 export type SafetyPipelineResult =
-  | { ok: true; candidate: ModeratedStoryCandidate }
-  | { ok: false; error: SafeError };
+  { ok: true; candidate: ModeratedStoryCandidate } | { ok: false; error: SafeError };
 
 function hasForbiddenContent(value: string): boolean {
   return TEMPLATE_MARKER_PATTERN.test(value) || DIRECT_IDENTIFIER_PATTERN.test(value);
@@ -77,7 +76,7 @@ function hasForbiddenContent(value: string): boolean {
  */
 async function moderateCandidate(
   provider: StoryGenerationProvider,
-  candidate: GeneratedStoryCandidate,
+  candidate: GeneratedStoryCandidate
 ): Promise<ModeratedStoryCandidate | null> {
   if (candidate.scenes.length !== N_SCENES) return null;
   if (hasForbiddenContent(candidate.title)) return null;
@@ -116,7 +115,7 @@ async function moderateCandidate(
  * typed `unsafe_unrecoverable` error after bounded regeneration exhausts.
  */
 export async function runSafetyPipeline(
-  options: RunSafetyPipelineOptions,
+  options: RunSafetyPipelineOptions
 ): Promise<SafetyPipelineResult> {
   const { provider, input, maxRegenerations = 1 } = options;
 

@@ -52,9 +52,7 @@ describe("story-response — approved story parsing", () => {
   });
 
   it("surfaces a typed error when the 200 body is not JSON", async () => {
-    const result = await parseStoryResponse(
-      new Response("<html>oops</html>", { status: 200 }),
-    );
+    const result = await parseStoryResponse(new Response("<html>oops</html>", { status: 200 }));
     expect(result.status).toBe("error");
     if (result.status !== "error") return;
     expect(result.error.retryable).toBe(true);
@@ -64,7 +62,10 @@ describe("story-response — approved story parsing", () => {
 describe("story-response — typed error mapping", () => {
   it("passes through a valid server error body", async () => {
     const result = await parseStoryResponse(
-      jsonResponse({ code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true }, 429),
+      jsonResponse(
+        { code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true },
+        429
+      )
     );
     expect(result).toEqual({
       status: "error",
@@ -73,7 +74,11 @@ describe("story-response — typed error mapping", () => {
   });
 
   it("never surfaces raw provider content from an error body", async () => {
-    const body = { code: "invalid_input", messageKey: "story.error.invalidInput", retryable: false };
+    const body = {
+      code: "invalid_input",
+      messageKey: "story.error.invalidInput",
+      retryable: false,
+    };
     const result = await parseStoryResponse(jsonResponse(body, 400));
     expect(result.status).toBe("error");
     if (result.status !== "error") return;
@@ -92,9 +97,7 @@ describe("story-response — typed error mapping", () => {
 
   it("falls back per status for 400/422/429 and defaults for unknown statuses", async () => {
     const codes = await Promise.all(
-      [400, 422, 429, 599].map((status) =>
-        parseStoryResponse(jsonResponse("nope", status)),
-      ),
+      [400, 422, 429, 599].map((status) => parseStoryResponse(jsonResponse("nope", status)))
     );
     expect(codes.map((r) => (r.status === "error" ? r.error.code : null))).toEqual([
       "invalid_input",

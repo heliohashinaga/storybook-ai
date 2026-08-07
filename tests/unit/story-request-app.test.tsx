@@ -30,7 +30,7 @@ function renderApp() {
   return render(
     <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
       <StoryRequestApp defaultLocale="pt-BR" />
-    </NextIntlClientProvider>,
+    </NextIntlClientProvider>
   );
 }
 
@@ -83,9 +83,9 @@ describe("StoryRequestApp — flow", () => {
               messageKey: "story.error.tryAgainLater",
               retryable: true,
             }),
-            { status: 429 },
-          ),
-      ),
+            { status: 429 }
+          )
+      )
     );
     renderApp();
 
@@ -99,7 +99,7 @@ describe("StoryRequestApp — flow", () => {
   it("returns to the form after creating another story", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 })),
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
     );
     renderApp();
 

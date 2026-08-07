@@ -85,9 +85,7 @@ describe("POST /api/stories — request contract (GenerateStoryRequest)", () => 
   it("rejects out-of-range enum values", () => {
     expect(generateRequestSchema.safeParse({ ...request, ageBand: "0-1" }).success).toBe(false);
     expect(generateRequestSchema.safeParse({ ...request, locale: "fr" }).success).toBe(false);
-    expect(
-      generateRequestSchema.safeParse({ ...request, theme: "honesty" }).success,
-    ).toBe(false);
+    expect(generateRequestSchema.safeParse({ ...request, theme: "honesty" }).success).toBe(false);
   });
 });
 
@@ -124,7 +122,7 @@ describe("POST /api/stories — response contract (GeneratedStory)", () => {
 
   it("rejects an unknown or direct-identifier response field (strict object)", () => {
     expect(storyResponseSchema.safeParse({ ...validStory(), childName: "Luna" }).success).toBe(
-      false,
+      false
     );
   });
 
@@ -136,7 +134,7 @@ describe("POST /api/stories — response contract (GeneratedStory)", () => {
 
 describe("POST /api/stories — error contract (GenerationError + status codes)", () => {
   // Truth table straight from the OpenAPI response map.
-  const statusMap: ReadonlyArray<[number, (typeof invalidInput) | (typeof rateLimited)]> = [
+  const statusMap: ReadonlyArray<[number, typeof invalidInput | typeof rateLimited]> = [
     [400, invalidInput],
     [422, unsafeUnrecoverable],
     [429, rateLimited],

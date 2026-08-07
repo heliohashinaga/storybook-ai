@@ -17,7 +17,7 @@ const input: ProviderStoryInput = { ageBand: "5-7", locale: "pt-BR", theme: "cou
 
 /** Sequential fake: each generateStory call uses the next builder (last repeats). */
 function sequentialFake(
-  builders: Array<(i: ProviderStoryInput) => ReturnType<typeof buildSafeCandidate>>,
+  builders: Array<(i: ProviderStoryInput) => ReturnType<typeof buildSafeCandidate>>
 ) {
   let calls = 0;
   const requests: ProviderStoryInput[] = [];
@@ -46,7 +46,7 @@ function mutateScene(
     title: string;
     body: string;
     illustrationPrompt: string;
-  }) => void,
+  }) => void
 ): ReturnType<typeof buildSafeCandidate> {
   const scene = candidate.scenes[index];
   if (!scene) throw new Error("expected scene");
@@ -184,7 +184,7 @@ describe("safety pipeline — template-marker and identifier rejection", () => {
       expect(count()).toBe(2);
       // The offending marker/identifier never leaks into the error body either.
       expect(JSON.stringify(result.error)).not.toContain(marker);
-    },
+    }
   );
 
   it("rejects a template marker in an illustration prompt and regenerates", async () => {

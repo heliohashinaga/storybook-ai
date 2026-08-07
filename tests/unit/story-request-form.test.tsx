@@ -9,17 +9,19 @@ import {
 } from "../../src/features/story-request/components/story-request-form";
 import { getMessages } from "../../src/i18n/config";
 
-function renderForm(props: {
-  onSubmit?: (request: GenerateStoryRequest) => Promise<SubmitResult>;
-  onSuccess?: () => void;
-} = {}) {
+function renderForm(
+  props: {
+    onSubmit?: (request: GenerateStoryRequest) => Promise<SubmitResult>;
+    onSuccess?: () => void;
+  } = {}
+) {
   return render(
     <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
       <StoryRequestForm
         onSubmit={props.onSubmit ?? (async () => ({ ok: true }))}
         onSuccess={props.onSuccess}
       />
-    </NextIntlClientProvider>,
+    </NextIntlClientProvider>
   );
 }
 
@@ -57,7 +59,7 @@ describe("StoryRequestForm — theme and language choices", () => {
     expect(
       themes.some((t) => /courage/i.test(t ?? "")) &&
         themes.some((t) => /friendship/i.test(t ?? "")) &&
-        themes.some((t) => /kindness/i.test(t ?? "")),
+        themes.some((t) => /kindness/i.test(t ?? ""))
     ).toBe(true);
     expect(options.length).toBeGreaterThanOrEqual(5); // 2 locales + 3 themes
   });
@@ -65,7 +67,10 @@ describe("StoryRequestForm — theme and language choices", () => {
 
 describe("StoryRequestForm — submission sends only ageBand/locale/theme", () => {
   it("derives ageBand locally and sends no exact age or identifier", async () => {
-    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => { void _request; return { ok: true }; });
+    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _request;
+      return { ok: true };
+    });
     renderForm({ onSubmit });
     await fillValidAgeAndSubmit("6");
 
@@ -78,7 +83,10 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
   });
 
   it("sends the user-selected language and theme", async () => {
-    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => { void _request; return { ok: true }; });
+    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _request;
+      return { ok: true };
+    });
     const user = userEvent.setup();
     renderForm({ onSubmit });
     await user.type(screen.getByLabelText(/idade da criança/i), "10");
@@ -95,7 +103,10 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
   });
 
   it("blocks out-of-range age locally without submitting", async () => {
-    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => { void _request; return { ok: true }; });
+    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _request;
+      return { ok: true };
+    });
     const user = userEvent.setup();
     renderForm({ onSubmit });
     await user.type(screen.getByLabelText(/idade da criança/i), "1");
@@ -106,12 +117,10 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
   });
 
   it("blocks an empty age locally without submitting", async () => {
-    const onSubmit = vi.fn(
-      async (_r: GenerateStoryRequest): Promise<SubmitResult> => {
-        void _r;
-        return { ok: true };
-      },
-    );
+    const onSubmit = vi.fn(async (_r: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _r;
+      return { ok: true };
+    });
     const user = userEvent.setup();
     renderForm({ onSubmit });
     await user.click(screen.getByRole("button", { name: /criar história/i }));
@@ -128,7 +137,7 @@ describe("StoryRequestForm — submission states", () => {
       () =>
         new Promise<SubmitResult>((resolve) => {
           resolveSubmit = resolve;
-        }),
+        })
     );
     const user = userEvent.setup();
     renderForm({ onSubmit });
@@ -146,7 +155,10 @@ describe("StoryRequestForm — submission states", () => {
   });
 
   it("calls onSuccess when the story is approved", async () => {
-    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => { void _request; return { ok: true }; });
+    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _request;
+      return { ok: true };
+    });
     const onSuccess = vi.fn();
     renderForm({ onSubmit, onSuccess });
     await fillValidAgeAndSubmit("4");
