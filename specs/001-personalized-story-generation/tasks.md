@@ -90,7 +90,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 
 ### Tests for User Story 1 — write and observe failure first
 
-- [ ] T019 [P] [US1] Write the `POST /api/stories` OpenAPI contract test in `tests/contract/story-generation.openapi.test.ts`, covering only allowed request fields, `Cache-Control: no-store`, three scenes, and typed 400/422/429/502/504 failures.
+- [x] T019 [P] [US1] Write the `POST /api/stories` OpenAPI contract test in `tests/contract/story-generation.openapi.test.ts`, covering only allowed request fields, `Cache-Control: no-store`, three scenes, and typed 400/422/429/502/504 failures.
 - [ ] T020 [P] [US1] Write safety-pipeline unit tests in `tests/unit/safety-pipeline.test.ts` for unsafe-candidate discard (story text **and each illustration**), one safe regeneration, identifier/template-marker rejection, and safe unrecoverable failure.
 - [ ] T021 [P] [US1] Write provider-pipeline integration tests with deterministic fixtures in `tests/integration/provider-pipeline.test.ts` for structured narrative, text **and image** moderation, three image prompts, illustration-set consistency, missing-image retry, and no unsafe result leakage.
 - [ ] T022 [P] [US1] Write request-form component tests in `tests/unit/story-request-form.test.tsx` for valid input, invalid age/theme, loading state, and absence of a name/direct-identifier field.
