@@ -299,3 +299,31 @@
 - **Commands run/results:** read-only OWASP screening; tests use deterministic fakes (no live AI calls); no user identifiers, PII, storage, or external I/O
 - **Findings:** Crit/High/Med/Low none
 - **Residual risks:** none
+
+## T022 — reviewer-simple — Attempt 1 — 2026-08-07T15:58:30Z (parent-run recovery)
+- **Feature/slice:** Phase 3 US1 / T022 request-form component tests (tests/unit/story-request-form.test.tsx, authored alongside T031)
+- **Gate:** reviewer-simple (general code + build/tests) — run directly by parent orchestrator after worker-simple timed out at the verification/bookkeeping stage; test artifact was already committed (`05c99d9`)
+- **Commit SHA + paths:** `05c99d9`; `tests/unit/story-request-form.test.tsx`
+- **Verdict:** APPROVED
+- **Route:** tester-simple
+- **Commands run/results:** `pnpm exec vitest run tests/unit/story-request-form.test.tsx` 10/10 pass; `pnpm test` 160/160 (20 files); `pnpm typecheck` clean; `pnpm lint` clean; `pnpm format:check` clean after `pnpm format` (resolved pre-existing drift across repo)
+- **Findings:** High none; Medium none; Low none
+- **Residual risks:** none
+
+## T022 — tester-simple — Attempt 1 — 2026-08-07T15:58:40Z (parent-run recovery)
+- **Gate:** tester-simple (conformance) — run directly by parent orchestrator
+- **Commit SHA + paths:** `05c99d9`; `tests/unit/story-request-form.test.tsx`
+- **Verdict:** MEETS_TASK
+- **Route:** security-triage
+- **Commands run/results:** requirement fulfilled — valid input derives `ageBand` locally and submits only `{ageBand, locale, theme}`; invalid age (out-of-range and empty) blocked locally without submit; loading state disables + `aria-busy`; localized retry on provider failure with resubmission; no direct-identifier (child name) field rendered; exactly three positive-value themes; no free-text inputs
+- **Findings:** none (theme is a bounded `<select>` with three fixed options, so an invalid theme cannot be produced via the UI; theme/locale schema rejection is covered at the schema level by T010/T052)
+- **Residual risks:** none
+
+## T022 — security-triage — Attempt 1 — 2026-08-07T15:58:50Z (parent-run recovery)
+- **Gate:** security-triage (screening) — run directly by parent orchestrator
+- **Commit SHA + paths:** `05c99d9`; `tests/unit/story-request-form.test.tsx`
+- **Verdict:** LOW_RISK · non securitySensitive · no triggers
+- **Route:** none (no security-reviewer required)
+- **Commands run/results:** read-only OWASP screening; RTL/userEvent tests with no live AI calls and no network; asserts absence of a name/direct-identifier field and that payload contains only `ageBand`/`locale`/`theme`; no PII, persistence, or external I/O
+- **Findings:** Crit/High/Med/Low none
+- **Residual risks:** none
