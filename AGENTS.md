@@ -112,6 +112,14 @@ Never commit `.env.local` or real credentials.
   contract, `e2e` = Playwright journeys (pt-BR + en), `visual` = Storybook
   stories (default/edge/error + a11y). Workers author tests against it;
   `tester-simple`/`tester-complex` verify its intents are fulfilled per tier.
+- **Devloop retrospectives:** every `/devloop` run persists deterministic run
+  facts to `.pi/devloop-sessions/<runId>.retro.json`/`.md` (root, not worktree).
+  `/devloop-retro` lists/reads them (TUI card) and `--agent` generates
+  recommendations via the read-only `retro` agent; `retro.recommend` in
+  `.pi/devloop.json` auto-generates them after every terminal outcome
+  (ready-to-merge **and** human-escalation). Prune with
+  `/devloop-cleanup --retros [keep]`. These are local dev artifacts — never
+  committed, and never contain user/child PII.
 - Assert privacy invariants in tests: no direct identifier accepted by form/API,
   none in HTTP payloads, logs, or provider fakes.
 - Every component ships co-located `.stories.tsx` covering default/edge/error
