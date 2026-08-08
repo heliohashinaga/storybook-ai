@@ -1,0 +1,8 @@
+# Architecture Decision Records
+
+Decisões de arquitetura deste repo (convenção MADR — 1 decisão por ADR).
+
+| ADR                                         | Título                                                         | Status   |
+| ------------------------------------------- | -------------------------------------------------------------- | -------- |
+| [0001](0001-playwright-agentic-adoption.md) | Adoção seletiva das features agentic do Playwright             | Accepted |
+| [0002](0002-e2e-execution-strategy.md)      | Estratégia de execução dos testes E2E (performance e correção) | Accepted |
