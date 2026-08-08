@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "start": "next start",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -18,7 +19,9 @@
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
     "storybook:test": "start-server-and-test \"storybook dev -p 6006\" http://localhost:6006 \"sh scripts/run-with-chromium.sh test-storybook --url http://localhost:6006\"",
+    "pretest:e2e": "pnpm build",
     "test:e2e": "sh scripts/run-with-chromium.sh playwright test",
+    "pretest:visual": "pnpm build",
     "test:visual": "sh scripts/run-with-chromium.sh playwright test tests/visual",
     "build": "next build"
   },
