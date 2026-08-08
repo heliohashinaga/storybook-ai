@@ -66,4 +66,4 @@ Thumbs.db
 .pi/devloop-stack.json
 .pi/devloop-stack.json.lock
 # Devloop session/plan artifacts — ephemeral per-run state, never commit
-.pi/devloop-sessions/
+.pi/devloop/sessions/
