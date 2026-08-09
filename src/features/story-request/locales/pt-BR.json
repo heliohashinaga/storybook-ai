@@ -37,7 +37,10 @@
     "reader": {
       "title": "Sua história",
       "sceneLabel": "Cena {ordinal}",
-      "newStory": "Criar outra história"
+      "newStory": "Criar outra história",
+      "previous": "Cena anterior",
+      "next": "Próxima cena",
+      "sceneCount": "Cena {current} de {total}"
     }
   }
 }

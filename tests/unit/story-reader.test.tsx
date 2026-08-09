@@ -1,0 +1,182 @@
+import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "../../src/i18n/config";
+import { StoryReader } from "../../src/features/story-reader/components/story-reader";
+import { SceneView } from "../../src/features/story-reader/components/scene-view";
+import type {
+  GeneratedScene,
+  GeneratedStory,
+} from "../../src/features/story-generation/server/schemas";
+
+const scene = (ordinal: number, body: string): GeneratedScene => ({
+  ordinal,
+  title: `Título ${ordinal}`,
+  body,
+  illustrationDataUri: `data:image/webp;base64,cena${ordinal}`,
+  altText: `Ilustração da cena ${ordinal} em aquarela.`,
+});
+
+const story: GeneratedStory = {
+  locale: "pt-BR",
+  ageBand: "5-7",
+  theme: "courage",
+  safetyDecision: "approved",
+  title: "A missão da estrelinha",
+  scenes: [
+    scene(1, "Era uma vez uma estrelinha."),
+    scene(2, "A estrelinha subiu ao céu."),
+    scene(3, "E brilhou para sempre."),
+  ],
+};
+
+function renderReader() {
+  return render(
+    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <StoryReader story={story} />
+    </NextIntlClientProvider>
+  );
+}
+
+describe("story reader — first/middle/last bounds", () => {
+  it("opens on the first scene with only forward navigation enabled", async () => {
+    renderReader();
+
+    expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+    expect(screen.queryByText("A estrelinha subiu ao céu.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+  });
+
+  it("enables both directions on a middle scene", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+
+    expect(screen.getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+  });
+
+  it("disables forward navigation on the last scene", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+
+    expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
+  });
+
+  it("never navigates past the bounds when clicking the disabled edges", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
+  });
+});
+
+describe("story reader — previous/next navigation and progress", () => {
+  it("moves forward and backward in order and updates the progress indicator", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    expect(screen.getByText("Cena 1 de 3")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    expect(screen.getByText("Cena 3 de 3")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
+  });
+
+  it("navigates with the left and right arrow keys while the scene is focused", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    // A keyboard user focuses the scene content, then uses the arrow keys.
+    screen.getByRole("heading", { name: /título 1/i }).focus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
+
+    await user.keyboard("{ArrowLeft}");
+    expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+  });
+});
+
+describe("story reader — focus management", () => {
+  it("moves focus to the scene heading when navigating scenes", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+
+    const heading = screen.getByRole("heading", { name: /título 2/i });
+    await expect.poll(() => heading).toHaveFocus();
+  });
+
+  it("does not steal focus on the initial render", async () => {
+    renderReader();
+
+    expect(screen.getByRole("heading", { name: /título 1/i })).not.toHaveFocus();
+  });
+});
+
+describe("story reader — localized alt text and scene rendering", () => {
+  it("renders the illustration with the localized alt text for the current scene", async () => {
+    const user = userEvent.setup();
+    renderReader();
+
+    const article = screen.getByRole("article", { name: /cena 1/i });
+    const img = within(article).getByRole("img");
+    expect(img).toHaveAttribute("alt", "Ilustração da cena 1 em aquarela.");
+    expect(img).toHaveAttribute("src", "data:image/webp;base64,cena1");
+
+    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+
+    const nextArticle = screen.getByRole("article", { name: /cena 2/i });
+    expect(within(nextArticle).getByRole("img")).toHaveAttribute(
+      "alt",
+      "Ilustração da cena 2 em aquarela."
+    );
+  });
+
+  it("presents each scene as a semantic reading structure (article + heading + body)", async () => {
+    renderReader();
+
+    const article = screen.getByRole("article", { name: /cena 1/i });
+    expect(within(article).getByRole("heading", { name: /título 1/i })).toBeInTheDocument();
+    expect(within(article).getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+  });
+});
+
+describe("scene view — standalone renderer", () => {
+  it("renders a single scene with its illustration, heading, and body", async () => {
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <SceneView scene={story.scenes[1] ?? scene(1, "fallback")} />
+      </NextIntlClientProvider>
+    );
+
+    const article = screen.getByRole("article", { name: /cena 2/i });
+    expect(within(article).getByRole("heading", { name: /título 2/i })).toBeInTheDocument();
+    expect(within(article).getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
+    expect(within(article).getByRole("img")).toHaveAttribute(
+      "alt",
+      "Ilustração da cena 2 em aquarela."
+    );
+  });
+});

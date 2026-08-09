@@ -127,15 +127,15 @@ export HTTP request.
 
 ### Tests for User Story 2 — write and observe failure first
 
-- [ ] T035 [P] [US2] Write reader and scene-navigation component tests in `tests/unit/story-reader.test.tsx` for first/middle/last bounds, previous/next, progress, focus management, and localized alt text.
+- [x] T035 [P] [US2] Write reader and scene-navigation component tests in `tests/unit/story-reader.test.tsx` for first/middle/last bounds, previous/next, progress, focus management, and localized alt text.
+- [x] T039 [US2] Implement an accessible single-scene renderer with optimized image, localized alt text, and semantic reading structure in `src/features/story-reader/components/scene-view.tsx`.
+- [x] T040 [US2] Implement ordered next/previous navigation, scene progress, and in-session resume in `src/features/story-reader/components/story-reader.tsx`.
 - [ ] T036 [P] [US2] Write the scene-by-scene keyboard E2E journey in `tests/e2e/story-reader-navigation.spec.ts`, including in-session resume behavior.
 - [ ] T037 [P] [US2] Add reader visual-regression coverage for all three scene positions in `tests/visual/reader.spec.ts`.
 - [ ] T038 [P] [US2] Write local PDF-export tests in `tests/unit/build-story-pdf.test.ts` that assert all scenes/images are included and no network export call occurs.
 
 ### Implementation for User Story 2
 
-- [ ] T039 [US2] Implement an accessible single-scene renderer with optimized image, localized alt text, and semantic reading structure in `src/features/story-reader/components/scene-view.tsx`.
-- [ ] T040 [US2] Implement ordered next/previous navigation, scene progress, and in-session resume in `src/features/story-reader/components/story-reader.tsx`.
 - [ ] T041 [US2] Add default/first/middle/last/error accessibility stories for the reader and scene view in `src/features/story-reader/components/scene-view.stories.tsx`.
 - [ ] T042 [US2] Implement lazily loaded browser-only PDF composition in `src/features/story-export/client/build-story-pdf.tsx` using the in-memory story and images.
 - [ ] T043 [US2] Implement accessible export/download/print controls and disabled/loading states in `src/features/story-export/components/export-story-button.tsx`.
