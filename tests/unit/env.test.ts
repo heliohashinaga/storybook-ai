@@ -60,6 +60,26 @@ describe("env server validation", () => {
     expect(result.success).toBe(false);
   });
 
+  it("defaults to the openrouter provider when STORIES_PROVIDER is absent", async () => {
+    const { parseEnv } = await loadEnv();
+    const result = parseEnv({ ...valid });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.STORIES_PROVIDER).toBeUndefined();
+  });
+
+  it("accepts the fake provider selector as an optional override", async () => {
+    const { parseEnv } = await loadEnv();
+    const result = parseEnv({ ...valid, STORIES_PROVIDER: "fake" });
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.data.STORIES_PROVIDER).toBe("fake");
+  });
+
+  it("rejects an unknown STORIES_PROVIDER value", async () => {
+    const { parseEnv } = await loadEnv();
+    const result = parseEnv({ ...valid, STORIES_PROVIDER: "bad" });
+    expect(result.success).toBe(false);
+  });
+
   it("getEnv throws a safe generic error that does not leak a config value", async () => {
     const { getEnv } = await loadEnv();
     expect(() => getEnv()).toThrow(

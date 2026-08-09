@@ -12,6 +12,15 @@ const envSchema = z.object({
   OPENROUTER_TEXT_MODEL: z.string().min(1),
   OPENROUTER_IMAGE_MODEL: z.string().min(1),
   OPENROUTER_MODERATION_MODEL: z.string().min(1),
+  /**
+   * Provider selector for the generation runtime (read by
+   * `generation-runtime.ts`, not by the OpenRouter adapter which always uses
+   * the real provider). `fake` selects the deterministic dev provider for
+   * e2e/visual/dev runs; anything else or absent means the production
+   * OpenRouter provider. Optional so fake-run environments can omit the
+   * OpenRouter credentials entirely.
+   */
+  STORIES_PROVIDER: z.enum(["openrouter", "fake"]).optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;
