@@ -70,6 +70,47 @@ describe("POST /api/stories — route", () => {
     const badLocale = await post(handler, { ageBand: "5-7", locale: "fr", theme: "courage" });
     expect(badLocale.status).toBe(422);
     expect((await badLocale.json()).code).toBe("unsupported_locale");
+
+    const badTheme = await post(handler, { ageBand: "5-7", locale: "pt-BR", theme: "flying" });
+    expect(badTheme.status).toBe(400);
+    expect((await badTheme.json()).code).toBe("invalid_input");
+    expect(badTheme.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("rejects a malformed or empty JSON body as invalid input (400)", async () => {
+    const handler = createStoriesHandler(makeDeps());
+    const malformed = await handler(
+      new Request("http://localhost/api/stories", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-forwarded-for": "198.51.100.7" },
+        body: "{not-json",
+      })
+    );
+    expect(malformed.status).toBe(400);
+    expect((await malformed.json()).code).toBe("invalid_input");
+    expect(malformed.headers.get("cache-control")).toBe("no-store");
+
+    const empty = await handler(
+      new Request("http://localhost/api/stories", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-forwarded-for": "198.51.100.7" },
+      })
+    );
+    expect(empty.status).toBe(400);
+    expect((await empty.json()).code).toBe("invalid_input");
+    expect(empty.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("routes anonymously when no x-forwarded-for header is present", async () => {
+    const response = await createStoriesHandler(makeDeps())(
+      new Request("http://localhost/api/stories", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ ageBand: "5-7", locale: "pt-BR", theme: "courage" }),
+      })
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it("is anonymous: provider sees only ageBand/locale/theme", async () => {

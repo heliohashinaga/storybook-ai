@@ -102,7 +102,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 - [x] T025 [US1] Implement the schema-validation, text **and image** moderation, bounded-regeneration, and safe-error pipeline in `src/features/story-generation/server/safety-pipeline.ts`.
 - [x] T026 [US1] Implement transient WebP image optimization and response-size guarding in `src/features/story-generation/server/image-optimizer.ts`.
 - [x] T027 [US1] Implement `N`-scene generation orchestration (`N = 3` validated constant, scene-count extension point), shared style/character consistency across the illustration set, bounded image retry, and provider error mapping in `src/features/story-generation/server/generate-story.ts`.
-- [ ] T028 [US1] Implement `POST /api/stories` in `src/app/api/stories/route.ts`; validate only `ageBand`, `locale`, and `theme`, apply rate limits, return `no-store`, and never log request/story content.
+- [x] T028 [US1] Implement `POST /api/stories` in `src/app/api/stories/route.ts`; validate only `ageBand`, `locale`, and `theme`, apply rate limits, return `no-store`, and never log request/story content.
 - [ ] T029 [US1] Implement client-side parsing of the approved story response and typed sanitized error mapping in `src/features/story-reader/client/story-response.ts`.
 - [ ] T030 [US1] Implement in-memory request status, active-story, and typed failure state in `src/features/story-request/client/story-session-context.tsx`; do not serialize state to storage.
 - [ ] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
