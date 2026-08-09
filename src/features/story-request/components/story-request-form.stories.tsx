@@ -1,0 +1,113 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "../../../i18n/config";
+import { StoryRequestForm, type SubmitResult } from "./story-request-form";
+
+const withI18n = (StoryComponent: () => React.JSX.Element) => (
+  <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+    <div className="flex max-w-md flex-col gap-md p-lg">
+      <StoryComponent />
+    </div>
+  </NextIntlClientProvider>
+);
+
+const meta: Meta<typeof StoryRequestForm> = {
+  title: "StoryRequest/Form",
+  component: StoryRequestForm,
+  tags: ["autodocs"],
+  decorators: [withI18n],
+  args: {
+    defaultLocale: "pt-BR",
+    defaultTheme: "courage",
+    onSubmit: async () => ({ ok: true }),
+  },
+};
+
+export default meta;
+
+type Story = StoryObj<typeof StoryRequestForm>;
+
+async function fillAgeAndSubmit(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement);
+  await userEvent.type(canvas.getByLabelText(/idade da criança/i), "6");
+  await userEvent.click(canvas.getByRole("button", { name: /criar história/i }));
+}
+
+export const Default: Story = {};
+
+export const ValidationError: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: /criar história/i }));
+
+    const age = canvas.getByLabelText(/idade da criança/i);
+    await expect(age).toHaveFocus();
+    await expect(age).toHaveAttribute("aria-invalid", "true");
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/entre 2 e 12/i);
+  },
+};
+
+export const Loading: Story = {
+  args: {
+    // The request stays in flight while the story is generated.
+    onSubmit: () => new Promise<SubmitResult>(() => {}),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillAgeAndSubmit(canvasElement);
+
+    const button = canvas.getByRole("button", { name: /criando sua história/i });
+    await expect(button).toBeDisabled();
+    await expect(button.closest("form")).toHaveAttribute("aria-busy", "true");
+  },
+};
+
+export const SafeRetry: Story = {
+  args: {
+    onSubmit: async (): Promise<SubmitResult> => ({
+      ok: false,
+      messageKey: "safeAlternativeUnavailable",
+    }),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillAgeAndSubmit(canvasElement);
+
+    const alert = canvas.getByRole("alert");
+    await expect(alert).toHaveTextContent(/não foi possível gerar uma história segura/i);
+    // G194: focus moves to the error region so assistive tech lands on it.
+    await waitFor(() => expect(alert.parentElement).toHaveFocus());
+  },
+};
+
+export const RateLimit: Story = {
+  args: {
+    onSubmit: async (): Promise<SubmitResult> => ({
+      ok: false,
+      messageKey: "tryAgainLater",
+    }),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillAgeAndSubmit(canvasElement);
+
+    const alert = canvas.getByRole("alert");
+    await expect(alert).toHaveTextContent(/muitas solicitações/i);
+    await waitFor(() => expect(alert.parentElement).toHaveFocus());
+  },
+};
+
+export const Success: Story = {
+  args: {
+    onSuccess: fn(),
+  },
+  play: async ({ args, canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillAgeAndSubmit(canvasElement);
+
+    await waitFor(() => expect(args.onSuccess).toHaveBeenCalledTimes(1));
+    await expect(canvas.queryByRole("alert")).toBeNull();
+    await expect(canvas.getByRole("button", { name: /criar história/i })).toBeEnabled();
+  },
+};

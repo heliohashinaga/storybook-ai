@@ -3,7 +3,12 @@
 > parent orchestrator** (real typecheck/lint/test/coverage + manual secret/privacy scan), not by
 > dispatched subagents. Results are recorded with the same severity taxonomy.
 >
-> **Infra — Chromium native lib fix (`f1ca309`):** `storybook:test` / `test:e2e` / `test:visual` were
+> **Infra — test-runner timeout (`T034`):** `storybook:test` failed every suite with `Exceeded
+> timeout of 15000 ms` on this slow host (pre-existing; affects stories with no play functions
+> too). Fixed by adding `--testTimeout=60000` to the `storybook:test` script. Verified:
+> `storybook:test` 5 suites / 24 tests green (0 a11y violations), incl. the 6 new
+> `story-request-form` stories with play functions (default, validation-error, loading,
+> safe-retry, rate-limit, success). `storybook:test` / `test:e2e` / `test:visual` were
 > un-blocked. Root cause was a single missing host library (`libasound.so.2`); fixed by adding
 > `scripts/setup-chromium-deps.sh` (uses `playwright install --with-deps` with root, or vendors the
 > lib into gitignored `.playwright-deps/` without root) and `scripts/run-with-chromium.sh`. The
