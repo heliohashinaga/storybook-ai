@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { Locale } from "../client/story-preferences-schema";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
-import type { GeneratedStory } from "../../story-generation/server/schemas";
+import { StorySessionProvider, useStorySession } from "../client/story-session-context";
 import {
   StoryRequestForm,
   type GenerateStoryRequest,
@@ -19,10 +18,19 @@ import {
  * approved three-scene story locally in memory (never persisted).
  */
 export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: Locale }) {
+  return (
+    <StorySessionProvider>
+      <StoryRequestFlow defaultLocale={defaultLocale} />
+    </StorySessionProvider>
+  );
+}
+
+function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
   const t = useTranslations("story");
-  const [story, setStory] = useState<GeneratedStory | null>(null);
+  const { story, begin, succeed, fail, reset } = useStorySession();
 
   async function handleSubmit(request: GenerateStoryRequest): Promise<SubmitResult> {
+    begin();
     const response = await fetch("/api/stories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,9 +38,10 @@ export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: L
     });
     const result = await parseStoryResponse(response);
     if (result.status === "success") {
-      setStory(result.story);
+      succeed(result.story);
       return { ok: true };
     }
+    fail(result.error);
     return { ok: false, messageKey: result.error.messageKey.replace(/^story\.error\./, "") };
   }
 
@@ -59,7 +68,7 @@ export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: L
             </li>
           ))}
         </ol>
-        <Button variant="secondary" onClick={() => setStory(null)}>
+        <Button variant="secondary" onClick={reset}>
           {t("reader.newStory")}
         </Button>
       </section>
