@@ -5,12 +5,25 @@ import { getMessages } from "../../../i18n/config";
 import { StoryRequestForm, type SubmitResult } from "./story-request-form";
 
 const withI18n = (StoryComponent: () => React.JSX.Element) => (
-  <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+  <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
     <div className="flex max-w-md flex-col gap-md p-lg">
       <StoryComponent />
     </div>
   </NextIntlClientProvider>
 );
+
+/** i18n decorator parameterized by locale (US4: pt-BR + en story cases). */
+const withLocalizedI18n = (locale: "pt-BR" | "en") => {
+  const Decorator = (StoryComponent: () => React.JSX.Element) => (
+    <NextIntlClientProvider locale={locale} messages={getMessages(locale)}>
+      <div className="flex max-w-md flex-col gap-md p-lg">
+        <StoryComponent />
+      </div>
+    </NextIntlClientProvider>
+  );
+  Decorator.displayName = `withLocalizedI18n(${locale})`;
+  return Decorator;
+};
 
 const meta: Meta<typeof StoryRequestForm> = {
   title: "StoryRequest/Form",
@@ -109,5 +122,76 @@ export const Success: Story = {
     await waitFor(() => expect(args.onSuccess).toHaveBeenCalledTimes(1));
     await expect(canvas.queryByRole("alert")).toBeNull();
     await expect(canvas.getByRole("button", { name: /criar história/i })).toBeEnabled();
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Localized English cases (US4, T054) — English UI strings + a11y.
+// ---------------------------------------------------------------------------
+
+const withEn = withLocalizedI18n("en");
+
+/** Fill the age and pick the friendship theme in the English form. */
+async function fillEn(page: HTMLElement) {
+  const canvas = within(page);
+  await userEvent.type(canvas.getByLabelText(/child's age/i), "9");
+  await userEvent.selectOptions(canvas.getByLabelText(/story theme/i), "friendship");
+  await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
+}
+
+/** English default — labels/submit render in English. */
+export const EnDefault: Story = {
+  decorators: [withEn],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByLabelText(/child's age/i)).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /create story/i })).toBeVisible();
+    await expect(canvas.queryByLabelText(/idade da criança/i)).toBeNull();
+  },
+};
+
+/** English validation error — localized message + focus (a11y). */
+export const EnValidationError: Story = {
+  decorators: [withEn],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
+    const age = canvas.getByLabelText(/child's age/i);
+    await expect(age).toHaveFocus();
+    await expect(age).toHaveAttribute("aria-invalid", "true");
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/between 2 and 12|age between/i);
+  },
+};
+
+/** English loading state — aria-busy + disabled submit. */
+export const EnLoading: Story = {
+  decorators: [withEn],
+  args: {
+    onSubmit: () => new Promise<SubmitResult>(() => {}),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillEn(canvasElement);
+    const button = canvas.getByRole("button", { name: /creating your story/i });
+    await expect(button).toBeDisabled();
+    await expect(button.closest("form")).toHaveAttribute("aria-busy", "true");
+  },
+};
+
+/** English safety retry error — localized message + focus moves to region. */
+export const EnSafeRetry: Story = {
+  decorators: [withEn],
+  args: {
+    onSubmit: async (): Promise<SubmitResult> => ({
+      ok: false,
+      messageKey: "safeAlternativeUnavailable",
+    }),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await fillEn(canvasElement);
+    const alert = canvas.getByRole("alert");
+    await expect(alert).toHaveTextContent(/safe story/i);
+    await waitFor(() => expect(alert.parentElement).toHaveFocus());
   },
 };

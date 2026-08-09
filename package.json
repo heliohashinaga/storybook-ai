@@ -23,7 +23,8 @@
     "test:e2e": "sh scripts/run-with-chromium.sh playwright test",
     "pretest:visual": "pnpm build",
     "test:visual": "sh scripts/run-with-chromium.sh playwright test tests/visual",
-    "build": "next build"
+    "build": "next build",
+    "test:limited": "vitest run --pool threads --maxWorkers 2"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",

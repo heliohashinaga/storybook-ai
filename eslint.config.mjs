@@ -26,10 +26,7 @@ export default [
       // Allow intentionally-unused function parameters prefixed with `_` (e.g.
       // a deterministic fake provider that must satisfy an interface contract
       // but ignores its input). Non-underscore unused args still warn.
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     },
   },
 ];

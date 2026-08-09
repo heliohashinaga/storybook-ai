@@ -32,6 +32,21 @@ describe("createGenerationRuntime provider selection", () => {
     expect(illustration.dataUri).toMatch(/^data:image\/webp;base64,/);
   });
 
+  it("selects an English story from the fixed provider when locale=en (US4)", async () => {
+    process.env.STORIES_PROVIDER = "fake";
+    const runtime = (await loadRuntime()).createGenerationRuntime();
+    const story = await runtime.provider.generateStory({
+      ageBand: "8-12",
+      locale: "en",
+      theme: "friendship",
+    });
+    expect(story.scenes).toHaveLength(3);
+    expect(story.title).toMatch(/star/i);
+    expect(story.scenes[0]!.title).toMatch(/scene/i);
+    expect(JSON.stringify(story)).not.toMatch(/estrelinha/i);
+    expect(JSON.stringify(story)).not.toMatch(/[áàâãçéêíóôõúü]/i);
+  });
+
   it("selects the real OpenRouter provider by default", async () => {
     const runtime = (await loadRuntime()).createGenerationRuntime();
     // Can't inspect the private closure, so assert the rate limiter + salt
