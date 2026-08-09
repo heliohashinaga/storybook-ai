@@ -94,6 +94,41 @@ describe("story-response — typed error mapping", () => {
     });
   });
 
+  it("passes through an unsupported_locale 422 unchanged", async () => {
+    const result = await parseStoryResponse(
+      jsonResponse(
+        {
+          code: "unsupported_locale",
+          messageKey: "story.error.unsupportedLocale",
+          retryable: false,
+        },
+        422
+      )
+    );
+    expect(result).toEqual({
+      status: "error",
+      error: {
+        code: "unsupported_locale",
+        messageKey: "story.error.unsupportedLocale",
+        retryable: false,
+      },
+    });
+  });
+
+  it("never treats a 200 error-shaped body as a story", async () => {
+    // Server defect: valid error JSON returned with HTTP 200.
+    const result = await parseStoryResponse(
+      jsonResponse(
+        { code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true },
+        200
+      )
+    );
+    expect(result.status).toBe("error");
+    if (result.status !== "error") return;
+    expect(result.error.code).toBe("generation_unavailable");
+    expect(result.error.retryable).toBe(true);
+  });
+
   it("never surfaces raw provider content from an error body", async () => {
     const body = {
       code: "invalid_input",
