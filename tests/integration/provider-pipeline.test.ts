@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { generateStory } from "../../src/features/story-generation/server/generate-story";
-import type { ProviderStoryInput } from "../../src/features/story-generation/server/story-generation-provider";
-import { createFakeProvider } from "../fixtures/story-generation/provider-fixtures";
+import type {
+  ProviderStoryInput,
+  StoryGenerationProvider,
+} from "../../src/features/story-generation/server/story-generation-provider";
+import {
+  buildSafeCandidate,
+  createFakeProvider,
+} from "../fixtures/story-generation/provider-fixtures";
 import { storyResponseSchema } from "../../src/features/story-generation/server/schemas";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
@@ -319,6 +325,26 @@ describe("provider pipeline — response-size guard", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe("generation_unavailable");
+  });
+});
+
+describe("provider pipeline — scene-count extension point", () => {
+  it("never returns a story whose scene count differs from N_SCENES", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const oversized: StoryGenerationProvider = {
+      async generateStory(i) {
+        const base = buildSafeCandidate(i);
+        const fourth = base.scenes[1];
+        if (!fourth) throw new Error("expected scene");
+        return { ...base, scenes: [...base.scenes, fourth] };
+      },
+      moderateText: fake.provider.moderateText,
+      moderateImage: fake.provider.moderateImage,
+    };
+    const result = await generateStory({ input, provider: oversized, illustrate });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
   });
 });
 

@@ -204,6 +204,24 @@ describe("safety pipeline — template-marker and identifier rejection", () => {
   });
 });
 
+describe("safety pipeline — scene-count extension point", () => {
+  it("rejects a candidate with more than N_SCENES scenes after bounded regeneration", async () => {
+    const { provider, count } = sequentialFake([
+      (i) => {
+        const base = buildSafeCandidate(i);
+        const fourth = base.scenes[2];
+        if (!fourth) throw new Error("expected scene");
+        return { ...base, scenes: [...base.scenes, fourth] };
+      },
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+  });
+});
+
 describe("safety pipeline — candidate schema validation", () => {
   it("rejects an empty scene body even when its text moderation passes", async () => {
     const { provider, count } = sequentialFake([

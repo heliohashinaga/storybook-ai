@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { parseStoryResponse } from "../../src/features/story-reader/client/story-response";
+import {
+  N_SCENES,
+  sceneSchema,
+  storyResponseSchema,
+} from "../../src/features/story-generation/server/schemas";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -56,6 +61,22 @@ describe("story-response — approved story parsing", () => {
     expect(result.status).toBe("error");
     if (result.status !== "error") return;
     expect(result.error.retryable).toBe(true);
+  });
+});
+
+describe("story-response — scene-count extension point", () => {
+  it("validates the scene count against a single exported N_SCENES constant", () => {
+    expect(N_SCENES).toBe(3);
+  });
+
+  it("rejects a story with more than N_SCENES scenes at the schema boundary", () => {
+    const tooLong = validStory();
+    tooLong.scenes = [scene(1), scene(2), scene(3), scene(4)];
+    expect(storyResponseSchema.safeParse(tooLong).success).toBe(false);
+  });
+
+  it("rejects a scene whose ordinal is beyond N_SCENES", () => {
+    expect(sceneSchema.safeParse(scene(4)).success).toBe(false);
   });
 });
 

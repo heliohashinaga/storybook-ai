@@ -17,6 +17,14 @@ export type Locale = z.infer<typeof localeSchema>;
 export type Theme = z.infer<typeof themeSchema>;
 
 /**
+ * Validated MVP scene count — the single source of truth for the scene-count
+ * extension point (3/4/5). The safety pipeline, the generation orchestrator,
+ * and the response/ordinal schema all read from this one constant, so a
+ * future variable-scene-count change edits exactly one value here.
+ */
+export const N_SCENES = 3;
+
+/**
  * The only inbound payload the route accepts. Strict shape: no exact age, no
  * name, and no direct identifier can reach the server.
  */
@@ -31,7 +39,7 @@ export const generateRequestSchema = z
 /** One approved scene: localized plain text plus a session-only WebP data URI. */
 export const sceneSchema = z
   .object({
-    ordinal: z.number().int().min(1).max(3),
+    ordinal: z.number().int().min(1).max(N_SCENES),
     title: z.string().min(1).max(100),
     body: z.string().min(1).max(1600),
     illustrationDataUri: z.string().regex(/^data:image\/webp;base64,/),
@@ -53,7 +61,7 @@ export const storyResponseSchema = z
     theme: themeSchema,
     safetyDecision: z.enum(["approved", "regenerated"]),
     title: z.string().min(1).max(140),
-    scenes: z.array(sceneSchema).length(3),
+    scenes: z.array(sceneSchema).length(N_SCENES),
   })
   .strict();
 

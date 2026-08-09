@@ -1,7 +1,11 @@
 import "server-only";
-import { generationTimeout, generationUnavailable, toErrorJson } from "../../../lib/http-errors";
-import type { SafeError } from "./schemas";
-import { storyResponseSchema, type GeneratedStory } from "./schemas";
+import {
+  generationTimeout,
+  generationUnavailable,
+  toErrorJson,
+  unsafeUnrecoverable,
+} from "../../../lib/http-errors";
+import { N_SCENES, storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
 import { runSafetyPipeline } from "./safety-pipeline";
 import {
   ProviderError,
@@ -21,11 +25,10 @@ import {
  *    story-response schema before it may be returned.
  *
  * Provider transport failures are mapped to typed HTTP errors (unavailable →
- * 502, timeout → 504). Unsafe results never reach the caller.
+ * 502, timeout → 504). Unsafe results never reach the caller. The scene count
+ * is enforced here and in the safety pipeline against the single validated
+ * `N_SCENES` constant from the shared schemas (extension point for 3/4/5).
  */
-
-/** Validated MVP scene count; the extension point for variable scene counts. */
-export const N_SCENES = 3;
 
 /** Default limit for a serialized WebP data-URI illustration (responses stay bounded). */
 const DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH = 4 * 1024 * 1024;
@@ -127,6 +130,13 @@ export async function generateStory(options: GenerateStoryOptions): Promise<Gene
     scenes = moderated.candidate.scenes;
   } catch (error) {
     return { ok: false, error: mapProviderError(error) };
+  }
+
+  // Defense-in-depth: the orchestration boundary re-binds the single validated
+  // scene count regardless of which safety pipeline produced the candidate, so
+  // a future variable-scene-count extension stays safe here too.
+  if (scenes.length !== N_SCENES) {
+    return { ok: false, error: toErrorJson(unsafeUnrecoverable) };
   }
 
   const dataUris = await illustrateSet(

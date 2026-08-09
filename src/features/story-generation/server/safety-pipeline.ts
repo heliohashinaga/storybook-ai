@@ -1,6 +1,6 @@
 import "server-only";
 import { toErrorJson, unsafeUnrecoverable } from "../../../lib/http-errors";
-import type { SafeError } from "./schemas";
+import { N_SCENES, type SafeError } from "./schemas";
 import type {
   GeneratedStoryCandidate,
   ProviderScene,
@@ -24,9 +24,6 @@ import type {
  * text **and** its illustration both pass. Provider transport errors are left
  * to the orchestrator (generate-story) to map to typed HTTP errors.
  */
-
-/** Validated constant for the MVP scene count (extension point for 3/4/5). */
-export const N_SCENES = 3;
 
 /**
  * Marker/placeholder tokens that indicate an unpersonalized or leaking
