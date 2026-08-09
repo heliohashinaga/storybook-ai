@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
@@ -93,7 +93,33 @@ describe("StoryRequestApp — flow", () => {
 
     expect(await screen.findByText(/muitas solicitações/i)).toBeInTheDocument();
     expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).toBeNull();
     expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
+  });
+
+  it("shows the generation progress panel while the request is in flight", async () => {
+    let resolveFetch!: (value: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise<Response>((resolve) => (resolveFetch = resolve)))
+    );
+    renderApp();
+
+    await submitValidForm();
+
+    const bar = await screen.findByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
+    // The request form stays mounted (fields disabled + button announced), so
+    // its localized retry error still renders on failure; the progress panel
+    // replaces the form heading while generating.
+    expect(screen.getByLabelText(/idade da criança/i)).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeDisabled();
+
+    await act(async () => {
+      resolveFetch(new Response(JSON.stringify(approvedStory), { status: 200 }));
+    });
+    expect(await screen.findByText("Sua história")).toBeInTheDocument();
   });
 
   it("returns to the form after creating another story", async () => {

@@ -1,10 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { Locale } from "../client/story-preferences-schema";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
+import { StoryGenerationProgress } from "./story-generation-progress";
 import {
   StoryRequestForm,
   type GenerateStoryRequest,
@@ -27,9 +29,33 @@ export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: L
 
 function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
   const t = useTranslations("story");
-  const { story, begin, succeed, fail, reset } = useStorySession();
+  const { status, story, begin, succeed, fail, reset } = useStorySession();
+  const [elapsed, setElapsed] = useState(0);
+
+  const submitting = status === "submitting";
+
+  // While the anonymous request is in flight, tick the elapsed clock that
+  // drives the localized progress copy (writing → reviewing → timeout cue).
+  useEffect(() => {
+    if (!submitting) return;
+    const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
+    return () => clearInterval(id);
+  }, [submitting]);
+
+  if (submitting) {
+    // Keep the request form mounted (internally disabled/announcing) so its
+    // localized retry error still renders on failure; the progress panel sits
+    // above it while the anonymous request is in flight.
+    return (
+      <section className="flex flex-col gap-md">
+        <StoryGenerationProgress elapsedSeconds={elapsed} />
+        <StoryRequestForm defaultLocale={defaultLocale} onSubmit={handleSubmit} />
+      </section>
+    );
+  }
 
   async function handleSubmit(request: GenerateStoryRequest): Promise<SubmitResult> {
+    setElapsed(0);
     begin();
     const response = await fetch("/api/stories", {
       method: "POST",

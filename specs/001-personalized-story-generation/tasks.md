@@ -107,7 +107,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 - [x] T030 [US1] Implement in-memory request status, active-story, and typed failure state in `src/features/story-request/client/story-session-context.tsx`; do not serialize state to storage.
 - [x] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
 - [x] T032 [US1] Implement localized progress, timeout, safety-retry, and provider-failure states in `src/features/story-request/components/story-generation-progress.tsx`.
-- [ ] T033 [US1] Integrate form submission, API response handling, and the first approved-story state in `src/app/page.tsx`.
+- [x] T033 [US1] Integrate form submission, API response handling, and the first approved-story state in `src/app/page.tsx`.
 - [ ] T034 [US1] Add default, validation-error, loading, safe-retry, rate-limit, and success stories to `src/features/story-request/components/story-request-form.stories.tsx`.
 
 **Checkpoint**: User Story 1 is independently usable with fixtures: it creates a safe three-scene
