@@ -19,7 +19,12 @@
     },
     "progress": {
       "generating": "Escrevendo e ilustrando sua história…",
-      "reviewing": "Verificando a segurança do conteúdo…"
+      "illustrating": "Ilustrando as cenas…",
+      "reviewing": "Verificando a segurança do conteúdo…",
+      "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
+      "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
+      "providerFailure": "Não foi possível criar sua história no momento.",
+      "retry": "Tentar novamente"
     },
     "error": {
       "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
