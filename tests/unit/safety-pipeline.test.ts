@@ -203,3 +203,62 @@ describe("safety pipeline — template-marker and identifier rejection", () => {
     expect(JSON.stringify(result.candidate)).not.toContain("{{child}}");
   });
 });
+
+describe("safety pipeline — candidate schema validation", () => {
+  it("rejects an empty scene body even when its text moderation passes", async () => {
+    const { provider, count } = sequentialFake([
+      (i) =>
+        mutateScene(buildSafeCandidate(i), 0, (s) => {
+          s.body = "";
+        }),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+  });
+
+  it("rejects an empty illustration prompt even when image moderation passes", async () => {
+    const { provider, count } = sequentialFake([
+      (i) =>
+        mutateScene(buildSafeCandidate(i), 1, (s) => {
+          s.illustrationPrompt = "";
+        }),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+  });
+
+  it("rejects an out-of-range scene ordinal", async () => {
+    const { provider, count } = sequentialFake([
+      (i) =>
+        mutateScene(buildSafeCandidate(i), 2, (s) => {
+          s.ordinal = 0;
+        }),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+  });
+
+  it("regenerates to a structurally valid candidate on a later attempt", async () => {
+    const { provider, count } = sequentialFake([
+      (i) =>
+        mutateScene(buildSafeCandidate(i), 0, (s) => {
+          s.body = "";
+        }),
+      (i) => buildSafeCandidate(i),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.candidate.safetyDecision).toBe("regenerated");
+    expect(count()).toBe(2);
+  });
+});

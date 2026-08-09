@@ -3,6 +3,7 @@ import { toErrorJson, unsafeUnrecoverable } from "../../../lib/http-errors";
 import type { SafeError } from "./schemas";
 import type {
   GeneratedStoryCandidate,
+  ProviderScene,
   ProviderStoryInput,
   StoryGenerationProvider,
 } from "./story-generation-provider";
@@ -70,6 +71,28 @@ function hasForbiddenContent(value: string): boolean {
 }
 
 /**
+ * Structural validation of a scene against the contract shape
+ * (`sceneSchema` in schemas.ts). The provider classifier only moderates
+ * semantic safety, so we also reject structurally invalid output directly:
+ * an out-of-range ordinal, an empty title, an empty localized body, or an
+ * empty illustration prompt. Invalid output is treated like unsafe output
+ * and recovered through bounded regeneration.
+ */
+function isStructurallyValid(scene: ProviderScene): boolean {
+  return (
+    Number.isInteger(scene.ordinal) &&
+    scene.ordinal >= 1 &&
+    scene.ordinal <= N_SCENES &&
+    typeof scene.title === "string" &&
+    scene.title.trim().length > 0 &&
+    typeof scene.body === "string" &&
+    scene.body.trim().length > 0 &&
+    typeof scene.illustrationPrompt === "string" &&
+    scene.illustrationPrompt.trim().length > 0
+  );
+}
+
+/**
  * Moderation pass for a single candidate attempt. Returns the moderated
  * candidate, or `null` when any scene (text or illustration) or the whole
  * candidate fails safety or schema checks.
@@ -79,9 +102,11 @@ async function moderateCandidate(
   candidate: GeneratedStoryCandidate
 ): Promise<ModeratedStoryCandidate | null> {
   if (candidate.scenes.length !== N_SCENES) return null;
+  if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return null;
   if (hasForbiddenContent(candidate.title)) return null;
 
   for (const scene of candidate.scenes) {
+    if (!isStructurallyValid(scene)) return null;
     if (
       hasForbiddenContent(scene.title) ||
       hasForbiddenContent(scene.body) ||
