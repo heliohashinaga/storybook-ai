@@ -5,7 +5,8 @@
       "age": {
         "label": "Idade da criança",
         "placeholder": "Digite a idade (2 a 12)",
-        "hint": "A idade fica apenas no seu navegador e nunca é enviada."
+        "hint": "A idade fica apenas no seu navegador e nunca é enviada.",
+        "errorRange": "Informe uma idade entre 2 e 12 anos."
       },
       "locale": {
         "label": "Idioma da história"
@@ -18,7 +19,12 @@
     },
     "progress": {
       "generating": "Escrevendo e ilustrando sua história…",
-      "reviewing": "Verificando a segurança do conteúdo…"
+      "illustrating": "Ilustrando as cenas…",
+      "reviewing": "Verificando a segurança do conteúdo…",
+      "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
+      "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
+      "providerFailure": "Não foi possível criar sua história no momento.",
+      "retry": "Tentar novamente"
     },
     "error": {
       "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
@@ -27,6 +33,14 @@
       "tryAgainLater": "Muitas solicitações. Aguarde um pouco e tente novamente.",
       "generationUnavailable": "O gerador de histórias está indisponível no momento. Tente novamente.",
       "generationTimeout": "A geração da história demorou demais. Tente novamente."
+    },
+    "reader": {
+      "title": "Sua história",
+      "sceneLabel": "Cena {ordinal}",
+      "newStory": "Criar outra história",
+      "previous": "Cena anterior",
+      "next": "Próxima cena",
+      "sceneCount": "Cena {current} de {total}"
     }
   }
 }

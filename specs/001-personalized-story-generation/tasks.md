@@ -90,25 +90,25 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 
 ### Tests for User Story 1 — write and observe failure first
 
-- [ ] T019 [P] [US1] Write the `POST /api/stories` OpenAPI contract test in `tests/contract/story-generation.openapi.test.ts`, covering only allowed request fields, `Cache-Control: no-store`, three scenes, and typed 400/422/429/502/504 failures.
-- [ ] T020 [P] [US1] Write safety-pipeline unit tests in `tests/unit/safety-pipeline.test.ts` for unsafe-candidate discard (story text **and each illustration**), one safe regeneration, identifier/template-marker rejection, and safe unrecoverable failure.
-- [ ] T021 [P] [US1] Write provider-pipeline integration tests with deterministic fixtures in `tests/integration/provider-pipeline.test.ts` for structured narrative, text **and image** moderation, three image prompts, illustration-set consistency, missing-image retry, and no unsafe result leakage.
-- [ ] T022 [P] [US1] Write request-form component tests in `tests/unit/story-request-form.test.tsx` for valid input, invalid age/theme, loading state, and absence of a name/direct-identifier field.
-- [ ] T023 [P] [US1] Write the default `pt-BR` generation E2E journey in `tests/e2e/generate-pt-br.spec.ts`, including request-payload inspection and a no-identifier assertion.
+- [x] T019 [P] [US1] Write the `POST /api/stories` OpenAPI contract test in `tests/contract/story-generation.openapi.test.ts`, covering only allowed request fields, `Cache-Control: no-store`, three scenes, and typed 400/422/429/502/504 failures.
+- [x] T020 [P] [US1] Write safety-pipeline unit tests in `tests/unit/safety-pipeline.test.ts` for unsafe-candidate discard (story text **and each illustration**), one safe regeneration, identifier/template-marker rejection, and safe unrecoverable failure.
+- [x] T021 [P] [US1] Write provider-pipeline integration tests with deterministic fixtures in `tests/integration/provider-pipeline.test.ts` for structured narrative, text **and image** moderation, three image prompts, illustration-set consistency, missing-image retry, and no unsafe result leakage.
+- [x] T022 [P] [US1] Write request-form component tests in `tests/unit/story-request-form.test.tsx` for valid input, invalid age/theme, loading state, and absence of a name/direct-identifier field.
+- [x] T023 [P] [US1] Write the default `pt-BR` generation E2E journey in `tests/e2e/generate-pt-br.spec.ts`, including request-payload inspection and a no-identifier assertion.
 
 ### Implementation for User Story 1
 
-- [ ] T024 [US1] Implement the server-only OpenAI narrative/image/moderation adapter in `src/features/story-generation/server/openai-story-generation-provider.ts`, reading model identifiers only from `src/lib/env.ts`.
-- [ ] T025 [US1] Implement the schema-validation, text **and image** moderation, bounded-regeneration, and safe-error pipeline in `src/features/story-generation/server/safety-pipeline.ts`.
-- [ ] T026 [US1] Implement transient WebP image optimization and response-size guarding in `src/features/story-generation/server/image-optimizer.ts`.
-- [ ] T027 [US1] Implement `N`-scene generation orchestration (`N = 3` validated constant, scene-count extension point), shared style/character consistency across the illustration set, bounded image retry, and provider error mapping in `src/features/story-generation/server/generate-story.ts`.
-- [ ] T028 [US1] Implement `POST /api/stories` in `src/app/api/stories/route.ts`; validate only `ageBand`, `locale`, and `theme`, apply rate limits, return `no-store`, and never log request/story content.
-- [ ] T029 [US1] Implement client-side parsing of the approved story response and typed sanitized error mapping in `src/features/story-reader/client/story-response.ts`.
-- [ ] T030 [US1] Implement in-memory request status, active-story, and typed failure state in `src/features/story-request/client/story-session-context.tsx`; do not serialize state to storage.
-- [ ] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
-- [ ] T032 [US1] Implement localized progress, timeout, safety-retry, and provider-failure states in `src/features/story-request/components/story-generation-progress.tsx`.
-- [ ] T033 [US1] Integrate form submission, API response handling, and the first approved-story state in `src/app/page.tsx`.
-- [ ] T034 [US1] Add default, validation-error, loading, safe-retry, rate-limit, and success stories to `src/features/story-request/components/story-request-form.stories.tsx`.
+- [X] T024 [US1] Implement the server-only OpenRouter narrative/image/moderation adapter in `src/features/story-generation/server/openrouter-story-generation-provider.ts`, reading model identifiers only from `src/lib/env.ts`.
+- [x] T025 [US1] Implement the schema-validation, text **and image** moderation, bounded-regeneration, and safe-error pipeline in `src/features/story-generation/server/safety-pipeline.ts`.
+- [x] T026 [US1] Implement transient WebP image optimization and response-size guarding in `src/features/story-generation/server/image-optimizer.ts`.
+- [x] T027 [US1] Implement `N`-scene generation orchestration (`N = 3` validated constant, scene-count extension point), shared style/character consistency across the illustration set, bounded image retry, and provider error mapping in `src/features/story-generation/server/generate-story.ts`.
+- [x] T028 [US1] Implement `POST /api/stories` in `src/app/api/stories/route.ts`; validate only `ageBand`, `locale`, and `theme`, apply rate limits, return `no-store`, and never log request/story content.
+- [x] T029 [US1] Implement client-side parsing of the approved story response and typed sanitized error mapping in `src/features/story-reader/client/story-response.ts`.
+- [x] T030 [US1] Implement in-memory request status, active-story, and typed failure state in `src/features/story-request/client/story-session-context.tsx`; do not serialize state to storage.
+- [x] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
+- [x] T032 [US1] Implement localized progress, timeout, safety-retry, and provider-failure states in `src/features/story-request/components/story-generation-progress.tsx`.
+- [x] T033 [US1] Integrate form submission, API response handling, and the first approved-story state in `src/app/page.tsx`.
+- [x] T034 [US1] Add default, validation-error, loading, safe-retry, rate-limit, and success stories to `src/features/story-request/components/story-request-form.stories.tsx`.
 
 **Checkpoint**: User Story 1 is independently usable with fixtures: it creates a safe three-scene
 `pt-BR` story without a name field, unsafe intermediate content, durable storage, or live-provider
@@ -127,15 +127,15 @@ export HTTP request.
 
 ### Tests for User Story 2 — write and observe failure first
 
-- [ ] T035 [P] [US2] Write reader and scene-navigation component tests in `tests/unit/story-reader.test.tsx` for first/middle/last bounds, previous/next, progress, focus management, and localized alt text.
+- [x] T035 [P] [US2] Write reader and scene-navigation component tests in `tests/unit/story-reader.test.tsx` for first/middle/last bounds, previous/next, progress, focus management, and localized alt text.
+- [x] T039 [US2] Implement an accessible single-scene renderer with optimized image, localized alt text, and semantic reading structure in `src/features/story-reader/components/scene-view.tsx`.
+- [x] T040 [US2] Implement ordered next/previous navigation, scene progress, and in-session resume in `src/features/story-reader/components/story-reader.tsx`.
 - [ ] T036 [P] [US2] Write the scene-by-scene keyboard E2E journey in `tests/e2e/story-reader-navigation.spec.ts`, including in-session resume behavior.
 - [ ] T037 [P] [US2] Add reader visual-regression coverage for all three scene positions in `tests/visual/reader.spec.ts`.
 - [ ] T038 [P] [US2] Write local PDF-export tests in `tests/unit/build-story-pdf.test.ts` that assert all scenes/images are included and no network export call occurs.
 
 ### Implementation for User Story 2
 
-- [ ] T039 [US2] Implement an accessible single-scene renderer with optimized image, localized alt text, and semantic reading structure in `src/features/story-reader/components/scene-view.tsx`.
-- [ ] T040 [US2] Implement ordered next/previous navigation, scene progress, and in-session resume in `src/features/story-reader/components/story-reader.tsx`.
 - [ ] T041 [US2] Add default/first/middle/last/error accessibility stories for the reader and scene view in `src/features/story-reader/components/scene-view.stories.tsx`.
 - [ ] T042 [US2] Implement lazily loaded browser-only PDF composition in `src/features/story-export/client/build-story-pdf.tsx` using the in-memory story and images.
 - [ ] T043 [US2] Implement accessible export/download/print controls and disabled/loading states in `src/features/story-export/components/export-story-button.tsx`.
@@ -188,7 +188,7 @@ text and alt text match the chosen locale, and assert an unsupported locale cann
 
 - [ ] T055 [US4] Add reviewed English static UI messages and locale-switch labels in `src/features/story-request/locales/en.json` and `src/features/story-request/locales/pt-BR.json`.
 - [ ] T056 [US4] Implement the locale-provider/selector wiring and localized unsupported-language recovery UX in `src/i18n/config.ts`, `src/features/story-request/components/story-request-form.tsx`, and `src/app/layout.tsx`.
-- [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openai-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
+- [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openrouter-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
 
 **Checkpoint**: User Stories 1–4 work in both supported languages; default `pt-BR` and English have
 localized UI, story text, scene descriptions, and pre-provider rejection for unsupported locales.

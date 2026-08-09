@@ -105,6 +105,21 @@ Never commit `.env.local` or real credentials.
 - Tiers: unit (pure logic/schemas/safety), integration/contract (route + pipeline
   against `story-generation.openapi.yaml`, APIs faked), E2E (Playwright),
   visual (reader regression).
+- **Devloop `testPlan` alignment:** when a devloop slice carries a `testPlan`
+  (authored by `feature-planner`, validated by `task-qa`, persisted in
+  `.pi/devloop-sessions/<taskId>-plan.json`), its tiers map to the ones above:
+  `unit` = Vitest unit, `contract` = API-contract/integration vs the OpenAPI
+  contract, `e2e` = Playwright journeys (pt-BR + en), `visual` = Storybook
+  stories (default/edge/error + a11y). Workers author tests against it;
+  `tester-simple`/`tester-complex` verify its intents are fulfilled per tier.
+- **Devloop retrospectives:** every `/devloop` run persists deterministic run
+  facts to `.pi/devloop-sessions/<runId>.retro.json`/`.md` (root, not worktree).
+  `/devloop-retro` lists/reads them (TUI card) and `--agent` generates
+  recommendations via the read-only `retro` agent; `retro.recommend` in
+  `.pi/devloop.json` auto-generates them after every terminal outcome
+  (ready-to-merge **and** human-escalation). Prune with
+  `/devloop-cleanup --retros [keep]`. These are local dev artifacts — never
+  committed, and never contain user/child PII.
 - Assert privacy invariants in tests: no direct identifier accepted by form/API,
   none in HTTP payloads, logs, or provider fakes.
 - Every component ships co-located `.stories.tsx` covering default/edge/error
@@ -133,3 +148,13 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
   `plan.md`, `quickstart.md`, `tasks.md`, `contracts/story-generation.openapi.yaml`)
 - Constitution (principles, quality gates): `.specify/memory/constitution.md`
 - Framework/project conventions: user-level generic `nextjs` + `design-system` skills
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -8,9 +8,19 @@ import { z } from "zod";
  * generic error — never by leaking the raw environment value.
  */
 const envSchema = z.object({
-  OPENAI_API_KEY: z.string().min(1),
-  OPENAI_TEXT_MODEL: z.string().min(1),
-  OPENAI_IMAGE_MODEL: z.string().min(1),
+  OPENROUTER_API_KEY: z.string().min(1),
+  OPENROUTER_TEXT_MODEL: z.string().min(1),
+  OPENROUTER_IMAGE_MODEL: z.string().min(1),
+  OPENROUTER_MODERATION_MODEL: z.string().min(1),
+  /**
+   * Provider selector for the generation runtime (read by
+   * `generation-runtime.ts`, not by the OpenRouter adapter which always uses
+   * the real provider). `fake` selects the deterministic dev provider for
+   * e2e/visual/dev runs; anything else or absent means the production
+   * OpenRouter provider. Optional so fake-run environments can omit the
+   * OpenRouter credentials entirely.
+   */
+  STORIES_PROVIDER: z.enum(["openrouter", "fake"]).optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

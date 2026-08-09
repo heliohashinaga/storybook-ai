@@ -1,3 +1,16 @@
 {
-  "tasksPath": "specs/001-personalized-story-generation/tasks.md"
+  "tasksPath": "specs/001-personalized-story-generation/tasks.md",
+  "stack": {
+    "base": "feat/phase-3-story-generation"
+  },
+  "stageTimeoutMs": {
+    "planner": 600000,
+    "task-qa": 600000,
+    "code": 600000,
+    "review": 600000,
+    "test": 900000,
+    "security": 600000,
+    "documentation": 600000,
+    "integrate": 600000
+  }
 }

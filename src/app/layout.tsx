@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
+import { getMessages } from "../i18n/config";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -15,7 +16,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="pt-BR">
       <body>
-        <NextIntlClientProvider locale="pt-BR" messages={{}}>
+        <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
           <main>{children}</main>
         </NextIntlClientProvider>
       </body>

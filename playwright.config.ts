@@ -1,19 +1,20 @@
 import { existsSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3000;
-// Chromium may need native libraries (e.g. libasound.so.2) to launch on a
-// minimal Linux host. Point at the project-local vendored copies produced by
-// `scripts/setup-chromium-deps.sh` (gitignored). scripts/run-with-chromium.sh
-// prepends the same path so the Playwright and Storybook test runners both
-// pick it up even when launched outside this config.
-const DEFAULT_NATIVE_LIBRARY_PATH = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  ".playwright-deps",
-  "lib"
+// Shared, user-level cache (outside any git worktree) so browsers install and
+// native deps are reused across every devloop slice instead of being rebuilt
+// per slice. See ADR 0002. Native libraries (e.g. libasound.so.2) are vendored
+// here by `scripts/setup-chromium-deps.sh`; scripts/run-with-chromium.sh
+// prepends the same dir to LD_LIBRARY_PATH for the Playwright and Storybook
+// runners even when launched outside this config.
+const SHARED_CACHE = path.join(
+  process.env.XDG_CACHE_HOME || path.join(os.homedir(), ".cache"),
+  "storybook-ai-e2e"
 );
+const DEFAULT_NATIVE_LIBRARY_PATH = path.join(SHARED_CACHE, "lib");
 
 if (
   process.platform === "linux" &&
@@ -47,8 +48,13 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
+  // E2E runs against a production build (`next start`), not `next dev`: no
+  // on-demand cold-compile in the test window, deterministic and fast.
+  // `pnpm build` is a precondition (see the pretest:* hooks in package.json);
+  // each slice builds the exact code under test — never reused across different
+  // code states. See ADR 0002.
   webServer: {
-    command: "pnpm dev",
+    command: "pnpm start",
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
