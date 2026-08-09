@@ -11,7 +11,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
 
   return {
     locale,
-    // Feature message catalogs resolved in src/i18n/config.ts (Phase 2, T014+).
-    messages: getMessages(),
+    // Feature message catalogs resolved in src/i18n/config.ts (US4: pt-BR + en).
+    messages: getMessages(locale),
   };
 });

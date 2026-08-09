@@ -1,0 +1,46 @@
+{
+  "story": {
+    "form": {
+      "title": "Create a personalized story",
+      "age": {
+        "label": "Child's age",
+        "placeholder": "Enter the age (2 to 12)",
+        "hint": "The age stays in your browser and is never sent.",
+        "errorRange": "Please enter an age between 2 and 12."
+      },
+      "locale": {
+        "label": "Story language"
+      },
+      "theme": {
+        "label": "Story theme"
+      },
+      "submit": "Create story",
+      "submitting": "Creating your story…"
+    },
+    "progress": {
+      "generating": "Writing and illustrating your story…",
+      "illustrating": "Illustrating the scenes…",
+      "reviewing": "Checking content safety…",
+      "timeout": "This is taking longer than expected. Thanks for your patience — your story is still being created.",
+      "safetyRetry": "We're reviewing once more to make sure everything is safe. Almost there!",
+      "providerFailure": "We couldn't create your story right now.",
+      "retry": "Try again"
+    },
+    "error": {
+      "invalidInput": "Invalid input. Please check the fields and try again.",
+      "unsupportedLocale": "Language not supported. Please choose between Portuguese (Brazil) and English.",
+      "safeAlternativeUnavailable": "We couldn't generate a safe story. Please try again.",
+      "tryAgainLater": "Too many requests. Please wait a moment and try again.",
+      "generationUnavailable": "The story generator is unavailable right now. Please try again.",
+      "generationTimeout": "Story generation took too long. Please try again."
+    },
+    "reader": {
+      "title": "Your story",
+      "sceneLabel": "Scene {ordinal}",
+      "newStory": "Create another story",
+      "previous": "Previous scene",
+      "next": "Next scene",
+      "sceneCount": "Scene {current} of {total}"
+    }
+  }
+}

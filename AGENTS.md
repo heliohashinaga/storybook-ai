@@ -76,6 +76,23 @@ environment/tooling concern, not part of the product; it is recorded in
 **Tests never call a live AI service.** Use deterministic provider fakes/MSW.
 Never commit `.env.local` or real credentials.
 
+### Vitest worker timeouts on constrained hosts
+
+On a low-memory or heavily-loaded host, the default Vitest forks pool can
+timeout (`Failed to start forks worker` / `Timeout waiting for worker to
+respond`) even though the suite is healthy — it only appears when many workers
+try to build the JSX/SVG transform cache in parallel. If `pnpm test` fails that
+way, first confirm the machine is not maxed out (`uptime`, `free -h`), then
+re-run with a bounded pool:
+
+```bash
+pnpm test:limited   # vitest run --pool threads --maxWorkers 2
+```
+
+This is a resource/tooling concern, not a product or test-correctness issue; it
+is intentionally **not** the default so well-resourced machines and CI keep
+full parallelism.
+
 ## Code Style
 
 - TypeScript **strict**, no `any` in production code (justify and approve exceptions).
