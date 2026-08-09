@@ -166,6 +166,50 @@ describe("StoryRequestForm — submission states", () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
   });
 
+  it("moves focus to the submit-error region after a failed generation", async () => {
+    const onSubmit = vi.fn(async (): Promise<SubmitResult> => ({
+      ok: false,
+      messageKey: "generationUnavailable",
+    }));
+    const { container } = renderForm({ onSubmit });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/idade da criança/i), "6");
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    const region = container.querySelector("#story-request-submit-error");
+    expect(region).not.toBeNull();
+    await waitFor(() => expect(region).toHaveFocus());
+  });
+
+  it("announces the submit error assertively", async () => {
+    const onSubmit = vi.fn(async (): Promise<SubmitResult> => ({
+      ok: false,
+      messageKey: "generationUnavailable",
+    }));
+    renderForm({ onSubmit });
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText(/idade da criança/i), "6");
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveAttribute("aria-live", "assertive");
+  });
+
+  it("moves focus back to the age input when the submitted age is out of range", async () => {
+    const onSubmit = vi.fn();
+    renderForm({ onSubmit });
+    const user = userEvent.setup();
+
+    // No age typed — submit must fail locally without calling the parent.
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    const input = screen.getByLabelText(/idade da criança/i);
+    await waitFor(() => expect(input).toHaveFocus());
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("shows a localized retry on provider failure and can resubmit", async () => {
     const onSubmit = vi
       .fn<(_request: GenerateStoryRequest) => Promise<SubmitResult>>()

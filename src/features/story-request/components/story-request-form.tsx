@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
@@ -43,6 +43,8 @@ export function StoryRequestForm({
   onSuccess,
 }: StoryRequestFormProps) {
   const t = useTranslations("story");
+  const ageInputRef = useRef<HTMLInputElement>(null);
+  const submitErrorRef = useRef<HTMLDivElement>(null);
   const [age, setAge] = useState("");
   const [locale, setLocale] = useState<Locale>(defaultLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
@@ -53,6 +55,12 @@ export function StoryRequestForm({
   const submitting = status === "submitting";
   const disabled = submitting;
 
+  // WCAG 3.3.1 / G194: after a failed generation, move keyboard focus to the
+  // submit-error region so assistive tech lands on the failure message.
+  useEffect(() => {
+    if (submitError) submitErrorRef.current?.focus();
+  }, [submitError]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
@@ -60,6 +68,7 @@ export function StoryRequestForm({
     const numericAge = Number(age);
     if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 12) {
       setAgeError(t("form.age.errorRange"));
+      ageInputRef.current?.focus();
       return;
     }
 
@@ -90,6 +99,7 @@ export function StoryRequestForm({
         </label>
         <input
           id="story-request-age"
+          ref={ageInputRef}
           type="number"
           min="2"
           max="12"
@@ -141,7 +151,16 @@ export function StoryRequestForm({
         ))}
       </Select>
 
-      {submitError ? <Alert variant="danger">{submitError}</Alert> : null}
+      {submitError ? (
+        <div
+          ref={submitErrorRef}
+          id="story-request-submit-error"
+          tabIndex={-1}
+          className="focus:outline-none"
+        >
+          <Alert variant="danger">{submitError}</Alert>
+        </div>
+      ) : null}
 
       <Button type="submit" loading={submitting}>
         {submitting ? t("form.submitting") : t("form.submit")}

@@ -105,7 +105,7 @@ contains only `ageBand`, `locale`, and `theme`, and that unsafe first attempts a
 - [x] T028 [US1] Implement `POST /api/stories` in `src/app/api/stories/route.ts`; validate only `ageBand`, `locale`, and `theme`, apply rate limits, return `no-store`, and never log request/story content.
 - [x] T029 [US1] Implement client-side parsing of the approved story response and typed sanitized error mapping in `src/features/story-reader/client/story-response.ts`.
 - [x] T030 [US1] Implement in-memory request status, active-story, and typed failure state in `src/features/story-request/client/story-session-context.tsx`; do not serialize state to storage.
-- [ ] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
+- [x] T031 [US1] Implement the accessible age/language/theme request form in `src/features/story-request/components/story-request-form.tsx`, deriving `ageBand` locally and sending no exact age or identifier.
 - [ ] T032 [US1] Implement localized progress, timeout, safety-retry, and provider-failure states in `src/features/story-request/components/story-generation-progress.tsx`.
 - [ ] T033 [US1] Integrate form submission, API response handling, and the first approved-story state in `src/app/page.tsx`.
 - [ ] T034 [US1] Add default, validation-error, loading, safe-retry, rate-limit, and success stories to `src/features/story-request/components/story-request-form.stories.tsx`.
