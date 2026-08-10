@@ -40,7 +40,10 @@
       "newStory": "Criar outra história",
       "previous": "Cena anterior",
       "next": "Próxima cena",
-      "sceneCount": "Cena {current} de {total}"
+      "sceneCount": "Cena {current} de {total}",
+      "exportPdf": "Baixar como PDF",
+      "exporting": "Gerando PDF…",
+      "exportError": "Não foi possível baixar o PDF. Tente de novo."
     }
   }
 }

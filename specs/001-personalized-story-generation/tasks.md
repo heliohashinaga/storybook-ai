@@ -132,14 +132,14 @@ export HTTP request.
 - [x] T040 [US2] Implement ordered next/previous navigation, scene progress, and in-session resume in `src/features/story-reader/components/story-reader.tsx`.
 - [x] T036 [P] [US2] Write the scene-by-scene keyboard E2E journey in `tests/e2e/story-reader-navigation.spec.ts`, including in-session resume behavior.
 - [x] T037 [P] [US2] Add reader visual-regression coverage for all three scene positions in `tests/visual/reader.spec.ts`.
-- [ ] T038 [P] [US2] Write local PDF-export tests in `tests/unit/build-story-pdf.test.ts` that assert all scenes/images are included and no network export call occurs.
+- [x] T038 [P] [US2] Write local PDF-export tests in `tests/unit/build-story-pdf.test.ts` that assert all scenes/images are included and no network export call occurs.
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Add default/first/middle/last/error accessibility stories for the reader and scene view in `src/features/story-reader/components/scene-view.stories.tsx`.
-- [ ] T042 [US2] Implement lazily loaded browser-only PDF composition in `src/features/story-export/client/build-story-pdf.tsx` using the in-memory story and images.
-- [ ] T043 [US2] Implement accessible export/download/print controls and disabled/loading states in `src/features/story-export/components/export-story-button.tsx`.
-- [ ] T044 [US2] Integrate the reader and local export controls with the approved in-session story in `src/app/page.tsx`.
+- [x] T041 [US2] Add default/first/middle/last/error accessibility stories for the reader and scene view in `src/features/story-reader/components/scene-view.stories.tsx`.
+- [x] T042 [US2] Implement lazily loaded browser-only PDF composition in `src/features/story-export/client/build-story-pdf.tsx` using the in-memory story and images.
+- [x] T043 [US2] Implement accessible export/download/print controls and disabled/loading states in `src/features/story-export/components/export-story-button.tsx`.
+- [x] T044 [US2] Integrate the reader and local export controls with the approved in-session story in `src/app/page.tsx`.
 
 **Checkpoint**: User Stories 1 and 2 work together: a safely generated story is fully readable,
 keyboard-operable, visually documented, and locally exportable without server-side retention.

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
+import { ExportStoryButton } from "../../story-export/components/export-story-button";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
@@ -75,9 +76,12 @@ function StoryRequestFlow() {
     return (
       <section className="flex flex-col gap-md">
         <StoryReader story={story} />
-        <Button variant="secondary" onClick={reset}>
-          {t("reader.newStory")}
-        </Button>
+        <div className="flex flex-row items-center gap-sm">
+          <ExportStoryButton story={story} />
+          <Button variant="secondary" onClick={reset}>
+            {t("reader.newStory")}
+          </Button>
+        </div>
       </section>
     );
   }
