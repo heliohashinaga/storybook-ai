@@ -187,7 +187,7 @@ text and alt text match the chosen locale, and assert an unsupported locale cann
 ### Implementation for User Story 4
 
 - [ ] T055 [US4] Add reviewed English static UI messages and locale-switch labels in `src/features/story-request/locales/en.json` and `src/features/story-request/locales/pt-BR.json`.
-- [ ] T056 [US4] Implement the locale-provider/selector wiring and localized unsupported-language recovery UX in `src/i18n/config.ts`, `src/features/story-request/components/story-request-form.tsx`, and `src/app/layout.tsx`.
+- [x] T056 [US4] Implement the locale-provider/selector wiring and localized unsupported-language recovery UX in `src/i18n/config.ts`, `src/features/story-request/components/story-request-form.tsx`, and `src/app/layout.tsx`.
 - [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openrouter-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
 
 **Checkpoint**: User Stories 1–4 work in both supported languages; default `pt-BR` and English have

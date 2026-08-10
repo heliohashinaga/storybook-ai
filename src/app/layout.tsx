@@ -1,24 +1,23 @@
 import type { ReactNode } from "react";
-import { NextIntlClientProvider } from "next-intl";
 import "./globals.css";
-import { getMessages } from "../i18n/config";
+import { LocaleProvider } from "../i18n/locale-provider";
 
 interface RootLayoutProps {
   children: ReactNode;
 }
 
 /**
- * Minimal root layout. The anonymous app defaults to `pt-BR`; the full
- * next-intl routing configuration and message catalogs are wired in Phase 2
- * (T014). This shell is kept intentionally lightweight.
+ * Minimal root layout. The anonymous app defaults to `pt-BR`; the story
+ * language selected in the form drives the whole UI through LocaleProvider
+ * (ADR 0003 / T056). This shell is kept intentionally lightweight.
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="pt-BR">
       <body>
-        <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <LocaleProvider defaultLocale="pt-BR">
           <main>{children}</main>
-        </NextIntlClientProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

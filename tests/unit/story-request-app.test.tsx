@@ -1,9 +1,8 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { NextIntlClientProvider } from "next-intl";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
-import { getMessages } from "../../src/i18n/config";
+import { LocaleProvider } from "../../src/i18n/locale-provider";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -28,9 +27,9 @@ const approvedStory = {
 
 function renderApp() {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
-      <StoryRequestApp defaultLocale="pt-BR" />
-    </NextIntlClientProvider>
+    <LocaleProvider defaultLocale="pt-BR">
+      <StoryRequestApp />
+    </LocaleProvider>
   );
 }
 
@@ -80,6 +79,62 @@ describe("StoryRequestApp — flow", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/stories");
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
     expect(body).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(JSON.stringify(body)).not.toMatch(/"name"/i);
+  });
+
+  it("switches UI and story language together when English is selected (T056)", async () => {
+    const enStory = {
+      locale: "en",
+      ageBand: "5-7",
+      theme: "friendship",
+      safetyDecision: "approved",
+      title: "The Dream of the Star",
+      scenes: [
+        {
+          ordinal: 1,
+          title: "Scene 1",
+          body: "Once upon a time.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 1.",
+        },
+        {
+          ordinal: 2,
+          title: "Scene 2",
+          body: "The star smiled.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 2.",
+        },
+        {
+          ordinal: 3,
+          title: "Scene 3",
+          body: "The sea embraced it.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 3.",
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(enStory), { status: 200 }))
+    );
+    renderApp();
+
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/idade da criança/i), "6");
+    await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
+    // The whole UI flips to English immediately after the locale selection.
+    await user.selectOptions(screen.getByLabelText(/story theme/i), "friendship");
+    await user.click(screen.getByRole("button", { name: /create story/i }));
+
+    // The reader chrome is English once the story language is English.
+    expect(await screen.findByText("Your story")).toBeInTheDocument();
+    expect(screen.getByText("The Dream of the Star")).toBeInTheDocument();
+    expect(screen.getByText("Scene 1 of 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /next scene/i })).toBeEnabled();
+
+    // Privacy contract: the payload carries only the derived values.
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    expect(body).toEqual({ ageBand: "5-7", locale: "en", theme: "friendship" });
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 

@@ -8,7 +8,7 @@ import { StoryRequestApp } from "../features/story-request/components/story-requ
 export default function HomePage() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-md p-lg">
-      <StoryRequestApp defaultLocale="pt-BR" />
+      <StoryRequestApp />
     </div>
   );
 }

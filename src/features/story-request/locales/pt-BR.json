@@ -9,7 +9,7 @@
         "errorRange": "Informe uma idade entre 2 e 12 anos."
       },
       "locale": {
-        "label": "Idioma da história"
+        "label": "Idioma"
       },
       "theme": {
         "label": "Tema da história"

@@ -41,9 +41,10 @@ async function fillAndSubmitEnglish(page: Page): Promise<void> {
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
   await page.getByLabel(/Idade da criança|Child's age/i).fill("9");
-  await page.getByLabel(/Idioma|Story language|language/i).selectOption("en");
-  await page.getByLabel(/Tema da história|Story theme/i).selectOption("friendship");
-  await page.getByRole("button", { name: /Criar história|Create story/i }).click();
+  await page.getByLabel(/Idioma|Language/i).selectOption("en");
+  // Selecting the story language flips the whole UI to English (ADR 0003).
+  await page.getByLabel(/Story theme/i).selectOption("friendship");
+  await page.getByRole("button", { name: /Create story/i }).click();
 }
 
 test("en journey sends only ageBand/locale/theme and renders a safe English story", async ({
@@ -97,12 +98,10 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   // The reader (T040) shows exactly one scene at a time and navigates with
   // the previous/next buttons; every scene is reached and asserted in order.
   const imgs = page.locator('img[src^="data:image/webp;base64,"]');
-  // The UI chrome (reader region, buttons, counter) is currently pinned to the
-  // app's deployment locale (pt-BR; T056 wiring pending), so the reader chrome
-  // selectors are language-agnostic — the English assertions target the story
-  // content (text, alt, headings) rendered by the locale-aware dev provider.
-  const reader = page.getByRole("region", { name: /Sua história|Your story/ });
-  const nextButton = page.getByRole("button", { name: /Próxima cena|Next scene/ });
+  // The reader chrome is English because the selected story language drives
+  // the whole UI (ADR 0003 / T056): region, buttons and counter are localized.
+  const reader = page.getByRole("region", { name: "Your story" });
+  const nextButton = page.getByRole("button", { name: "Next scene" });
   let fullStoryText = "";
 
   for (let i = 0; i < body.scenes.length; i += 1) {
@@ -117,9 +116,7 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
     // Exactly one scene is mounted at a time, with its localized progress
     // indicator and matching alt text.
     await expect(imgs).toHaveCount(1);
-    await expect(
-      page.getByText(new RegExp(`(Cena|Scene) ${i + 1} (de|of) ${body.scenes.length}`))
-    ).toBeVisible();
+    await expect(page.getByText(`Scene ${i + 1} of ${body.scenes.length}`)).toBeVisible();
     const alt = await imgs.getAttribute("alt");
     expect(alt).toBe(scene.altText);
 

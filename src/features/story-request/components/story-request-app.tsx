@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
-import type { Locale } from "../client/story-preferences-schema";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
@@ -20,15 +19,15 @@ import {
  * the response through `story-response` (typed, sanitized), and shows the
  * approved three-scene story locally in memory (never persisted).
  */
-export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: Locale }) {
+export function StoryRequestApp() {
   return (
     <StorySessionProvider>
-      <StoryRequestFlow defaultLocale={defaultLocale} />
+      <StoryRequestFlow />
     </StorySessionProvider>
   );
 }
 
-function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
+function StoryRequestFlow() {
   const t = useTranslations("story");
   const { status, story, begin, succeed, fail, reset } = useStorySession();
   const [elapsed, setElapsed] = useState(0);
@@ -50,7 +49,7 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
     return (
       <section className="flex flex-col gap-md">
         <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <StoryRequestForm defaultLocale={defaultLocale} onSubmit={handleSubmit} />
+        <StoryRequestForm onSubmit={handleSubmit} />
       </section>
     );
   }
@@ -86,7 +85,7 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
   return (
     <section className="flex flex-col gap-md">
       <h1 className="font-title text-title">{t("form.title")}</h1>
-      <StoryRequestForm defaultLocale={defaultLocale} onSubmit={handleSubmit} />
+      <StoryRequestForm onSubmit={handleSubmit} />
     </section>
   );
 }
