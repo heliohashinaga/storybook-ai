@@ -59,7 +59,8 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
-  // Visual regression: approved screenshots live in tests/visual/__screenshots__.
+  // Visual regression: approved screenshots live next to each spec in its
+  // `<spec>.spec.ts-snapshots/` directory (Playwright default).
   expect: {
     toHaveScreenshot: {
       maxDiffPixelRatio: 0.02,
