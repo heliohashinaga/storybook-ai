@@ -44,6 +44,11 @@
       "exportPdf": "Baixar como PDF",
       "exporting": "Gerando PDF…",
       "exportError": "Não foi possível baixar o PDF. Tente de novo."
+    },
+    "storySwitcher": {
+      "label": "Suas histórias",
+      "active": "História ativa",
+      "storyItem": "História"
     }
   }
 }

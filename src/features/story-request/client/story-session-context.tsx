@@ -112,16 +112,19 @@ export function StorySessionProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, status: "submitting", failure: null }));
   }, []);
 
-  const succeed = useCallback((story: GeneratedStory) => {
-    const id = nextId();
-    setState((prev) => ({
-      status: "success",
-      // Append newest-first; never replaces or discards earlier stories.
-      stories: [{ id, story }, ...prev.stories],
-      activeId: id,
-      failure: null,
-    }));
-  }, [nextId]);
+  const succeed = useCallback(
+    (story: GeneratedStory) => {
+      const id = nextId();
+      setState((prev) => ({
+        status: "success",
+        // Append newest-first; never replaces or discards earlier stories.
+        stories: [{ id, story }, ...prev.stories],
+        activeId: id,
+        failure: null,
+      }));
+    },
+    [nextId]
+  );
 
   const fail = useCallback((failure: SafeError) => {
     setState((prev) => ({ ...prev, status: "failed", failure }));
@@ -129,9 +132,7 @@ export function StorySessionProvider({ children }: { children: ReactNode }) {
 
   const accessStory = useCallback((id: string) => {
     setState((prev) =>
-      prev.stories.some((entry) => entry.id === id)
-        ? { ...prev, activeId: id }
-        : prev
+      prev.stories.some((entry) => entry.id === id) ? { ...prev, activeId: id } : prev
     );
   }, []);
 

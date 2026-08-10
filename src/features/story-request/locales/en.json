@@ -44,6 +44,11 @@
       "exportPdf": "Download as PDF",
       "exporting": "Generating PDF…",
       "exportError": "Couldn't download the PDF. Try again."
+    },
+    "storySwitcher": {
+      "label": "Your stories",
+      "active": "Active story",
+      "storyItem": "Story"
     }
   }
 }
