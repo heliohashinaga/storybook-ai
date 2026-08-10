@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { Locale } from "../client/story-preferences-schema";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
+import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
 import { StoryGenerationProgress } from "./story-generation-progress";
 import {
@@ -73,27 +74,8 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
 
   if (story) {
     return (
-      <section className="flex flex-col gap-md" aria-labelledby="story-reader-title">
-        <h1 id="story-reader-title" className="font-title text-title">
-          {t("reader.title")}
-        </h1>
-        <p className="text-title">{story.title}</p>
-        <ol className="flex flex-col gap-lg">
-          {story.scenes.map((scene) => (
-            <li key={scene.ordinal} className="flex flex-col gap-sm">
-              <h2 className="font-title text-body">
-                {t("reader.sceneLabel", { ordinal: scene.ordinal })} — {scene.title}
-              </h2>
-              {/* eslint-disable-next-line @next/next/no-img-element -- session-only WebP data-URI; not cachable or optimizable by next/image */}
-              <img
-                src={scene.illustrationDataUri}
-                alt={scene.altText}
-                className="aspect-square w-full rounded-md object-cover"
-              />
-              <p className="text-body">{scene.body}</p>
-            </li>
-          ))}
-        </ol>
+      <section className="flex flex-col gap-md">
+        <StoryReader story={story} />
         <Button variant="secondary" onClick={reset}>
           {t("reader.newStory")}
         </Button>

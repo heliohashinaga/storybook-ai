@@ -61,10 +61,21 @@ describe("StoryRequestApp — flow", () => {
 
     expect(await screen.findByText("Sua história")).toBeInTheDocument();
     expect(screen.getByText("A missão da estrelinha")).toBeInTheDocument();
-    expect(screen.getAllByRole("img")).toHaveLength(3);
-    for (const img of screen.getAllByRole("img")) {
-      expect(img).toHaveAttribute("alt");
+    // The reader (T040) shows exactly one scene at a time; every scene is
+    // reachable via the "next" button and carries a localized alt text.
+    const user = userEvent.setup();
+    for (let i = 0; i < approvedStory.scenes.length; i += 1) {
+      expect(screen.getAllByRole("img")).toHaveLength(1);
+      expect(screen.getByRole("img")).toHaveAttribute("alt", approvedStory.scenes[i]!.altText);
+      expect(
+        screen.getByText(`Cena ${i + 1} de ${approvedStory.scenes.length}`)
+      ).toBeInTheDocument();
+      if (i < approvedStory.scenes.length - 1) {
+        await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+      }
     }
+    // Forward bound: the last scene disables "next".
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/stories");
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
