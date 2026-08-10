@@ -180,15 +180,15 @@ text and alt text match the chosen locale, and assert an unsupported locale cann
 
 ### Tests for User Story 4 — write and observe failure first
 
-- [ ] T052 [P] [US4] Write locale/unsupported-locale tests in `tests/unit/story-preferences-schema.test.ts` and `tests/integration/generate-story-route.test.ts` for `pt-BR`, English, and API rejection before provider invocation.
-- [ ] T053 [P] [US4] Write the English generation E2E journey in `tests/e2e/generate-english.spec.ts`, covering English UI, story, alt text, and selected age band.
-- [ ] T054 [P] [US4] Add Portuguese and English localized Storybook interaction/accessibility cases in `src/features/story-request/components/story-request-form.stories.tsx`.
+- [x] T052 [P] [US4] Write locale/unsupported-locale tests in `tests/unit/story-preferences-schema.test.ts` and `tests/integration/generate-story-route.test.ts` for `pt-BR`, English, and API rejection before provider invocation.
+- [x] T053 [P] [US4] Write the English generation E2E journey in `tests/e2e/generate-english.spec.ts`, covering English UI, story, alt text, and selected age band.
+- [x] T054 [P] [US4] Add Portuguese and English localized Storybook interaction/accessibility cases in `src/features/story-request/components/story-request-form.stories.tsx`.
 
 ### Implementation for User Story 4
 
-- [ ] T055 [US4] Add reviewed English static UI messages and locale-switch labels in `src/features/story-request/locales/en.json` and `src/features/story-request/locales/pt-BR.json`.
+- [x] T055 [US4] Add reviewed English static UI messages and locale-switch labels in `src/features/story-request/locales/en.json` and `src/features/story-request/locales/pt-BR.json`.
 - [x] T056 [US4] Implement the locale-provider/selector wiring and localized unsupported-language recovery UX in `src/i18n/config.ts`, `src/features/story-request/components/story-request-form.tsx`, and `src/app/layout.tsx`.
-- [ ] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openrouter-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
+- [x] T057 [US4] Enforce locale-specific narrative, title, and alt-text output constraints in `src/features/story-generation/server/openrouter-story-generation-provider.ts` and `src/features/story-generation/server/safety-pipeline.ts`.
 
 **Checkpoint**: User Stories 1–4 work in both supported languages; default `pt-BR` and English have
 localized UI, story text, scene descriptions, and pre-provider rejection for unsupported locales.
