@@ -163,3 +163,97 @@ describe("story session context — privacy (no state serialization)", () => {
     }
   });
 });
+
+describe("story session context — multi-story (T045/T048)", () => {
+  const secondStory: GeneratedStory = {
+    ...approvedStory,
+    title: "O segredo da floresta",
+    scenes: approvedStory.scenes.map((s) => ({ ...s })),
+  };
+  const thirdStory: GeneratedStory = {
+    ...approvedStory,
+    title: "A viagem ao espaço",
+    scenes: approvedStory.scenes.map((s) => ({ ...s })),
+  };
+
+  it("appends stories newest-first and active is the newest (generate another)", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory), read);
+    run((s) => s.succeed(secondStory), read);
+
+    const after = read();
+    expect(after.status).toBe("success");
+    // Newest-first ordering; the active (and compat `story`) is the newest.
+    expect(after.stories.map((st) => st.story.title)).toEqual([
+      "O segredo da floresta",
+      "A missão da estrelinha",
+    ]);
+    expect(after.activeStory?.title).toBe("O segredo da floresta");
+    expect(after.story?.title).toBe("O segredo da floresta");
+    expect(after.stories).toHaveLength(2);
+  });
+
+  it("simply adding more stories has no story-count cap", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    for (const st of [approvedStory, secondStory, thirdStory]) {
+      run((s) => s.succeed(st), read);
+    }
+
+    expect(read().stories).toHaveLength(3);
+    expect(read().activeStory?.title).toBe("A viagem ao espaço");
+  });
+
+  it("accessStory(id) selects an earlier story without replacing the list", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory), read);
+    run((s) => s.succeed(secondStory), read);
+    const stories = read().stories;
+    const firstId = stories.find((st) => st.story.title === approvedStory.title)?.id;
+
+    run((s) => s.accessStory(firstId!), read);
+
+    const after = read();
+    expect(after.activeStory?.title).toBe("A missão da estrelinha");
+    expect(after.activeId).toBe(firstId);
+    // The appended list is unchanged and still newest-first.
+    expect(after.stories.map((st) => st.story.title)).toEqual([
+      "O segredo da floresta",
+      "A missão da estrelinha",
+    ]);
+  });
+
+  it("begin() keeps the in-memory story list (does not clear it)", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory), read);
+    run((s) => s.begin(), read);
+
+    const after = read();
+    expect(after.status).toBe("submitting");
+    expect(after.stories).toHaveLength(1);
+    expect(after.activeStory?.title).toBe("A missão da estrelinha");
+  });
+
+  it("reset() clears every story (active and history) and returns to idle", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory), read);
+    run((s) => s.succeed(secondStory), read);
+    run((s) => s.reset(), read);
+
+    const after = read();
+    expect(after.status).toBe("idle");
+    expect(after.stories).toHaveLength(0);
+    expect(after.activeStory).toBeNull();
+    expect(after.activeId).toBeNull();
+    expect(after.story).toBeNull();
+  });
+});
