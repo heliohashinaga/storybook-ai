@@ -138,6 +138,38 @@ describe("StoryRequestApp — flow", () => {
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 
+  it("generate another reuses last preferences and appends a second story (T050)", async () => {
+    const second = {
+      locale: "pt-BR",
+      ageBand: "5-7",
+      theme: "courage",
+      safetyDecision: "approved",
+      title: "O segredo da floresta",
+      scenes: [scene(1), scene(2), scene(3)],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
+    );
+    renderApp();
+    await submitValidForm();
+
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+    // The in-memory age/locale/theme are reused: the "generate another"
+    // button appears only once we have stored preferences.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+
+    // The new story becomes active and the payload reused age/locale/theme.
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    const secondBody = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    expect(secondBody).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+  });
+
   it("shows a localized retry on a provider failure and stays on the form", async () => {
     vi.stubGlobal(
       "fetch",

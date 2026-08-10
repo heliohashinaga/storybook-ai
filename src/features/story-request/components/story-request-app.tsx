@@ -7,6 +7,7 @@ import { ExportStoryButton } from "../../story-export/components/export-story-bu
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
+import { deriveAgeBand } from "../client/age-band";
 import { StoryGenerationProgress } from "./story-generation-progress";
 import {
   StoryRequestForm,
@@ -30,7 +31,7 @@ export function StoryRequestApp() {
 
 function StoryRequestFlow() {
   const t = useTranslations("story");
-  const { status, story, begin, succeed, fail, reset } = useStorySession();
+  const { status, story, begin, succeed, fail, reset, lastPreferences } = useStorySession();
   const [elapsed, setElapsed] = useState(0);
 
   const submitting = status === "submitting";
@@ -55,7 +56,7 @@ function StoryRequestFlow() {
     );
   }
 
-  async function handleSubmit(request: GenerateStoryRequest): Promise<SubmitResult> {
+  async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
     begin();
     const response = await fetch("/api/stories", {
@@ -65,12 +66,33 @@ function StoryRequestFlow() {
     });
     const result = await parseStoryResponse(response);
     if (result.status === "success") {
-      succeed(result.story);
+      // Store anonymized prefs (exact age stays in memory only, never in the
+      // payload) for "generate another" reuse (T050).
+      succeed(result.story, {
+        age: age ?? 0,
+        locale: request.locale,
+        theme: request.theme,
+      });
       return { ok: true };
     }
     fail(result.error);
     return { ok: false, messageKey: result.error.messageKey.replace(/^story\.error\./, "") };
   }
+
+  /** "Generate another": re-submits reusing the last age/locale/theme (T050).
+   *  Appends a new story via succeed(); never replaces earlier ones. */
+  const generateAnother = () => {
+    if (!lastPreferences) return;
+    const prefs = lastPreferences;
+    void handleSubmit(
+      {
+        ageBand: deriveAgeBand(prefs.age),
+        locale: prefs.locale,
+        theme: prefs.theme,
+      },
+      prefs.age
+    );
+  };
 
   if (story) {
     return (
@@ -78,6 +100,11 @@ function StoryRequestFlow() {
         <StoryReader story={story} />
         <div className="flex flex-row items-center gap-sm">
           <ExportStoryButton story={story} />
+          {lastPreferences ? (
+            <Button variant="secondary" onClick={generateAnother}>
+              {t("reader.generateAnother")}
+            </Button>
+          ) : null}
           <Button variant="secondary" onClick={reset}>
             {t("reader.newStory")}
           </Button>

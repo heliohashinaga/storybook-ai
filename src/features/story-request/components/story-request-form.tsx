@@ -32,7 +32,12 @@ export type StoryRequestStatus = "idle" | "submitting" | "success";
 
 interface StoryRequestFormProps {
   defaultTheme?: Theme;
-  onSubmit: (request: GenerateStoryRequest) => Promise<SubmitResult>;
+  /**
+   * Invoked with the anonymized request (ageBand/locale/theme — the exact
+   * payload) plus the exact age kept in memory only for session reuse
+   * (T050). The age is never part of the payload sent to the API.
+   */
+  onSubmit: (request: GenerateStoryRequest, age: number) => Promise<SubmitResult>;
   onSuccess?: () => void;
 }
 
@@ -76,11 +81,14 @@ export function StoryRequestForm({
     setSubmitError(null);
     setStatus("submitting");
 
-    const result = await onSubmit({
-      ageBand: deriveAgeBand(numericAge),
-      locale,
-      theme,
-    });
+    const result = await onSubmit(
+      {
+        ageBand: deriveAgeBand(numericAge),
+        locale,
+        theme,
+      },
+      numericAge
+    );
 
     if (result.ok) {
       setStatus("success");

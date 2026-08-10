@@ -256,4 +256,27 @@ describe("story session context — multi-story (T045/T048)", () => {
     expect(after.activeId).toBeNull();
     expect(after.story).toBeNull();
   });
+
+  it("succeed() stores lastPreferences for generate-another reuse (T050)", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "friendship" }), read);
+    run((s) => s.succeed(secondStory), read);
+
+    const after = read();
+    expect(after.lastPreferences).toEqual({ age: 7, locale: "en", theme: "friendship" });
+    // succeed without prefs keeps the previously stored prefs (T050 reuse).
+    expect(after.stories).toHaveLength(2);
+  });
+
+  it("reset() clears lastPreferences too", async () => {
+    const { view, read } = capture();
+    render(<StorySessionProvider>{view}</StorySessionProvider>);
+
+    run((s) => s.succeed(approvedStory, { age: 5, locale: "pt-BR", theme: "courage" }), read);
+    run((s) => s.reset(), read);
+
+    expect(read().lastPreferences).toBeNull();
+  });
 });

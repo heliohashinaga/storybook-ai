@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import type { GeneratedStory, SafeError } from "../../story-generation/server/schemas";
+import type { Locale, Theme } from "./story-preferences-schema";
 
 /**
  * In-memory story session state machine (T030) with multi-story history (T048).
@@ -47,6 +48,12 @@ export interface StorySessionState {
   stories: StoryEntry[];
   /** Id of the currently selected story (null until any generation succeeds). */
   activeId: string | null;
+  /**
+   * Anonymized last-preferences reused for "generate another" (T050): the
+   * exact age, story language and theme stay in memory only — never sent (the
+   * payload carries derived ageBand/locale/theme) and never serialized.
+   */
+  lastPreferences: { age: number; locale: Locale; theme: Theme } | null;
   /** Typed, sanitized failure (only code/messageKey/retryable; never raw content). */
   failure: SafeError | null;
 }
@@ -56,6 +63,7 @@ interface StoredSessionState {
   status: StorySessionStatus;
   stories: StoryEntry[];
   activeId: string | null;
+  lastPreferences: { age: number; locale: Locale; theme: Theme } | null;
   failure: SafeError | null;
 }
 
@@ -70,13 +78,14 @@ export interface StorySessionValue extends Omit<StorySessionState, "stories"> {
 export interface StorySessionActions {
   /** Marks the request as in-flight; clears any previous failure. */
   begin: () => void;
-  /** Moves to success appending the story (newest-first); selects it. */
-  succeed: (story: GeneratedStory) => void;
+  /** Moves to success appending the story (newest-first); selects it.
+   *  Stores the anonymized prefs for "generate another" reuse (T050). */
+  succeed: (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => void;
   /** Moves to failed, keeping the story list and selection. */
   fail: (failure: SafeError) => void;
   /** Selects a story by id without replacing the list. */
   accessStory: (id: string) => void;
-  /** Returns to idle, clearing the whole history. */
+  /** Returns to idle, clearing the whole history and prefs. */
   reset: () => void;
 }
 
@@ -86,12 +95,13 @@ const initialSession: StoredSessionState = {
   status: "idle",
   stories: [],
   activeId: null,
+  lastPreferences: null,
   failure: null,
 };
 
 interface StorySessionContextValue extends StorySessionValue {
   begin: () => void;
-  succeed: (story: GeneratedStory) => void;
+  succeed: (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => void;
   fail: (failure: SafeError) => void;
   accessStory: (id: string) => void;
   reset: () => void;
@@ -113,13 +123,14 @@ export function StorySessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const succeed = useCallback(
-    (story: GeneratedStory) => {
+    (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => {
       const id = nextId();
       setState((prev) => ({
-        status: "success",
+        status: "success" as const,
         // Append newest-first; never replaces or discards earlier stories.
         stories: [{ id, story }, ...prev.stories],
         activeId: id,
+        lastPreferences: prefs ?? prev.lastPreferences,
         failure: null,
       }));
     },

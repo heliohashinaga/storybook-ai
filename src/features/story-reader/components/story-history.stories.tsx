@@ -11,9 +11,27 @@ const storyA: GeneratedStory = {
   safetyDecision: "approved" as const,
   title: "A missão da estrelinha",
   scenes: [
-    { ordinal: 1, title: "Cena 1", body: "Era uma vez uma estrelinha.", illustrationDataUri: "data:image/webp;base64,AA", altText: "Uma estrelinha." },
-    { ordinal: 2, title: "Cena 2", body: "Ela decidiu brilhar.", illustrationDataUri: "data:image/webp;base64,AA", altText: "Brilhando." },
-    { ordinal: 3, title: "Cena 3", body: "E o mar a abraçou.", illustrationDataUri: "data:image/webp;base64,AA", altText: "O mar." },
+    {
+      ordinal: 1,
+      title: "Cena 1",
+      body: "Era uma vez uma estrelinha.",
+      illustrationDataUri: "data:image/webp;base64,AA",
+      altText: "Uma estrelinha.",
+    },
+    {
+      ordinal: 2,
+      title: "Cena 2",
+      body: "Ela decidiu brilhar.",
+      illustrationDataUri: "data:image/webp;base64,AA",
+      altText: "Brilhando.",
+    },
+    {
+      ordinal: 3,
+      title: "Cena 3",
+      body: "E o mar a abraçou.",
+      illustrationDataUri: "data:image/webp;base64,AA",
+      altText: "O mar.",
+    },
   ],
 };
 const storyB: GeneratedStory = { ...storyA, title: "O segredo da floresta" };

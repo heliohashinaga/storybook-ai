@@ -43,7 +43,8 @@
       "sceneCount": "Scene {current} of {total}",
       "exportPdf": "Download as PDF",
       "exporting": "Generating PDF…",
-      "exportError": "Couldn't download the PDF. Try again."
+      "exportError": "Couldn't download the PDF. Try again.",
+      "generateAnother": "Generate another"
     },
     "storySwitcher": {
       "label": "Your stories",
