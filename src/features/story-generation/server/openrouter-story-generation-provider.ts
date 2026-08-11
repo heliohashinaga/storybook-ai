@@ -27,7 +27,7 @@ import { ProviderError } from "./story-generation-provider";
  */
 
 const DEFAULT_BASE_URL = "https://openrouter.ai/api/v1";
-const DEFAULT_TIMEOUT_MS = 30_000;
+const DEFAULT_TIMEOUT_MS = 60_000; // text/moderation timeout
 
 /** Overridable seams for deterministic tests (production defaults to env). */
 export interface OpenRouterDeps {
@@ -279,7 +279,7 @@ async function toWebPBuffer(
  * returns a validated WebP data URI (the format `generate-story` accepts).
  * Generates via OpenRouter's `/images` endpoint.
  */
-const IMAGE_TIMEOUT_MS = 90_000; // geração de imagem é lenta; evita Image generation timed out
+const IMAGE_TIMEOUT_MS = 120_000; // geração de imagem é lenta; evita Image generation timed out
 
 export function createOpenRouterIllustration(
   deps: OpenRouterDeps = { timeoutMs: IMAGE_TIMEOUT_MS }
