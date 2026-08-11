@@ -41,3 +41,18 @@ Validado empiricamente (testes reais contra a OpenRouter via a key do projeto e 
 
 - Validação feita em ambiente **Node real** (não jsdom): o SDK da OpenAI bloqueia com *"browser-like environment"* em testes jsdom, o que não reflete o comportamento do `next dev`/produção (Node).
 - A key e os modelos são configurados em `.env.local` (gitignored); nunca commitá-los.
+
+## Modelos chineses — validados (baratos)
+
+| Variável | Modelo | Resultado da validação |
+|---|---|---|
+| TEXTO | `qwen/qwen3.7-flash` | ✅ Gera história JSON (3 cenas, ex.: "O Morango Especial") |
+| MODERAÇÃO | `qwen/qwen3.7-flash` | ✅ Retorna `{"safe": true}` no `content` (parser aceita) |
+| IMAGEM | `openai/gpt-5-image-mini` | ✅ `/images` `b64_json` WebP (timeout 90s); sem equivalente chinês dedicado barato encontrado |
+
+**Config recomendada (custo mínimo):**
+```dotenv
+OPENROUTER_TEXT_MODEL=qwen/qwen3.7-flash
+OPENROUTER_MODERATION_MODEL=qwen/qwen3.7-flash
+OPENROUTER_IMAGE_MODEL=openai/gpt-5-image-mini
+```
