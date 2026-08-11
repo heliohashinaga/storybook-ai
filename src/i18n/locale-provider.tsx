@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "./config";
+import { DEFAULT_TIME_ZONE, getMessages } from "./config";
 import { resolveLocale } from "../lib/story-catalog";
 import type { Locale } from "../features/story-request/client/story-preferences-schema";
 
@@ -51,7 +51,7 @@ export function LocaleProvider({
 
   return (
     <LocaleContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider locale={locale} messages={getMessages(locale)}>
+      <NextIntlClientProvider locale={locale} messages={getMessages(locale)} timeZone={DEFAULT_TIME_ZONE}>
         {children}
       </NextIntlClientProvider>
     </LocaleContext.Provider>

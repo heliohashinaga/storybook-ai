@@ -5,6 +5,15 @@ import en from "../features/story-request/locales/en.json";
 
 export { routing };
 
+/**
+ * A single, stable default time zone shared by both locales (UTC). The app is
+ * anonymous and intended to render identically for every visitor (SSR vs.
+ * client must not mismatch), so we do not derive it from the user/browser;
+ * this also removes next-intl's `timeZone` ENVIRONMENT_FALLBACK warning
+ * (next-intl.dev/docs/configuration#time-zone).
+ */
+export const DEFAULT_TIME_ZONE = "UTC";
+
 export type Messages = typeof ptBR;
 
 /**
