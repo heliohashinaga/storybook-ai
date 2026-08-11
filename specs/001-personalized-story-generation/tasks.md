@@ -200,7 +200,7 @@ localized UI, story text, scene descriptions, and pre-provider rejection for uns
 **Purpose**: Enforce the constitution's quality, accessibility, security/privacy, performance, and
 documentation gates across the completed MVP.
 
-- [ ] T058 [P] Configure and enforce ≥80% overall and ≥90% safety/validation/orchestration coverage thresholds in `vitest.config.ts` and `package.json`.
+- [x] T058 [P] Configure and enforce ≥80% overall and ≥90% safety/validation/orchestration coverage thresholds in `vitest.config.ts` and `package.json`.
 - [ ] T059 [P] Add application-level accessibility coverage for form, loading/error, reader, switcher, and export controls in `tests/e2e/accessibility.spec.ts` and `.storybook/preview.ts`; assert AA contrast and `prefers-reduced-motion` behavior.
 - [ ] T060 [P] Add performance budget tooling for initial JS, LCP, scene navigation, lazy PDF import, and ≤120-second generation in `tests/performance/story-generation-budget.spec.ts` and `package.json`.
 - [ ] T061 [P] Add a privacy/logging/cache regression audit for no identifiers, no exact-age API payload, no persistence, and `no-store` responses in `tests/integration/privacy-boundary.test.ts`.

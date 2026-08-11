@@ -16,6 +16,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:check": "vitest run --coverage",
     "test:watch": "vitest",
     "storybook": "storybook dev -p 6006",
     "storybook:test": "start-server-and-test \"storybook dev -p 6006\" http://localhost:6006 \"sh scripts/run-with-chromium.sh test-storybook --url http://localhost:6006 --testTimeout=60000\"",
@@ -24,7 +25,8 @@
     "pretest:visual": "pnpm build",
     "test:visual": "sh scripts/run-with-chromium.sh playwright test tests/visual",
     "build": "next build",
-    "test:limited": "vitest run --pool threads --maxWorkers 2"
+    "test:limited": "vitest run --pool threads --maxWorkers 2",
+    "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.5.1",
