@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import { ExportStoryButton } from "../../story-export/components/export-story-button";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
+import { StoryHistory } from "../../story-reader/components/story-history";
 import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
 import { deriveAgeBand } from "../client/age-band";
@@ -31,7 +32,18 @@ export function StoryRequestApp() {
 
 function StoryRequestFlow() {
   const t = useTranslations("story");
-  const { status, story, begin, succeed, fail, reset, lastPreferences } = useStorySession();
+  const {
+    status,
+    story,
+    stories,
+    activeId,
+    begin,
+    succeed,
+    fail,
+    reset,
+    accessStory,
+    lastPreferences,
+  } = useStorySession();
   const [elapsed, setElapsed] = useState(0);
 
   const submitting = status === "submitting";
@@ -97,6 +109,7 @@ function StoryRequestFlow() {
   if (story) {
     return (
       <section className="flex flex-col gap-md">
+        <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
         <StoryReader story={story} />
         <div className="flex flex-row items-center gap-sm">
           <ExportStoryButton story={story} />

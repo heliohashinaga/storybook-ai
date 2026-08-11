@@ -170,6 +170,49 @@ describe("StoryRequestApp — flow", () => {
     expect(secondBody).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
   });
 
+  it("renders the in-session story switcher and switches back to an earlier story (T051)", async () => {
+    const second = {
+      locale: "pt-BR",
+      ageBand: "5-7",
+      theme: "friendship",
+      safetyDecision: "approved",
+      title: "O segredo da floresta",
+      scenes: [scene(1), scene(2), scene(3)],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
+    );
+    renderApp();
+    await submitValidForm();
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+
+    // Append a second story so the session holds multiple switchable entries.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+
+    // The accessible switcher groups the stories and marks the active one.
+    const switcher = screen.getByLabelText("Suas histórias");
+    expect(switcher).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /A missão da estrelinha/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /O segredo da floresta \(História ativa\)/i })
+    ).toBeInTheDocument();
+
+    // Switching back to the first story selects it and keeps it fully readable.
+    // Exact aria-label match targets only the non-active first-story button.
+    await user.click(screen.getByRole("button", { name: /^História — A missão da estrelinha$/ }));
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /A missão da estrelinha \(História ativa\)/i })
+    ).toBeInTheDocument();
+  });
+
   it("shows a localized retry on a provider failure and stays on the form", async () => {
     vi.stubGlobal(
       "fetch",

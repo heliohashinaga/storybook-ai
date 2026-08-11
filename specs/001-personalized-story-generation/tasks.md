@@ -163,7 +163,7 @@ keyboard-operable, visually documented, and locally exportable without server-si
 - [x] T048 [US3] Extend the in-memory session reducer/context for multiple story entries, newest-first ordering, active-story selection, append-only "generate another" (never replaces the current story), no story-count cap, and explicit non-persistence in `src/features/story-request/client/story-session-context.tsx`.
 - [x] T049 [US3] Implement the in-session story switcher/history UI with accessible story labels and active-state semantics in `src/features/story-reader/components/story-history.tsx`.
 - [x] T050 [US3] Update the request form to reuse in-memory age/language preferences while allowing a new theme selection, and add a "generate another" action that keeps the current age band/locale/theme and appends a new story in `src/features/story-request/components/story-request-form.tsx`.
-- [ ] T051 [US3] Integrate the story switcher and session-clearing behavior into `src/app/page.tsx`.
+- [x] T051 [US3] Integrate the story switcher and session-clearing behavior into `src/app/page.tsx`.
 
 **Checkpoint**: User Stories 1–3 work without accounts or persistent profiles: multiple stories are
 usable in one tab, and a fresh page has no restored exact age, preferences, or story content.
