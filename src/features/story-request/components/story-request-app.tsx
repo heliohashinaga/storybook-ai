@@ -110,11 +110,7 @@ function StoryRequestFlow() {
     return (
       <section className="flex flex-col gap-md">
         {stories.length > 1 ? (
-          <StoryHistory
-            storyEntries={stories}
-            activeId={activeId}
-            onSelect={accessStory}
-          />
+          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
         ) : null}
         <StoryReader story={story} />
         <div className="flex flex-row items-center gap-sm">
