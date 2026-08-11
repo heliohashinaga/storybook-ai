@@ -57,6 +57,11 @@ async function defaultWebpToPng(webpUri: string): Promise<string> {
   }
 }
 
+/** Scene counter label localized to the story's language. */
+function sceneLabel(locale: string): string {
+  return locale === "en" ? "Scene" : "Cena";
+}
+
 const defaultDeps: StoryPdfDeps = {
   async toBlob(pdfResult) {
     // pdfResult is the object returned by @react-pdf/renderer's pdf(document),
@@ -100,7 +105,7 @@ export async function buildStoryPdf(
                 />
               ) : null}
               <Text style={{ fontSize: 11, color: "#666" }}>
-                Scene {scene.ordinal} of {story.scenes.length}
+                {sceneLabel(story.locale)} {scene.ordinal} of {story.scenes.length}
               </Text>
               <Text style={{ fontSize: 14, marginTop: 8 }}>{scene.body}</Text>
             </View>
