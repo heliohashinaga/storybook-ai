@@ -279,4 +279,32 @@ describe("story session context — multi-story (T045/T048)", () => {
 
     expect(read().lastPreferences).toBeNull();
   });
+
+  it("clears the session on a full reload (in-memory only, never rehydrated)", async () => {
+    // Build a populated session across a page-load lifetime: an approved story
+    // plus stored preferences and a second story.
+    const first = capture();
+    const { unmount } = render(<StorySessionProvider>{first.view}</StorySessionProvider>);
+    run((s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "kindness" }), first.read);
+    run((s) => s.succeed(secondStory), first.read);
+    expect(first.read().status).toBe("success");
+    expect(first.read().stories).toHaveLength(2);
+    expect(first.read().lastPreferences).toEqual({ age: 7, locale: "en", theme: "kindness" });
+
+    // A full page reload tears the provider tree down and rebuilds it WITHOUT
+    // any storage rehydration — the state lives only in React memory, so no
+    // exact age, story, or preference survives the reload.
+    unmount();
+
+    const reloaded = capture();
+    render(<StorySessionProvider>{reloaded.view}</StorySessionProvider>);
+    const after = reloaded.read();
+    expect(after.status).toBe("idle");
+    expect(after.stories).toHaveLength(0);
+    expect(after.activeStory).toBeNull();
+    expect(after.activeId).toBeNull();
+    expect(after.story).toBeNull();
+    expect(after.lastPreferences).toBeNull();
+    expect(after.failure).toBeNull();
+  });
 });
