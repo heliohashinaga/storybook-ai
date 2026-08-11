@@ -206,7 +206,7 @@ documentation gates across the completed MVP.
 - [x] T061 [P] Add a privacy/logging/cache regression audit for no identifiers, no exact-age API payload, no persistence, and `no-store` responses in `tests/integration/privacy-boundary.test.ts`.
 - [x] T062 Configure the required CI gates (format, lint, typecheck, unit/coverage, Storybook/a11y, E2E, visual, build, and performance) in `.github/workflows/ci.yml`.
 - [x] T063 Document local setup, safe environment use, supported locales/themes, anonymous-session behavior, and test commands in `README.md`.
-- [ ] T064 Reconcile implemented commands, acceptance scenarios, and performance evidence with `specs/001-personalized-story-generation/quickstart.md`.
+- [x] T064 Reconcile implemented commands, acceptance scenarios, and performance evidence with `specs/001-personalized-story-generation/quickstart.md`.
 - [ ] T065 Run the complete quickstart validation suite, resolve all failures, and record final evidence in `specs/001-personalized-story-generation/tasks.md`.
 - [ ] T066 [P] Implement anonymous structured logging and error-tracking scrubbing in `src/lib/observability.ts` (or equivalent): structured fields (locale, theme, age band, status, duration, short trace ID) with two-layer scrubbing — in the SDK before data leaves the app and server-side without storing request/response bodies; never emit name, exact age, story content, provider payloads, or persisted IP identity, and add a logging test asserting these exclusions.
 

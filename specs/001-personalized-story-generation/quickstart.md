@@ -1,7 +1,8 @@
 # Quickstart & Validation Guide: Personalized Story Generation
 
 This guide defines the runnable validation path to be implemented for feature
-`001-personalized-story-generation`. The repository currently contains planning artifacts only;
+`001-personalized-story-generation`. The repository now contains the implemented app
+(`src/`) plus this validation guide; follow the checks below before merging changes.
 the commands below become the required package scripts when implementation is bootstrapped.
 
 ## Prerequisites
@@ -52,6 +53,7 @@ pnpm test:coverage
 pnpm storybook:test
 pnpm test:e2e
 pnpm test:visual
+pnpm test:performance
 pnpm build
 ```
 
@@ -66,6 +68,7 @@ Expected checks:
 | `pnpm storybook:test` | Every component story (default/loading/error/edge) and accessibility check passes. |
 | `pnpm test:e2e` | Playwright validates the primary pt-BR and English journeys with a fake provider; no network call reaches a live AI service. |
 | `pnpm test:visual` | Approved reader/form screenshots have no unintended diff. |
+| `pnpm test:performance` | Initial JS ≤250 KiB gzip, LCP ≤2.5s, scene navigation ≤100ms p75, and generation ≤120s; PDF renderer stays out of the initial bundle. |
 | `pnpm build` | Production build completes and can serve the anonymous flow. |
 
 ## End-to-End Acceptance Scenarios
