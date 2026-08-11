@@ -2,7 +2,7 @@
   <img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
 </p>
 
-# storybook-ai
+# Storybook AI
 
 Personalized children's story generator I created for my daughter. Choose an age
 range, language, and theme; the app generates a three-scene story with
