@@ -50,6 +50,18 @@
       "label": "Your stories",
       "active": "Active story",
       "storyItem": "Story"
+    },
+    "catalog": {
+      "theme": {
+        "courage": "Courage",
+        "friendship": "Friendship",
+        "kindness": "Kindness"
+      },
+      "themeDescription": {
+        "courage": "Overcoming fear and doing the right thing.",
+        "friendship": "Kindness, sharing, and being a good friend.",
+        "kindness": "Caring for others and lending a hand."
+      }
     }
   }
 }

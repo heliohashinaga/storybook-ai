@@ -159,7 +159,7 @@ export function StoryRequestForm({
       >
         {themeCatalog.map((entry) => (
           <option key={entry.value} value={entry.value}>
-            {entry.label}
+            {t(`catalog.theme.${entry.value}`)}
           </option>
         ))}
       </Select>

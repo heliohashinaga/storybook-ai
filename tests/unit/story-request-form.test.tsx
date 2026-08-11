@@ -55,11 +55,12 @@ describe("StoryRequestForm — theme and language choices", () => {
     renderForm();
     const options = screen.getAllByRole("option");
     const themes = options.map((o) => o.textContent);
-    // Courage, Friendship, Kindness from the catalogs.
+    // The three positive-value themes render localized to pt-BR (default):
+    // Coragem, Amizade, Bondade.
     expect(
-      themes.some((t) => /courage/i.test(t ?? "")) &&
-        themes.some((t) => /friendship/i.test(t ?? "")) &&
-        themes.some((t) => /kindness/i.test(t ?? ""))
+      themes.some((t) => /coragem/i.test(t ?? "")) &&
+        themes.some((t) => /amizade/i.test(t ?? "")) &&
+        themes.some((t) => /bondade/i.test(t ?? ""))
     ).toBe(true);
     expect(options.length).toBeGreaterThanOrEqual(5); // 2 locales + 3 themes
   });

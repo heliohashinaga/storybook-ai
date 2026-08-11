@@ -50,6 +50,18 @@
       "label": "Suas histórias",
       "active": "História ativa",
       "storyItem": "História"
+    },
+    "catalog": {
+      "theme": {
+        "courage": "Coragem",
+        "friendship": "Amizade",
+        "kindness": "Bondade"
+      },
+      "themeDescription": {
+        "courage": "Enfrentar o medo e fazer a coisa certa.",
+        "friendship": "Gentileza, partilha e ser um bom amigo.",
+        "kindness": "Cuidar dos outros e ajudar."
+      }
     }
   }
 }
