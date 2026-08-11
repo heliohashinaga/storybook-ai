@@ -40,8 +40,7 @@ illustrations.
 
 - Node.js 22 LTS
 - pnpm enabled through Corepack
-- An approved development credential for the AI provider (never production)
-  and approval for data processing before real traffic involving children.
+- An credential for the AI provider (never production).
 
 ## Setup
 
@@ -73,22 +72,6 @@ pnpm dev
 ```
 
 Open `http://localhost:3000`. The default interface language is `pt-BR`.
-
-## Anonymous session behavior
-
-- **Anonymous by design — no account, no name, no direct identifier.** The form
-  never collects a name or child identifier; there is no field for one.
-- **Only the age band travels over the network.** The exact age a parent enters
-  (e.g. `6`) is reduced in-browser to a coarse band (`2-4` | `5-7` | `8-12`);
-  the API receives only `ageBand`, `locale`, and `theme`.
-- **No persistence.** The session is in-memory React state only — no cookies,
-  `localStorage`, `sessionStorage`, or indexDB. Refreshing the page or opening a
-  new tab restores nothing (no exact age, preferences, or prior stories).
-- **Every generation response is `Cache-Control: no-store`**, and outbound
-  payloads contain no identifiers.
-- Stories, preferences, and the exact age live only in React memory and are
-  gone on reload — see `tests/integration/privacy-boundary.test.tsx` and
-  `tests/e2e/anonymous-session-and-export.spec.ts` for the regression guards.
 
 ## Required checks (before any merge)
 
