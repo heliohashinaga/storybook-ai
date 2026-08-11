@@ -279,8 +279,10 @@ async function toWebPBuffer(
  * returns a validated WebP data URI (the format `generate-story` accepts).
  * Generates via OpenRouter's `/images` endpoint.
  */
+const IMAGE_TIMEOUT_MS = 90_000; // geração de imagem é lenta; evita Image generation timed out
+
 export function createOpenRouterIllustration(
-  deps: OpenRouterDeps = {}
+  deps: OpenRouterDeps = { timeoutMs: IMAGE_TIMEOUT_MS }
 ): (prompt: string) => Promise<{ dataUri: string }> {
   return async (prompt: string): Promise<{ dataUri: string }> => {
     const { apiKey, imageModel, baseUrl, timeoutMs, fetchImpl, imageEncoder } = resolveDeps(deps);
