@@ -5,7 +5,6 @@
       "age": {
         "label": "Idade da criança",
         "placeholder": "Digite a idade (2 a 12)",
-        "hint": "A idade fica apenas no seu navegador e nunca é enviada.",
         "errorRange": "Informe uma idade entre 2 e 12 anos."
       },
       "locale": {

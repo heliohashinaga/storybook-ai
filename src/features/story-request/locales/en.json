@@ -5,7 +5,6 @@
       "age": {
         "label": "Child's age",
         "placeholder": "Enter the age (2 to 12)",
-        "hint": "The age stays in your browser and is never sent.",
         "errorRange": "Please enter an age between 2 and 12."
       },
       "locale": {

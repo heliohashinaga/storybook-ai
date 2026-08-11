@@ -89,7 +89,15 @@ export async function buildStoryPdf(
                 // The PDF Image (`@react-pdf/renderer`) does not accept `alt`;
                 // its a11y is provided by the adjacent Text line (altText).
                 // eslint-disable-next-line jsx-a11y/alt-text
-                <Image src={illustrations[index]} style={{ height: 160, marginBottom: 8 }} />
+                <Image
+                  src={illustrations[index]}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: 160,
+                    marginBottom: 8,
+                    objectFit: "contain",
+                  }}
+                />
               ) : null}
               <Text style={{ fontSize: 11, color: "#666" }}>
                 Scene {scene.ordinal} of {story.scenes.length}

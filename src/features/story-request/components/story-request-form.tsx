@@ -117,15 +117,12 @@ export function StoryRequestForm({
           disabled={disabled}
           placeholder={t("form.age.placeholder")}
           aria-invalid={ageError ? true : undefined}
-          aria-describedby={ageError ? "story-request-age-error" : "story-request-age-hint"}
+          aria-describedby={ageError ? "story-request-age-error" : undefined}
           onChange={(event) => {
             setAge(event.target.value);
             if (ageError) setAgeError(null);
           }}
         />
-        <span id="story-request-age-hint" className="text-caption text-text-subtle">
-          {t("form.age.hint")}
-        </span>
         {ageError ? (
           <span id="story-request-age-error" role="alert" className="text-caption text-danger">
             {ageError}
