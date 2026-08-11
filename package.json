@@ -24,6 +24,8 @@
     "test:e2e": "sh scripts/run-with-chromium.sh playwright test",
     "pretest:visual": "pnpm build",
     "test:visual": "sh scripts/run-with-chromium.sh playwright test tests/visual",
+    "pretest:performance": "pnpm build",
+    "test:performance": "sh scripts/run-with-chromium.sh playwright test tests/performance",
     "build": "next build",
     "test:limited": "vitest run --pool threads --maxWorkers 2",
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"

@@ -202,7 +202,7 @@ documentation gates across the completed MVP.
 
 - [x] T058 [P] Configure and enforce ≥80% overall and ≥90% safety/validation/orchestration coverage thresholds in `vitest.config.ts` and `package.json`.
 - [x] T059 [P] Add application-level accessibility coverage for form, loading/error, reader, switcher, and export controls in `tests/e2e/accessibility.spec.ts` and `.storybook/preview.ts`; assert AA contrast and `prefers-reduced-motion` behavior.
-- [ ] T060 [P] Add performance budget tooling for initial JS, LCP, scene navigation, lazy PDF import, and ≤120-second generation in `tests/performance/story-generation-budget.spec.ts` and `package.json`.
+- [x] T060 [P] Add performance budget tooling for initial JS, LCP, scene navigation, lazy PDF import, and ≤120-second generation in `tests/performance/story-generation-budget.spec.ts` and `package.json`.
 - [ ] T061 [P] Add a privacy/logging/cache regression audit for no identifiers, no exact-age API payload, no persistence, and `no-store` responses in `tests/integration/privacy-boundary.test.ts`.
 - [ ] T062 Configure the required CI gates (format, lint, typecheck, unit/coverage, Storybook/a11y, E2E, visual, build, and performance) in `.github/workflows/ci.yml`.
 - [ ] T063 Document local setup, safe environment use, supported locales/themes, anonymous-session behavior, and test commands in `README.md`.
