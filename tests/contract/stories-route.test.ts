@@ -51,7 +51,8 @@ describe("POST /api/stories — route", () => {
   });
 
   it("rejects a request that includes a name field (400)", async () => {
-    const response = await post(createStoriesHandler(makeDeps()), {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const response = await post(createStoriesHandler(makeDeps({ provider: fake.provider })), {
       ageBand: "5-7",
       locale: "pt-BR",
       theme: "courage",
@@ -60,10 +61,13 @@ describe("POST /api/stories — route", () => {
     expect(response.status).toBe(400);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect((await response.json()).code).toBe("invalid_input");
+    // A direct identifier must never reach the provider (T052 invariant).
+    expect(fake.requests).toHaveLength(0);
   });
 
-  it("rejects missing/invalid fields (400) and unsupported locale (422)", async () => {
-    const handler = createStoriesHandler(makeDeps());
+  it("rejects missing/invalid fields (400) and unsupported locale (422) before invoking the provider", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const handler = createStoriesHandler(makeDeps({ provider: fake.provider }));
     const noTheme = await post(handler, { ageBand: "5-7", locale: "pt-BR" });
     expect(noTheme.status).toBe(400);
 
@@ -75,10 +79,15 @@ describe("POST /api/stories — route", () => {
     expect(badTheme.status).toBe(400);
     expect((await badTheme.json()).code).toBe("invalid_input");
     expect(badTheme.headers.get("cache-control")).toBe("no-store");
+
+    // Privacy/safety invariant (T052): invalid or unsupported input is
+    // rejected before the provider is ever invoked.
+    expect(fake.requests).toHaveLength(0);
   });
 
-  it("rejects a malformed or empty JSON body as invalid input (400)", async () => {
-    const handler = createStoriesHandler(makeDeps());
+  it("rejects a malformed or empty JSON body as invalid input (400) without calling the provider", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const handler = createStoriesHandler(makeDeps({ provider: fake.provider }));
     const malformed = await handler(
       new Request("http://localhost/api/stories", {
         method: "POST",
@@ -99,6 +108,8 @@ describe("POST /api/stories — route", () => {
     expect(empty.status).toBe(400);
     expect((await empty.json()).code).toBe("invalid_input");
     expect(empty.headers.get("cache-control")).toBe("no-store");
+
+    expect(fake.requests).toHaveLength(0);
   });
 
   it("routes anonymously when no x-forwarded-for header is present", async () => {

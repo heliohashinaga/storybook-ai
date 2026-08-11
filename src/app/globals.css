@@ -3,6 +3,17 @@
 /* Load the semantic design-token theme (Tailwind 4 @config). */
 @config "../../tailwind.config.ts";
 
+/*
+ * max-width bridge: Tailwind v4 resolves `max-w-*` named values in the order
+ * `--max-width` → `--spacing` → `--container`. The legacy config extends the
+ * spacing scale with named keys (`md` → `--space-md`), which shadows the
+ * `--container` namespace. Bridge the token into the first namespace so
+ * `max-w-md` keeps container semantics (28rem) instead of collapsing to 16px.
+ */
+@theme {
+  --max-width-md: var(--container-md);
+}
+
 /* Design tokens — single source of truth, consumed by the Tailwind theme. */
 :root {
   /* Color (semantic) */
@@ -39,6 +50,9 @@
   --space-md: 1rem;
   --space-lg: 1.5rem;
   --space-xl: 2.5rem;
+
+  /* Layout (container widths) */
+  --container-md: 28rem;
 
   /* Radius */
   --radius-sm: 0.25rem;

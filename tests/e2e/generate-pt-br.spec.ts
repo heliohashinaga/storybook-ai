@@ -99,8 +99,11 @@ test("default pt-BR journey sends only ageBand/locale/theme and renders a safe s
   expect(body.scenes).toHaveLength(3);
 
   // ---- Reader view assertions --------------------------------------------
+  // The reader (T040) shows exactly one scene at a time and navigates with
+  // the previous/next buttons; every scene is reached and asserted in order.
   const imgs = page.locator('img[src^="data:image/webp;base64,"]');
-  await expect(imgs).toHaveCount(3);
+  const reader = page.locator('section[aria-label="Sua história"]');
+  const nextButton = page.getByRole("button", { name: /Próxima cena/i });
 
   for (let i = 0; i < body.scenes.length; i += 1) {
     const scene = body.scenes[i]!;
@@ -109,17 +112,26 @@ test("default pt-BR journey sends only ageBand/locale/theme and renders a safe s
     // Localized pt-BR alt text contains Portuguese diacritics — a
     // placeholder-only response must not pass.
     expect(scene.altText).toMatch(/[áàâãçéêíóôõúü]/i);
-    const alt = await imgs.nth(i).getAttribute("alt");
-    expect(alt).toBe(scene.altText);
-  }
 
-  // Scene content is visible and contains no template/interpolation markers
-  // and no identifier tokens.
-  const visibleText = await page.locator("section").innerText();
-  for (const marker of ["{{name}}", "{{child}}", "${", "{{", "}}"]) {
-    expect(visibleText).not.toContain(marker);
+    // Exactly one scene is mounted at a time, with its localized progress
+    // indicator and matching alt text.
+    await expect(imgs).toHaveCount(1);
+    await expect(page.getByText(`Cena ${i + 1} de ${body.scenes.length}`)).toBeVisible();
+    const alt = await imgs.getAttribute("alt");
+    expect(alt).toBe(scene.altText);
+
+    // The visible scene contains no template/interpolation markers and no
+    // identifier tokens.
+    const visibleText = await reader.innerText();
+    for (const marker of ["{{name}}", "{{child}}", "${", "{{", "}}"]) {
+      expect(visibleText).not.toContain(marker);
+    }
+    for (const token of ["Bela do Carmo", "Maria", "João"]) {
+      expect(visibleText).not.toContain(token);
+    }
+
+    if (i < body.scenes.length - 1) await nextButton.click();
   }
-  for (const token of ["Bela do Carmo", "Maria", "João"]) {
-    expect(visibleText).not.toContain(token);
-  }
+  // Forward bound: the last scene disables "next".
+  await expect(nextButton).toBeDisabled();
 });

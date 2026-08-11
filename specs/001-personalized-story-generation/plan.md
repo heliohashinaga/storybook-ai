@@ -265,6 +265,7 @@ Storybook stories are co-located.
 - API behavior is tested against `contracts/story-generation.openapi.yaml`; route responses include
   `Cache-Control: no-store`.
 - CI runs lint, format check, strict typecheck, tests + coverage, Storybook/a11y checks, E2E, visual
+- Coverage is enforced directly in `vitest.config.ts`: a global ≥80% floor across lines/branches/functions/statements plus per-file ≥90% thresholds for the safety (`safety-pipeline`), validation (`schemas`, `story-preferences-schema`), direct-identifier-exclusion (`age-band`), and orchestration (`generation-runtime`, `generate-story`) modules. `pnpm test:coverage` (alias `test:coverage:check`) exits non-zero when any gate is unmet.
   regression, production build, and budget validation.
 
 ### Post-Design Constitution Check

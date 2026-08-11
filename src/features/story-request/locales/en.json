@@ -9,7 +9,7 @@
         "errorRange": "Please enter an age between 2 and 12."
       },
       "locale": {
-        "label": "Story language"
+        "label": "Language"
       },
       "theme": {
         "label": "Story theme"
@@ -40,7 +40,16 @@
       "newStory": "Create another story",
       "previous": "Previous scene",
       "next": "Next scene",
-      "sceneCount": "Scene {current} of {total}"
+      "sceneCount": "Scene {current} of {total}",
+      "exportPdf": "Download as PDF",
+      "exporting": "Generating PDF…",
+      "exportError": "Couldn't download the PDF. Try again.",
+      "generateAnother": "Generate another"
+    },
+    "storySwitcher": {
+      "label": "Your stories",
+      "active": "Active story",
+      "storyItem": "Story"
     }
   }
 }

@@ -1,25 +1,24 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "../../../i18n/config";
+import { LocaleProvider } from "../../../i18n/locale-provider";
 import { StoryRequestForm, type SubmitResult } from "./story-request-form";
 
 const withI18n = (StoryComponent: () => React.JSX.Element) => (
-  <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
+  <LocaleProvider defaultLocale="pt-BR">
     <div className="flex max-w-md flex-col gap-md p-lg">
       <StoryComponent />
     </div>
-  </NextIntlClientProvider>
+  </LocaleProvider>
 );
 
 /** i18n decorator parameterized by locale (US4: pt-BR + en story cases). */
 const withLocalizedI18n = (locale: "pt-BR" | "en") => {
   const Decorator = (StoryComponent: () => React.JSX.Element) => (
-    <NextIntlClientProvider locale={locale} messages={getMessages(locale)}>
+    <LocaleProvider defaultLocale={locale}>
       <div className="flex max-w-md flex-col gap-md p-lg">
         <StoryComponent />
       </div>
-    </NextIntlClientProvider>
+    </LocaleProvider>
   );
   Decorator.displayName = `withLocalizedI18n(${locale})`;
   return Decorator;
@@ -31,7 +30,6 @@ const meta: Meta<typeof StoryRequestForm> = {
   tags: ["autodocs"],
   decorators: [withI18n],
   args: {
-    defaultLocale: "pt-BR",
     defaultTheme: "courage",
     onSubmit: async () => ({ ok: true }),
   },

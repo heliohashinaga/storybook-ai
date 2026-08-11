@@ -1,9 +1,8 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
 import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { NextIntlClientProvider } from "next-intl";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
-import { getMessages } from "../../src/i18n/config";
+import { LocaleProvider } from "../../src/i18n/locale-provider";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -28,9 +27,9 @@ const approvedStory = {
 
 function renderApp() {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
-      <StoryRequestApp defaultLocale="pt-BR" />
-    </NextIntlClientProvider>
+    <LocaleProvider defaultLocale="pt-BR">
+      <StoryRequestApp />
+    </LocaleProvider>
   );
 }
 
@@ -61,15 +60,157 @@ describe("StoryRequestApp — flow", () => {
 
     expect(await screen.findByText("Sua história")).toBeInTheDocument();
     expect(screen.getByText("A missão da estrelinha")).toBeInTheDocument();
-    expect(screen.getAllByRole("img")).toHaveLength(3);
-    for (const img of screen.getAllByRole("img")) {
-      expect(img).toHaveAttribute("alt");
+    // The reader (T040) shows exactly one scene at a time; every scene is
+    // reachable via the "next" button and carries a localized alt text.
+    const user = userEvent.setup();
+    for (let i = 0; i < approvedStory.scenes.length; i += 1) {
+      expect(screen.getAllByRole("img")).toHaveLength(1);
+      expect(screen.getByRole("img")).toHaveAttribute("alt", approvedStory.scenes[i]!.altText);
+      expect(
+        screen.getByText(`Cena ${i + 1} de ${approvedStory.scenes.length}`)
+      ).toBeInTheDocument();
+      if (i < approvedStory.scenes.length - 1) {
+        await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+      }
     }
+    // Forward bound: the last scene disables "next".
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/stories");
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
     expect(body).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
+  });
+
+  it("switches UI and story language together when English is selected (T056)", async () => {
+    const enStory = {
+      locale: "en",
+      ageBand: "5-7",
+      theme: "friendship",
+      safetyDecision: "approved",
+      title: "The Dream of the Star",
+      scenes: [
+        {
+          ordinal: 1,
+          title: "Scene 1",
+          body: "Once upon a time.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 1.",
+        },
+        {
+          ordinal: 2,
+          title: "Scene 2",
+          body: "The star smiled.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 2.",
+        },
+        {
+          ordinal: 3,
+          title: "Scene 3",
+          body: "The sea embraced it.",
+          illustrationDataUri: webpDataUri,
+          altText: "Illustration of scene 3.",
+        },
+      ],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(enStory), { status: 200 }))
+    );
+    renderApp();
+
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/idade da criança/i), "6");
+    await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
+    // The whole UI flips to English immediately after the locale selection.
+    await user.selectOptions(screen.getByLabelText(/story theme/i), "friendship");
+    await user.click(screen.getByRole("button", { name: /create story/i }));
+
+    // The reader chrome is English once the story language is English.
+    expect(await screen.findByText("Your story")).toBeInTheDocument();
+    expect(screen.getByText("The Dream of the Star")).toBeInTheDocument();
+    expect(screen.getByText("Scene 1 of 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /next scene/i })).toBeEnabled();
+
+    // Privacy contract: the payload carries only the derived values.
+    const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    expect(body).toEqual({ ageBand: "5-7", locale: "en", theme: "friendship" });
+    expect(JSON.stringify(body)).not.toMatch(/"name"/i);
+  });
+
+  it("generate another reuses last preferences and appends a second story (T050)", async () => {
+    const second = {
+      locale: "pt-BR",
+      ageBand: "5-7",
+      theme: "courage",
+      safetyDecision: "approved",
+      title: "O segredo da floresta",
+      scenes: [scene(1), scene(2), scene(3)],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
+    );
+    renderApp();
+    await submitValidForm();
+
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+    // The in-memory age/locale/theme are reused: the "generate another"
+    // button appears only once we have stored preferences.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+
+    // The new story becomes active and the payload reused age/locale/theme.
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    const secondBody = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
+    expect(secondBody).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+  });
+
+  it("renders the in-session story switcher and switches back to an earlier story (T051)", async () => {
+    const second = {
+      locale: "pt-BR",
+      ageBand: "5-7",
+      theme: "friendship",
+      safetyDecision: "approved",
+      title: "O segredo da floresta",
+      scenes: [scene(1), scene(2), scene(3)],
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
+    );
+    renderApp();
+    await submitValidForm();
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+
+    // Append a second story so the session holds multiple switchable entries.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
+    );
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+
+    // The accessible switcher groups the stories and marks the active one.
+    const switcher = screen.getByLabelText("Suas histórias");
+    expect(switcher).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /A missão da estrelinha/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /O segredo da floresta \(História ativa\)/i })
+    ).toBeInTheDocument();
+
+    // Switching back to the first story selects it and keeps it fully readable.
+    // Exact aria-label match targets only the non-active first-story button.
+    await user.click(screen.getByRole("button", { name: /^História — A missão da estrelinha$/ }));
+    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /A missão da estrelinha \(História ativa\)/i })
+    ).toBeInTheDocument();
   });
 
   it("shows a localized retry on a provider failure and stays on the form", async () => {

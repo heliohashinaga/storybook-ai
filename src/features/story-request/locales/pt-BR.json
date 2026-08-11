@@ -9,7 +9,7 @@
         "errorRange": "Informe uma idade entre 2 e 12 anos."
       },
       "locale": {
-        "label": "Idioma da história"
+        "label": "Idioma"
       },
       "theme": {
         "label": "Tema da história"
@@ -40,7 +40,16 @@
       "newStory": "Criar outra história",
       "previous": "Cena anterior",
       "next": "Próxima cena",
-      "sceneCount": "Cena {current} de {total}"
+      "sceneCount": "Cena {current} de {total}",
+      "exportPdf": "Baixar como PDF",
+      "exporting": "Gerando PDF…",
+      "exportError": "Não foi possível baixar o PDF. Tente de novo.",
+      "generateAnother": "Gerar outra história"
+    },
+    "storySwitcher": {
+      "label": "Suas histórias",
+      "active": "História ativa",
+      "storyItem": "História"
     }
   }
 }

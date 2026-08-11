@@ -44,7 +44,7 @@ describe("StoryRequestForm — anonymous by design", () => {
   it("collects only age, language, and theme", () => {
     renderForm();
     expect(screen.getByLabelText(/idade da criança/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/idioma da história/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/idioma/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/tema da história/i)).toBeInTheDocument();
     expect(screen.queryAllByRole("textbox")).toHaveLength(0); // no free-text fields
   });
@@ -90,7 +90,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     const user = userEvent.setup();
     renderForm({ onSubmit });
     await user.type(screen.getByLabelText(/idade da criança/i), "10");
-    await user.selectOptions(screen.getByLabelText(/idioma da história/i), "en");
+    await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
     await user.selectOptions(screen.getByLabelText(/tema da história/i), "friendship");
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 

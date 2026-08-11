@@ -14,6 +14,10 @@ import type { Config } from "tailwindcss";
  *  - typography: display/title/body/caption scale, weights, line-heights.
  *  - spacing: xs -> xl scale, consistent gaps.
  *  - radius / shadow / motion: tokenized.
+ *
+ * Note: `max-w-*` named values are not configured here. Tailwind v4 resolves
+ * them as `--max-width` -> `--spacing` -> `--container`, and the legacy config
+ * cannot reach the first namespace; see the `@theme` bridge in globals.css.
  */
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],

@@ -8,8 +8,10 @@ Personalized children's story generator I created for my daughter. Choose an age
 range, language, and theme; the app generates a three-scene story with
 illustrations.
 
-> **Status: planning.** The repository currently contains only specification
-> artifacts (`specs/`). The app will be scaffolded in Next.js based on this plan.
+> **Status: implemented.** Personalized children's story generator, anonymous by design.
+> The app lives in `src/` and runs against a deterministic fake provider for tests;
+> see [Anonymous session behavior](#anonymous-session-behavior) and `specs/` for the
+> full feature contract.
 
 ## Overview
 
@@ -52,10 +54,17 @@ cp .env.example .env.local
 Configure development secrets (server-side only) in `.env.local`:
 
 ```dotenv
-OPENAI_API_KEY=replace-with-development-key
-OPENAI_TEXT_MODEL=replace-with-approved-structured-output-model
-OPENAI_IMAGE_MODEL=replace-with-approved-image-model
+# OpenRouter provider — read ONLY by the server-only provider adapter.
+OPENROUTER_API_KEY=replace-with-development-key
+OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
+OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
+OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
 ```
+
+> Development provider selection: set `STORIES_PROVIDER=fake` only for
+> deterministic e2e/visual/performance/dev runs — it uses a fixed in-repo
+> provider that never calls a live AI service (no credentials needed). The
+> default `openrouter` provider requires the OpenRouter_* credentials above.
 
 `.env.local` is gitignored and must never contain children's data, generated
 stories, or exported files.
@@ -68,6 +77,22 @@ pnpm dev
 
 Open `http://localhost:3000`. The default interface language is `pt-BR`.
 
+## Anonymous session behavior
+
+- **Anonymous by design — no account, no name, no direct identifier.** The form
+  never collects a name or child identifier; there is no field for one.
+- **Only the age band travels over the network.** The exact age a parent enters
+  (e.g. `6`) is reduced in-browser to a coarse band (`2-4` | `5-7` | `8-12`);
+  the API receives only `ageBand`, `locale`, and `theme`.
+- **No persistence.** The session is in-memory React state only — no cookies,
+  `localStorage`, `sessionStorage`, or indexDB. Refreshing the page or opening a
+  new tab restores nothing (no exact age, preferences, or prior stories).
+- **Every generation response is `Cache-Control: no-store`**, and outbound
+  payloads contain no identifiers.
+- Stories, preferences, and the exact age live only in React memory and are
+  gone on reload — see `tests/integration/privacy-boundary.test.tsx` and
+  `tests/e2e/anonymous-session-and-export.spec.ts` for the regression guards.
+
 ## Required checks (before any merge)
 
 ```bash
@@ -79,6 +104,7 @@ pnpm test:coverage
 pnpm storybook:test
 pnpm test:e2e
 pnpm test:visual
+pnpm test:performance
 pnpm build
 ```
 
@@ -91,9 +117,12 @@ pnpm build
 | `pnpm storybook:test`             | All stories (default/loading/error/edge) and accessibility checks pass             |
 | `pnpm test:e2e`                   | pt-BR and EN journeys with a fake provider; no live AI calls                       |
 | `pnpm test:visual`                | No unintended diff in approved screenshots                                         |
+| `pnpm test:performance`           | Initial JS ≤250 KiB gzip, LCP ≤2.5s, scene nav ≤100ms p75, generation ≤120s        |
 | `pnpm build`                      | Production build serves the anonymous flow                                         |
 
-## Structure (planned)
+## Structure
+
+Feature-based layout implemented under `src/`:
 
 ```text
 src/

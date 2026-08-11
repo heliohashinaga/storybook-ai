@@ -108,6 +108,47 @@ describe("provider pipeline — structured narrative", () => {
     }
     expect(result.story.scenes[0]?.altText.toLowerCase()).toContain("coragem");
   });
+
+  it("adds localized, theme-aware alt text for every supported locale and theme", async () => {
+    // pt-BR theme alt text
+    const pt = [
+      { theme: "courage", expected: "coragem" },
+      { theme: "friendship", expected: "amizade" },
+      { theme: "kindness", expected: "bondade" },
+    ] as const;
+    for (const { theme, expected } of pt) {
+      const result = await generateStory({
+        input: { ageBand: "5-7", locale: "pt-BR", theme },
+        provider: createFakeProvider({ scenario: "safe" }).provider,
+        illustrate,
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      expect(result.story.scenes[0]?.altText.toLowerCase()).toContain(expected);
+      // Ordinal-scoped and never a direct identifier.
+      expect(result.story.scenes[0]?.altText).toContain("cena 1");
+    }
+
+    // en theme alt text
+    const en = [
+      { theme: "courage", expected: "courage" },
+      { theme: "friendship", expected: "friendship" },
+      { theme: "kindness", expected: "kindness" },
+    ] as const;
+    for (const { theme, expected } of en) {
+      const result = await generateStory({
+        input: { ageBand: "2-4", locale: "en", theme },
+        provider: createFakeProvider({ scenario: "safe" }).provider,
+        illustrate,
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      result.story.scenes.forEach((scene, index) => {
+        expect(scene.altText).toBe(`Scene ${index + 1} of a story about ${expected}.`);
+      });
+    }
+    expect(JSON.stringify(pt)).not.toMatch(/nome\s+da\s+criança|\[name\]/i);
+  });
 });
 
 describe("provider pipeline — moderation calls (text and image)", () => {
@@ -373,5 +414,28 @@ describe("provider pipeline — provider error mapping", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.error.code).toBe("generation_timeout");
+  });
+
+  it("maps an unexpected non-provider throw to generation_unavailable (502)", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const throwsGeneric: StoryGenerationProvider = {
+      async generateStory() {
+        throw new Error("transport exploded");
+      },
+      moderateText: fake.provider.moderateText,
+      moderateImage: fake.provider.moderateImage,
+    };
+    const artist = capturingIllustrator();
+    const result = await generateStory({
+      input,
+      provider: throwsGeneric,
+      illustrate: artist.illustrate,
+    });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("generation_unavailable");
+    // The unsafe/unexpected provider failure never leaks or calls illustration.
+    expect(artist.prompts).toHaveLength(0);
+    expect(JSON.stringify(result.error)).not.toContain("transport exploded");
   });
 });

@@ -3,6 +3,12 @@ import react from "@vitejs/plugin-react";
 
 import { fileURLToPath } from "node:url";
 
+// AGENTS.md coverage gates:
+//  - ≥80% overall across statements, lines, branches, functions.
+//  - ≥90% for every safety/validation/direct-identifier-exclusion/orchestration
+//    module, enforced per-file so a single hot path can't carry the others.
+const MODULE_THRESHOLD = { lines: 90, functions: 90, statements: 90, branches: 90 };
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -28,14 +34,19 @@ export default defineConfig({
         "src/i18n/**",
         "src/lib/**",
       ],
-      // AGENTS.md: ≥80% overall; ≥90% for safety/validation/orchestration are
-      // enforced via per-file thresholds applied in Phase 2+ once real modules
-      // exist. Global floor applies now (Phase 1 has no src modules to measure).
+      // ≥80% global floor (all files) …
       thresholds: {
         lines: 80,
         functions: 80,
         branches: 80,
         statements: 80,
+        // … and ≥90% per safety/validation/orchestration module.
+        "**/features/story-generation/server/safety-pipeline.ts": MODULE_THRESHOLD,
+        "**/features/story-generation/server/schemas.ts": MODULE_THRESHOLD,
+        "**/features/story-generation/server/generation-runtime.ts": MODULE_THRESHOLD,
+        "**/features/story-generation/server/generate-story.ts": MODULE_THRESHOLD,
+        "**/features/story-request/client/story-preferences-schema.ts": MODULE_THRESHOLD,
+        "**/features/story-request/client/age-band.ts": MODULE_THRESHOLD,
       },
     },
   },

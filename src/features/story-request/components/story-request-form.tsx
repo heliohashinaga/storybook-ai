@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
 import { Select } from "../../../components/ui/select";
+import { useLocaleContext } from "../../../i18n/locale-provider";
 import { localeCatalog, themeCatalog } from "../../../lib/story-catalog";
 import { deriveAgeBand, type AgeBand } from "../client/age-band";
 import type { Locale, Theme } from "../client/story-preferences-schema";
@@ -30,23 +31,27 @@ export type SubmitResult = { ok: true } | { ok: false; messageKey: string };
 export type StoryRequestStatus = "idle" | "submitting" | "success";
 
 interface StoryRequestFormProps {
-  defaultLocale?: Locale;
   defaultTheme?: Theme;
-  onSubmit: (request: GenerateStoryRequest) => Promise<SubmitResult>;
+  /**
+   * Invoked with the anonymized request (ageBand/locale/theme — the exact
+   * payload) plus the exact age kept in memory only for session reuse
+   * (T050). The age is never part of the payload sent to the API.
+   */
+  onSubmit: (request: GenerateStoryRequest, age: number) => Promise<SubmitResult>;
   onSuccess?: () => void;
 }
 
 export function StoryRequestForm({
-  defaultLocale = "pt-BR",
   defaultTheme = "courage",
   onSubmit,
   onSuccess,
 }: StoryRequestFormProps) {
   const t = useTranslations("story");
+  const { locale: appLocale, setLocale: setAppLocale } = useLocaleContext();
   const ageInputRef = useRef<HTMLInputElement>(null);
   const submitErrorRef = useRef<HTMLDivElement>(null);
   const [age, setAge] = useState("");
-  const [locale, setLocale] = useState<Locale>(defaultLocale);
+  const [locale, setLocale] = useState<Locale>(appLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
   const [ageError, setAgeError] = useState<string | null>(null);
@@ -76,11 +81,14 @@ export function StoryRequestForm({
     setSubmitError(null);
     setStatus("submitting");
 
-    const result = await onSubmit({
-      ageBand: deriveAgeBand(numericAge),
-      locale,
-      theme,
-    });
+    const result = await onSubmit(
+      {
+        ageBand: deriveAgeBand(numericAge),
+        locale,
+        theme,
+      },
+      numericAge
+    );
 
     if (result.ok) {
       setStatus("success");
@@ -129,7 +137,12 @@ export function StoryRequestForm({
         label={t("form.locale.label")}
         value={locale}
         disabled={disabled}
-        onChange={(event) => setLocale(event.target.value as Locale)}
+        onChange={(event) => {
+          const next = event.target.value as Locale;
+          setLocale(next);
+          // The story language drives the whole UI (ADR 0003 / T056).
+          setAppLocale(next);
+        }}
       >
         {localeCatalog.map((entry) => (
           <option key={entry.value} value={entry.value}>

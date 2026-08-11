@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
-import type { Locale } from "../client/story-preferences-schema";
+import { ExportStoryButton } from "../../story-export/components/export-story-button";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
+import { StoryHistory } from "../../story-reader/components/story-history";
+import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
+import { deriveAgeBand } from "../client/age-band";
 import { StoryGenerationProgress } from "./story-generation-progress";
 import {
   StoryRequestForm,
@@ -19,17 +22,28 @@ import {
  * the response through `story-response` (typed, sanitized), and shows the
  * approved three-scene story locally in memory (never persisted).
  */
-export function StoryRequestApp({ defaultLocale = "pt-BR" }: { defaultLocale?: Locale }) {
+export function StoryRequestApp() {
   return (
     <StorySessionProvider>
-      <StoryRequestFlow defaultLocale={defaultLocale} />
+      <StoryRequestFlow />
     </StorySessionProvider>
   );
 }
 
-function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
+function StoryRequestFlow() {
   const t = useTranslations("story");
-  const { status, story, begin, succeed, fail, reset } = useStorySession();
+  const {
+    status,
+    story,
+    stories,
+    activeId,
+    begin,
+    succeed,
+    fail,
+    reset,
+    accessStory,
+    lastPreferences,
+  } = useStorySession();
   const [elapsed, setElapsed] = useState(0);
 
   const submitting = status === "submitting";
@@ -49,12 +63,12 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
     return (
       <section className="flex flex-col gap-md">
         <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <StoryRequestForm defaultLocale={defaultLocale} onSubmit={handleSubmit} />
+        <StoryRequestForm onSubmit={handleSubmit} />
       </section>
     );
   }
 
-  async function handleSubmit(request: GenerateStoryRequest): Promise<SubmitResult> {
+  async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
     begin();
     const response = await fetch("/api/stories", {
@@ -64,39 +78,52 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
     });
     const result = await parseStoryResponse(response);
     if (result.status === "success") {
-      succeed(result.story);
+      // Store anonymized prefs (exact age stays in memory only, never in the
+      // payload) for "generate another" reuse (T050).
+      succeed(result.story, {
+        age: age ?? 0,
+        locale: request.locale,
+        theme: request.theme,
+      });
       return { ok: true };
     }
     fail(result.error);
     return { ok: false, messageKey: result.error.messageKey.replace(/^story\.error\./, "") };
   }
 
+  /** "Generate another": re-submits reusing the last age/locale/theme (T050).
+   *  Appends a new story via succeed(); never replaces earlier ones. */
+  const generateAnother = () => {
+    if (!lastPreferences) return;
+    const prefs = lastPreferences;
+    void handleSubmit(
+      {
+        ageBand: deriveAgeBand(prefs.age),
+        locale: prefs.locale,
+        theme: prefs.theme,
+      },
+      prefs.age
+    );
+  };
+
   if (story) {
     return (
-      <section className="flex flex-col gap-md" aria-labelledby="story-reader-title">
-        <h1 id="story-reader-title" className="font-title text-title">
-          {t("reader.title")}
-        </h1>
-        <p className="text-title">{story.title}</p>
-        <ol className="flex flex-col gap-lg">
-          {story.scenes.map((scene) => (
-            <li key={scene.ordinal} className="flex flex-col gap-sm">
-              <h2 className="font-title text-body">
-                {t("reader.sceneLabel", { ordinal: scene.ordinal })} — {scene.title}
-              </h2>
-              {/* eslint-disable-next-line @next/next/no-img-element -- session-only WebP data-URI; not cachable or optimizable by next/image */}
-              <img
-                src={scene.illustrationDataUri}
-                alt={scene.altText}
-                className="aspect-square w-full rounded-md object-cover"
-              />
-              <p className="text-body">{scene.body}</p>
-            </li>
-          ))}
-        </ol>
-        <Button variant="secondary" onClick={reset}>
-          {t("reader.newStory")}
-        </Button>
+      <section className="flex flex-col gap-md">
+        {stories.length > 1 ? (
+          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
+        ) : null}
+        <StoryReader story={story} />
+        <div className="flex flex-row items-center gap-sm">
+          <ExportStoryButton story={story} />
+          {lastPreferences ? (
+            <Button variant="secondary" onClick={generateAnother}>
+              {t("reader.generateAnother")}
+            </Button>
+          ) : null}
+          <Button variant="secondary" onClick={reset}>
+            {t("reader.newStory")}
+          </Button>
+        </div>
       </section>
     );
   }
@@ -104,7 +131,7 @@ function StoryRequestFlow({ defaultLocale }: { defaultLocale: Locale }) {
   return (
     <section className="flex flex-col gap-md">
       <h1 className="font-title text-title">{t("form.title")}</h1>
-      <StoryRequestForm defaultLocale={defaultLocale} onSubmit={handleSubmit} />
+      <StoryRequestForm onSubmit={handleSubmit} />
     </section>
   );
 }

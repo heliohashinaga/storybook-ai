@@ -41,9 +41,10 @@ async function fillAndSubmitEnglish(page: Page): Promise<void> {
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
   await page.getByLabel(/Idade da criança|Child's age/i).fill("9");
-  await page.getByLabel(/Idioma|Story language|language/i).selectOption("en");
-  await page.getByLabel(/Tema da história|Story theme/i).selectOption("friendship");
-  await page.getByRole("button", { name: /Criar história|Create story/i }).click();
+  await page.getByLabel(/Idioma|Language/i).selectOption("en");
+  // Selecting the story language flips the whole UI to English (ADR 0003).
+  await page.getByLabel(/Story theme/i).selectOption("friendship");
+  await page.getByRole("button", { name: /Create story/i }).click();
 }
 
 test("en journey sends only ageBand/locale/theme and renders a safe English story", async ({
@@ -94,8 +95,14 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   expect(body.scenes).toHaveLength(3);
 
   // ---- Reader view assertions --------------------------------------------
+  // The reader (T040) shows exactly one scene at a time and navigates with
+  // the previous/next buttons; every scene is reached and asserted in order.
   const imgs = page.locator('img[src^="data:image/webp;base64,"]');
-  await expect(imgs).toHaveCount(3);
+  // The reader chrome is English because the selected story language drives
+  // the whole UI (ADR 0003 / T056): region, buttons and counter are localized.
+  const reader = page.getByRole("region", { name: "Your story" });
+  const nextButton = page.getByRole("button", { name: "Next scene" });
+  let fullStoryText = "";
 
   for (let i = 0; i < body.scenes.length; i += 1) {
     const scene = body.scenes[i]!;
@@ -105,17 +112,28 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
     // English, not a pt-BR fallback.
     expect(scene.altText).not.toMatch(/[áàâãçéêíóôõúü]/i);
     expect(scene.altText).toMatch(/[A-Za-z]+/);
-    const alt = await imgs.nth(i).getAttribute("alt");
-    expect(alt).toBe(scene.altText);
-  }
 
-  // Scene content is visible, in English, with no template markers/identifiers.
-  const visibleText = await page.locator("section").innerText();
-  expect(visibleText).toMatch(/\bstar\b/i);
-  for (const marker of ["{{name}}", "{{child}}", "${", "{{", "}}"]) {
-    expect(visibleText).not.toContain(marker);
+    // Exactly one scene is mounted at a time, with its localized progress
+    // indicator and matching alt text.
+    await expect(imgs).toHaveCount(1);
+    await expect(page.getByText(`Scene ${i + 1} of ${body.scenes.length}`)).toBeVisible();
+    const alt = await imgs.getAttribute("alt");
+    expect(alt).toBe(scene.altText);
+
+    // The visible scene is in English with no template markers/identifiers.
+    const visibleText = await reader.innerText();
+    fullStoryText += visibleText;
+    for (const marker of ["{{name}}", "{{child}}", "${", "{{", "}}"]) {
+      expect(visibleText).not.toContain(marker);
+    }
+    for (const token of ["Bela do Carmo", "Maria", "João", "estrelinha"]) {
+      expect(visibleText).not.toContain(token);
+    }
+
+    if (i < body.scenes.length - 1) await nextButton.click();
   }
-  for (const token of ["Bela do Carmo", "Maria", "João", "estrelinha"]) {
-    expect(visibleText).not.toContain(token);
-  }
+  // The full story text is in English and mentions the star hero.
+  expect(fullStoryText).toMatch(/\bstar\b/i);
+  // Forward bound: the last scene disables "next".
+  await expect(nextButton).toBeDisabled();
 });
