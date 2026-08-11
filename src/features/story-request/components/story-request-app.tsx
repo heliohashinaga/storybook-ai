@@ -63,7 +63,7 @@ function StoryRequestFlow() {
     return (
       <section className="flex flex-col gap-md">
         <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <StoryRequestForm onSubmit={handleSubmit} />
+        <StoryRequestForm onSubmit={handleSubmit} defaultAge={lastPreferences?.age} />
       </section>
     );
   }
@@ -131,7 +131,7 @@ function StoryRequestFlow() {
   return (
     <section className="flex flex-col gap-md">
       <h1 className="font-title text-title">{t("form.title")}</h1>
-      <StoryRequestForm onSubmit={handleSubmit} />
+      <StoryRequestForm onSubmit={handleSubmit} defaultAge={lastPreferences?.age} />
     </section>
   );
 }

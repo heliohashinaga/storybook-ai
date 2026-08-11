@@ -32,6 +32,9 @@ export type StoryRequestStatus = "idle" | "submitting" | "success";
 
 interface StoryRequestFormProps {
   defaultTheme?: Theme;
+  /** Reuse the last in-session age so the field isn't blank after 'nova
+   *  história' (generate-another uses lastPreferences directly). */
+  defaultAge?: number;
   /**
    * Invoked with the anonymized request (ageBand/locale/theme — the exact
    * payload) plus the exact age kept in memory only for session reuse
@@ -43,6 +46,7 @@ interface StoryRequestFormProps {
 
 export function StoryRequestForm({
   defaultTheme = "courage",
+  defaultAge,
   onSubmit,
   onSuccess,
 }: StoryRequestFormProps) {
@@ -50,7 +54,7 @@ export function StoryRequestForm({
   const { locale: appLocale, setLocale: setAppLocale } = useLocaleContext();
   const ageInputRef = useRef<HTMLInputElement>(null);
   const submitErrorRef = useRef<HTMLDivElement>(null);
-  const [age, setAge] = useState("");
+  const [age, setAge] = useState(defaultAge ? String(defaultAge) : "");
   const [locale, setLocale] = useState<Locale>(appLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
