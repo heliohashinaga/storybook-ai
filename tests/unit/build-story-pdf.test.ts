@@ -63,7 +63,7 @@ vi.mock("@react-pdf/renderer", () => {
 });
 
 describe("buildStoryPdf — browser-only export (T042)", () => {
-  it("composes the title, every scene body and alt text, and the 3 illustrations", async () => {
+  it("composes the title, every scene body, and the 3 illustrations", async () => {
     const download = vi.fn();
     const toBlob = vi.fn(async () => new Blob(["pdf"], { type: "application/pdf" }));
 
@@ -73,7 +73,10 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     const joined = JSON.stringify(mockState.tree);
 
     expect(joined).toContain("A missão da estrelinha");
-    expect(joined).toContain("Uma estrelinha no céu");
+    expect(joined).toContain("Era uma vez uma estrelinha");
+    // The scene altText is NOT rendered in the PDF (it is a11y metadata only,
+    // the illustration itself carries no visible alt caption).
+    expect(joined).not.toContain("Uma estrelinha no céu");
     expect(joined).toContain("Ela decidiu brilhar");
     expect(joined).toContain("E o mar a abraçou");
     // Illustrations are converted to PNG before embedding so the PDF renders

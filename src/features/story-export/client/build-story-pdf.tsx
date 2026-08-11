@@ -102,7 +102,6 @@ export async function buildStoryPdf(
               <Text style={{ fontSize: 11, color: "#666" }}>
                 Scene {scene.ordinal} of {story.scenes.length}
               </Text>
-              <Text style={{ fontSize: 13, marginTop: 6, color: "#333" }}>{scene.altText}</Text>
               <Text style={{ fontSize: 14, marginTop: 8 }}>{scene.body}</Text>
             </View>
           ))}
