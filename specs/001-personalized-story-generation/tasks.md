@@ -215,7 +215,7 @@ documentation gates across the completed MVP.
   - `pnpm build` succeeds.
   - Storybook/a11y, E2E, visual, and performance specs all pass when run as isolated gates (the CI mode used by `.github/workflows/ci.yml`).
   - Batch-running the entire E2E/visual/perf suite back-to-back against one local prod server can exhaust the server-side rate limiter (`POST /api/stories` returns 429); those same tests pass in isolation, confirming this is transient infra flakiness, not a product regression.
-- [ ] T066 [P] Implement anonymous structured logging and error-tracking scrubbing in `src/lib/observability.ts` (or equivalent): structured fields (locale, theme, age band, status, duration, short trace ID) with two-layer scrubbing — in the SDK before data leaves the app and server-side without storing request/response bodies; never emit name, exact age, story content, provider payloads, or persisted IP identity, and add a logging test asserting these exclusions.
+- [x] T066 [P] Implement anonymous structured logging and error-tracking scrubbing in `src/lib/observability.ts` (or equivalent): structured fields (locale, theme, age band, status, duration, short trace ID) with two-layer scrubbing — in the SDK before data leaves the app and server-side without storing request/response bodies; never emit name, exact age, story content, provider payloads, or persisted IP identity, and add a logging test asserting these exclusions.
 
 **Checkpoint**: The MVP satisfies its constitution, OpenAPI contract, privacy boundary, accessibility,
 performance budgets, and documented validation path.
