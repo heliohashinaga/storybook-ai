@@ -155,7 +155,7 @@ keyboard-operable, visually documented, and locally exportable without server-si
 ### Tests for User Story 3 — write and observe failure first
 
 - [x] T045 [P] [US3] Write session-state tests in `tests/unit/story-session-context.test.tsx` for multi-story ordering, active-story switching, preference reuse, "generate another" append behavior (never replaces the current story), no story-count cap, and clear-on-reload/no-serialization behavior.
-- [ ] T046 [P] [US3] Write the anonymous multi-story E2E flow in `tests/e2e/anonymous-session-and-export.spec.ts`, including a browser storage/cookie/URL no-persistence audit.
+- [x] T046 [P] [US3] Write the anonymous multi-story E2E flow in `tests/e2e/anonymous-session-and-export.spec.ts`, including a browser storage/cookie/URL no-persistence audit.
 - [ ] T047 [P] [US3] Write an integration test for same-session preference reuse and preserved readable stories in `tests/integration/anonymous-session.test.ts`.
 
 ### Implementation for User Story 3
