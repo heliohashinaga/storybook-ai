@@ -11,8 +11,14 @@ const preview: Preview = {
       },
     },
     a11y: {
+      // Accessibility is a contract (T059): every story must pass WCAG A + AA,
+      // including the AA colour-contrast rule (4.5:1 for normal text) from
+      // `wcag2aa`/`wcag21aa`. Violations fail `pnpm storybook:test`.
+      //
+      // `prefers-reduced-motion` is honoured app-wide by the globals.css block
+      // imported above (it collapses animation/transition durations to 0.01ms)
+      // and is asserted on the live app in tests/e2e/accessibility.spec.ts.
       test: {
-        // a11y violations are run per-story by `pnpm storybook:test`.
         runOnly: {
           type: "tag",
           values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
