@@ -1,0 +1,105 @@
+name: CI
+
+# Runs the full quality gate on every PR to `main`/`develop` and on pushes to
+# `main`. Mirrors the project's Definition of Done: format, lint, strict
+# typecheck, unit tests with coverage gates, production build, Storybook/a11y,
+# E2E, visual, and performance budgets. All browser tests use deterministic
+# provider fakes (STORIES_PROVIDER=fake) and never call a live AI service.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  CI: "true"
+  NEXT_TELEMETRY_DISABLED: "1"
+  # Deterministic providers for every browser/storybook test — no live AI.
+  STORIES_PROVIDER: "fake"
+
+jobs:
+  quality:
+    name: Quality gates (format, lint, typecheck, unit, coverage, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests + coverage (≥80% overall; ≥90% safety/validation/orchestration)
+        run: pnpm test:coverage
+
+      - name: Production build
+        run: pnpm build
+
+  browser:
+    name: Browser gates (Storybook a11y, E2E, visual, performance)
+    needs: quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.20.0
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Install Chromium + native deps
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Storybook + a11y
+        run: pnpm storybook:test
+
+      - name: E2E (pt-BR + en, fake provider)
+        run: pnpm test:e2e
+
+      - name: Visual regression
+        run: pnpm test:visual
+
+      - name: Performance budgets
+        run: pnpm test:performance
+
+      - name: Archive Playwright test output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore

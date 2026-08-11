@@ -204,7 +204,7 @@ documentation gates across the completed MVP.
 - [x] T059 [P] Add application-level accessibility coverage for form, loading/error, reader, switcher, and export controls in `tests/e2e/accessibility.spec.ts` and `.storybook/preview.ts`; assert AA contrast and `prefers-reduced-motion` behavior.
 - [x] T060 [P] Add performance budget tooling for initial JS, LCP, scene navigation, lazy PDF import, and ≤120-second generation in `tests/performance/story-generation-budget.spec.ts` and `package.json`.
 - [x] T061 [P] Add a privacy/logging/cache regression audit for no identifiers, no exact-age API payload, no persistence, and `no-store` responses in `tests/integration/privacy-boundary.test.ts`.
-- [ ] T062 Configure the required CI gates (format, lint, typecheck, unit/coverage, Storybook/a11y, E2E, visual, build, and performance) in `.github/workflows/ci.yml`.
+- [x] T062 Configure the required CI gates (format, lint, typecheck, unit/coverage, Storybook/a11y, E2E, visual, build, and performance) in `.github/workflows/ci.yml`.
 - [ ] T063 Document local setup, safe environment use, supported locales/themes, anonymous-session behavior, and test commands in `README.md`.
 - [ ] T064 Reconcile implemented commands, acceptance scenarios, and performance evidence with `specs/001-personalized-story-generation/quickstart.md`.
 - [ ] T065 Run the complete quickstart validation suite, resolve all failures, and record final evidence in `specs/001-personalized-story-generation/tasks.md`.
