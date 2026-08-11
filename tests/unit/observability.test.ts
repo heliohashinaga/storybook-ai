@@ -85,7 +85,7 @@ describe("logStoryEvent()", () => {
         traceId: "abc12345",
         attempt: 2,
       },
-      logger,
+      logger
     );
 
     expect(calls).toHaveLength(1);

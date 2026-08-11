@@ -155,10 +155,7 @@ const defaultLogger: Logger = {
  * are scrubbed defensively again before emission, and the event never carries
  * request/response bodies or provider payloads.
  */
-export function logStoryEvent(
-  event: StoryLogEvent,
-  logger: Logger = defaultLogger,
-): void {
+export function logStoryEvent(event: StoryLogEvent, logger: Logger = defaultLogger): void {
   const safe: Record<string, unknown> = {
     locale: scrub(event.locale),
     theme: scrub(event.theme),
