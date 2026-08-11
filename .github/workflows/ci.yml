@@ -15,8 +15,10 @@ on:
 env:
   CI: "true"
   NEXT_TELEMETRY_DISABLED: "1"
-  # Deterministic providers for every browser/storybook test — no live AI.
-  STORIES_PROVIDER: "fake"
+  # NOTE: STORIES_PROVIDER is intentionally NOT set globally. The unit tests in
+  # the quality job (e.g. tests/unit/env.test.ts) assert the env parser returns
+  # exactly the configured fields, so a globally-injected provider selector would
+  # break them. The fake provider is set only on the browser job, below.
 
 jobs:
   quality:
@@ -61,6 +63,9 @@ jobs:
     needs: quality
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    # Deterministic provider for the browser/storybook/perf suites — no live AI.
+    env:
+      STORIES_PROVIDER: "fake"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
