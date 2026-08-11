@@ -8,11 +8,6 @@ Personalized children's story generator I created for my daughter. Choose an age
 range, language, and theme; the app generates a three-scene story with
 illustrations.
 
-> **Status: implemented.** Personalized children's story generator, anonymous by design.
-> The app lives in `src/` and runs against a deterministic fake provider for tests;
-> see [Anonymous session behavior](#anonymous-session-behavior) and `specs/` for the
-> full feature contract.
-
 ## Overview
 
 - 🧒 **Age bands**: `2-4`, `5-7`, `8-12` — only the band (not the exact age) is
