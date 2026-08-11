@@ -6,6 +6,10 @@ import {
 } from "../../src/features/story-export/client/build-story-pdf";
 
 const WEBP = "data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==";
+const PNG = "data:image/png;base64,iVBORw0KGgo=";
+
+/** Deterministic WebP → PNG converter for the tests (jsdom has no canvas). */
+const toPng = async (uri: string): Promise<string> => (uri ? PNG : uri);
 
 const story: GeneratedStory = {
   locale: "pt-BR",
@@ -63,7 +67,7 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     const download = vi.fn();
     const toBlob = vi.fn(async () => new Blob(["pdf"], { type: "application/pdf" }));
 
-    await buildStoryPdf(story, { toBlob, download });
+    await buildStoryPdf(story, { toBlob, download, toPng });
 
     expect(mockState.pdf).toHaveBeenCalledTimes(1);
     const joined = JSON.stringify(mockState.tree);
@@ -72,8 +76,11 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     expect(joined).toContain("Uma estrelinha no céu");
     expect(joined).toContain("Ela decidiu brilhar");
     expect(joined).toContain("E o mar a abraçou");
-    const imgCount = joined.split("data:image/webp;base64,").length - 1;
-    expect(imgCount).toBe(3);
+    // Illustrations are converted to PNG before embedding so the PDF renders
+    // them (`@react-pdf/renderer` does not reliably embed WebP).
+    const pngCount = joined.split(PNG).length - 1;
+    expect(pngCount).toBe(3);
+    expect(joined).not.toContain("data:image/webp;base64,");
   });
 
   it("downloads a PDF under a slug filename and makes no network call", async () => {
@@ -82,7 +89,7 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response());
     const xhrSpy = vi.spyOn(globalThis, "XMLHttpRequest");
 
-    const blob = await buildStoryPdf(story, { toBlob, download });
+    const blob = await buildStoryPdf(story, { toBlob, download, toPng });
 
     expect(blob.type).toBe("application/pdf");
     expect(download).toHaveBeenCalledWith(blob, storyTitleToFilename(story));

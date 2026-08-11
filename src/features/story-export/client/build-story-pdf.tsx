@@ -8,12 +8,13 @@ import type { GeneratedStory } from "../../story-generation/server/schemas";
  * Composes a printable PDF from the in-memory story. `@react-pdf/renderer` is
  * lazy-imported here so it never lands in the initial bundle (<250 KiB gzip
  * budget, per AGENTS.md). One server document is built per story: a title,
- * one page per scene, each with its scene body and WebP illustration.
+ * one page per scene, each with its scene body and illustration.
  *
  * The module is browser-only: the PDF is rendered and downloaded client-side;
- * nothing is sent over the network or persisted. The PDF-builder and
- * downloader are injectable so tests can assert the composed content and that
- * no network call happens (T038), without pulling in the real renderer.
+ * nothing is sent over the network or persisted. The PDF-builder, downloader,
+ * and image converter are injectable so tests can assert the composed content
+ * and that no network call happens (T038), without pulling in the real
+ * renderer.
  */
 
 export interface StoryPdfDeps {
@@ -22,6 +23,38 @@ export interface StoryPdfDeps {
   toBlob?: (theming: unknown) => Promise<Blob>;
   /** Trigger the browser download. Defaults to a no-op. */
   download?: (blob: Blob, filename: string) => void;
+  /** Convert a WebP image data-URI to a PNG data-URI for the PDF. `@react-pdf/
+   *  renderer` embeds PNG/JPEG reliably but not WebP, so illustrations are
+   *  re-encoded client-side (no network) before composing the document.
+   *  Optional — defaults to a canvas/createImageBitmap impl; tests inject a
+   *  deterministic stub. */
+  toPng?: (webpUri: string) => Promise<string>;
+}
+
+const WEBP_DATA_URI_PREFIX = "data:image/webp;base64,";
+
+/**
+ * Converts a WebP data-URI to a PNG data-URI in the browser, so the PDF can
+ * embed the illustration (`@react-pdf/renderer` does not reliably embed WebP).
+ * Uses createImageBitmap + canvas (both decode WebP and encode PNG) — fully
+ * client-side, no network, no extra bundle. Returns the uri unchanged if it is
+ * not WebP or cannot be converted, so a valid image is never dropped.
+ */
+async function defaultWebpToPng(webpUri: string): Promise<string> {
+  if (!webpUri.startsWith(WEBP_DATA_URI_PREFIX)) return webpUri;
+  const decoded = await createImageBitmap(await (await fetch(webpUri)).blob()).catch(() => null);
+  if (!decoded) return webpUri;
+  try {
+    const canvas = document.createElement("canvas");
+    canvas.width = decoded.width;
+    canvas.height = decoded.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return webpUri;
+    ctx.drawImage(decoded, 0, 0);
+    return canvas.toDataURL("image/png");
+  } finally {
+    decoded.close();
+  }
 }
 
 const defaultDeps: StoryPdfDeps = {
@@ -31,6 +64,7 @@ const defaultDeps: StoryPdfDeps = {
     return (pdfResult as { toBlob?: () => Promise<Blob> }).toBlob!();
   },
   download: () => {},
+  toPng: defaultWebpToPng,
 };
 
 export async function buildStoryPdf(
@@ -39,18 +73,23 @@ export async function buildStoryPdf(
 ): Promise<Blob> {
   const { pdf, Document, Page, Text, View, Image } = await import("@react-pdf/renderer");
 
+  const toPng = deps.toPng ?? defaultWebpToPng;
+  const illustrations = await Promise.all(
+    story.scenes.map((scene) => (scene.illustrationDataUri ? toPng(scene.illustrationDataUri) : ""))
+  );
+
   const node = (
     <Document>
       <Page size="A4" style={{ padding: 32 }}>
         <View>
           <Text style={{ fontSize: 24, marginBottom: 24 }}>{story.title}</Text>
-          {story.scenes.map((scene) => (
+          {story.scenes.map((scene, index) => (
             <View key={scene.ordinal} style={{ marginBottom: 20 }}>
-              {scene.illustrationDataUri ? (
+              {illustrations[index] ? (
                 // The PDF Image (`@react-pdf/renderer`) does not accept `alt`;
                 // its a11y is provided by the adjacent Text line (altText).
                 // eslint-disable-next-line jsx-a11y/alt-text
-                <Image src={scene.illustrationDataUri} style={{ height: 160, marginBottom: 8 }} />
+                <Image src={illustrations[index]} style={{ height: 160, marginBottom: 8 }} />
               ) : null}
               <Text style={{ fontSize: 11, color: "#666" }}>
                 Scene {scene.ordinal} of {story.scenes.length}
@@ -64,7 +103,7 @@ export async function buildStoryPdf(
     </Document>
   );
 
-  // Merge with defaults so optional deps degrade to the browser renderer.
+  // Merge with defaults so optional deps degrade to the browser impls.
   const toBlob = deps.toBlob ?? defaultDeps.toBlob!;
   const download = deps.download ?? defaultDeps.download!;
   const blob = await toBlob(pdf(node));
