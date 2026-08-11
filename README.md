@@ -66,9 +66,6 @@ OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
 > provider that never calls a live AI service (no credentials needed). The
 > default `openrouter` provider requires the OpenRouter_* credentials above.
 
-`.env.local` is gitignored and must never contain children's data, generated
-stories, or exported files.
-
 ## Run locally
 
 ```bash
