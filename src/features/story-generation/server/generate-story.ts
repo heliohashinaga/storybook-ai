@@ -34,6 +34,13 @@ import {
 /** Default limit for a serialized WebP data-URI illustration (responses stay bounded). */
 const DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH = 4 * 1024 * 1024;
 
+/**
+ * Default max illustrations generated in parallel for one set (ADR 0005).
+ * Limited (not unbounded) to mitigate provider rate-limit and preserve visual
+ * or character consistency between scenes.
+ */
+const DEFAULT_ILLUSTRATION_CONCURRENCY = 2;
+
 export interface IllustrationResult {
   /** Optimized WebP data-URI for a scene (validated here for size/format). */
   dataUri: string;
@@ -47,6 +54,11 @@ export interface GenerateStoryOptions {
   illustrate: (prompt: string) => Promise<IllustrationResult>;
   /** Bounded retries for the whole illustration set (default 1). */
   imageRetries?: number;
+  /**
+   * Max illustrations generated concurrently within a set (ADR 0005, default 2).
+   * Kept conservative to avoid provider rate-limit and character-style drift.
+   */
+  illustrationConcurrency?: number;
   /** Response-size guard on each illustration data URI (override for tests). */
   maxIllustrationDataUriLength?: number;
 }
@@ -69,8 +81,49 @@ function isValidIllustration(dataUri: string, maxLength: number): boolean {
 }
 
 /**
- * Generates a consistent three-image set with bounded whole-set retry. Returns
- * the data URIs in scene order, or `null` when the set stays incomplete.
+ * Runs `worker` for `items` with at most `limit` in flight at once, resolving
+ * in input order. ADR 0005: illustration sets are generated with **limited**
+ * concurrency rather than `Promise.all` (which would spike provider rate-limit
+ * and weaken style consistency between scenes). If any worker rejects, the
+ * remaining slots stop dispatching (a `cancelled` flag short-circuits the
+ * loop) so the caller can retry the whole set without leaking extra work into
+ * the aborted attempt. In-flight provider calls can't be undone, but no *new*
+ * prompt is issued once the set has failed.
+ */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R | undefined>(items.length);
+  let nextIndex = 0;
+  let cancelled = false;
+
+  async function runSlot() {
+    try {
+      while (!cancelled && nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        // `index` was < items.length when read below, so the item is defined.
+        const item = items[index];
+        results[index] = await worker(item!, index);
+      }
+    } finally {
+      // A rejection (or a sibling slot finishing) halts further dispatch.
+      cancelled = true;
+    }
+  }
+
+  const slotCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: slotCount }, () => runSlot()));
+  return results as R[];
+}
+
+/**
+ * Generates a consistent N-image set with bounded whole-set retry and limited
+ * concurrency (ADR 0005). Returns the data URIs in scene order, or `null` when
+ * the set stays incomplete. Any failed/oversized illustration rejects the whole
+ * set so a story is never partially illustrated.
  */
 async function illustrateSet(
   prompts: string[],
@@ -79,17 +132,17 @@ async function illustrateSet(
   const maxLength =
     options.maxIllustrationDataUriLength ?? DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH;
   const retries = options.imageRetries ?? 1;
+  const concurrency = options.illustrationConcurrency ?? DEFAULT_ILLUSTRATION_CONCURRENCY;
 
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const dataUris: string[] = [];
-      for (const prompt of prompts) {
+      const dataUris = await mapWithConcurrency(prompts, concurrency, async (prompt) => {
         const result = await options.illustrate(prompt);
         if (!isValidIllustration(result.dataUri, maxLength)) {
           throw new Error("invalid illustration");
         }
-        dataUris.push(result.dataUri);
-      }
+        return result.dataUri;
+      });
       return dataUris;
     } catch {
       if (attempt >= retries) return null;

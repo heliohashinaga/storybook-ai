@@ -101,8 +101,8 @@ assert Y equals the real count and all scenes reachable.
 
 > **NOTE: Write these tests FIRST, confirm they FAIL before implementing.**
 
-- [ ] T024 [P] [US2] Update `src/features/story-reader/components/story-reader.stories.tsx` with 4- and 5-scene stories (default/edge) + a11y coverage via storybook test-runner
-- [ ] T025 [P] [US2] Update reader navigation e2e `tests/e2e/story-reader-navigation.spec.ts` (or pt-BR/en generate specs) for a 5-scene story across all cenas
+- [x] T024 [P] [US2] Update `src/features/story-reader/components/story-reader.stories.tsx` with 4- and 5-scene stories (default/edge) + a11y coverage via storybook test-runner
+- [x] T025 [P] [US2] Update reader navigation e2e `tests/e2e/story-reader-navigation.spec.ts` (or pt-BR/en generate specs) for a 5-scene story across all cenas
 
 ### Implementation for User Story 2
 
@@ -128,14 +128,14 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 - [x] T028 [P] [US3] Update `tests/unit/build-story-pdf.test.ts` for 4- and 5-scene stories (pages == scene count, order preserved, WebP→PNG per page)
 - [x] T029 [P] [US3] Update `tests/unit/generate-story.test.ts` (or pipeline test) for a 5-scene consistency candidate: partial scene set never yields success; retry behavior bounded
 - [x] T030 [P] [US3] Unit test asserting a single `STYLE_DESCRIPTOR`/character is passed to all `sceneCount` illustration prompts (FR-006 style/character consistency) — add the assertion in `tests/unit/story-generation-provider.test.ts` (or the pipeline test), asserting the same style descriptor is present in every prompt for 3, 4, and 5 scenes
-- [ ] T031 [P] [US3] Unit test for illustration generation with bounded concurrency (2–3): all N prompts complete under `Promise.allSettled`, retry of the whole set is preserved, and the set still fails as a whole (never partial) when any call rejects (ADR 0005)
+- [x] T031 [P] [US3] Unit test for illustration generation with bounded concurrency (2–3): all N prompts complete under `Promise.allSettled`, retry of the whole set is preserved, and the set still fails as a whole (never partial) when any call rejects (ADR 0005)
 
 ### Implementation for User Story 3
 
 - [x] T032 [US3] Confirm/update `src/features/story-export/client/build-story-pdf.tsx` to iterate all `story.scenes` (no truncation) and include every scene in order
 - [x] T033 [US3] Update the generation/illustration path so all N scenes share the same character/style descriptor and each scene is independently moderated (no partial success) — see `src/features/story-generation/server/generate-story.ts` and fixture `STYLE_DESCRIPTOR`
-- [ ] T034 [US3] Implement bounded-concurrency illustration generation in `src/features/story-generation/server/generate-story.ts`: replace the sequential `for (const prompt of prompts)` with `Promise.allSettled` gated by a limited `concurrency` (2–3), preserving the whole-set `imageRetries` retry, the `IMAGE_TIMEOUT_MS` per-call timeout, the 4 MiB data-URI cap, and the “never partial success” rule (ADR 0005)
-- [ ] T035 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
+- [x] T034 [US3] Implement bounded-concurrency illustration generation in `src/features/story-generation/server/generate-story.ts`: replace the sequential `for (const prompt of prompts)` with a limited `concurrency` pool (2–3), preserving the whole-set `imageRetries` retry, the per-call illustration timeout, the 4 MiB data-URI cap, and the “never partial success” rule (ADR 0005)
+- [x] T035 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
 
 **Checkpoint**: US3 complete — long stories export fully and consistently, never partial.
 
