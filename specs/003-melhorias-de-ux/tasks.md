@@ -89,10 +89,16 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Purpose**: regressões, cobertura, performance e evidência final.
 
-- [ ] T021 Rodar `pnpm test:coverage` e garantir gates (≥80% global; ≥90% nos módulos safety/validation/orchestration) sem regressão
-- [ ] T022 Rodar `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`, `pnpm test:performance` e resolver qualquer falha/regressão das melhorias
-- [ ] T023 [P] Atualizar o `README.md` e `quickstart.md` de `003-melhorias-de-ux` com as novas superfícies (cards, leitura, progresso, feedback, modo escuro)
-- [ ] T024 Atualizar `tasks.md` marcando tarefas concluídas e registrar evidência final (baseline + pós-melhorias)
+- [x] T021 Rodar `pnpm test:coverage` e garantir gates (≥80% global; ≥90% nos módulos safety/validation/orchestration) sem regressão
+  - **Evidência**: `test:coverage` → 38 arquivos, 307 testes; statements 90.84% / lines 92.92% / functions 89.65% / branches 85.1% (≥80% global ✓). `test:coverage:check` exit 0 — floors por módulo ≥90% para `safety-pipeline` (93.54%), `validation-runtime` (100%) e orchestration (94.49%) ✓. Sem regressão vs baseline.
+- [x] T022 Rodar `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`, `pnpm test:performance` e resolver qualquer falha/regressão das melhorias
+  - **Evidência**: `storybook:test` 10 suits / 46 testes, 0 a11y violations. `test` (unit) 307 ✓. `test:e2e` 11 ✓. `test:visual` 3 ✓ (baselines regeneradas para o layout com `SceneProgress`). `test:performance` 3 ✓ (JS ≤250 KiB, LCP ≤2.5s, nav ≤100ms, geração ≤120s).
+  - **Regressão resolvida**: E2E/perf usavam `selectOption` no antigo `<select>` de tema; o novo grupo `ChoiceCard` (FR-UX-001) usa botões. Atualizados 6 arquivos para clicar no card por nome acessível (ex.: `getByRole('button', { name: /^Coragem/i })`): `generate-pt-br.spec.ts`, `generate-english.spec.ts`, `anonymous-session-and-export.spec.ts`, `story-reader-navigation.spec.ts`, `accessibility.spec.ts`, `story-generation-budget.spec.ts`. Também corrigi `beforeEach` faltante em `tests/unit/export-story-button.test.tsx` (TS2304 que quebrava o `next build`).
+- [x] T023 [P] Atualizar o `README.md` e `quickstart.md` de `003-melhorias-de-ux` com as novas superfícies (cards, leitura, progresso, feedback, modo escuro)
+  - **Evidência**: `README.md` Overview atualizado (cards visuais de tema, leitura local Web Speech, indicador de progresso de cena, export com feedback, modo escuro com alternador transitório; nota de acessibilidade AA/teclado/`prefers-reduced-motion`); intro de “three-scene” corrigi para “multi-scene (3–5)”. `specs/003-melhorias-de-ux/quickstart.md` já cobria as 5 superfícies; adicionada nota de interação em testes (ChoiceCard vs `<select>`).
+- [x] T024 Atualizar `tasks.md` marcando tarefas concluídas e registrar evidência final (baseline + pós-melhorias)
+  - **Evidência**: T001–T024 concluídas e marcadas `[x]`; evidência consolidada acima. **Baseline**: 38 arquivos / 307 testes; suites verdes pós-melhorias (storybook, unit, e2e, visual, perf). Todos os gates de cobertura atendidos; sem identificador direto em payloads/logs/storage (invariante anônimo mantido).
+  - **Gates finais (DoD)**: `pnpm lint` 0 warnings/erros (removidos `Locale`/`Theme` tipos não usados em `provider-fixtures.test.ts` e `const user` não usado no teste “opens on the first scene” de `story-reader.test.tsx`); `pnpm typecheck` limpo; `pnpm format:check` sem drift; `pnpm build` OK (rotas: `/` estático, `/_not-found` estático, `/api/stories` dinâmico); `pnpm test` 307 ✓.
 
 ## Dependencies (user story order)
 

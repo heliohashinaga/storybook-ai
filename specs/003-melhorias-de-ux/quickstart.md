@@ -30,6 +30,8 @@ pnpm dev            # ou pnpm test:e2e
 
 **Esperado**: rótulos/descrições localizados; payload anônimo; sem campo de nome.
 
+> **Interação em testes (E2E/Storybook)**: o tema é um grupo de `ChoiceCard` (botões `aria-pressed` em um `fieldset`), não mais um `<select>`. Locators devem clicar no card pelo nome acessível (ex.: `getByRole('button', { name: /^Coragem/i })`) em vez de `selectOption`. (Os testes E2E de 001→003 foram atualizados neste padrão; manter ao alterar.)
+
 ### 2. Leitura em voz alta (P1)
 
 Abra uma história gerada e acione o controle de leitura da cena.
