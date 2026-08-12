@@ -18,17 +18,17 @@ illustrations.
 
 ## Stack
 
-| Layer            | Technology                                                   |
-| ---------------- | ------------------------------------------------------------ |
-| Framework        | Next.js 16 + React 19                                        |
-| Language         | TypeScript                                                   |
-| Styling          | Tailwind                                                     |
-| i18n             | next-intl                                                    |
-| Validation       | Zod                                                          |
-| AI (server-only) | OpenRouter SDK adapter + safety pipeline                     |
-| Images           | sharp                                                        |
-| PDF              | @react-pdf/renderer                                          |
-| Testing          | Vitest + Testing Library, Storybook, Playwright              |
+| Layer            | Technology                                      |
+| ---------------- | ----------------------------------------------- |
+| Framework        | Next.js 16 + React 19                           |
+| Language         | TypeScript                                      |
+| Styling          | Tailwind                                        |
+| i18n             | next-intl                                       |
+| Validation       | Zod                                             |
+| AI (server-only) | OpenRouter SDK adapter + safety pipeline        |
+| Images           | sharp                                           |
+| PDF              | @react-pdf/renderer                             |
+| Testing          | Vitest + Testing Library, Storybook, Playwright |
 
 ## Prerequisites
 

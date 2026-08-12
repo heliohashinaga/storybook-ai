@@ -161,6 +161,7 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 - Latest features: `specs/004-generate-more-scenes/` (variable scene counts),
   `specs/003-melhorias-de-ux/` (UX improvements)
 - Constitution (principles, quality gates): `.specify/memory/constitution.md`
+- Architecture Decision Records (ADRs): [`docs/adr/`](docs/adr/)
 - Framework/project conventions: user-level generic `nextjs` + `design-system` skills
 
 <!-- BEGIN:nextjs-agent-rules -->
