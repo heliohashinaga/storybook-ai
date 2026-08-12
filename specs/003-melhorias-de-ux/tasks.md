@@ -40,9 +40,9 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Independent test**: renderizar o form em pt-BR e en; confirmar que cada tema surge como escolha visual com nome+descrição localizados e que a seleção envia somente `ageBand`/`locale`/`theme`.
 
-- [ ] T005 [P] [US1] Substituir o `<select>` de tema por `ChoiceCard` no `src/features/story-request/components/story-request-form.tsx`, usando `story.catalog.theme*`/`themeDescription*` (manter valor `courage|friendship|kindness`)
-- [ ] T006 [US1] Atualizar `tests/unit/story-request-form.test.tsx` para validar a seleção visual de tema (pt-BR e en) mantendo o contrato de payload anônimo
-- [ ] T007 [P] [US1] Atualizar/adicionar `.stories.tsx` do form (default/loading/edge) em `story-request-form.stories.tsx` cobrindo o tema visual
+- [x] T005 [P] [US1] Substituir o `<select>` de tema por `ChoiceCard` no `src/features/story-request/components/story-request-form.tsx`, usando `story.catalog.theme*`/`themeDescription*` (manter valor `courage|friendship|kindness`)
+- [x] T006 [US1] Atualizar `tests/unit/story-request-form.test.tsx` para validar a seleção visual de tema (pt-BR e en) mantendo o contrato de payload anônimo
+- [x] T007 [P] [US1] Atualizar/adicionar `.stories.tsx` do form (default/loading/edge) em `story-request-form.stories.tsx` cobrindo o tema visual
 
 ## Phase 4: US2 — Leitura em voz alta (P1)
 

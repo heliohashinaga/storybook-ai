@@ -51,18 +51,15 @@ describe("StoryRequestForm — anonymous by design", () => {
 });
 
 describe("StoryRequestForm — theme and language choices", () => {
-  it("offers exactly the three positive-value themes", () => {
+  it("offers exactly the three positive-value themes as visual cards", () => {
     renderForm();
-    const options = screen.getAllByRole("option");
-    const themes = options.map((o) => o.textContent);
-    // The three positive-value themes render localized to pt-BR (default):
-    // Coragem, Amizade, Bondade.
-    expect(
-      themes.some((t) => /coragem/i.test(t ?? "")) &&
-        themes.some((t) => /amizade/i.test(t ?? "")) &&
-        themes.some((t) => /bondade/i.test(t ?? ""))
-    ).toBe(true);
-    expect(options.length).toBeGreaterThanOrEqual(5); // 2 locales + 3 themes
+    // The three positive-value themes render as ChoiceCard buttons localized to
+    // pt-BR (default): Coragem, Amizade, Bondade.
+    expect(screen.getByRole("button", { name: /coragem/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /amizade/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /bondade/i })).toBeInTheDocument();
+    // The locale field remains a select with both locale options.
+    expect(screen.getAllByRole("option").length).toBe(2); // pt-BR + en
   });
 });
 
@@ -92,7 +89,9 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     renderForm({ onSubmit });
     await user.type(screen.getByLabelText(/idade da criança/i), "9");
     await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
-    await user.selectOptions(screen.getByLabelText(/tema da história/i), "friendship");
+    // The form's test provider is fixed to pt-BR, so theme labels stay in pt-BR;
+    // pick the "Amizade" card (friendship).
+    await user.click(screen.getByRole("button", { name: /amizade/i }));
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);

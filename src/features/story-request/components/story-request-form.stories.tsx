@@ -133,7 +133,8 @@ const withEn = withLocalizedI18n("en");
 async function fillEn(page: HTMLElement) {
   const canvas = within(page);
   await userEvent.type(canvas.getByLabelText(/child's age/i), "9");
-  await userEvent.selectOptions(canvas.getByLabelText(/story theme/i), "friendship");
+  // Theme is a ChoiceCard button (visual selection); pick the Friendship card.
+  await userEvent.click(canvas.getByRole("button", { name: /friendship/i }));
   await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
 }
 

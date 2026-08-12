@@ -123,7 +123,8 @@ describe("StoryRequestApp — flow", () => {
     await user.type(screen.getByLabelText(/idade da criança/i), "6");
     await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
     // The whole UI flips to English immediately after the locale selection.
-    await user.selectOptions(screen.getByLabelText(/story theme/i), "friendship");
+    // Theme is a ChoiceCard button; pick the Friendship card.
+    await user.click(screen.getByRole("button", { name: /friendship/i }));
     await user.click(screen.getByRole("button", { name: /create story/i }));
 
     // The reader chrome is English once the story language is English.
@@ -260,7 +261,8 @@ describe("StoryRequestApp — flow", () => {
     // its localized retry error still renders on failure; the progress panel
     // replaces the form heading while generating.
     expect(screen.getByLabelText(/idade da criança/i)).toBeInTheDocument();
-    expect(screen.getByRole("button")).toBeDisabled();
+    // The submit button shows its busy label and is disabled while loading.
+    expect(screen.getByRole("button", { name: /criando sua história/i })).toBeDisabled();
 
     await act(async () => {
       resolveFetch(new Response(JSON.stringify(approvedStory), { status: 200 }));
