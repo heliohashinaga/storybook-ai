@@ -62,6 +62,8 @@ Thumbs.db
 *.pem
 
 .pi-subagents/
+# pi subagent run artifacts (transcripts, meta, missions) — ephemeral per-run bookkeeping, never commit
+.pi/subagents/
 # Devloop chain registry — local-only bookkeeping of stacked devloop runs
 .pi/devloop-stack.json
 .pi/devloop-stack.json.lock
