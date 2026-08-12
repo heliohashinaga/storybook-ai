@@ -1,10 +1,16 @@
 # ADR 0007 — Leitura em voz alta com TTS de IA via OpenRouter (melhoria futura)
 
-- Status: Proposed (futuro — não adotado)
+- Status: Accepted (direção) — em especificação na feature `004-ai-natural-tts`
 - Decisores: manutenção do `storybook-ai`
 - Data: 2026-08-20
-- Contextos relacionados: feature `003-melhorias-de-ux` (FR-UX-003/FR-UX-004). A leitura em voz
-  alta atual usa **Web Speech API local** (`speechSynthesis`), sem rede e sem IA.
+- Contextos relacionados: feature `003-melhorias-de-ux` (FR-UX-003/FR-UX-004) e `004-ai-natural-tts`. A
+  leitura em voz alta atual usa **Web Speech API local** (`speechSynthesis`), sem rede e sem IA.
+
+> **Atualização de decisão (2026-08-20)** — conforme a feature `004-ai-natural-tts`, a topologia
+> escolhida é **híbrida (server-only com fallback)**: a IA é usada quando disponível / dentro do teto
+> de custo, caindo para voz de sistema caso contrário; e o **perfil custo-vs-naturalidade é
+> configurável por ambiente**. O "não adotar agora" abaixo se refere à Web Speech como implementação
+> vigente; a evolução para IA está sendo especificada com os invariantes de anonimato mantidos.
 
 ## Contexto
 
