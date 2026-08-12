@@ -127,12 +127,14 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 - [ ] T028 [P] [US3] Update `tests/unit/build-story-pdf.test.ts` for 4- and 5-scene stories (pages == scene count, order preserved, WebP→PNG per page)
 - [ ] T029 [P] [US3] Update `tests/unit/generate-story.test.ts` (or pipeline test) for a 5-scene consistency candidate: partial scene set never yields success; retry behavior bounded
 - [ ] T030 [P] [US3] Unit test asserting a single `STYLE_DESCRIPTOR`/character is passed to all `sceneCount` illustration prompts (FR-006 style/character consistency)
+- [ ] T031 [P] [US3] Unit test for illustration generation with bounded concurrency (2–3): all N prompts complete under `Promise.allSettled`, retry of the whole set is preserved, and the set still fails as a whole (never partial) when any call rejects (ADR 0005)
 
 ### Implementation for User Story 3
 
-- [ ] T031 [US3] Confirm/update `src/features/story-export/client/build-story-pdf.tsx` to iterate all `story.scenes` (no truncation) and include every scene in order
-- [ ] T032 [US3] Update the generation/illustration path so all N scenes share the same character/style descriptor and each scene is independently moderated (no partial success) — see `src/features/story-generation/server/generate-story.ts` and fixture `STYLE_DESCRIPTOR`
-- [ ] T033 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
+- [ ] T032 [US3] Confirm/update `src/features/story-export/client/build-story-pdf.tsx` to iterate all `story.scenes` (no truncation) and include every scene in order
+- [ ] T033 [US3] Update the generation/illustration path so all N scenes share the same character/style descriptor and each scene is independently moderated (no partial success) — see `src/features/story-generation/server/generate-story.ts` and fixture `STYLE_DESCRIPTOR`
+- [ ] T034 [US3] Implement bounded-concurrency illustration generation in `src/features/story-generation/server/generate-story.ts`: replace the sequential `for (const prompt of prompts)` with `Promise.allSettled` gated by a limited `concurrency` (2–3), preserving the whole-set `imageRetries` retry, the `IMAGE_TIMEOUT_MS` per-call timeout, the 4 MiB data-URI cap, and the “never partial success” rule (ADR 0005)
+- [ ] T035 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
 
 **Checkpoint**: US3 complete — long stories export fully and consistently, never partial.
 
@@ -140,11 +142,11 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T034 [P] Documentation updates: sync `spec.md`/`data-model.md`/`quickstart.md`/`contracts/` if a contract behavior changed during implementation
-- [ ] T035 Code cleanup and refactoring (remove dead code, unused deps; enforce strict TS; no `any`)
-- [ ] T036 Run `pnpm quickstart` validation scenarios (3/4/5, pt-BR + en) end-to-end
-- [ ] T037 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm visual`, `pnpm perf` all green; a11y AA
-- [ ] T038 [P] Privacy invariant re-check: no direct identifier anywhere in payloads/logs/provider fakes/analytics; `Cache-Control: no-store` intact
+- [ ] T036 [P] Documentation updates: sync `spec.md`/`data-model.md`/`quickstart.md`/`contracts/` if a contract behavior changed during implementation
+- [ ] T037 Code cleanup and refactoring (remove dead code, unused deps; enforce strict TS; no `any`)
+- [ ] T038 Run `pnpm quickstart` validation scenarios (3/4/5, pt-BR + en) end-to-end
+- [ ] T039 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm visual`, `pnpm perf` all green; a11y AA
+- [ ] T040 [P] Privacy invariant re-check: no direct identifier anywhere in payloads/logs/provider fakes/analytics; `Cache-Control: no-store` intact
 
 ---
 
@@ -175,7 +177,7 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 - Foundational: T005/T006/T007/T008 in parallel (T004 first — defines shared constants).
 - US1 tests: T009–T013 parallel. US1 implementation: T014→T015→T016→T017 sequential (form + stories), T018/T019 parallel (providers), then T020→T021→T022.
 - US2: T024/T025 tests parallel; T026/T027 impl sequential.
-- US3: T028/T029/T030 tests parallel; T031→T032→T033 impl.
+- US3: T028/T029/T030/T031 tests parallel; T032→T033→T034→T035 impl.
 - US1/US2/US3 impl can be worked in parallel by different contributors after Foundational (respecting US3's dependency on US1+US2).
 
 ---

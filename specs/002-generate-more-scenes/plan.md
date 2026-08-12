@@ -78,7 +78,7 @@ src/
 │   │       ├── schemas.ts                       # sceneCountSchema (MIN/MAX/DEFAULT), source of truth
 │   │       ├── story-generation-provider.ts     # ProviderStoryInput + sceneCount (0..max p/ tipo)
 │   │       ├── safety-pipeline.ts               # expectedCount no candidate
-│   │       ├── generate-story.ts                # validação por sceneCount, budgets parametrizados
+│   │       ├── generate-story.ts                # validação por sceneCount; nunca conjunto parcial
 │   │       ├── generation-runtime.ts
 │   │       ├── openrouter-story-generation-provider.ts  # prompt parametrizado por sceneCount
 │   │       ├── image-optimizer.ts

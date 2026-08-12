@@ -71,7 +71,7 @@ Ao gerar uma história de 4 ou 5 cenas, todas as cenas partilham o mesmo estilo 
 ### Edge Cases
 
 - O que acontece quando o responsável seleciona **exatamente 3** cenas? Deve produzir o mesmo comportamento de v1, sem mudança visível na história.
-- Como o sistema lida com valores de contagem **inválidos** (ex.: 2, 6, ausente ou texto não numérico)? A validação no cliente dá erro rápido localizado; o servidor re-valida e retorna `422`/`400` de contrato se o valor estiver for a faixa permitida.
+- Como o sistema lida com valores de contagem **inválidos** (ex.: 2, 6, ausente ou texto não numérico)? A validação no cliente dá erro rápido localizado; o servidor re-valida e retorna `400 invalid_input` (malformado) se o valor estiver fora da faixa permitida (3–5).
 - Como o sistema se comporta quando o valor de contagem é **omitido** na requisição? Deve assumir o padrão de 3 cenas (retrocompatível).
 - O que acontece quando uma geração de 5 cenas ultrapassa o tempo máximo aceitável de geração? O sistema deve retornar os erro de contrato correspondentes (`504`/`502`) mapeados, nunca uma história parcial como sucesso. *Qualquer parametrização de timeout por contagem é decidida em planejamento; o invariante a preservar é: nunca sucesso parcial.*
 - Como a **leitura em voz alta** (se existente em outras entregas) e a navegação por cena se comportam com 4-5 cenas? A navegação/indicação de progresso devem refletir a contagem real, interrompendo leituras ao trocar de cena.
