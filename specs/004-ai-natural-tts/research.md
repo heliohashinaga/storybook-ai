@@ -47,7 +47,7 @@
 
 ## 5. Configuração e teto de custo (Q2-C)
 
-- **Decision**: Variáveis de ambiente (server): `NARRATION_TTS_ENABLED` (liga/desliga), `TTS_PROVIDER`/`TTS_MODEL` (perfil qualidade/custo), `TTS_MAX_CHARS_PER_SCENE` (limite), `TTS_MAX_COST_PER_READ` (teto monetário grosseiro) e `TTS_MAX_RETRIES`. `tts-runtime.ts` calcula custo estimado por caracteres e não chama o provedor se superar o teto (retorna sinal para fallback).
+- **Decision**: Variáveis de ambiente (server): `AI_NARRATION_ENABLED` (liga/desliga), `TTS_PROVIDER`/`TTS_MODEL` (perfil qualidade/custo), `TTS_MAX_CHARS_PER_SCENE` (limite), `TTS_MAX_COST_PER_READ` (teto monetário grosseiro) e `TTS_MAX_RETRIES`. `tts-runtime.ts` calcula custo estimado por caracteres e não chama o provedor se superar o teto (retorna sinal para fallback).
 - **Rationale**: personaliza o perfil custo-vs-naturalidade sem deploy; garante que um projeto pessoal não estourara custo; teto+retries dão comportamento gracioso (FR-007).
 - **Alternativas**: teto fixo em código (rejeitado — pouco flexível para P2).
 

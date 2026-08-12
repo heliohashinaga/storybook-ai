@@ -48,7 +48,7 @@ Não é uma entidade de dados do usuário — é **configuração** (`env`) lida
 
 | Variável | Tipo | Efeito |
 |----------|------|--------|
-| `NARRATION_TTS_ENABLED` | `boolean` | Liga/desliga o caminho IA |
+| `AI_NARRATION_ENABLED` | `boolean` | Liga/desliga o caminho IA |
 | `TTS_PROVIDER`/`TTS_MODEL` | `string` | Perfil qualidade/custo (Q2-C) |
 | `TTS_MAX_CHARS_PER_SCENE` | `number` (default 2000) | Max. chars por requisição |
 | `TTS_MAX_RETRIES` | `number` (default 1-2) | Retries em falha |

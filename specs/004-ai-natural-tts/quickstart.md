@@ -8,14 +8,14 @@
 
 ## Pré-requisitos
 
-- Node 22+, `pnpm install`. (Não é necessário `NARRATION_TTS_ENABLED`/`TTS_*` para testes: o fake/provider local substitui por padrão.)
+- Node 22+, `pnpm install`. (Não é necessário `AI_NARRATION_ENABLED`/`TTS_*` para testes: o fake/provider local substitui por padrão.)
 - Suítes já existentes verdes (baseline): `pnpm test` (307), `pnpm storybook:test`, `pnpm test:e2e` (fake provider), `pnpm test:visual`, `pnpm test:performance`.
 
 ## Variáveis de ambiente (server-only, para o caminho IA real)
 
 | Variável | Default | Uso |
 |----------|---------|-----|
-| `NARRATION_TTS_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ sempre Web Speech fallback (seguro). |
+| `AI_NARRATION_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ sempre Web Speech fallback (seguro). |
 | `TTS_PROVIDER` / `TTS_MODEL` | Kokoro-class | Perfil custo-vs-naturalidade (Q2-C). |
 | `TTS_MAX_CHARS_PER_SCENE` | `2000` | Teto de chars por cena. |
 | `TTS_MAX_RETRIES` | `1` | Retries em falha antes do fallback. |
@@ -27,14 +27,14 @@
 
 ### Cenário 1 — Narração de IA (caminho feliz) [US1]
 
-- **Setup**: fake TTS determinístico (dev) devolve um `Blob` MP3 curto; `NARRATION_TTS_ENABLED=true` com fake.
+- **Setup**: fake TTS determinístico (dev) devolve um `Blob` MP3 curto; `AI_NARRATION_ENABLED=true` com fake.
 - **Comando** (unit/contrato): `pnpm test -- tts` → provas que `tts-runtime` chama provider, devolve áudio e marca `mode: ai`.
 - **E2E** (provider fake): abrir uma história, acionar "ouvir" na cena → `state.speaking` em `ai`; interromper ao trocar de cena.
 - **Esperado**: narração audível, iniciar/parar correto, interrupção por navegação; estado acessível (`aria-live`/`aria-busy`) anunciando "lendo"/"parado". (Contrato: `tts.openapi.yaml` → `POST /api/narrate` → 200 audio.)
 
 ### Cenário 2 — Fallback progressivo quando a IA falha [US2]
 
-- **Setup**: fake/TS que força erro (ex. 429/502/tetos); `NARRATION_TTS_ENABLED=true`.
+- **Setup**: fake/TS que força erro (ex. 429/502/tetos); `AI_NARRATION_ENABLED=true`.
 - **Comando** (unit+e2e): após erro do provider, o cliente usa Web Speech local; nenhum erro "duro".
 - **Esperado**: 1ª leitura tenta IA; ao falhar (dentro de `TTS_MAX_RETRIES`), cai para voz de sistema com anúncio de que a voz padrão está em uso; repetições não tentam infinitamente.
 

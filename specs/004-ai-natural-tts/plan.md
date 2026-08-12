@@ -15,7 +15,7 @@ Substituir/evoluir a narração da leitura por voz de `speechSynthesis` local pa
 **Linguagem/Versão**: TypeScript estrito (Next.js 16 App Router, React 19). Server-only boundary já enforced via imports `server-only`.
 
 **Primary Dependencies**:
-- Server (novo adapter TTS): chamada HTTP a modelo de TTS de voz via provedor (referência: OpenRouter `output_modalities=speech`, cobrado por caractere). Modelo e comportamento **configuráveis por env** (server-only): `NARRATION_TTS_ENABLED` (ligar/desligar a IA, default `false`), `TTS_PROVIDER`/`TTS_MODEL` (perfil custo-vs-naturalidade), `TTS_MAX_CHARS_PER_SCENE`, `TTS_MAX_RETRIES`, `TTS_MAX_COST_PER_READ`. Sem switch de ativação de usuário na tela.
+- Server (novo adapter TTS): chamada HTTP a modelo de TTS de voz via provedor (referência: OpenRouter `output_modalities=speech`, cobrado por caractere). Modelo e comportamento **configuráveis por env** (server-only): `AI_NARRATION_ENABLED` (ligar/desligar a IA, default `false`), `TTS_PROVIDER`/`TTS_MODEL` (perfil custo-vs-naturalidade), `TTS_MAX_CHARS_PER_SCENE`, `TTS_MAX_RETRIES`, `TTS_MAX_COST_PER_READ`. Sem switch de ativação de usuário na tela.
 - Cliente: API de áudio do navegador para reprodução (ex. `HTMLAudioElement` blob / `Audio`), reusando `use-read-aloud` para estados.
 - Já existentes: `@react-pdf/renderer` (lazy), zod, next-intl.
 

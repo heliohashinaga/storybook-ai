@@ -10,7 +10,7 @@
 
 ## Phase 1 — Setup (infraestrutura)
 
-- [ ] T001 Definir/comentar as variáveis de ambiente TTS em `.env.example` conforme `research.md` (§5): `NARRATION_TTS_ENABLED`, `TTS_PROVIDER`, `TTS_MODEL`, `TTS_MAX_CHARS_PER_SCENE`, `TTS_MAX_RETRIES`, `TTS_MAX_COST_PER_READ` (server-only, nunca no cliente)
+- [ ] T001 Definir/comentar as variáveis de ambiente TTS em `.env.example` conforme `research.md` (§5): `AI_NARRATION_ENABLED`, `TTS_PROVIDER`, `TTS_MODEL`, `TTS_MAX_CHARS_PER_SCENE`, `TTS_MAX_RETRIES`, `TTS_MAX_COST_PER_READ` (server-only, nunca no cliente)
 - [ ] T002 [P] Criar os tipos de referência dos testes de contrato: `tests/unit/tts.contract.ts` (fixture de teste, NÃO código de produção) exportando `NarrateRequest`/`NarrateError` alinhados ao `contracts/tts.openapi.yaml`; não criar arquivo de schema separado em `src/` (o schema real será Zod na rota/contrato)
 - [ ] T003 Criar a base de catálogos i18n do recurso: `src/features/story-read-aloud/locales/pt-BR.json` e `en.json` com as chaves de estado/erro da narração (lendo/parado/fallback/indisponível/limite), seguindo o padrão next-intl do repo
 
