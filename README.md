@@ -68,32 +68,12 @@ pnpm dev
 
 Open `http://localhost:3000`. The default interface language is `pt-BR`.
 
-## Required checks (before any merge)
+## CI
 
-```bash
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm test
-pnpm test:coverage
-pnpm storybook:test
-pnpm test:e2e
-pnpm test:visual
-pnpm test:performance
-pnpm build
-```
-
-| Command                           | Expected result                                                                    |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
-| `pnpm lint` / `pnpm format:check` | No lint warnings or formatting changes                                             |
-| `pnpm typecheck`                  | Strict TypeScript with no new `any` in production code                             |
-| `pnpm test`                       | Unit, component, API contract, and pipeline tests pass with fixtures/fakes         |
-| `pnpm test:coverage`              | ≥80% overall; ≥90% for safety, validation, identifier exclusion, and orchestration |
-| `pnpm storybook:test`             | All stories (default/loading/error/edge) and accessibility checks pass             |
-| `pnpm test:e2e`                   | pt-BR and EN journeys with a fake provider; no live AI calls                       |
-| `pnpm test:visual`                | No unintended diff in approved screenshots                                         |
-| `pnpm test:performance`           | Initial JS ≤250 KiB gzip, LCP ≤2.5s, scene nav ≤100ms p75, generation ≤120s        |
-| `pnpm build`                      | Production build serves the anonymous flow                                         |
+All quality gates run automatically on pushes and pull requests to `main` and
+`develop` via the [CI workflow](.github/workflows/ci.yml): format, lint, strict
+typecheck, unit tests with coverage gates, production build, Storybook/a11y,
+E2E, visual, and performance budgets. No manual step is required before merging.
 
 ## Structure
 
