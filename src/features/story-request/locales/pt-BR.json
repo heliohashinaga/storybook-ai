@@ -47,7 +47,10 @@
       "exportPdf": "Baixar como PDF",
       "exporting": "Gerando PDF…",
       "exportError": "Não foi possível baixar o PDF. Tente de novo.",
-      "generateAnother": "Gerar outra história"
+      "generateAnother": "Gerar outra história",
+      "readAloud": "Ouvir esta cena",
+      "stopReading": "Parar leitura",
+      "reading": "Lendo a cena"
     },
     "storySwitcher": {
       "label": "Suas histórias",

@@ -47,7 +47,10 @@
       "exportPdf": "Download as PDF",
       "exporting": "Generating PDF…",
       "exportError": "Couldn't download the PDF. Try again.",
-      "generateAnother": "Generate another"
+      "generateAnother": "Generate another",
+      "readAloud": "Listen to this scene",
+      "stopReading": "Stop reading",
+      "reading": "Reading the scene"
     },
     "storySwitcher": {
       "label": "Your stories",

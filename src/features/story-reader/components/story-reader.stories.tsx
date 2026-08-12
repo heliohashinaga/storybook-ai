@@ -101,3 +101,56 @@ export const KeyboardNavigation: Story = {
     await expect(canvas.getByText("Cena 2 de 5")).toBeVisible();
   },
 };
+
+/**
+ * US2 — leitura em voz alta: a single start/stop control with an announced
+ * `aria-pressed` state. The browser speech globals are stubbed so the toggle
+ * path is deterministic (real `speechSynthesis` may fire `onerror`/no-audio in
+ * headless Chromium, which would revert the state before it can be asserted).
+ */
+export const ReadAloud: Story = {
+  play: async ({ canvasElement }) => {
+    // Install a deterministic Web Speech mock so speak()/cancel() are inert.
+    const utteranceClass = class SpeechSynthesisUtteranceMock {
+      lang = "";
+      voice = null;
+      volume = 1;
+      rate = 1;
+      pitch = 1;
+      onend = null;
+      onerror = null;
+      constructor(public text: string) {}
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).SpeechSynthesisUtterance = utteranceClass;
+    Object.defineProperty(window, "speechSynthesis", {
+      configurable: true,
+      writable: true,
+      value: {
+        speak: () => {},
+        cancel: () => {},
+        getVoices: () => [],
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      },
+    });
+
+    const button = within(canvasElement).getByRole("button", { name: /ouvir esta cena/i });
+    await expect(button).toBeVisible();
+    await expect(button).toHaveAttribute("aria-pressed", "false");
+
+    // Starting narration toggles the control to "stop" and presses the state.
+    await userEvent.click(button);
+    await expect(
+      within(canvasElement).getByRole("button", { name: /parar leitura/i })
+    ).toBeVisible();
+    await expect(button).toHaveAttribute("aria-pressed", "true");
+
+    // Toggling again stops narration (single control returns to "listen").
+    await userEvent.click(within(canvasElement).getByRole("button", { name: /parar leitura/i }));
+    await expect(
+      within(canvasElement).getByRole("button", { name: /ouvir esta cena/i })
+    ).toBeVisible();
+    await expect(button).toHaveAttribute("aria-pressed", "false");
+  },
+};
