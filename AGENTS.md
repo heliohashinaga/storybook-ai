@@ -118,7 +118,7 @@ full parallelism.
 
 ### Pre-commit hook (mandatory usage)
 
-A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:check` and `typecheck` and aborts the commit if any fails. It is installed via `pnpm prepare` (see `scripts/install-hooks.sh`); if you are in a fresh clone run it once. Do not bypass the hook with `--no-verify` for routine quality fixes.
+A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:check` and `typecheck` and aborts the commit if any fails. It is installed automatically via `pnpm postinstall` (see `scripts/install-hooks.sh`); a fresh `pnpm install` wires it. Do not bypass the hook with `--no-verify` for routine quality fixes.
 
 ## Testing Rules
 
