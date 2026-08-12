@@ -138,13 +138,19 @@ components:
           $ref: '#/components/schemas/Locale'
         theme:
           $ref: '#/components/schemas/Theme'
+        sceneCount:
+          type: integer
+          minimum: 3
+          maximum: 5
+          default: 3
+          description: Requested scene count (3, 4, or 5). Omitted or null defaults to 3.
       description: |
         Contains no child name, direct identifier, or exact age. Clients derive ageBand locally.
         Unknown fields, including name, are rejected.
     GeneratedStory:
       type: object
       additionalProperties: false
-      required: [locale, ageBand, theme, safetyDecision, title, scenes]
+      required: [locale, ageBand, theme, sceneCount, safetyDecision, title, scenes]
       properties:
         locale:
           $ref: '#/components/schemas/Locale'
@@ -152,6 +158,11 @@ components:
           $ref: '#/components/schemas/AgeBand'
         theme:
           $ref: '#/components/schemas/Theme'
+        sceneCount:
+          type: integer
+          minimum: 3
+          maximum: 5
+          description: The number of scenes actually returned (matches the requested count, 3–5).
         safetyDecision:
           type: string
           enum: [approved, regenerated]

@@ -13,6 +13,10 @@
       "theme": {
         "label": "Tema da história"
       },
+      "scenes": {
+        "label": "Quantas cenas?",
+        "scene-unit": "cenas"
+      },
       "submit": "Criar história",
       "submitting": "Criando sua história…"
     },

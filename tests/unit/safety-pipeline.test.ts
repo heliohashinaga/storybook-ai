@@ -13,7 +13,12 @@ import { safeErrorSchema } from "../../src/features/story-generation/server/sche
 /** Matches the deterministic marker the fake provider's moderation rejects. */
 const UNSAFE = "unsafecontent";
 
-const input: ProviderStoryInput = { ageBand: "5-7", locale: "pt-BR", theme: "courage" };
+const input: ProviderStoryInput = {
+  ageBand: "5-7",
+  locale: "pt-BR",
+  theme: "courage",
+  sceneCount: 3,
+};
 
 /** Sequential fake: each generateStory call uses the next builder (last repeats). */
 function sequentialFake(
@@ -25,7 +30,12 @@ function sequentialFake(
     async generateStory(i) {
       const builder = builders[Math.min(calls, builders.length - 1)] ?? buildSafeCandidate;
       calls += 1;
-      requests.push({ ageBand: i.ageBand, locale: i.locale, theme: i.theme });
+      requests.push({
+        ageBand: i.ageBand,
+        locale: i.locale,
+        theme: i.theme,
+        sceneCount: i.sceneCount,
+      });
       return builder(i);
     },
     async moderateText(text) {
@@ -65,11 +75,16 @@ describe("safety pipeline — safe first attempt", () => {
     expect(fake.generateCalls).toBe(1);
   });
 
-  it("records only ageBand/locale/theme (no direct identifier) on the provider", async () => {
+  it("records only anonymous fields + sceneCount (no direct identifier) on the provider", async () => {
     const fake = createFakeProvider({ scenario: "safe" });
     await runSafetyPipeline({ provider: fake.provider, input });
     expect(fake.requests).toHaveLength(1);
-    expect(fake.requests[0]).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(fake.requests[0]).toEqual({
+      ageBand: "5-7",
+      locale: "pt-BR",
+      theme: "courage",
+      sceneCount: 3,
+    });
     expect(JSON.stringify(fake.requests[0])).not.toMatch(/"name"/i);
   });
 });
@@ -205,7 +220,7 @@ describe("safety pipeline — template-marker and identifier rejection", () => {
 });
 
 describe("safety pipeline — scene-count extension point", () => {
-  it("rejects a candidate with more than N_SCENES scenes after bounded regeneration", async () => {
+  it("rejects a candidate with more than the max scene count after bounded regeneration", async () => {
     const { provider, count } = sequentialFake([
       (i) => {
         const base = buildSafeCandidate(i);

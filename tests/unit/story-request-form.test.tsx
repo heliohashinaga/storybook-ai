@@ -77,9 +77,9 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     const payload = onSubmit.mock.calls[0]![0]!;
-    expect(payload).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(payload).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage", sceneCount: 3 });
     // Never an exact age or a child name.
-    expect(Object.keys(payload).sort()).toEqual(["ageBand", "locale", "theme"]);
+    expect(Object.keys(payload).sort()).toEqual(["ageBand", "locale", "sceneCount", "theme"]);
     expect(JSON.stringify(payload)).not.toMatch(/name|"age":/i);
   });
 
@@ -100,6 +100,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
       ageBand: "8-9",
       locale: "en",
       theme: "friendship",
+      sceneCount: 3,
     });
   });
 

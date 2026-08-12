@@ -22,6 +22,7 @@ const story: GeneratedStory = {
   locale: "pt-BR",
   ageBand: "5-7",
   theme: "courage",
+  sceneCount: 3,
   safetyDecision: "approved",
   title: "A missão da estrelinha",
   scenes: [

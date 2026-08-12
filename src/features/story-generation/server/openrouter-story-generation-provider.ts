@@ -133,8 +133,11 @@ function narrativeUserPrompt(input: ProviderStoryInput): string {
     ageBand: input.ageBand,
     theme: input.theme,
     scenes: {
-      count: 3,
-      requirement: "Exactly three scenes. Each scene has a positive, child-safe arc.",
+      count: input.sceneCount,
+      requirement:
+        `Exactly ${input.sceneCount} scenes. Each scene has a positive, child-safe arc. ` +
+        "The last scene must end with a definite closing or resolution sentence, " +
+        "never cutting off mid-story.",
     },
     style:
       "Warm, playful, gentle. Every illustration prompt must describe the same " +

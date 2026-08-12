@@ -49,6 +49,7 @@ function validStory(): GeneratedStory {
     locale: "pt-BR",
     ageBand: "5-7",
     theme: "courage",
+    sceneCount: 3,
     safetyDecision: "approved",
     title: "A pequena aventura na ponte",
     scenes: [validScene(1), validScene(2), validScene(3)],
@@ -94,13 +95,26 @@ describe("POST /api/stories — response contract (GeneratedStory)", () => {
     expect(storyResponseSchema.safeParse(validStory()).success).toBe(true);
   });
 
-  it("requires exactly three scenes", () => {
+  it("accepts 3–5 scenes and rejects out-of-range counts", () => {
     const two = validStory();
     two.scenes = [validScene(1), validScene(2)];
+    two.sceneCount = 2;
     const four = validStory();
     four.scenes = [validScene(1), validScene(2), validScene(3), validScene(4)];
+    four.sceneCount = 4;
+    const six = validStory();
+    six.scenes = [
+      validScene(1),
+      validScene(2),
+      validScene(3),
+      validScene(4),
+      validScene(5),
+      validScene(6),
+    ];
+    six.sceneCount = 6;
     expect(storyResponseSchema.safeParse(two).success).toBe(false);
-    expect(storyResponseSchema.safeParse(four).success).toBe(false);
+    expect(storyResponseSchema.safeParse(four).success).toBe(true);
+    expect(storyResponseSchema.safeParse(six).success).toBe(false);
   });
 
   it("requires WebP data-URI illustrations (no object-store URL or raw bytes)", () => {

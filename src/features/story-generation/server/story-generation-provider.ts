@@ -8,11 +8,13 @@ import type { AgeBand, Locale, Theme } from "./schemas";
  * in production, a deterministic fake under test).
  */
 
-/** Anonymous, provider-bound request: only age band, locale, and theme. */
+/** Anonymous, provider-bound request: age band, locale, theme, and requested scene count. */
 export interface ProviderStoryInput {
   ageBand: AgeBand;
   locale: Locale;
   theme: Theme;
+  /** Requested scene count (3–5); the provider must produce exactly this many scenes. */
+  sceneCount: number;
 }
 
 /** One scene candidate from the provider, before moderation/optimization. */

@@ -12,6 +12,7 @@ const approvedStory: GeneratedStory = {
   locale: "pt-BR",
   ageBand: "5-7",
   theme: "courage",
+  sceneCount: 3,
   safetyDecision: "approved",
   title: "A missão da estrelinha",
   scenes: [
@@ -261,11 +262,19 @@ describe("story session context — multi-story (T045/T048)", () => {
     const { view, read } = capture();
     render(<StorySessionProvider>{view}</StorySessionProvider>);
 
-    run((s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "friendship" }), read);
+    run(
+      (s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "friendship", sceneCount: 3 }),
+      read
+    );
     run((s) => s.succeed(secondStory), read);
 
     const after = read();
-    expect(after.lastPreferences).toEqual({ age: 7, locale: "en", theme: "friendship" });
+    expect(after.lastPreferences).toEqual({
+      age: 7,
+      locale: "en",
+      theme: "friendship",
+      sceneCount: 3,
+    });
     // succeed without prefs keeps the previously stored prefs (T050 reuse).
     expect(after.stories).toHaveLength(2);
   });
@@ -274,7 +283,10 @@ describe("story session context — multi-story (T045/T048)", () => {
     const { view, read } = capture();
     render(<StorySessionProvider>{view}</StorySessionProvider>);
 
-    run((s) => s.succeed(approvedStory, { age: 5, locale: "pt-BR", theme: "courage" }), read);
+    run(
+      (s) => s.succeed(approvedStory, { age: 5, locale: "pt-BR", theme: "courage", sceneCount: 3 }),
+      read
+    );
     run((s) => s.reset(), read);
 
     expect(read().lastPreferences).toBeNull();
@@ -285,11 +297,19 @@ describe("story session context — multi-story (T045/T048)", () => {
     // plus stored preferences and a second story.
     const first = capture();
     const { unmount } = render(<StorySessionProvider>{first.view}</StorySessionProvider>);
-    run((s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "kindness" }), first.read);
+    run(
+      (s) => s.succeed(approvedStory, { age: 7, locale: "en", theme: "kindness", sceneCount: 3 }),
+      first.read
+    );
     run((s) => s.succeed(secondStory), first.read);
     expect(first.read().status).toBe("success");
     expect(first.read().stories).toHaveLength(2);
-    expect(first.read().lastPreferences).toEqual({ age: 7, locale: "en", theme: "kindness" });
+    expect(first.read().lastPreferences).toEqual({
+      age: 7,
+      locale: "en",
+      theme: "kindness",
+      sceneCount: 3,
+    });
 
     // A full page reload tears the provider tree down and rebuilds it WITHOUT
     // any storage rehydration — the state lives only in React memory, so no

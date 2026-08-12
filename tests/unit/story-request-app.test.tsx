@@ -78,7 +78,7 @@ describe("StoryRequestApp — flow", () => {
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/stories");
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
-    expect(body).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(body).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage", sceneCount: 3 });
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 
@@ -134,7 +134,7 @@ describe("StoryRequestApp — flow", () => {
 
     // Privacy contract: the payload carries only the derived values.
     const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
-    expect(body).toEqual({ ageBand: "5-7", locale: "en", theme: "friendship" });
+    expect(body).toEqual({ ageBand: "5-7", locale: "en", theme: "friendship", sceneCount: 3 });
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 
@@ -167,7 +167,12 @@ describe("StoryRequestApp — flow", () => {
     // The new story becomes active and the payload reused age/locale/theme.
     expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
     const secondBody = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
-    expect(secondBody).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(secondBody).toEqual({
+      ageBand: "5-7",
+      locale: "pt-BR",
+      theme: "courage",
+      sceneCount: 3,
+    });
   });
 
   it("renders the in-session story switcher and switches back to an earlier story (T051)", async () => {

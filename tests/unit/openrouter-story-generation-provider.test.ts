@@ -65,7 +65,12 @@ const deps: OpenRouterDeps = {
   baseUrl: "https://openrouter.test/api/v1",
 };
 
-const storyInput = { ageBand: "5-7" as const, locale: "pt-BR" as const, theme: "courage" as const };
+const storyInput = {
+  ageBand: "5-7" as const,
+  locale: "pt-BR" as const,
+  theme: "courage" as const,
+  sceneCount: 3,
+};
 
 function validCandidateJson(): string {
   return JSON.stringify({

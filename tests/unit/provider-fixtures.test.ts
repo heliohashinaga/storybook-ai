@@ -5,7 +5,7 @@ import {
 } from "../fixtures/story-generation/provider-fixtures";
 import { ProviderError } from "../../src/features/story-generation/server/story-generation-provider";
 
-const input = { ageBand: "5-7", locale: "pt-BR", theme: "courage" } as const;
+const input = { ageBand: "5-7", locale: "pt-BR", theme: "courage", sceneCount: 3 } as const;
 
 describe("fake provider fixtures", () => {
   it("safe scenario returns a three-scene candidate and passes moderation", async () => {

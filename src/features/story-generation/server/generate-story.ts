@@ -5,7 +5,7 @@ import {
   toErrorJson,
   unsafeUnrecoverable,
 } from "../../../lib/http-errors";
-import { N_SCENES, storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
+import { storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
 import { runSafetyPipeline } from "./safety-pipeline";
 import {
   ProviderError,
@@ -25,9 +25,10 @@ import {
  *    story-response schema before it may be returned.
  *
  * Provider transport failures are mapped to typed HTTP errors (unavailable →
- * 502, timeout → 504). Unsafe results never reach the caller. The scene count
- * is enforced here and in the safety pipeline against the single validated
- * `N_SCENES` constant from the shared schemas (extension point for 3/4/5).
+ * 502, timeout → 504). Unsafe results never reach the caller. The requested
+ * scene count (`input.sceneCount`, 3–5) is enforced here and in the safety
+ * pipeline against the shared `MIN_SCENES`/`MAX_SCENES` constants, so a story
+ * is only success when exactly the requested number of scenes is complete.
  */
 
 /** Default limit for a serialized WebP data-URI illustration (responses stay bounded). */
@@ -39,7 +40,7 @@ export interface IllustrationResult {
 }
 
 export interface GenerateStoryOptions {
-  /** Anonymous request: only ageBand, locale, theme. */
+  /** Anonymous request: only ageBand, locale, theme, and requested scene count. */
   input: ProviderStoryInput;
   provider: StoryGenerationProvider;
   /** Generates an optimized illustration from a moderated scene prompt. */
@@ -113,7 +114,7 @@ function altTextFor(
 
 /**
  * Runs the full anonymous generation pipeline and returns either a validated
- * three-scene story or a typed, localized safe error.
+ * 3–5 scene story (matching `input.sceneCount`) or a typed safe error.
  */
 export async function generateStory(options: GenerateStoryOptions): Promise<GenerateStoryResult> {
   const { input, provider } = options;
@@ -132,10 +133,10 @@ export async function generateStory(options: GenerateStoryOptions): Promise<Gene
     return { ok: false, error: mapProviderError(error) };
   }
 
-  // Defense-in-depth: the orchestration boundary re-binds the single validated
-  // scene count regardless of which safety pipeline produced the candidate, so
-  // a future variable-scene-count extension stays safe here too.
-  if (scenes.length !== N_SCENES) {
+  // Defense-in-depth: the orchestration boundary re-binds the requested scene
+  // count regardless of which safety pipeline produced the candidate, so the
+  // result is only success when exactly `sceneCount` scenes are complete.
+  if (scenes.length !== input.sceneCount) {
     return { ok: false, error: toErrorJson(unsafeUnrecoverable) };
   }
 
@@ -151,6 +152,7 @@ export async function generateStory(options: GenerateStoryOptions): Promise<Gene
     locale: input.locale,
     ageBand: input.ageBand,
     theme: input.theme,
+    sceneCount: input.sceneCount,
     safetyDecision,
     title,
     scenes: scenes.map((scene, index) => ({

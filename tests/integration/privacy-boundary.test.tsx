@@ -29,6 +29,7 @@ function contractStory(theme: "courage" | "friendship"): StorySession["stories"]
     locale: "pt-BR",
     ageBand: "5-7",
     theme,
+    sceneCount: 3,
     safetyDecision: "approved",
     title: "A estrelinha e o mar",
     scenes: new Array(3).fill(null).map((_, i) => ({
@@ -91,12 +92,18 @@ describe("privacy boundary regression (T061)", () => {
     const { begin, succeed } = session;
     await act(async () => {
       begin();
-      succeed(contractStory("courage"), { age: 6, locale: "pt-BR", theme: "courage" });
+      succeed(contractStory("courage"), {
+        age: 6,
+        locale: "pt-BR",
+        theme: "courage",
+        sceneCount: 3,
+      });
       begin();
       succeed(contractStory("friendship"), {
         age: 6,
         locale: "pt-BR",
         theme: "friendship",
+        sceneCount: 3,
       });
     });
 

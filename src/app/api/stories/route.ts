@@ -79,9 +79,14 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
       return json(400, toErrorJson(invalidInput));
     }
 
-    const { ageBand, locale, theme } = parsed.data;
+    const { ageBand, locale, theme, sceneCount } = parsed.data;
     const result = await generateStory({
-      input: { ageBand, locale, theme },
+      input: {
+        ageBand,
+        locale,
+        theme,
+        sceneCount: sceneCount ?? 3,
+      },
       provider: deps.provider,
       illustrate: deps.illustrate,
     });
