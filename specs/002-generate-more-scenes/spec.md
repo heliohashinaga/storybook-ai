@@ -1,6 +1,6 @@
 # Feature Specification: Gerar mais de 3 cenas
 
-**Feature Branch**: `004-generate-more-scenes`
+**Feature Branch**: `002-generate-more-scenes`
 
 **Created**: 2026-08-11
 

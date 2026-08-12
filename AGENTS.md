@@ -10,7 +10,7 @@ UI conventions).
 **storybook-ai** — a Next.js 16 (App Router) + React 19 web app that generates
 personalized children's stories, **anonymous by design**. The child picks age,
 locale, and theme; the app returns a multi-scene story (3 by default, variable
-up to 5 c.f. `specs/004-generate-more-scenes/`) with illustrations. No name or
+up to 5 c.f. `specs/002-generate-more-scenes/`) with illustrations. No name or
 direct identifier is ever collected, sent, logged, or stored.
 
 This is a **personal, non-commercial project** (my hobby). The codebase is
@@ -158,7 +158,7 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 
 - Feature artifacts: `specs/001-personalized-story-generation/` (`spec.md`,
   `plan.md`, `quickstart.md`, `tasks.md`, `contracts/story-generation.openapi.yaml`)
-- Latest features: `specs/004-generate-more-scenes/` (variable scene counts),
+- Latest features: `specs/002-generate-more-scenes/` (variable scene counts),
   `specs/003-melhorias-de-ux/` (UX improvements)
 - Constitution (principles, quality gates): `.specify/memory/constitution.md`
 - Architecture Decision Records (ADRs): [`docs/adr/`](docs/adr/)
