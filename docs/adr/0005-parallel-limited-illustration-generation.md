@@ -62,11 +62,11 @@ story, em vez de estritamente sequencial:
 
 ## Alternativas consideradas
 
-| Alternativa                                             | Veredito                                                                                        |
-| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| Geração **sequencial** (estado atual)                   | Rejeitada — 3 cenas = 3× latência de imagem; com modelo lento a espera é o gargalo dominante    |
-| **`Promise.all` irrestrito** (tudo em paralelo)         | Rejeitada — alto risco de rate-limit e quebra de consistência visual entre cenas                |
-| **Concorrência limitada** (`Promise.allSettled`, 2–3)   | **Adotada** — reduz latência sem escalar rate-limit; mantém consistência e o retry do set       |
+| Alternativa                                           | Veredito                                                                                     |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Geração **sequencial** (estado atual)                 | Rejeitada — 3 cenas = 3× latência de imagem; com modelo lento a espera é o gargalo dominante |
+| **`Promise.all` irrestrito** (tudo em paralelo)       | Rejeitada — alto risco de rate-limit e quebra de consistência visual entre cenas             |
+| **Concorrência limitada** (`Promise.allSettled`, 2–3) | **Adotada** — reduz latência sem escalar rate-limit; mantém consistência e o retry do set    |
 
 ## Consequências
 
