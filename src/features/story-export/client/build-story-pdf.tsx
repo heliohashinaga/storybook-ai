@@ -91,8 +91,7 @@ export async function buildStoryPdf(
           {story.scenes.map((scene, index) => (
             <View key={scene.ordinal} style={{ marginBottom: 20 }}>
               {illustrations[index] ? (
-                // The PDF Image (`@react-pdf/renderer`) does not accept `alt`;
-                // its a11y is provided by the adjacent Text line (altText).
+                // `@react-pdf/renderer` does not accept an `alt` prop on `Image`.
                 // eslint-disable-next-line jsx-a11y/alt-text
                 <Image
                   src={illustrations[index]}
