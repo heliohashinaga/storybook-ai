@@ -78,3 +78,34 @@ describe("ExportStoryButton (T043)", () => {
     expect(screen.getByRole("button", { name: /baixar como pdf/i })).toBeEnabled();
   });
 });
+
+describe("ExportStoryButton — feedback states (US4)", () => {
+  beforeEach(() => {
+    buildStoryPdf.mockClear();
+  });
+
+  it("sets aria-busy while exporting, then announces success on completion", async () => {
+    const user = userEvent.setup();
+    buildStoryPdf.mockResolvedValueOnce(new Blob(["pdf"], { type: "application/pdf" }));
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    // On completion the button shows the localized success label.
+    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+  });
+
+  it("retries the export after a failure via the localized retry action", async () => {
+    const user = userEvent.setup();
+    buildStoryPdf.mockRejectedValueOnce(new Error("first failure"));
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    const retry = await screen.findByRole("button", { name: /tentar novamente/i });
+    expect(retry).toBeInTheDocument();
+
+    // The retry re-runs the export and succeeds this time.
+    await user.click(retry);
+    expect(buildStoryPdf).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+  });
+});

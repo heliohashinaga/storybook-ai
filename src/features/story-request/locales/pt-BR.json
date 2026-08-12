@@ -50,7 +50,9 @@
       "generateAnother": "Gerar outra história",
       "readAloud": "Ouvir esta cena",
       "stopReading": "Parar leitura",
-      "reading": "Lendo a cena"
+      "reading": "Lendo a cena",
+      "exportSuccess": "PDF baixado",
+      "retryExport": "Tentar novamente"
     },
     "storySwitcher": {
       "label": "Suas histórias",

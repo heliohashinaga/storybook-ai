@@ -71,9 +71,9 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Independent test**: acionar "Baixar como PDF", verificar estado "Gerando PDF…"; simular falha e verificar mensagem + ação de nova tentativa.
 
-- [ ] T015 [P] [US4] Adicionar estado de exportação (idle/exporting/error) e feedback ao `src/features/story-export/components/export-story-button.tsx` (aria-live/aria-busy)
-- [ ] T016 [US4] Garantir strings localizadas de exportação (gerando/erro/retry) em `src/features/story-request/locales/pt-BR.json` e `en.json`
-- [ ] T017 [P] [US4] Atualizar `.stories.tsx` (default/loading/error) + teste unitário em `tests/unit/export-story-button.test.tsx` cobrindo sucesso/erro/retry
+- [x] T015 [P] [US4] Adicionar estado de exportação (idle/exporting/error) e feedback ao `src/features/story-export/components/export-story-button.tsx` (aria-live/aria-busy)
+- [x] T016 [US4] Garantir strings localizadas de exportação (gerando/erro/retry) em `src/features/story-request/locales/pt-BR.json` e `en.json`
+- [x] T017 [P] [US4] Atualizar `.stories.tsx` (default/loading/error) + teste unitário em `tests/unit/export-story-button.test.tsx` cobrindo sucesso/erro/retry
 
 ## Phase 7: US5 — Modo escuro (P2)
 
