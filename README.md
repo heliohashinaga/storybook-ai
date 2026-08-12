@@ -10,12 +10,11 @@ illustrations.
 
 ## Overview
 
-- 🧒 **Age bands**: `2-4`, `5-7`, `8-12` — only the band (not the exact age) is
-  sent over the network.
+- 🧒 **Age bands**: `2-4`, `5-7`, `8-12`.
 - 🎭 **Themes**: courage, friendship, kindness.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
 - 📖 **Three scenes** with generated illustrations and localized alternative text.
-- 📄 Browser-based **PDF**/print export.
+- 📄 Browser-based **PDF export**.
 
 ## Stack
 
@@ -23,10 +22,10 @@ illustrations.
 | ---------------- | ------------------------------------------------------------ |
 | Framework        | Next.js 16 (App Router) + React 19                           |
 | Language         | TypeScript                                                   |
-| Styling          | Tailwind (design-system tokens)                              |
+| Styling          | Tailwind                                                     |
 | i18n             | next-intl                                                    |
 | Validation       | Zod                                                          |
-| AI (server-only) | OpenAI SDK through an isolated adapter + safety pipeline     |
+| AI (server-only) | OpenRouter SDK adapter + safety pipeline (default provider)  |
 | Images           | sharp (WebP, Node runtime)                                   |
 | PDF              | @react-pdf/renderer (lazy, not in the browser)               |
 | Testing          | Vitest + Testing Library, Storybook, Playwright (E2E/visual) |
@@ -35,7 +34,7 @@ illustrations.
 
 - Node.js 22 LTS
 - pnpm enabled through Corepack
-- An credential for the AI provider (never production).
+- A credential for the AI provider (never production).
 
 ## Setup
 
