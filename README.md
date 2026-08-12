@@ -143,6 +143,3 @@ AI-generated content.
   and all other rights are reserved unless and until a license is explicitly
   added. Nothing here gives you a right to use the Author's name, likeness,
   trademarks, or original materials without prior written permission.
-
-_If you plan to deploy or distribute this project, or use it in a regulated or
-commercial context, consult a qualified legal professional before doing so._
