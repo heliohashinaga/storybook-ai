@@ -108,11 +108,6 @@ src/
 └── lib/                    # env, http-errors, rate-limit
 ```
 
-## Documentation
-
-- **Specification and plans**: [`specs/001-personalized-story-generation/`](specs/001-personalized-story-generation/) — `spec.md`, `plan.md`, `quickstart.md`, `tasks.md`, and the OpenAPI contract.
-- **Project constitution** (principles, quality, testing, UX, performance): [`.specify/memory/constitution.md`](.specify/memory/constitution.md).
-
 ## License
 
 This project is made available for **personal and educational purposes** with
