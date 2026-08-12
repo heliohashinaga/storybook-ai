@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { GeneratedStory } from "../../story-generation/server/schemas";
 import { useReadAloud } from "../client/use-read-aloud";
+import { SceneProgress } from "./scene-progress";
 import { SceneView } from "./scene-view";
 
 /**
@@ -92,9 +93,16 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
       )}
 
       <div className="flex items-center justify-between gap-md">
-        <p aria-live="polite" className="text-body">
-          {t("sceneCount", { current: currentIndex + 1, total })}
-        </p>
+        <div className="flex flex-col items-start gap-xs">
+          <p aria-live="polite" className="text-body">
+            {t("sceneCount", { current: currentIndex + 1, total })}
+          </p>
+          <SceneProgress
+            current={currentIndex + 1}
+            total={total}
+            label={t("sceneCount", { current: currentIndex + 1, total })}
+          />
+        </div>
         <div className="flex gap-sm">
           <Button
             variant="secondary"

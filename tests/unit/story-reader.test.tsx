@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "../../src/i18n/config";
 import { StoryReader } from "../../src/features/story-reader/components/story-reader";
 import { SceneView } from "../../src/features/story-reader/components/scene-view";
+import { SceneProgress } from "../../src/features/story-reader/components/scene-progress";
 import type {
   GeneratedScene,
   GeneratedStory,
@@ -194,6 +195,39 @@ describe("story reader — localized alt text and scene rendering", () => {
     const article = screen.getByRole("article", { name: /cena 1/i });
     expect(within(article).getByRole("heading", { name: /título 1/i })).toBeInTheDocument();
     expect(within(article).getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+  });
+});
+
+describe("scene progress — variable total (US3)", () => {
+  it("renders one segment per scene reflecting the real (3–5 variable) total", () => {
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <SceneProgress current={3} total={5} label="Posição" />
+      </NextIntlClientProvider>
+    );
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(5);
+    expect(items[2]).toHaveAttribute("aria-current", "step");
+  });
+
+  it("marks the last segment active on the final scene", () => {
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <SceneProgress current={4} total={4} label="Posição" />
+      </NextIntlClientProvider>
+    );
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(4);
+    expect(items[3]).toHaveAttribute("aria-current", "step");
+  });
+
+  it("exposes the position through a labelled list", () => {
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <SceneProgress current={1} total={3} label="Posição na história" />
+      </NextIntlClientProvider>
+    );
+    expect(screen.getByRole("list", { name: "Posição na história" })).toBeInTheDocument();
   });
 });
 

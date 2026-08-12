@@ -61,9 +61,9 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Independent test**: abrir história de 3 cenas, navegar, verificar indicador acompanha a posição e muda de estado na última cena.
 
-- [ ] T012 [P] [US3] Implementar indicador de progresso (ex.: dots/segmentos refletindo o total real 3–5 variável) em `src/features/story-reader/components/scene-progress.tsx` com `.stories.tsx` e a11y
-- [ ] T013 [US3] Integrar `SceneProgress` no `src/features/story-reader/components/story-reader.tsx` (estático, sem animação)
-- [ ] T014 [US3] Adicionar teste unitário em `tests/unit/story-reader.test.tsx` (posição/total variável 3–5, última cena) + atualizar story do leitor
+- [x] T012 [P] [US3] Implementar indicador de progresso (ex.: dots/segmentos refletindo o total real 3–5 variável) em `src/features/story-reader/components/scene-progress.tsx` com `.stories.tsx` e a11y
+- [x] T013 [US3] Integrar `SceneProgress` no `src/features/story-reader/components/story-reader.tsx` (estático, sem animação)
+- [x] T014 [US3] Adicionar teste unitário em `tests/unit/story-reader.test.tsx` (posição/total variável 3–5, última cena) + atualizar story do leitor
 
 ## Phase 6: US4 — Feedback de exportação de PDF (P2)
 
