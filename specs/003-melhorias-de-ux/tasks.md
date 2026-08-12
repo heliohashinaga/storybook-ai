@@ -24,15 +24,15 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Purpose**: Nenhuma infraestrutura de inicialização é necessária — o app existe e está implementado (T033–T066 já entregues). Esta fase apenas confirma a base das melhorias.
 
-- [ ] T001 Confirm tokens semânticos e `story.catalog.theme*` / `themeDescription*` presentes em `src/features/story-request/locales/pt-BR.json` e `en.json` (base para cards de tema).
-- [ ] T002 Confirm script `storybook:test` (a11y wcag A/AA) e testes E2E/visual/perf verdes antes de iniciar (baseline).
+- [x] T001 Confirm tokens semânticos e `story.catalog.theme*` / `themeDescription*` presentes em `src/features/story-request/locales/pt-BR.json` e `en.json` (base para cards de tema).
+- [x] T002 Confirm script `storybook:test` (a11y wcag A/AA) e testes E2E/visual/perf verdes antes de iniciar (baseline).
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
 **Purpose**: Primitivas compartilhadas necessárias por mais de uma user story.
 
-- [ ] T003 [P] Implementar primitiva de seleção visual reutilizável (cards por escolha com rótulo+descrição+estado acessível) em `src/components/ui/choice-card.tsx` com `.stories.tsx` (default/edge/erro) e a11y.
-- [ ] T004 [P] Adicionar testes unitários para a primitiva `ChoiceCard` em `tests/unit/choice-card.test.tsx` (seleção, foco, estado ativo, `aria-pressed`, teclado).
+- [x] T003 [P] Implementar primitiva de seleção visual reutilizável (cards por escolha com rótulo+descrição+estado acessível) em `src/components/ui/choice-card.tsx` com `.stories.tsx` (default/edge/erro) e a11y.
+- [x] T004 [P] Adicionar testes unitários para a primitiva `ChoiceCard` em `tests/unit/choice-card.test.tsx` (seleção, foco, estado ativo, `aria-pressed`, teclado).
 
 ## Phase 3: US1 — Escolha visual de tema (P1)
 
