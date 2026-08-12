@@ -20,21 +20,21 @@ illustrations.
 
 | Layer            | Technology                                                   |
 | ---------------- | ------------------------------------------------------------ |
-| Framework        | Next.js 16 (App Router) + React 19                           |
+| Framework        | Next.js 16 + React 19                                        |
 | Language         | TypeScript                                                   |
 | Styling          | Tailwind                                                     |
 | i18n             | next-intl                                                    |
 | Validation       | Zod                                                          |
-| AI (server-only) | OpenRouter SDK adapter + safety pipeline (default provider)  |
-| Images           | sharp (WebP, Node runtime)                                   |
-| PDF              | @react-pdf/renderer (lazy, not in the browser)               |
-| Testing          | Vitest + Testing Library, Storybook, Playwright (E2E/visual) |
+| AI (server-only) | OpenRouter SDK adapter + safety pipeline                     |
+| Images           | sharp                                                        |
+| PDF              | @react-pdf/renderer                                          |
+| Testing          | Vitest + Testing Library, Storybook, Playwright              |
 
 ## Prerequisites
 
 - Node.js 22 LTS
 - pnpm enabled through Corepack
-- A credential for the AI provider (never production).
+- A credential for the AI provider.
 
 ## Setup
 
@@ -65,7 +65,7 @@ OPENROUTER_MODERATION_MODEL=replace-with-approved-moderatiopn-model
 pnpm dev
 ```
 
-Open `http://localhost:3000`. The default interface language is `pt-BR`.
+Open `http://localhost:3000`.
 
 ## CI
 
