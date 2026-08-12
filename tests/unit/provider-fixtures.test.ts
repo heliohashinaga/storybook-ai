@@ -5,10 +5,6 @@ import {
   characterDescriptor,
 } from "../fixtures/story-generation/provider-fixtures";
 import type { AgeBand } from "../../src/features/story-generation/server/schemas";
-import type {
-  Locale,
-  Theme,
-} from "../../src/features/story-request/client/story-preferences-schema";
 import type { ProviderStoryInput } from "../../src/features/story-generation/server/story-generation-provider";
 
 function input(overrides: Partial<ProviderStoryInput> = {}): ProviderStoryInput {

@@ -75,7 +75,6 @@ describe("story reader — first/middle/last bounds", () => {
   });
 
   it("opens on the first scene with only forward navigation enabled", async () => {
-    const user = userEvent.setup();
     renderReader();
 
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
