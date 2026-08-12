@@ -38,9 +38,9 @@ Abra uma história gerada e acione o controle de leitura da cena.
 
 ### 3. Indicador de progresso de cena (P2)
 
-Em uma história de 3 cenas, navegue entre cenas.
+Em uma história (3, 4 ou 5 cenas), navegue entre as cenas.
 
-**Esperado**: um indicador visual mostra a posição atual (ex.: 1/3) e acompanha a navegação; estático (sem animação) respeitando `prefers-reduced-motion`.
+**Esperado**: um indicador visual mostra a posição atual (ex.: 1/3, 2/4, 3/5) refletindo o **total real de cenas (3–5 variável)** (Clarification 2026-08-12) e acompanha a navegação; estático (sem animação) respeitando `prefers-reduced-motion`; coerente com o texto "Cena X de Y".
 
 ### 4. Feedback de exportação de PDF (P2)
 
@@ -50,9 +50,9 @@ Acione "Baixar como PDF" numa história.
 
 ### 5. Modo escuro (P2)
 
-Alterne a preferência de cor do sistema (claro/escuro).
+Alterne a preferência de cor do sistema (claro/escuro) e/ou use o alternador manual.
 
-**Esperado**: a UI troca de tema seguindo o sistema, preservando contraste AA e sem coletar dados; sem persistência de escolha manual.
+**Esperado**: a UI troca de tema seguindo o sistema, preservando contraste AA e sem coletar dados. Há também um **alternador manual transitório na sessão** (sem persistência): ao recarregar, a preferência volta a seguir o sistema (Clarification 2026-08-12).
 
 ### Qualidade automatizada
 

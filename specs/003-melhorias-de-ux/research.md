@@ -12,14 +12,14 @@ Decisões técnicas consolidadas para as melhorias de experiência, reutilizando
 
 ## Decisão: Leitura em voz alta
 
-- **Decision**: Usar a **Web Speech API** (`window.speechSynthesis`) no navegador, com controlador local de vozes para pt-BR/en, estado visível (pronto/lendo/pausado) e cancelamento ao trocar de cena.
+- **Decision**: Usar a **Web Speech API** (`window.speechSynthesis`) no navegador, com controlador local de vozes para pt-BR/en, estado visível (pronto/lendo) e cancelamento ao trocar de cena. Controle **único iniciar/parar** — o estado `paused` do Web Speech permanece interno, sem botão dedicado de pausa (Clarification 2026-08-12).
 - **Rationale**: é nativa, sem rede, sem coleta de conteúdo (o áudio não sai do dispositivo) e atende a faixa etária 2-4; o cancelamento por cena evita sobreposição de fala. Acessível via botão com `aria-pressed` + anúncio de estado.
 - **Negatives/Risks**: suporte de voz varia por dispositivo/navegador — a melhoria é progressiva (sem fala, o texto continua legível).
 - **Alternatives considered**: serviço de TTS externo (quebraria anonimato/rede → rejeitado); reproduzir áudio pré-gerado (adicionaria armazenamento → fora de escopo).
 
 ## Decisão: Indicador de progresso de cena
 
-- **Decision**: Adicionar um indicador visual (ex.: pontinhos/segmentos) sobre o total de cenas, ao lado do texto "Cena X de Y", usando tokens existentes.
+- **Decision**: Adicionar um indicador visual (ex.: pontinhos/segmentos) sobre o **total variável de cenas (3–5)**, ao lado do texto "Cena X de Y", onde Y reflete o total real da história (Clarification 2026-08-12), usando tokens existentes.
 - **Rationale**: dá previsibilidade de quantas cenas faltam (público infantil), sem novas dependências.
 - **Alternatives considered**: apenas texto (já existe, insuficiente); barra de progresso animada (contraria `prefers-reduced-motion` → usar estática).
 
@@ -31,10 +31,10 @@ Decisões técnicas consolidadas para as melhorias de experiência, reutilizando
 
 ## Decisão: Modo escuro
 
-- **Decision**: Aplicar modo escuro via **tokens semânticos CSS + `prefers-color-scheme: dark`**, trocando apenas os valores dos tokens (`--color-*`) sem tocar conteúdo/lógica, e **sem persistir** escolha manual (segue o sistema).
-- **Rationale**: os tokens semânticos já abstraem as cores; a troca é `background`/`text`/`surface`/`accent` com contraste AA validado em ambos os modos. Sem coleta/persistência, mantendo anonimato.
+- **Decision**: Aplicar modo escuro via **tokens semânticos CSS + `prefers-color-scheme: dark`**, trocando apenas os valores dos tokens (`--color-*`) sem tocar conteúdo/lógica. Além de seguir o sistema, há um **alternador manual transitório na sessão (não persistido)** que, ao recarregar, volta a seguir o sistema (Clarification 2026-08-12).
+- **Rationale**: os tokens semânticos já abstraem as cores; a troca é `background`/`text`/`surface`/`accent` com contraste AA validado em ambos os modos. Sem coleta/persistência de escolha, mantendo anonimato.
 - **Negatives/Risks**: precisa validar contraste AA de textos normais (≥4.5:1) em ambos os modos via Storybook/a11y.
-- **Alternatives considered**: switch manual persistido (contraria a preferência "segue o sistema" decidida no clarify → não persistir).
+- **Alternatives considered**: após a decisão (segue o sistema + alternador manual transitório), manter um switch persistido foi rejeitado para preservar o anonimato e a preferência "volta ao sistema" em cada reload.
 
 ## Decisão: Estratégia de validação
 

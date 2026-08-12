@@ -16,20 +16,20 @@ As melhorias de UX não introduzem novas entidades persistentes — o produto pe
 
 ### 2. Leitor / Cena (com controle de leitura em voz alta)
 
-- **Posição atual** (`ordinal`): 1..N (N = total de cenas, tipicamente 3)
-- **Total de cenas** (`total`): número fixo (3)
-- **Estado de leitura em voz alta**: `idle` | `speaking` | `paused`
+- **Posição atual** (`ordinal`): 1..N (N = total de cenas)
+- **Total de cenas** (`total`): variável (3–5), conforme a configuração suportada pelo produto
+- **Estado de leitura em voz alta**: `idle` | `speaking` | `paused` (o estado `paused` é **interno** ao `speechSynthesis`; sem botão dedicado de pausa)
 - **Regras/transições**:
-  - `idle → speaking` ao iniciar a fala da cena atual.
-  - `speaking ⇄ paused` via controle de pausa/retomar.
-  - `speaking/paused → idle` ao parar, ao navegar para outra cena, ou ao fim da cena.
+  - `idle → speaking` ao iniciar a fala da cena atual (controle único **iniciar/parar**).
+  - `speaking → idle` ao parar, ao navegar para outra cena, ou ao fim da cena.
+  - O `speechSynthesis` pode internamente pausar/retomar, mas não há controle dedicado de pausa exposto ao usuário.
   - Nenhuma fala deve sobrepor outra: trocar de cena interrompe a cena anterior.
-- **A11y**: controle com `aria-pressed`/estado anunciado; botões de navegação preservam foco visível.
+- **A11y**: botão com `aria-pressed`/estado anunciado (iniciar/parar); botões de navegação preservam foco visível.
 
 ### 3. Indicador de progresso de cena
 
-- **Posição** (`current`) e **total** (`total`): derivam da cena ativa.
-- **Regra**: o indicador reflete a posição atual e muda junto com a navegação; estático (sem animação) para honrar `prefers-reduced-motion`.
+- **Posição** (`current`) e **total** (`total`): derivam da cena ativa; o **total reflete o número real de cenas (3–5 variável)**.
+- **Regra**: o indicador reflete a posição atual e muda junto com a navegação; estático (sem animação) para honrar `prefers-reduced-motion`; coerente com o texto "Cena X de Y" (Y = total real).
 
 ### 4. Estado de Exportação de PDF
 
@@ -44,7 +44,8 @@ As melhorias de UX não introduzem novas entidades persistentes — o produto pe
 ### 5. Modo de Aparência (Modo escuro)
 
 - **Valores**: `light` | `dark`
-- **Fonte**: segue `prefers-color-scheme` do sistema (sem escolha manual persistida).
+- **Fonte inicial**: segue `prefers-color-scheme` do sistema na primeira visita.
+- **Alternador manual**: opcional e transitório na sessão (estado React, **sem persistência**); ao recarregar, volta a seguir o sistema. (Clarification 2026-08-12)
 - **Aplicação**: via tokens semânticos CSS (`--color-background`, `--color-text`, `--color-surface`, `--color-accent`, etc.).
 - **Regra**: contraste AA (≥4.5:1 para texto normal) deve ser válido em ambos os modos; nenhum dado novo é coletado.
 

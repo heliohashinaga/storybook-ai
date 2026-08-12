@@ -5,10 +5,10 @@
 Melhorias incrementais de experiência de uso para o gerador de histórias infantis (anonymous by design), mantendo todos os invariantes de anonimato, acessibilidade AA e performance. Escopo aprovado pós-clarify:
 
 - **P1** — Escolha visual de tema (cards com rótulo + descrição localizados).
-- **P1** — Leitura em voz alta no leitor (local, sem rede, interrompida ao navegar).
-- **P2** — Indicador de progresso de cena (além do "Cena X de 3").
+- **P1** — Leitura em voz alta no leitor (local, sem rede, interrompida ao navegar; controle único **iniciar/parar**, sem botão dedicado de pausa — Clarification 2026-08-12).
+- **P2** — Indicador de progresso de cena (além do texto "Cena X de Y"; reflete o **total real 3–5 variável** — Clarification 2026-08-12).
 - **P2** — Feedback claro na exportação de PDF (gerando/erro/nova tentativa).
-- **P2** — Modo escuro seguindo a preferência do sistema (contraste AA, sem coleta).
+- **P2** — Modo escuro seguindo a preferência do sistema **com alternador manual transitório (não persistido)** (contraste AA, sem coleta — Clarification 2026-08-12).
 
 ## Technical Context
 
@@ -16,7 +16,7 @@ Melhorias incrementais de experiência de uso para o gerador de histórias infan
 **Dependências primárias**: Tailwind v4 (tokens semânticos), next-intl (pt-BR/en), Zod (validação).
 **Testes**: Vitest (unit/integration) + Playwright (E2E, a11y, visual, performance) + Storybook test-runner (a11y por story).
 **Padrões do produto**: UI com tokens semânticos (nada de hex/vals ad-hoc), todo texto via next-intl (sem strings hardcoded), anonimato estrito, a11y AA, `prefers-reduced-motion` honorado, lazy import de `@react-pdf/renderer` (fora do bundle inicial).
-**Observações**: leitura em voz alta usará Web Speech API (`speechSynthesis`) — recurso nativo do navegador, sem rede; modo escuro via tokens semânticos + `prefers-color-scheme`.
+**Observações**: leitura em voz alta usará Web Speech API (`speechSynthesis`) — recurso nativo do navegador, sem rede; controle único iniciar/parar (sem pausa dedicada; o estado `paused` permanece interno). Modo escuro via tokens semânticos + `prefers-color-scheme`, com alternador manual transitório (não persistido) que volta a seguir o sistema ao recarregar.
 
 Todos os campos "NEEDS CLARIFICATION" do template estão resolvidos: a stack é a existente do produto (ADR 0003 single-locale, ADRs do projeto).
 
@@ -46,7 +46,7 @@ src/components/ui/                                             # primitivas comp
 
 Sem "NEEDS CLARIFICATION" pendentes (escopo e stack definidos no clarify). Pesquisa consolida as decisões:
 - Leitura em voz alta: Web Speech `speechSynthesis` (suporte pt-BR/en, cancelamento por voz/cena, a11y via botão com estado).
-- Modo escuro: tokens CSS + `prefers-color-scheme` (sem persistência manual), contraste AA em ambos.
+- Modo escuro: tokens CSS + `prefers-color-scheme`, com alternador manual transitório via estado React (sem persistência) que volta a seguir o sistema ao recarregar; contraste AA em ambos os modos.
 - Cards de tema: apresentação visual com dados localizados existentes (`catalog.theme` + `themeDescription`).
 - Feedback de export: estados locais (gerando/erro/retry) com msgs localizadas.
 
