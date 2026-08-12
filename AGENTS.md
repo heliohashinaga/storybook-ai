@@ -9,14 +9,14 @@ UI conventions).
 
 **storybook-ai** — a Next.js 16 (App Router) + React 19 web app that generates
 personalized children's stories, **anonymous by design**. The child picks age,
-locale, and theme; the app returns a 3-scene story with illustrations. No name or
+locale, and theme; the app returns a multi-scene story (3 by default, variable
+up to 5 c.f. `specs/004-generate-more-scenes/`) with illustrations. No name or
 direct identifier is ever collected, sent, logged, or stored.
 
-Repo is currently in **planning phase**: `specs/` contains the feature artifacts
-(spec, plan, quickstart, tasks, OpenAPI contract) and `.specify/memory/constitution.md`
-holds the governing constitution. Implementation has not been scaffolded yet;
-`package.json` does not exist. Do not invent package scripts — match the names in
-`specs/001-personalized-story-generation/quickstart.md`.
+This is a **personal, non-commercial project** (my hobby). The codebase is
+implemented under `src/`; features are driven by Spec Kit artifacts under
+`specs/`. `package.json` exists — do not invent package scripts; match the
+names in the scripts section below and `specs/001-personalized-story-generation/quickstart.md`.
 
 ## Non-Negotiable Privacy Rules
 
@@ -38,19 +38,22 @@ holds the governing constitution. Implementation has not been scaffolded yet;
 
 ## Commands
 
-Run these from the repo root after implementation exists (they are the required
-scripts, not yet present):
+Run these from the repo root. All are real scripts in `package.json`:
 
 ```bash
 pnpm dev             # dev server, http://localhost:3000 (pt-BR default)
+pnpm start            # production server (after pnpm build)
 pnpm lint            # no warnings allowed
 pnpm format:check    # prettier, no drift
 pnpm typecheck       # strict TS, no new `any` in production code
 pnpm test            # Vitest: unit, component, API-contract, pipeline (fixtures/fakes only)
-pnpm test:coverage   # ≥80% overall; ≥90% safety/validation/orchestration
+pnpm test:coverage   # run tests and report coverage
+pnpm test:coverage:check  # enforce ≥80% overall; ≥90% safety/validation/orchestration
+pnpm storybook       # Storybook dev server (for authoring stories)
 pnpm storybook:test  # every story (default/loading/error/edge) + a11y checks
 pnpm test:e2e        # Playwright: pt-BR + EN journeys, fake provider
 pnpm test:visual     # approved screenshots, no unintended diff
+pnpm test:performance  # budgets below
 pnpm build           # production build must pass
 ```
 
@@ -122,21 +125,6 @@ full parallelism.
 - Tiers: unit (pure logic/schemas/safety), integration/contract (route + pipeline
   against `story-generation.openapi.yaml`, APIs faked), E2E (Playwright),
   visual (reader regression).
-- **Devloop `testPlan` alignment:** when a devloop slice carries a `testPlan`
-  (authored by `feature-planner`, validated by `task-qa`, persisted in
-  `.pi/devloop-sessions/<taskId>-plan.json`), its tiers map to the ones above:
-  `unit` = Vitest unit, `contract` = API-contract/integration vs the OpenAPI
-  contract, `e2e` = Playwright journeys (pt-BR + en), `visual` = Storybook
-  stories (default/edge/error + a11y). Workers author tests against it;
-  `tester-simple`/`tester-complex` verify its intents are fulfilled per tier.
-- **Devloop retrospectives:** every `/devloop` run persists deterministic run
-  facts to `.pi/devloop-sessions/<runId>.retro.json`/`.md` (root, not worktree).
-  `/devloop-retro` lists/reads them (TUI card) and `--agent` generates
-  recommendations via the read-only `retro` agent; `retro.recommend` in
-  `.pi/devloop.json` auto-generates them after every terminal outcome
-  (ready-to-merge **and** human-escalation). Prune with
-  `/devloop-cleanup --retros [keep]`. These are local dev artifacts — never
-  committed, and never contain user/child PII.
 - Assert privacy invariants in tests: no direct identifier accepted by form/API,
   none in HTTP payloads, logs, or provider fakes.
 - Every component ships co-located `.stories.tsx` covering default/edge/error
@@ -144,11 +132,18 @@ full parallelism.
 
 ## Performance Budgets (enforced in CI)
 
-- Full generation (story + safety + 3 images) ≤120 s end-to-end.
+- Full generation (story + safety + N images, N up to 5) ≤120 s end-to-end.
 - Initial form/reader LCP p75 ≤2.5 s (mid-tier mobile/4G).
 - Initial route JS ≤250 KiB gzip (excludes scene images; **lazy-import**
   `@react-pdf/renderer` only on export — never in the initial bundle).
 - Scene navigation ≤100 ms p75 after assets load.
+
+## Legal & Licensing
+
+This is a **personal, non-commercial** project. Copyright and all rights are
+reserved (`LICENSE`; no open-source license is granted). The `README` contains
+a disclaimer covering AI-generated content, caregiver responsibility, and the
+anonymous design. Do not remove, weaken, or bypass these notices.
 
 ## Definition of Done
 
@@ -163,6 +158,8 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 
 - Feature artifacts: `specs/001-personalized-story-generation/` (`spec.md`,
   `plan.md`, `quickstart.md`, `tasks.md`, `contracts/story-generation.openapi.yaml`)
+- Latest features: `specs/004-generate-more-scenes/` (variable scene counts),
+  `specs/003-melhorias-de-ux/` (UX improvements)
 - Constitution (principles, quality gates): `.specify/memory/constitution.md`
 - Framework/project conventions: user-level generic `nextjs` + `design-system` skills
 
