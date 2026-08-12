@@ -43,17 +43,17 @@ IA (voz natural) tecnicamente viável mantendo anonimato (enviando apenas o text
 
 ## Preços atuais (snapshot 2026-08-20, OpenRouter TTS)
 
-| Modelo TTS | Provedor | Preço |
-| --- | --- | --- |
-| Kokoro 82M | hexgrad | **$0.62 / M caracteres** (mais barato) |
-| Grok Voice TTS 1.0 | xAI | $15 / M caracteres |
-| MAI-Voice-2-Flash | Microsoft | $15 / M caracteres |
-| Qwen-Audio-3.0-TTS Flash | Qwen | $15 / M caracteres |
-| Fish Audio S2.1 Pro | Fish Audio | $15 / M UTF-8 bytes |
-| Voxtral Mini TTS | Mistral | $16 / M caracteres |
-| MAI-Voice-2 | Microsoft | $22 / M caracteres |
-| Speech 2.8 Turbo | MiniMax | $60 / M caracteres |
-| Gemini 3.1 Flash TTS Preview | Google | por token ($1/M in, $20/M out) |
+| Modelo TTS                   | Provedor   | Preço                                  |
+| ---------------------------- | ---------- | -------------------------------------- |
+| Kokoro 82M                   | hexgrad    | **$0.62 / M caracteres** (mais barato) |
+| Grok Voice TTS 1.0           | xAI        | $15 / M caracteres                     |
+| MAI-Voice-2-Flash            | Microsoft  | $15 / M caracteres                     |
+| Qwen-Audio-3.0-TTS Flash     | Qwen       | $15 / M caracteres                     |
+| Fish Audio S2.1 Pro          | Fish Audio | $15 / M UTF-8 bytes                    |
+| Voxtral Mini TTS             | Mistral    | $16 / M caracteres                     |
+| MAI-Voice-2                  | Microsoft  | $22 / M caracteres                     |
+| Speech 2.8 Turbo             | MiniMax    | $60 / M caracteres                     |
+| Gemini 3.1 Flash TTS Preview | Google     | por token ($1/M in, $20/M out)         |
 
 Estimativa prática: uma história de 3–5 cenas tem ~800–1.500 caracteres.
 
@@ -65,11 +65,11 @@ Estimativa prática: uma história de 3–5 cenas tem ~800–1.500 caracteres.
 
 Alternativas fora do OpenRouter (não-adotadas aqui, apenas referência para comparação):
 
-| Fornecedor | Custo | Naturalidade |
-| --- | --- | --- |
-| OpenAI `tts-1` | $15/M caracteres | Boa, pt-BR ok |
-| ElevenLabs v2/v3 | $50–100/M (API $0.05–0.10/1K chars) | Excelente |
-| Azure Neural / Google Cloud | ~$4/M | Excelente |
+| Fornecedor                  | Custo                               | Naturalidade  |
+| --------------------------- | ----------------------------------- | ------------- |
+| OpenAI `tts-1`              | $15/M caracteres                    | Boa, pt-BR ok |
+| ElevenLabs v2/v3            | $50–100/M (API $0.05–0.10/1K chars) | Excelente     |
+| Azure Neural / Google Cloud | ~$4/M                               | Excelente     |
 
 ## Decisão
 
@@ -91,13 +91,13 @@ evolução seja uma escolha consciente — e não uma deriva — quando/quando f
 
 ## Alternativas consideradas
 
-| Alternativa | Veredito |
-| --- | --- |
-| **Web Speech local** (estado atual) | **Adotada** — gratuita, offline, anônima, leve |
-| **TTS de IA via OpenRouter (server)** (ex. Kokoro $0.62/M) | Adiada — custo irrelevante, mas redes/latência/storage/chave e saída do "tudo local" |
-| **TTS de IA direto do cliente** | Rejeitada — expõe chave e quebra o boundary server-only |
-| **Modelo de voz neural on-device** | Rejeitada — estoura o budget de JS inicial |
-| **Áudio pré-gerado + cache** | Rejeitada por ora — conflita com o invariante "sem persistência" (precisa plano de storage transitório) |
+| Alternativa                                                | Veredito                                                                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Web Speech local** (estado atual)                        | **Adotada** — gratuita, offline, anônima, leve                                                          |
+| **TTS de IA via OpenRouter (server)** (ex. Kokoro $0.62/M) | Adiada — custo irrelevante, mas redes/latência/storage/chave e saída do "tudo local"                    |
+| **TTS de IA direto do cliente**                            | Rejeitada — expõe chave e quebra o boundary server-only                                                 |
+| **Modelo de voz neural on-device**                         | Rejeitada — estoura o budget de JS inicial                                                              |
+| **Áudio pré-gerado + cache**                               | Rejeitada por ora — conflita com o invariante "sem persistência" (precisa plano de storage transitório) |
 
 ## Consequências
 
