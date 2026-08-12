@@ -104,11 +104,11 @@ Ao gerar uma história de 4 ou 5 cenas, todas as cenas partilham o mesmo estilo 
 ### Measurable Outcomes
 
 - **SC-001**: Um responsável consegue escolher e receber uma história com **4 ou 5 cenas** completas e legíveis dentro dos limites aceitáveis de geração do produto, sem retornar conteúdo parcial. *Não assume que histórias mais longas ultrapassam limites; a questão de tempo é verificada em planejamento/implementação.*
-- **SC-002**: **100%** das histórias geradas com contagem variável têm exatamente a contagem de cenas solicitada (3, 4 ou 5), numeradas em sequência e com final claro.
+- **SC-002**: **100%** das histórias geradas com contagem variável têm exatamente a contagem de cenas solicitada (3, 4 ou 5) e cenas numeradas em sequência; **a última cena termina com uma frase de encerramento definida** (fecho estrutural verificável por teste), em vez de um fim abrupto.
 - **SC-003**: **100%** das histórias com contagem variável mantêm os invariantes de anonimato e privacidade (sem identificador direto em payloads, logs ou provedores; `Cache-Control: no-store`).
 - **SC-004**: **100%** das histórias de 4 ou 5 cenas são entregues como sucesso apenas quando **todas** as cenas (texto e ilustração) passaram na verificação de segurança e na checagem de consistência.
 - **SC-005**: Histórias com a opção padrão (3 cenas) mantêm comportamento idêntico ao de v1, sem regressão perceptível.
-- **SC-006**: O leitor e a exportação exibem e incluem corretamente todas as cenas da história (ex.: "Cena X de 5", documento sem truncamento) na primeira tentativa para 95% das histórias.
+- **SC-006**: O leitor e a exportação exibem e incluem corretamente todas as cenas da história (ex.: "Cena X de 5", documento sem truncamento) para toda história retornada. O índice de sucesso "na primeira tentativa" (≥95%) é uma métrica **monitorada** pós-implantação (provider-dependente), não um gate determinístico de CI.
 
 ## Assumptions
 
