@@ -1,0 +1,40 @@
+#!/usr/bin/env sh
+# Pre-commit quality gate for storybook-ai.
+#
+# Runs the fast quality gates (lint, format:check, typecheck) and aborts the
+# commit if any fails. Prevents the classic "format:check drift" failure where a
+# the check passed earlier but a later file edit (e.g. a markdown ADR/README/checklist)
+# introduced prettier drift that only fails in CI.
+#
+# Install once via `pnpm prepare` (see scripts/install-hooks.sh). Bypass with
+# `git commit --no-verify` only for emergencies or dependency-only edits already
+# covered by CI — the AGENTS.md quality-gate rule otherwise applies.
+
+set -eu
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+
+# Skip on merges / non-commit-like operations already guarded elsewhere.
+if [ "$(git rev-parse --is-inside-work-tree 2>/dev/null || echo false)" != "true" ]; then
+  exit 0
+fi
+
+echo "[pre-commit] running quality gates (lint, format:check, typecheck)..."
+
+if ! pnpm lint; then
+  echo "[pre-commit] FAILED: 'pnpm lint' reported errors/warnings (no warnings allowed)." >&2
+  exit 1
+fi
+
+if ! pnpm format:check; then
+  echo "[pre-commit] FAILED: 'pnpm format:check' found drift. Run 'pnpm format' on the affected file(s) and re-stage." >&2
+  exit 1
+fi
+
+if ! pnpm typecheck; then
+  echo "[pre-commit] FAILED: 'pnpm typecheck' reported type errors." >&2
+  exit 1
+fi
+
+echo "[pre-commit] quality gates OK."
