@@ -22,7 +22,7 @@ import { test, expect, type Page } from "@playwright/test";
  * live-provider dependence).
  */
 
-const ALLOWED_KEYS = ["ageBand", "locale", "theme"] as const;
+const ALLOWED_KEYS = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
 interface RequestPayload {
   ageBand?: string;
@@ -175,7 +175,7 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
 
   expect(payloads).toHaveLength(2);
   for (const payload of payloads) {
-    expect(Object.keys(payload)).toEqual(["ageBand", "locale", "theme"]);
+    expect(Object.keys(payload)).toEqual([...ALLOWED_KEYS]);
     expect(payload.locale).toBe("en");
     assertPrivacyContract(payload);
   }

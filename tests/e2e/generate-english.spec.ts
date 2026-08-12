@@ -24,7 +24,7 @@ import type { GeneratedStory } from "../../src/features/story-generation/server/
  * network, or live-provider dependence.
  */
 
-const ALLOWED_KEYS = ["ageBand", "locale", "theme"] as const;
+const ALLOWED_KEYS = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
 interface RequestPayload {
   ageBand?: string;
