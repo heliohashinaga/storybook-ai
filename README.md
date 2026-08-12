@@ -15,7 +15,7 @@ illustrations.
 - 🎭 **Themes**: courage, friendship, kindness.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
 - 📖 **Three scenes** with generated illustrations and localized alternative text.
-- 📄 **Browser-based PDF/print export** — no file is stored by the app.
+- 📄 Browser-based **PDF**/print export.
 
 ## Stack
 
