@@ -69,5 +69,10 @@
         "kindness": "Cuidar dos outros e ajudar."
       }
     }
+  },
+  "theme": {
+    "toDark": "Ativar modo escuro",
+    "toLight": "Ativar modo claro",
+    "label": "Alternar tema"
   }
 }

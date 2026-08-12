@@ -69,5 +69,10 @@
         "kindness": "Caring for others and lending a hand."
       }
     }
+  },
+  "theme": {
+    "toDark": "Turn on dark mode",
+    "toLight": "Turn on light mode",
+    "label": "Toggle theme"
   }
 }

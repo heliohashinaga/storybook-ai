@@ -81,9 +81,9 @@ Single repo (`src/`, `tests/` at root), Next.js App Router, Vitest + Playwright 
 
 **Independent test**: alternar `prefers-color-scheme`; verificar troca de tokens e contraste AA em todas as telas; nenhum dado persistido.
 
-- [ ] T018 [P] [US5] Adicionar modo escuro por tokens (`@media (prefers-color-scheme: dark)` e/ou classe `.dark` para o alternador manual) em `src/app/globals.css` para `--color-*` (background/surface/text/accent/focus/…)
-- [ ] T019 [US5] Validar contraste AA (≥4.5:1) de todos os tokens em ambos modos via Storybook `storybook:test` + verificar que nenhum componente usa hex/val ad-hoc
-- [ ] T020 [US5] Adicionar/atualizar validação de a11y (contraste) e deixar explícito que a escolha manual (alternador) é transitória na sessão — `prefers-color-scheme` não persiste escolha manual
+- [x] T018 [P] [US5] Adicionar modo escuro por tokens (`@media (prefers-color-scheme: dark)` e/ou classe `.dark` para o alternador manual) em `src/app/globals.css` para `--color-*` (background/surface/text/accent/focus/…)
+- [x] T019 [US5] Validar contraste AA (≥4.5:1) de todos os tokens em ambos modos via Storybook `storybook:test` + verificar que nenhum componente usa hex/val ad-hoc
+- [x] T020 [US5] Adicionar/atualizar validação de a11y (contraste) e deixar explícito que a escolha manual (alternador) é transitória na sessão — `prefers-color-scheme` não persiste escolha manual
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
