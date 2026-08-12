@@ -5,16 +5,20 @@
 # Storybook AI
 
 Personalized children's story generator I created for my daughter. Choose an age
-range, language, and theme; the app generates a three-scene story with
-illustrations.
+range, language, and theme; the app generates a multi-scene story (3–5 scenes)
+with illustrations.
 
 ## Overview
 
 - 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
-- 🎭 **Themes**: courage, friendship, kindness.
+- 🎭 **Themes**: courage, friendship, kindness — chosen via **visual theme cards**.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
-- 📖 **Scenes** with generated illustrations and localized alternative text.
-- 📄 Browser-based **PDF export**.
+- 📖 **Scenes** (3–5, variable) with generated illustrations, localized alternative text, and a **scene-progress indicator**.
+- 🔊 **Read-aloud** of the current scene spoken locally in-browser (Web Speech — no network transmission) with a single start/stop control and accessible announcements.
+- 📄 Browser-based **PDF export** with loading and failure/retry feedback.
+- 🌓 **Dark mode** following the system preference, plus a session-only manual toggle (no persistence).
+
+All new interactive surfaces (theme cards, read-aloud control, scene progress, PDF export, dark-mode toggle) are keyboard-navigable, expose visible focus, meet WCAG AA contrast, and honor `prefers-reduced-motion`.
 
 ## How story generation works
 
