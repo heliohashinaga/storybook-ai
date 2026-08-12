@@ -10,3 +10,4 @@ Decisões de arquitetura deste repo (convenção MADR — 1 decisão por ADR).
 | [0004](0004-uuid-override-to-11.md)                      | Override do `uuid` para 11.1.1 (correção de advisory moderate) | Accepted |
 | [0005](0005-parallel-limited-illustration-generation.md) | Paralelização limitada na geração de ilustrações (latência)    | Accepted |
 | [0006](0006-max-age-9-top-band-8-9.md)                   | Idade máxima reduzida para 9; banda superior vira `8-9`        | Accepted |
+| [0007](0007-tts-ai-openrouter-as-future-improvement.md)  | TTS de IA via OpenRouter (leitura em voz alta natural) — futuro | Proposed |
