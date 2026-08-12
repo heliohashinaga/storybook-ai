@@ -85,7 +85,8 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
 
   // ---- First story: theme "courage" --------------------------------------
   await page.getByLabel(/Idade da criança/i).fill("6");
-  await page.getByLabel(/Tema da história/i).selectOption("courage");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Coragem/i }).click();
   const first = waitForStoryResponse(page);
   await page.getByRole("button", { name: /Criar história/i }).click();
   const firstResponse = await first;
@@ -154,7 +155,8 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   await page.getByLabel("Idioma").selectOption("en");
   const first = waitForStoryResponse(page);
   await page.getByLabel("Child's age").fill("3"); // derives to the 2-4 band in-browser
-  await page.getByLabel("Story theme").selectOption("friendship");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Friendship/i }).click();
   await page.getByRole("button", { name: "Create story" }).click();
   const firstResponse = await first;
 

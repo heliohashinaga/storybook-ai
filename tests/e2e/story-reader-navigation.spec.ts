@@ -7,7 +7,8 @@ import { expect, test, type Page } from "@playwright/test";
  */
 async function fillAndSubmit(page: Page) {
   await page.getByLabel(/Idade da criança/i).fill("6");
-  await page.getByLabel(/Tema da história/i).selectOption("courage");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Coragem/i }).click();
   // Select the longest journey (5 scenes, MAX_SCENES) so the e2e exercises a
   // multi-scene story with a middle span, not just the MVP default of three.
   await page.getByRole("radio", { name: /5 cenas/i }).check();

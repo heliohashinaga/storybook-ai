@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { Metadata } from "next";
 import "./globals.css";
 import { LocaleProvider } from "../i18n/locale-provider";
+import { ThemeToggle } from "../features/theme/components/theme-toggle";
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -25,6 +26,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
     <html lang="pt-BR">
       <body>
         <LocaleProvider defaultLocale="pt-BR">
+          <header className="flex w-full justify-end px-md py-sm">
+            <ThemeToggle />
+          </header>
           <main>{children}</main>
         </LocaleProvider>
       </body>

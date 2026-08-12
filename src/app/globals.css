@@ -28,6 +28,7 @@
   --color-warning: #d97706;
   --color-danger: #dc2626;
   --color-disabled: #e5e7eb;
+  color-scheme: light;
 
   /* Typography */
   --font-sans: "Nunito", "Segoe UI", system-ui, sans-serif;
@@ -70,6 +71,62 @@
   --motion-fast: 100ms;
   --motion-base: 200ms;
   --motion-slow: 400ms;
+}
+
+/*
+ * Dark mode (US5). The default is driven by the system preference via the
+ * `prefers-color-scheme` media query. A manual in-session toggle overlays the
+ * system by adding `.dark` / `.light` to <html>; on reload the class is gone so
+ * the app returns to following the system (no persistence). Values keep
+ * accessible AA contrast (>= 4.5:1) against their pairing background.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: #16131c;
+    --color-surface: #221d2b;
+    --color-text: #f3f1f6;
+    --color-text-subtle: #cfc8dc;
+    --color-accent: #a78bfa;
+    --color-accent-hover: #c4b5fd;
+    --color-focus: #93c5fd;
+    --color-success: #4ade80;
+    --color-warning: #fbbf24;
+    --color-danger: #f87171;
+    --color-disabled: #3a3544;
+    color-scheme: dark;
+  }
+}
+
+/* Manual override to dark (used when the user chooses dark in-session). */
+:root.dark {
+  --color-background: #16131c;
+  --color-surface: #221d2b;
+  --color-text: #f3f1f6;
+  --color-text-subtle: #cfc8dc;
+  --color-accent: #a78bfa;
+  --color-accent-hover: #c4b5fd;
+  --color-focus: #93c5fd;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-disabled: #3a3544;
+  color-scheme: dark;
+}
+
+/* Manual override to light (used when the user chooses light even on a dark system). */
+:root.light {
+  --color-background: #faf8f5;
+  --color-surface: #ffffff;
+  --color-text: #1f2328;
+  --color-text-subtle: #57606a;
+  --color-accent: #5b21b6;
+  --color-accent-hover: #4c1d95;
+  --color-focus: #2563eb;
+  --color-success: #16a34a;
+  --color-warning: #d97706;
+  --color-danger: #dc2626;
+  --color-disabled: #e5e7eb;
+  color-scheme: light;
 }
 
 @layer base {

@@ -6,39 +6,58 @@ import { Button } from "../../../components/ui/button";
 import type { GeneratedStory } from "../../story-generation/server/schemas";
 import { buildStoryPdf } from "../client/build-story-pdf";
 
+type ExportStatus = "idle" | "exporting" | "success" | "error";
+
 /**
- * Export-to-PDF button (T043).
+ * Export-to-PDF button with clear feedback states (spec 003, US4).
  *
- * On click it lazily loads the PDF builder (browser-only, dynamic import of
- * @react-pdf/renderer) and downloads the composed PDF. Downloads happen purely
- * client-side via an injected browser downloader; nothing is sent over the
- * network or persisted. The button disables while generating and shows a
- * localized error on failure.
+ * Exposes `idle → exporting → success | error` with:
+ *  - `aria-busy` on the region while generating,
+ *  - an `aria-live="polite"` region announcing success/error,
+ *  - a localized retry action after a failure (the export is re-runnable).
+ * On success the "Download as PDF" label returns with a transient success note.
+ *
+ * Download happens purely client-side (dynamic import of @react-pdf/renderer);
+ * nothing is sent over the network or persisted.
  */
 export function ExportStoryButton({ story }: { story: GeneratedStory }) {
   const t = useTranslations("story.reader");
-  const [exporting, setExporting] = useState(false);
-  const [error, setError] = useState(false);
+  const [status, setStatus] = useState<ExportStatus>("idle");
+
+  const exporting = status === "exporting";
 
   const handleExport = async () => {
     if (exporting) return;
-    setExporting(true);
-    setError(false);
+    setStatus("exporting");
     try {
       await buildStoryPdf(story, { download: browserDownload });
+      setStatus("success");
     } catch {
-      setError(true);
-    } finally {
-      setExporting(false);
+      setStatus("error");
     }
   };
 
   return (
-    <div className="flex flex-col gap-xs">
-      <Button variant="secondary" onClick={handleExport} disabled={exporting}>
-        {exporting ? t("exporting", {}) : t("exportPdf")}
+    <div className="flex flex-col gap-xs" aria-busy={exporting} aria-live="polite">
+      <Button
+        variant={status === "error" ? "danger" : "secondary"}
+        onClick={handleExport}
+        disabled={exporting}
+      >
+        {status === "success" ? t("exportSuccess") : exporting ? t("exporting") : t("exportPdf")}
       </Button>
-      {error ? <p className="text-caption text-error">{t("exportError")}</p> : null}
+      {status === "error" ? (
+        <p className="text-caption text-error">
+          {t("exportError")}{" "}
+          <button
+            type="button"
+            className="text-text underline underline-offset-2 hover:text-accent"
+            onClick={handleExport}
+          >
+            {t("retryExport")}
+          </button>
+        </p>
+      ) : null}
     </div>
   );
 }

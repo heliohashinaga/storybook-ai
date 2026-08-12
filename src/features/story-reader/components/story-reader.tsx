@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { GeneratedStory } from "../../story-generation/server/schemas";
+import { useReadAloud } from "../client/use-read-aloud";
+import { SceneProgress } from "./scene-progress";
 import { SceneView } from "./scene-view";
 
 /**
@@ -27,6 +29,8 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
   const current = scenes[currentIndex];
 
   function goTo(index: number) {
+    // Stop any in-progress narration before moving to another scene.
+    readAloud.stop();
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
@@ -39,6 +43,14 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
       goTo(currentIndex - 1);
     }
   }
+
+  // Test-first: read-aloud (US2). Local, single start/stop control; speech is
+  // cancelled whenever the scene text changes so two scenes never overlap.
+  const readerText = current ? `${current.title}. ${current.body}` : "";
+  const readAloud = useReadAloud({
+    text: readerText,
+    locale: story.locale ?? "pt-BR",
+  });
 
   // Move focus to the new scene heading on navigation, but never steal focus
   // on the initial render.
@@ -69,10 +81,28 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
 
       <SceneView scene={current} />
 
+      {readAloud.supported && (
+        <div>
+          <Button variant="secondary" aria-pressed={readAloud.speaking} onClick={readAloud.toggle}>
+            {readAloud.speaking ? t("stopReading") : t("readAloud")}
+          </Button>
+          <span aria-live="polite" className="sr-only">
+            {readAloud.speaking ? t("reading") : ""}
+          </span>
+        </div>
+      )}
+
       <div className="flex items-center justify-between gap-md">
-        <p aria-live="polite" className="text-body">
-          {t("sceneCount", { current: currentIndex + 1, total })}
-        </p>
+        <div className="flex flex-col items-start gap-xs">
+          <p aria-live="polite" className="text-body">
+            {t("sceneCount", { current: currentIndex + 1, total })}
+          </p>
+          <SceneProgress
+            current={currentIndex + 1}
+            total={total}
+            label={t("sceneCount", { current: currentIndex + 1, total })}
+          />
+        </div>
         <div className="flex gap-sm">
           <Button
             variant="secondary"

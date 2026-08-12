@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
+import { ChoiceCard } from "../../../components/ui/choice-card";
 import { Select } from "../../../components/ui/select";
 import { useLocaleContext } from "../../../i18n/locale-provider";
 import { localeCatalog, themeCatalog } from "../../../lib/story-catalog";
@@ -163,18 +164,25 @@ export function StoryRequestForm({
         ))}
       </Select>
 
-      <Select
-        label={t("form.theme.label")}
-        value={theme}
+      <fieldset
         disabled={disabled}
-        onChange={(event) => setTheme(event.target.value as Theme)}
+        aria-label={t("form.theme.label")}
+        className="flex flex-col gap-sm"
       >
-        {themeCatalog.map((entry) => (
-          <option key={entry.value} value={entry.value}>
-            {t(`catalog.theme.${entry.value}`)}
-          </option>
-        ))}
-      </Select>
+        <legend className="text-caption text-text-subtle">{t("form.theme.label")}</legend>
+        <div className="flex flex-wrap gap-md">
+          {themeCatalog.map((entry) => (
+            <ChoiceCard
+              key={entry.value}
+              label={t(`catalog.theme.${entry.value}`)}
+              description={t(`catalog.themeDescription.${entry.value}`)}
+              selected={theme === entry.value}
+              disabled={disabled}
+              onSelect={() => setTheme(entry.value as Theme)}
+            />
+          ))}
+        </div>
+      </fieldset>
 
       <fieldset disabled={disabled} className="flex flex-col gap-xs">
         <legend className="text-body font-title">{t("form.scenes.label")}</legend>

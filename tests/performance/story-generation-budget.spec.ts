@@ -60,7 +60,8 @@ async function initialJsChunks(page: Page): Promise<string[]> {
 
 async function fillAndSubmit(page: Page): Promise<Response> {
   await page.getByLabel(/Idade da criança/i).fill("6");
-  await page.getByLabel(/Tema da história/i).selectOption("courage");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Coragem/i }).click();
   const response = page.waitForResponse(
     (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
   );

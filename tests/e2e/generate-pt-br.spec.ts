@@ -43,7 +43,8 @@ async function fillAndSubmit(page: Page): Promise<void> {
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
   await page.getByLabel(/Idade da criança/i).fill("6");
-  await page.getByLabel(/Tema da história/i).selectOption("courage");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Coragem/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();
 }
 

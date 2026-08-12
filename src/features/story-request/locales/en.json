@@ -47,7 +47,12 @@
       "exportPdf": "Download as PDF",
       "exporting": "Generating PDF…",
       "exportError": "Couldn't download the PDF. Try again.",
-      "generateAnother": "Generate another"
+      "generateAnother": "Generate another",
+      "readAloud": "Listen to this scene",
+      "stopReading": "Stop reading",
+      "reading": "Reading the scene",
+      "exportSuccess": "PDF downloaded",
+      "retryExport": "Try again"
     },
     "storySwitcher": {
       "label": "Your stories",
@@ -66,5 +71,10 @@
         "kindness": "Caring for others and lending a hand."
       }
     }
+  },
+  "theme": {
+    "toDark": "Turn on dark mode",
+    "toLight": "Turn on light mode",
+    "label": "Toggle theme"
   }
 }

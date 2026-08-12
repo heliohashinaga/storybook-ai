@@ -47,7 +47,12 @@
       "exportPdf": "Baixar como PDF",
       "exporting": "Gerando PDF…",
       "exportError": "Não foi possível baixar o PDF. Tente de novo.",
-      "generateAnother": "Gerar outra história"
+      "generateAnother": "Gerar outra história",
+      "readAloud": "Ouvir esta cena",
+      "stopReading": "Parar leitura",
+      "reading": "Lendo a cena",
+      "exportSuccess": "PDF baixado",
+      "retryExport": "Tentar novamente"
     },
     "storySwitcher": {
       "label": "Suas histórias",
@@ -66,5 +71,10 @@
         "kindness": "Cuidar dos outros e ajudar."
       }
     }
+  },
+  "theme": {
+    "toDark": "Ativar modo escuro",
+    "toLight": "Ativar modo claro",
+    "label": "Alternar tema"
   }
 }

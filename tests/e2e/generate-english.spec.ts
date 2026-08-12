@@ -43,7 +43,8 @@ async function fillAndSubmitEnglish(page: Page): Promise<void> {
   await page.getByLabel(/Idade da criança|Child's age/i).fill("9");
   await page.getByLabel(/Idioma|Language/i).selectOption("en");
   // Selecting the story language flips the whole UI to English (ADR 0003).
-  await page.getByLabel(/Story theme/i).selectOption("friendship");
+  // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
+  await page.getByRole("button", { name: /^Friendship/i }).click();
   await page.getByRole("button", { name: /Create story/i }).click();
 }
 

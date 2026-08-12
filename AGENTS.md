@@ -111,9 +111,14 @@ full parallelism.
   validation/error/retry copy) through next-intl catalogs (`pt-BR` + `en`); no
   hardcoded strings.
 - Remove dead code and unused deps before finishing; no commented-out blocks.
+- **Re-run quality gates after the LAST edit, before committing**: a `lint`/`format:check`/`typecheck` result taken before the final file change is STALE and must not be trusted. Before every commit (or PR), run `pnpm lint` (0 warnings), `pnpm format:check` (no drift — run `pnpm format` on/after ANY newly written or edited file), and `pnpm typecheck`. This includes non-source files: specs, checkslists, README, and ADRs are likely candidates for `format:check` drift. A commit that breaks `format:check` fails CI, so treat the local gates as the gate.
 - Accessibility bar (all UI): AA contrast (≥ 4.5:1) for normal text, visible
   focus and full keyboard navigation, honor `prefers-reduced-motion`, and use
   `aria-live`/`aria-busy` for async/loading states.
+
+### Pre-commit hook (mandatory usage)
+
+A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:check` and `typecheck` and aborts the commit if any fails. It is installed automatically via `pnpm postinstall` (see `scripts/install-hooks.sh`); a fresh `pnpm install` wires it. Do not bypass the hook with `--no-verify` for routine quality fixes.
 
 ## Testing Rules
 
@@ -149,7 +154,9 @@ anonymous design. Do not remove, weaken, or bypass these notices.
 
 Before a PR/commit: all required checks pass; coverage gates met; no direct
 identifier in payloads/logs/storage; stories + a11y pass; Storybook behavior
-matches the app; budgets respected; spec/OpenAPI updated if a contract changed.
+matches the app; budgets respected; spec/OpenAPI updated if a contract changed.**
+Quality gates (`lint`/`format:check`/`typecheck`) are re-run AFTER the final
+edit — a stale result is not acceptable (see Code Style).
 
 Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 `:sparkles: feat(story-generation): add safety pipeline`.
