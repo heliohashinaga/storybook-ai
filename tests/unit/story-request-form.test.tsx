@@ -90,14 +90,14 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     });
     const user = userEvent.setup();
     renderForm({ onSubmit });
-    await user.type(screen.getByLabelText(/idade da criança/i), "10");
+    await user.type(screen.getByLabelText(/idade da criança/i), "9");
     await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
     await user.selectOptions(screen.getByLabelText(/tema da história/i), "friendship");
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0]?.[0]).toEqual({
-      ageBand: "8-12",
+      ageBand: "8-9",
       locale: "en",
       theme: "friendship",
     });
@@ -113,7 +113,21 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     await user.type(screen.getByLabelText(/idade da criança/i), "1");
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
-    expect(await screen.findByText(/entre 2 e 12 anos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/entre 2 e 9 anos/i)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("blocks an above-maximum age (10) locally without submitting", async () => {
+    const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
+      void _request;
+      return { ok: true };
+    });
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+    await user.type(screen.getByLabelText(/idade da criança/i), "10");
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    expect(await screen.findByText(/entre 2 e 9 anos/i)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -126,7 +140,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     renderForm({ onSubmit });
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
-    expect(await screen.findByText(/entre 2 e 12 anos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/entre 2 e 9 anos/i)).toBeInTheDocument();
     expect(onSubmit).not.toHaveBeenCalled();
   });
 });

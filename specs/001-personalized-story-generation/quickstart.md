@@ -89,7 +89,7 @@ Expected checks:
 
 1. Change the UI language and requested story locale to English.
 2. Generate a story with `friendship` for age `9`.
-3. Verify all reader text, scene content, and alt text are English and match age band `8-12`.
+3. Verify all reader text, scene content, and alt text are English and match age band `8-9`.
 4. Verify choosing an unsupported language is blocked with a localized, clear error before any API
    request is sent.
 

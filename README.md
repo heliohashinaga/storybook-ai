@@ -10,7 +10,7 @@ illustrations.
 
 ## Overview
 
-- 🧒 **Age bands**: `2-4`, `5-7`, `8-12`.
+- 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
 - 🎭 **Themes**: courage, friendship, kindness.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
 - 📖 **Scenes** with generated illustrations and localized alternative text.
@@ -62,7 +62,7 @@ Configure development secrets (server-side only) in `.env.local`:
 OPENROUTER_API_KEY=replace-with-development-key
 OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
 OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
-OPENROUTER_MODERATION_MODEL=replace-with-approved-moderatiopn-model
+OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
 ```
 
 > Development provider selection: set `STORIES_PROVIDER=fake` only for

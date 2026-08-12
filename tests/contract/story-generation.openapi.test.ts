@@ -63,7 +63,7 @@ describe("POST /api/stories — request contract (GenerateStoryRequest)", () => 
   it.each([
     ["2-4", "pt-BR", "courage"],
     ["5-7", "pt-BR", "friendship"],
-    ["8-12", "en", "kindness"],
+    ["8-9", "en", "kindness"],
   ] as const)("accepts ageBand %s / locale %s / theme %s", (ageBand, locale, theme) => {
     expect(generateRequestSchema.safeParse({ ageBand, locale, theme }).success).toBe(true);
   });

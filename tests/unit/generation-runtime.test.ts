@@ -36,7 +36,7 @@ describe("createGenerationRuntime provider selection", () => {
     process.env.STORIES_PROVIDER = "fake";
     const runtime = (await loadRuntime()).createGenerationRuntime();
     const story = await runtime.provider.generateStory({
-      ageBand: "8-12",
+      ageBand: "8-9",
       locale: "en",
       theme: "friendship",
     });

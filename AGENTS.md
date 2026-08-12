@@ -22,7 +22,7 @@ names in the scripts section below and `specs/001-personalized-story-generation/
 
 - **No direct identifiers, ever.** Never add a name/child-identifier field to UI,
   API, logs, analytics, or provider payloads.
-- The browser derives `ageBand` (`2-4 | 5-7 | 8-12`) from exact age in memory; the
+- The browser derives `ageBand` (`2-4 | 5-7 | 8-9`) from exact age in memory; the
   server receives **only** `ageBand`, `locale` (`pt-BR` default | `en`), `theme`
   (`courage | friendship | kindness`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story

@@ -29,7 +29,7 @@ as HTML.
 | Name | Values | Rule |
 |------|--------|------|
 | `Locale` | `pt-BR`, `en` | `pt-BR` is preselected. Unsupported values are rejected. |
-| `AgeBand` | `2-4`, `5-7`, `8-12` | Derived locally from a validated integer age 2 through 12; never free-form server input. |
+| `AgeBand` | `2-4`, `5-7`, `8-9` | Derived locally from a validated integer age 2 through 9; never free-form server input. |
 | `Theme` | `courage`, `friendship`, `kindness` | Allow-list only; free-form themes are out of scope for v1. |
 | `StoryStatus` | `idle`, `validating`, `generatingStory`, `moderating`, `generatingImages`, `ready`, `failed` | Drives the request/reader UI. |
 | `SafetyDecision` | `approved`, `regenerated`, `rejected` | `rejected` is never shown as content; it only determines a safe recovery UI. |
@@ -42,7 +42,7 @@ Represents the non-identifying information a parent enters for the active browse
 
 | Field | Type | Validation / Notes |
 |------|------|--------------------|
-| `age` | integer | Required; 2–12 inclusive. Held client-side only. |
+| `age` | integer | Required; 2–9 inclusive. Held client-side only. |
 | `locale` | `Locale` | Required; defaults to `pt-BR`. |
 | `theme` | `Theme` | Required; one of the allow-listed themes. |
 
@@ -131,7 +131,7 @@ The validated, safety-approved server response.
 
 1. The browser validates `StoryPreferences` before deriving the API payload; the server repeats all
    API payload validation and ignores any extraneous property.
-2. `age` is mapped deterministically: `2–4 → 2-4`, `5–7 → 5-7`, `8–12 → 8-12`.
+2. `age` is mapped deterministically: `2–4 → 2-4`, `5–7 → 5-7`, `8–9 → 8-9`.
 3. Stories must contain exactly `N` scenes (v1: `N = 3`); each `ordinal` must be unique,
    contiguous, and in ascending reader order. The count is a validated constant, not scattered
    hardcoded "3" values, so a future variable scene count stays a localized change.

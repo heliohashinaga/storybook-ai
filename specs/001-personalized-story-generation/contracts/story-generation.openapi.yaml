@@ -196,7 +196,7 @@ components:
           description: Localized, age-appropriate illustration description.
     AgeBand:
       type: string
-      enum: ['2-4', '5-7', '8-12']
+      enum: ['2-4', '5-7', '8-9']
     Locale:
       type: string
       enum: [pt-BR, en]

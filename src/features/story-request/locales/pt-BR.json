@@ -4,8 +4,8 @@
       "title": "Crie uma história personalizada",
       "age": {
         "label": "Idade da criança",
-        "placeholder": "Digite a idade (2 a 12)",
-        "errorRange": "Informe uma idade entre 2 e 12 anos."
+        "placeholder": "Digite a idade (2 a 9)",
+        "errorRange": "Informe uma idade entre 2 e 9 anos."
       },
       "locale": {
         "label": "Idioma"

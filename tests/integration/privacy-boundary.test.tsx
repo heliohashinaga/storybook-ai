@@ -66,7 +66,7 @@ describe("privacy boundary regression (T061)", () => {
   it("the browser request boundary derives only an ageBand — the exact age never leaves the client", async () => {
     // Canonicalisation shared by the request form: an exact age is reduced to a
     // coarse band in-memory, and only the band is eligible to be serialized.
-    const derivative = (age: number): string => (age >= 8 ? "8-12" : age >= 5 ? "5-7" : "2-4");
+    const derivative = (age: number): string => (age >= 8 ? "8-9" : age >= 5 ? "5-7" : "2-4");
 
     const exactAge = 6;
     const payload = { ageBand: derivative(exactAge), locale: "pt-BR", theme: "courage" };

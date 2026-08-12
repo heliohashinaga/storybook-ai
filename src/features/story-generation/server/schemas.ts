@@ -8,7 +8,7 @@ import { z } from "zod";
  * identifier field (e.g. `name`) before a provider call or response.
  */
 
-export const ageBandSchema = z.enum(["2-4", "5-7", "8-12"]);
+export const ageBandSchema = z.enum(["2-4", "5-7", "8-9"]);
 export const localeSchema = z.enum(["pt-BR", "en"]);
 export const themeSchema = z.enum(["courage", "friendship", "kindness"]);
 

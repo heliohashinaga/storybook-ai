@@ -4,8 +4,8 @@
       "title": "Create a personalized story",
       "age": {
         "label": "Child's age",
-        "placeholder": "Enter the age (2 to 12)",
-        "errorRange": "Please enter an age between 2 and 12."
+        "placeholder": "Enter the age (2 to 9)",
+        "errorRange": "Please enter an age between 2 and 9."
       },
       "locale": {
         "label": "Language"

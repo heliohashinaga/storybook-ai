@@ -75,7 +75,7 @@ export function StoryRequestForm({
     if (submitting) return;
 
     const numericAge = Number(age);
-    if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 12) {
+    if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 9) {
       setAgeError(t("form.age.errorRange"));
       ageInputRef.current?.focus();
       return;
@@ -114,7 +114,7 @@ export function StoryRequestForm({
           ref={ageInputRef}
           type="number"
           min="2"
-          max="12"
+          max="9"
           inputMode="numeric"
           className="w-full rounded-md border border-disabled bg-surface px-md py-sm text-body text-text shadow-sm disabled:bg-disabled disabled:text-text-subtle"
           value={age}

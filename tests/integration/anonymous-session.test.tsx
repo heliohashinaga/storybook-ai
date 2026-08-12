@@ -69,7 +69,7 @@ async function submitStory(
   session: StorySession,
   prefs: { age: number; locale: "pt-BR"; theme: "courage" | "kindness" | "friendship" }
 ): Promise<Record<string, unknown>> {
-  const ageBand = prefs.age >= 8 ? "8-12" : prefs.age >= 5 ? "5-7" : "2-4";
+  const ageBand = prefs.age >= 8 ? "8-9" : prefs.age >= 5 ? "5-7" : "2-4";
   const payload = { ageBand, locale: prefs.locale, theme: prefs.theme };
   session.begin();
   const response = await vi.mocked(fetch)("/api/stories", {

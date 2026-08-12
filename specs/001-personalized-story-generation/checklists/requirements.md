@@ -36,7 +36,7 @@
   reasonable defaults were chosen and documented in the Assumptions section.
 - **Clarify complete**: Five critical questions resolved and applied to the spec:
   1. Access model — anonymous, no accounts, ephemeral session data (Option B).
-  2. Age range — 2–12 in three bands (2–4, 5–7, 8–12) (Option A).
+  2. Age range — 2–9 in three bands (2–4, 5–7, 8–9) (Option A).
   3. Content safety — block + auto-regenerate safe alternative (Option A).
   4. Languages — default pt-BR + English.
   5. Delivery/keep — read in-app + downloadable/printable export (Option A).

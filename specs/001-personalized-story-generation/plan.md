@@ -9,7 +9,7 @@
 Build an anonymous, responsive web experience where a parent selects a child's age, language, and
 a positive-value theme to receive a safe, relevant, illustrated three-scene story. The product does
 not ask for or receive a child's name or any other direct identifier. The MVP supports `pt-BR`
-(default) and English; age bands 2–4, 5–7, and 8–12; and courage, friendship, and kindness themes.
+(default) and English; age bands 2–4, 5–7, and 8–9; and courage, friendship, and kindness themes.
 Stories are read scene-by-scene and exported/printed locally as a PDF.
 
 Use one full-stack Next.js application. Browser memory retains the exact age and generated stories
@@ -56,7 +56,7 @@ optimization can use `sharp`; standard Node-compatible serverless/container depl
 - Anonymous only: no account, server-side profile, story history, child data persistence, or direct
   child identifier in the form, request, log, analytics, or provider payload.
 - Exact launch locales: `pt-BR` default and English. Exact launch themes: courage, friendship,
-  kindness — **exactly one theme per story**; multi-theme combinations are out of scope for v1. Exact age bands: 2–4, 5–7, 8–12.
+  kindness — **exactly one theme per story**; multi-theme combinations are out of scope for v1. Exact age bands: 2–4, 5–7, 8–9.
 - Exactly three scenes per MVP story — validated constant `N = 3`, the scene-count extension
   point for a future variable count (3, 4, or 5 per team direction); each scene must have an
   approved illustration and localized alt text.
@@ -194,7 +194,7 @@ Storybook stories are co-located.
 
 ### Request and privacy flow
 
-1. The form validates the **exact age** (number, 2–12), locale, and theme in the browser; it
+1. The form validates the **exact age** (number, 2–9), locale, and theme in the browser; it
    contains no name or other direct-identifier field.
 2. The browser derives `ageBand` and posts only `ageBand`, `locale`, and `theme` to
    `POST /api/stories`; direct identifiers and the exact age are never serialized — the exact-age

@@ -37,7 +37,7 @@ function assertPrivacyContract(payload: RequestPayload): void {
   for (const forbidden of ["name", "exactAge", "childName", "identifier", "age"]) {
     expect(payload[forbidden]).toBeUndefined();
   }
-  expect(payload.ageBand).toMatch(/^2-4|5-7|8-12$/);
+  expect(payload.ageBand).toMatch(/^2-4|5-7|8-9$/);
   expect(payload.locale).toMatch(/^pt-BR|en$/);
   expect(payload.theme).toMatch(/^courage|friendship|kindness$/);
 }

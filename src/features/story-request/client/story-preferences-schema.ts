@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const ageBandValues = ["2-4", "5-7", "8-12"] as const;
+export const ageBandValues = ["2-4", "5-7", "8-9"] as const;
 export const localeValues = ["pt-BR", "en"] as const;
 export const themeValues = ["courage", "friendship", "kindness"] as const;
 
@@ -15,7 +15,7 @@ export type Theme = (typeof themeValues)[number];
  */
 export const storyPreferencesSchema = z
   .object({
-    age: z.number().int().min(2).max(12),
+    age: z.number().int().min(2).max(9),
     locale: z.enum(localeValues),
     theme: z.enum(themeValues),
   })
