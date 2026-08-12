@@ -1,0 +1,89 @@
+openapi: 3.1.0
+info:
+  title: Storybook-AI Narration (TTS de IA)
+  version: 1.0.0
+  description: >
+    Endpoint server-only que entrega o áudio narrado de uma cena por TTS de IA
+    (topologia híbrida: IA quando disponível e dentro do teto de custo; senão o
+    cliente cai para Web Speech local). Preserva o contrato anônimo: recebe
+    apenas o texto anônimo da cena + idioma; nunca um identificador. Zero
+    persistência: a resposta é áudio transitório e a rota responde no-store.
+servers:
+  - url: /api
+paths:
+  /narrate:
+    post:
+      operationId: narrateScene
+      summary: Gera o áudio narrado de uma cena por TTS de IA
+      description: >
+        Retorna os bytes de áudio (ex. MP3) da narração do texto da cena no
+        idioma ativo. É a única entrada de narração por IA e fica atrás do
+        adapter server-only; a chave/provedor de TTS nunca é exposta ao cliente.
+        Se a IA estiver indisponível ou superar o teto de custo, responde com um
+        sinal de fallback para que o cliente use a Web Speech local.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NarrateRequest"
+      responses:
+        "200":
+          description: Áudio narrado (transitório). Content-Type do áudio.
+          content:
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+              description: Áudio MP3 resultante da narração da cena.
+        "204":
+          description: Sem conteúdo — a narração por IA não deve ocorrer (indisponível sem fallback); o cliente usa Web Speech local.
+        "400":
+          description: Requisição inválida (texto vazio, idioma não suportado ou excede teto de caracteres).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "429":
+          description: Tetos de custo/uso atingidos.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Provedor de TTS indisponível ou erro de upstream.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    NarrateRequest:
+      type: object
+      additionalProperties: false
+      required: [sceneText, locale]
+      properties:
+        sceneText:
+          type: string
+          description: Texto anônimo da cena (sem nome/idade exata/id). Teto por cena configurável (TTS_MAX_CHARS_PER_SCENE).
+          minLength: 1
+          maxLength: 2000
+        locale:
+          type: string
+          enum: [pt-BR, en]
+          description: Idioma ativo da história (mesmo vocabulário do resto do app).
+    Error:
+      type: object
+      required: [code, messageKey, retryable]
+      properties:
+        code:
+          type: string
+        messageKey:
+          type: string
+          description: Chave do catálogo next-intl (nunca texto fixo no servidor).
+        retryable:
+          type: boolean
+  securitySchemes: {}
+tags:
+  - name: narration
+    description: Narração por voz (TTS de IA com fallback híbrido).
