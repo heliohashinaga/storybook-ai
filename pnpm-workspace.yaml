@@ -10,3 +10,6 @@ minimumReleaseAgeExclude:
   - next-intl-swc-plugin-extractor@4.13.5
   - next-intl@4.13.5
   - use-intl@4.13.5
+
+overrides:
+  uuid: 11.1.1
