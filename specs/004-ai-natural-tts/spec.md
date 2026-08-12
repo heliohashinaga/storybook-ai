@@ -37,20 +37,18 @@ Ao acompanhar uma história gerada, o responsável (adulto lendo junto com a cri
 
 ---
 
-### User Story 2 - Ter narração natural garantida também quando algo falha (fallback progressivo) (Priority: P2)
+### User Story 2 - Erro controlado quando a narração por IA ativa falha (Priority: P2)
 
-Se a geração de áudio por IA estiver indisponível (ex.: provedor fora do ar, sem resposta, ou erro) ou exceder um teto de custo/limite, a experiência não deve quebrar: o aplicativo cai para a **voz de sistema (Web Speech)** já existente ou, na ausência de voz no idioma, mantém o texto legível com o controle desabilitado e mensagem localizada.
+Quando a narração por IA estiver **ativada** (`AI_NARRATION_ENABLED=true`) e o provedor de áudio falhar (ex.: fora do ar, timeout, ou erro), o responsável recebe um **erro acessível e compreensível** — a narração não inicia e não há qualquer queda silenciosa para a voz de sistema. O texto da cena permanece legível e o usuário pode tentar novamente; se a IA estiver **desativada** (`false`), o controle usa a voz de sistema (Web Speech) normalmente, sem envolver o provedor de IA.
 
-**Why this priority**: Preserva robustez e disponibilidade mesmo no caminho de erro do novo provedor, evitando regressão na experiência atual. É importante, mas não é o pedido central — vem depois do caminho feliz.
+**Why this priority**: Com IA `true`, o produto promete voz de IA; mascarar a falha com Web Speech seria enganoso e esconderia problema de provider/custo. Um erro claro é melhor que um fallback silencioso. É importante mas não é o pedido central — vem depois do caminho feliz.
 
-**Independent Test**: É testável isoladamente forçando o provedor de áudio de IA a falhar (fake que retorna não-2xx/timeout) e verificando que a leitura cai para a voz de sistema, com anúncio acessível de que a voz padrão está em uso; não há erro "duro" nem cena ilegível.
+**Independent Test**: É testável isoladamente forçando o provedor de áudio de IA a falhar (fake que retorna não-2xx/timeout) e verificando que (a) o controle entra em estado de erro com mensagem acessível, (b) **não** é tocado áudio de Web Speech, e (c) o texto da cena permanece legível e há nova tentativa disponível.
 
 **Acceptance Scenarios**:
 
-1. **Given** o provedor de áudio de IA indisponível para a cena **When** o responsável aciona o controle de leitura **Then** o app toca a voz de sistema (Web Speech) naquele momento, informando via anúncio acessível que a voz padrão está sendo usada.
-2. **Given** indisponibilidade persistente (mais de uma cena/repetição) **When** o responsável tenta repetidamente **Then** o app não tenta infinitamente (limite de tentativas) e mantém a história legível; em último recurso, o controle fica desabilitado com mensagem localizada.
-
----
+1. **Given** `AI_NARRATION_ENABLED=true` **e** o provedor de áudio de IA indisponível para a cena **When** o responsável aciona o controle de leitura **Then** o app mostra estado de erro acessível (anúncio de falha via `aria-live`), a narração não inicia, e **nenhum** áudio de Web Speech é tocado; o texto permanece legível.
+2. **Given** falha persistente do provedor **When** o responsável repete **Then** o app não tenta infinitamente (limite de tentativas/backoff) e mantém o texto legível com a opção de nova tentativa; em último recurso, o controle fica em estado de erro/desabilitado com mensagem localizada.
 
 ### User Story 3 - Gerar a narração natural sob demanda, sem persistir áudio (Priority: P2)
 
@@ -71,7 +69,7 @@ A narração deve ser **gerada no momento em que o usuário toca em "ouvir"** (s
 ### Edge Cases
 
 - **Cena com texto muito curto ou muito longo**: o texto de cada cena é limitado por faixa-etária; o TTS deve lidar com entradas curtas/longas sem erro, truncamento silencioso ou entonação quebrada (caso limite de contagem de caracteres do provedor).
-- **Voz indisponível no idioma da história**: se o idioma ativo (pt-BR ou en) não tiver voz no provedor, o app não deve tentar um idioma errado; cai para a voz de sistema no mesmo idioma ou desabilita com mensagem localizada.
+- **Voz indisponível no idioma da história**: se o idioma ativo (pt-BR ou en) não tiver voz no provedor, o app não deve tentar um idioma errado; **com IA ativa (`true`) exibe erro controlado acessível** (sem cair para a voz de sistema); **com IA desativada (`false`) usa a voz de sistema no mesmo idioma** ou desabilita com mensagem localizada.
 - **Limites de caracteres por requisição**: cenas que ultrapassem o teto do provedor devem ser divididas/fatiadas pelo servidor (server-only) dentro dos limites de resposta, sem expor isso ao usuário.
 - **Falha parcial na troca de cena**: se a narração de uma cena falha mas a cena é navegável, o app não deve travar a navegação; o usuário pode seguir e tentar ouvir de novo.
 - **Múltiplas cenas rápidas**: acionar "ouvir" e trocar de cena rapidamente não deve encadear narrações acumuladas (overflow/sobreposição de áudio).
@@ -87,15 +85,15 @@ A narração deve ser **gerada no momento em que o usuário toca em "ouvir"** (s
 - **FR-003**: O áudio gerado por IA DEVE ser **não persistente** — nenhum cookie, localStorage, indexedDB, storage durável ou cache de áudio; a narração existe apenas em memória para a reprodução imediata da resposta (cada "ouvir" regenera ou re-serve de forma volátil).
 - **FR-004**: O sistema DEVE preservar o **contrato anônimo**: a chamada de TTS recebe apenas o **texto da cena** sem qualquer identificador (sem nome, idade exata, e-mail, id de sessão); nenhum identificador direto é transmitido, logado ou armazenado em nome da narração.
 - **FR-005**: A narração DEVE ser **interrompida** ao navegar para outra cena e deve parar corretamente ao terminar o texto, retornando o controle ao estado "pronto".
-- **FR-006**: O sistema DEVE **fazer fallback** para a voz de sistema (Web Speech) quando o TTS de IA estiver indisponível ou exceder limite, e desabilitar o controle com mensagem localizada quando não houver voz no idioma — mantendo o texto sempre legível (melhoria progressiva).
-- **FR-007**: O sistema DEVE impor um **teto de custo/uso** por narração (e um limite de tentativas em caso de falha persistente), adequado a projeto pessoal não-comercial, e sinalizar graciosamente quando o limite for alcançado.
+- **FR-006**: A narração por voz de IA DEVE estar **desativada por padrão** (`AI_NARRATION_ENABLED=false`), em que caso o controle de leitura usa a **voz de sistema (Web Speech)**, sem envolver o provedor de IA. Quando ativada (`true`), **NÃO há fallback** para a voz de sistema: se o provedor falhar, exibe-se **erro acessível e compreensível**, mantendo o texto legível; se não houver voz no idioma no provedor, o controle fica em estado de erro/desabilitado com mensagem localizada (texto sempre legível).
+- **FR-007**: Com a IA ativada (`true`) e falha do provedor, o sistema DEVE tratar como **erro controlado** (sem retry infinito; limite de tentativas/backoff), apresentando uma mensagem acessível e mantendo o texto da cena legível — nunca históri/áudio parcial nem queda silenciosa para Web Speech.
 - **FR-008**: O sistema DEVE respeitar o **budget de performance** vigente (JS inicial ≤250 KiB gzip, LCP p75 ≤2.5s, navegação de cena ≤100ms p75, geração completa ≤120s) e **não** carregar pesos/recursos de TTS no bundle inicial.
 - **FR-009**: O sistema DEVE honrar `prefers-reduced-motion` e os requisitos de acessibilidade AA (contraste/foco/teclado) para todos os novos estados do controle de leitura.
 
 *Examples de requisitos a clarificar (ver Perguntas):*
 
-- **FR-010**: O sistema DEVE obter a voz por IA de forma **híbrida (topologia server-only com fallback)**, com o uso da IA controlado por **configuração via `AI_NARRATION_ENABLED`** (env, server-only) e **sem switch de ativação de usuário na tela ou na sessão**: quando a config habilita a IA (`true`) E o provedor de fala estiver disponível (dentro do limite de custo/uso), o texto anônimo da cena é enviado pela fronteira do servidor ao TTS de IA para gerar voz natural; quando a config está desabilitada (`false`) ou o provedor indisponível, o sistema transita para a voz de sistema (Web Speech) sem interromper a experiência. Aceita-se que o **texto da cena** trafegue da fronteira do servidor ao provedor — consistente com a forma como o mesmo texto já vai à geração — **somente** quando a IA estiver habilitada E em uso, e **jamais** um identificador. Usa-se uma **voz de IA fixa**, sem seletor.
-- **FR-011**: O nível de qualidade/naturalidade do TTS de IA e o teto de custo por narração DEVE ser **configurável** (perfil de custo-vs-naturalidade). A configuração (ex.: ambiente/ativação do modelo de voz) permite escolher entre perfil **custo-eficiente** (voz claramente mais natural que a de sistema, custo desprezível) e perfil **premium** (voz mais natural/humana, custo maior), com um teto de uso/custo monitorado e comportamento gracioso ao atingi-lo. Esta é a escolha configurável (Q2-C).
+- **FR-010**: O sistema DEVE obter a voz por IA de forma **server-only controlada por `AI_NARRATION_ENABLED`** (env, sem switch de usuário na tela ou na sessão): quando a config habilita a IA (`true`) E o provedor de fala responde, o texto anônimo da cena é enviado pela fronteira do servidor ao TTS de IA para gerar voz natural; quando `false`, o controle usa a voz de sistema; quando `true` mas o provedor falha, o sistema **NÃO** transita para Web Speech — apresenta **erro acessível** (US2). Aceita-se que o **texto da cena** trafegue da fronteira do servidor ao provedor **somente** quando a IA ativa estiver fazendo a chamada, e **jamais** um identificador. Usa-se uma **voz de IA fixa**, sem seletor.
+- **FR-011**: A qualidade/naturalidade do TTS DEVE ser **configurável** via `OPENROUTER_TTS_MODEL` (perfil custo-vs-naturalidade: custo-eficiente ou premium), escolhendo o modelo por ambiente — sem knod de custo por narração (não há teto de custo por env).
 
 ### Key Entities *(include if feature involves data)*
 
@@ -113,21 +111,21 @@ A narração deve ser **gerada no momento em que o usuário toca em "ouvir"** (s
 - **SC-003**: **Zero persistência**: nenhuma narração é armazenada — recarregar a página não re-apresenta áudio, e a inspeção de rede/storage confirma ausência de cookies/localStorage/armazenamento durável criados pela narração.
 - **SC-004**: **Contrato anônimo mantido**: nenhum identificador direto aparece no payload/logs em nome da narração (verificado por testes de invariante de privacidade), e apenas o texto da cena é enviado ao TTS.
 - **SC-005**: O budget de performance é mantido: JS inicial ≤250 KiB gzip (nenhum recurso/peso de TTS no bundle inicial), LCP p75 ≤2.5s, navegação de cena ≤100ms p75; narração adicional não degrada esses valores.
-- **SC-006**: Disponível com fallback: para **todos os cenários determinísticos de indisponibilidade do provedor de TTS** (simulados em teste: erro de upstream, timeout, sem-rede, teto de custo atingido, sem-voz-no-idioma), a leitura continua funcionando com a voz de sistema (Web Speech) **sem erro "duro"** e sem bloqueio — zero falha dura em todos os cenários da suíte de fallback (T018–T024).
-- **SC-007**: Custo/uso dentro do teto definido para projeto pessoal: estimativa de custo por narração compatível com um orçamento publicado no ADR 0007 (ex.: no caminho de menor custo, fração de centavo por leitura), monitorada; ao atingir teto, comportamento gracioso sem quebra.
+- **SC-006**: Comportamento de erro quando a IA ativa falha: para **todos os cenários determinísticos de indisponibilidade do provedor de TTS** (simulados em teste: erro de upstream, timeout, sem-rede, sem-voz-no-idioma), com `AI_NARRATION_ENABLED=true` a leitura não inicia e o usuário recebe **erro acessível e compreensível** — **nenhum** áudio de Web Speech é tocado como fallback e o texto da cena permanece legível; zero queda silenciosa em toda a suíte de erro (T018–T024).
+- **SC-007**: Modelo de voz configurável por ambiente: `OPENROUTER_TTS_MODEL` permite escolher, sem tocar em código, entre perfil **custo-eficiente** (voz claramente mais natural que a de sistema, custo desprezível) e **premium** (voz mais natural, custo maior) — verificado por teste de contrato/env que cada capacidade resolve o modelo certo; sem teto de custo por narração (não há knod).
 
 ## Assumptions
 
 - **Server-only boundary**: a chamada de TTS de IA acontece no servidor (adapter `server-only`, como a geração), nunca no cliente; a chave do provedor vive apenas em `.env` e não é exposta. (Consistente com ADR 0007 e AGENTS.md.)
-- **Topologia híbrida (Q1-C)**: a IA é usada **quando disponível** (dentro do teto de custo) via fronteira do servidor; caso contrário, cai para voz de sistema. O texto da cena trafega ao provedor de IA **somente nesse caminho ativo**, e **apenas o texto** (nunca um identificador) — alinhado com a geração de história existente.
-- **Configuração custo-vs-naturalidade (Q2-C)**: o perfil de TTS (custo-eficiente vs premium) é definido por configuração/ambiente, permitindo trocar sem tocar em código; o teto de custo/uso é monitorado e respeitado.
-- **Ativação por config, sem switch de usuário (clarificação)**: o uso da voz de IA é controlado por `AI_NARRATION_ENABLED` (env, server-only); **não** existe toggle de ativação de usuário na tela nem preferência de sessão. Default `false` ⇒ voz de sistema; `true` ⇒ IA (com fallback à Web Speech quando indisponível). Isso preserva a postura "nada sai do dispositivo" quando desligado por config e evita custo/uso de TTS não consentido.
+- **Topologia (Q1-C)**: a IA é usada **quando ativada** (`AI_NARRATION_ENABLED=true`) e o provedor responde, via fronteira do servidor; se o provedor falhar, apresenta-se **erro acessível** (não há fallback para a voz de sistema). O texto da cena trafega ao provedor de IA **somente nesse caminho ativo**, e **apenas o texto** (nunca um identificador) — alinhado com a geração de história existente.
+- **Configuração custo-vs-naturalidade (Q2-C)**: o perfil de TTS (custo-eficiente vs premium) é definido por configuração/ambiente via `OPENROUTER_TTS_MODEL`, permitindo trocar sem tocar em código; **não** há teto de custo/uso por narração.
+- **Ativação por config, sem switch de usuário (clarificação)**: o uso da voz de IA é controlado por `AI_NARRATION_ENABLED` (env, server-only); **não** existe toggle de ativação de usuário na tela nem preferência de sessão. Default `false` ⇒ voz de sistema; `true` ⇒ IA (com erro acessível se o provedor falhar — sem fallback à Web Speech). Isso preserva a postura "nada sai do dispositivo" quando desligado por config.
 - **Voz fixa, sem seletor (clarificação)**: usa-se um único narrador de IA (a voz disponível para o idioma ativo pt-BR/en); seleção de voz fica fora de escopo nesta versão (evolução futura).
 - **Envio do texto da cena**: enviar o **texto anônimo da cena** ao provedor de voz pela fronteira do servidor (na topologia híbrida ativa) é aceitável e **não** configura violação de anonimato — nenhum identificador é transmitido; o mesmo texto já é enviado à geração de história.
 - **Geração sob demanda**: a narração é gerada no momento em que o usuário toca "ouvir"; sem pré-busca, sem storage. (Consistente com a UX atual de start/stop.)
 - **Sem persistência**: áudio é transitório/volátil (em memória, para reprodução imediata); nada é gravado. Preserva a regra "no persistence" do projeto.
-- **Idiomas do provedor**: assume-se que o provedor escolhido oferece voz de qualidade em **pt-BR e en** (os idiomas do app). Se não, cai para voz de sistema no mesmo idioma.
-- **Custo/naturalidade (defaults do perfil configurável)**: no perfil custo-eficiente, alvo = **mais natural que sistema** (sem "human-clone"); o caminho de maior naturalidade é limitado pelo teto de custo configurado (referência do ADR 0007: ex. Kokoro $0.62/M).
+- **Idiomas do provedor**: assume-se que o provedor escolhido oferece voz de qualidade em **pt-BR e en** (os idiomas do app). Se não, com a IA ativa (`true`) a ausência de voz no idioma é tratada como **erro acessível** (sem fallback); com a IA desativada (`false`), usa-se a voz de sistema no mesmo idioma.
+- **Custo/naturalidade (defaults do perfil configurável)**: no perfil custo-eficiente, alvo = **mais natural que sistema** (sem "human-clone"); o modelo é escolhido por `OPENROUTER_TTS_MODEL` (referência do ADR 0007: ex. Kokoro $0.62/M), sem teto de custo por narração.
 - **Sem clone de voz / vozes custom**: fora de escopo; usa-se voz(es) prontas do provedor, sem upload/perfilagem.
 - **Sem SSML avançado**: foco em leitura limpa/fluida; controles expressivos avançados (emoção/ritmo fino) fora de escopo na v1.
 - **Fully anonymous**: a feature não coleta/invoca login; segue o acesso anônimo do app (sem usuário). Exata idade continua apenas em memória (banda derivada no cliente).

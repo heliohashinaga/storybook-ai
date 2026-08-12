@@ -9,18 +9,18 @@
 
 ## 1. Provedor/Modelo de TTS de voz (voz natural, em pt-BR/en)
 
-- **Decision**: Usar um modelo de TTS de voz **neural** acessível via API HTTP, **configurável por ambiente** (`TTS_PROVIDER`/`TTS_MODEL`), atrás do adapter `server-only`. **Default: Kokoro 82M via OpenRouter** (`output_modalities=speech`), pela relação naturalidade/custo, com voz pt-BR disponível.
+- **Decision**: Usar um modelo de TTS de voz **neural** acessível via API HTTP, **configurável por ambiente** (`OPENROUTER_TTS_MODEL`; assume-se OpenRouter por hora como provedor de voz), atrás do adapter `server-only`. **Default: Kokoro 82M via OpenRouter** (`output_modalities=speech`), pela relação naturalidade/custo, com voz pt-BR disponível.
 - **Rationale**:
   - Voz de IA neural é o único caminho para a "voz mais natural" pedida (a Web Speech atual é robótica e varia por dispositivo).
   - **OpenRouter** centraliza vários modelos com um único ponto de integração (mesmo padrão já usado na geração de histórias), cobrado **por caractere de texto**, e expõe filtro `output_modalities=speech`.
-  - **Configurável (Q2-C)**: escolher `TTS_MODEL` por env permite alternar perfil custo-eficiente ↔ premium sem tocar em código (atende ao requisito FR-011).
-  - **Topologia híbrida (Q1-C)**: o servidor tenta IA com teto/tentativas; se indisponível, sinaliza para o cliente cair na Web Speech (FR-006), sem quebrar a experiência.
+  - **Configurável (Q2-C)**: escolher `OPENROUTER_TTS_MODEL` por env permite alternar perfil custo-eficiente ↔ premium sem tocar em código (atende ao requisito FR-011).
+  - **Server-only controlado (Q1-C)**: quando `AI_NARRATION_ENABLED=true`, o servidor gera o áudio pelo provedor; se o provedor falhar, retorna **erro acessível** (sem fallback para a Web Speech).
 - **Alternativas consideradas**:
   - **Kokoro 82M (OpenRouter, default)** — $0.62/M chars; leve (82M params); voz pt-BR (`pf_dora`, `pm_alex`, `pm_santa`); bom custo-benefício p/ "claramente mais natural que sistema". *(Preço snapshot 2026-08-20; validar em `openrouter.ai`.)*
   - **Kokoro via fal.ai** — mesmo modelo, `fal-ai/kokoro/brazilian-portuguese` (hosting separado, requer `FAL_KEY`); nota: custo por 1k denotado diferente das convenções do OpenRouter — avaliar ao configurar.
   - **Voxtral Mini / Speech 2.8 / Qwen-Audio-TTS etc. (OpenRouter)** — voz mais premium, custo maior ($15–60/M chars); encaixam no perfil "premium" configurável.
   - **Azure Neural / ElevenLabs / Google** — fora do OpenRouter; excelente qualidade, mas custo/contrato próprios; manter fora do default (configurável apenas se o usuário optar).
-  - **Web Speech local (estado atual)** — mantido **apenas como fallback** (FR-006), não como caminho primário.
+  - **Web Speech local (estado atual)** — usado quando `AI_NARRATION_ENABLED=false` (comportamento normal) ou, se a IA não oferecer voz no idioma, como erro; **não** é fallback automático quando a IA ativa falha.
 
 ## 2. Fronteira de privacidade e contrato anônimo
 
@@ -42,12 +42,12 @@
 ## 4. Adapter server-only (padrão a seguir)
 
 - **Decision**: Criar `tts-provider.ts` com interface `TtsProvider` (ex.: `synthesize(text, { locale, format }): Promise<Buffer>`) + `ProviderError` com `kind` (unavailable/timeout/invalid), espelhando o padrão `StoryGenerationProvider` existente (`story-generation-provider.ts`).
-- **Rationale**: consistência com a arquitetura já consolidada do repo (mesmo modelo de erro/frontes de fake), testável com fake determinístico, e centraliza o teto de custo/limite de tentativas em `tts-runtime.ts`.
-- **Alternativas consideradas**: chamar o provider direto na rota (rejeitado — frágil, sem camada de teto/fallback/fake).
+- **Rationale**: consistência com a arquitetura já consolidada do repo (mesmo modelo de erro/frontes de fake), testável com fake determinístico, e centraliza a resolução de erro (fallback apenas para IA desativada) em `tts-runtime.ts`.
+- **Alternativas consideradas**: chamar o provider direto na rota (rejeitado — frágil, sem camada de resolução de erro/provider/fake).
 
 ## 5. Configuração e teto de custo (Q2-C)
 
-- **Decision**: Variáveis de ambiente (server): `AI_NARRATION_ENABLED` (liga/desliga), `TTS_PROVIDER`/`TTS_MODEL` (perfil qualidade/custo), `TTS_MAX_CHARS_PER_SCENE` (limite), `TTS_MAX_COST_PER_READ` (teto monetário grosseiro) e `TTS_MAX_RETRIES`. `tts-runtime.ts` calcula custo estimado por caracteres e não chama o provedor se superar o teto (retorna sinal para fallback).
+- **Decision**: Variáveis de ambiente (server): `AI_NARRATION_ENABLED` (liga/desliga) e `OPENROUTER_TTS_MODEL` (provedor/modelo de voz; assume-se OpenRouter por hora). `tts-runtime.ts` chama o provedor e, em falha/indisponibilidade, sinaliza fallback para a voz de sistema (Web Speech).
 - **Rationale**: personaliza o perfil custo-vs-naturalidade sem deploy; garante que um projeto pessoal não estourara custo; teto+retries dão comportamento gracioso (FR-007).
 - **Alternativas**: teto fixo em código (rejeitado — pouco flexível para P2).
 

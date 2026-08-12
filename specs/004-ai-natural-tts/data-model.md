@@ -14,7 +14,7 @@ Campo que o cliente envia ao `POST /api/narrate`.
 
 | Campo | Tipo | Regras / Validação | Persistido? |
 |-------|------|--------------------|-------------|
-| `sceneText` | `string` | `1..2000` chars (teto por cena configurável); **texto anônimo da cena**, sem identificador | Não — usado só na chamada |
+| `sceneText` | `string` | `1..2000` chars (limite do schema, constante); **texto anônimo da cena**, sem identificador | Não — usado só na chamada |
 | `locale` | `"pt-BR" \| "en"` | Enum, mesmo vocabulário do app | Não |
 
 **Invariante de anonimato**: `sceneText` é derivado da cena já gerada no servidor; NUNCA contém nome, idade exata, e-mail, id de sessão ou qualqquer dado identificador. O servidor valida (zod) e re-valida antes da chamada TTS.
@@ -34,13 +34,13 @@ Estado interno do hook de leitura (`useReadAloud` estendido / `useAiReadAloud`),
 
 | Campo | Tipo | Valores possíveis | Persistido? |
 |-------|------|-------------------|-------------|
-| `status` | enum | `idle`, `speaking`, `paused`, `stopping`, `fallback` | Não |
-| `mode` | enum | `ai` (IA ativa), `system` (Web Speech fallback), `unsupported` | Não |
+| `status` | enum | `idle`, `speaking`, `paused`, `stopping`, `error` | Não |
+| `mode` | enum | `ai` (IA ativa), `system` (IA desativada → Web Speech), `unsupported` | Não |
 | `supported` | boolean | - | Não |
 | `currentSceneIndex` | number | 0..(total-1) | Não |
 | `locale` | `pt-BR \| en` | - | Não |
 
-**Transições de estado (máquina simples)**: `idle --toggle--> speaking` (IA ou Web Speech); `speaking --toggle--> idle`; `speaking --scene-change--> stopped/idle` (interrompe); `speaking --0 bytes/não-suportado--> idle (fallback/unsupported)`.
+**Transições de estado (máquina simples)**: `idle --toggle--> speaking` (IA ativa → áudio IA; IA desativada → Web Speech); `speaking --toggle--> idle`; `speaking --scene-change--> stopped/idle` (interrompe); `speaking --erro-do-provedor (IA ativa)--> error` (sem fallback); `idle --IA desativada--> speaking (Web Speech)`.
 
 ### 1.4 CostProfile (configuração server-only, por ambiente)
 
@@ -49,12 +49,9 @@ Não é uma entidade de dados do usuário — é **configuração** (`env`) lida
 | Variável | Tipo | Efeito |
 |----------|------|--------|
 | `AI_NARRATION_ENABLED` | `boolean` | Liga/desliga o caminho IA |
-| `TTS_PROVIDER`/`TTS_MODEL` | `string` | Perfil qualidade/custo (Q2-C) |
-| `TTS_MAX_CHARS_PER_SCENE` | `number` (default 2000) | Max. chars por requisição |
-| `TTS_MAX_RETRIES` | `number` (default 1-2) | Retries em falha |
-| `TTS_MAX_COST_PER_READ` | `number` | Teto monetário estimado por leitura |
+| `OPENROUTER_TTS_MODEL` | `string` | Modelo de voz (assume-se OpenRouter por hora); perfil qualidade/custo (Q2-C) |
 
-Nenhum destes é dado pessoal; não faz parte de entidades de usuário.
+Nenhum destes é dado pessoal; não faz parte de entidades de usuário. (Não há teto de custo por narração nesta versão — só `AI_NARRATION_ENABLED` + `OPENROUTER_TTS_MODEL`.)
 
 ---
 
@@ -62,7 +59,7 @@ Nenhum destes é dado pessoal; não faz parte de entidades de usuário.
 
 - **NarrateRequest** → (servidor valida) → **NarrateResponse** (áudio transitório). 1:1 por cena acionada.
 - **NarrateResponse** → (cliente) → atualiza **NarrationState.mode/status**. 1:1 com a cena atual.
-- **CostProfile** (config) → governa se **NarrateRequest** chega ao provedor (`tts-runtime` decide fallback quando ultrapassa teto).
+- **Config de voz localizada em `OPENROUTER_TTS_MODEL`** → define o modelo de voz usado pelo `tts-runtime` quando `AI_NARRATION_ENABLED=true`. Não é uma entidade de usuário; sem teto de custo.
 
 Não há relacionamentos persistentes; nenhuma tabela/coleção/entity de banco.
 
@@ -72,8 +69,9 @@ Não há relacionamentos persistentes; nenhuma tabela/coleção/entity de banco.
 
 - `sceneText` obrigatório, `1..2000`, sem identificador (zod no cliente + re-validação no servidor).
 - `locale` ∈ {`pt-BR`, `en`}.
-- Se `sceneText` > `TTS_MAX_CHARS_PER_SCENE` → 400 (sem chamada TTS).
-- Se teto de custo estimado ultrapassado ou provedor indisponível → fallback sinalizado (cliente usa Web Speech).
+- Se `sceneText` inválido/fora do limite do schema → 400 (sem chamada TTS).
+- Se `sceneText` inválido/fora do limite do schema → 400 (sem chamada TTS).
+- Com `AI_NARRATION_ENABLED=true` e provedor indisponível/erro → **erro acessível** (sem fallback para Web Speech); com `false`, o cliente usa Web Speech diretamente.
 
 ## 4. Anonimato / zero persistência (invariantes de teste)
 

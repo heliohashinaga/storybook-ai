@@ -4,10 +4,11 @@ info:
   version: 1.0.0
   description: >
     Endpoint server-only que entrega o áudio narrado de uma cena por TTS de IA
-    (topologia híbrida: IA quando disponível e dentro do teto de custo; senão o
-    cliente cai para Web Speech local). Preserva o contrato anônimo: recebe
-    apenas o texto anônimo da cena + idioma; nunca um identificador. Zero
-    persistência: a resposta é áudio transitório e a rota responde no-store.
+    (ativo apenas quando `AI_NARRATION_ENABLED=true`; sem fallback para a voz de
+    sistema). Preserva o contrato anônimo: recebe apenas o texto anônimo da cena
+    + idioma; nunca um identificador. Zero persistência: a resposta é áudio
+    transitório e a rota responde no-store. Se o provedor falhar, a rota
+    responde erro (502/429) — o cliente NÃO cai para Web Speech.
 servers:
   - url: /api
 paths:
@@ -19,8 +20,8 @@ paths:
         Retorna os bytes de áudio (ex. MP3) da narração do texto da cena no
         idioma ativo. É a única entrada de narração por IA e fica atrás do
         adapter server-only; a chave/provedor de TTS nunca é exposta ao cliente.
-        Se a IA estiver indisponível ou superar o teto de custo, responde com um
-        sinal de fallback para que o cliente use a Web Speech local.
+        Se a IA estiver indisponível ou o provedor falhar, responde erro
+        (502/429) — sem fallback para a Web Speech local.
       requestBody:
         required: true
         content:
@@ -37,7 +38,7 @@ paths:
                 format: binary
               description: Áudio MP3 resultante da narração da cena.
         "204":
-          description: Sem conteúdo — a narração por IA não deve ocorrer (indisponível sem fallback); o cliente usa Web Speech local.
+          description: Sem conteúdo — IA desativada (`AI_NARRATION_ENABLED=false`); o cliente não deve chamar `/narrate` neste caso (usa voz de sistema diretamente no navegador).
         "400":
           description: Requisição inválida (texto vazio, idioma não suportado ou excede teto de caracteres).
           content:
@@ -45,7 +46,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
         "429":
-          description: Tetos de custo/uso atingidos.
+          description: Rate limit do provedor de TTS (ex.: limite de requisições atingido).
           content:
             application/json:
               schema:
@@ -65,7 +66,7 @@ components:
       properties:
         sceneText:
           type: string
-          description: Texto anônimo da cena (sem nome/idade exata/id). Teto por cena configurável (TTS_MAX_CHARS_PER_SCENE).
+          description: Texto anônimo da cena (sem nome/idade exata/id). Limite do schema (constante de validação, maxLength=2000).
           minLength: 1
           maxLength: 2000
         locale:
@@ -86,4 +87,4 @@ components:
   securitySchemes: {}
 tags:
   - name: narration
-    description: Narração por voz (TTS de IA com fallback híbrido).
+    description: Narração por voz (TTS de IA, server-only, controlado por `AI_NARRATION_ENABLED`; sem fallback para Web Speech).

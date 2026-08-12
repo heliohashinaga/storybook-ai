@@ -16,10 +16,7 @@
 | Variável | Default | Uso |
 |----------|---------|-----|
 | `AI_NARRATION_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ sempre Web Speech fallback (seguro). |
-| `TTS_PROVIDER` / `TTS_MODEL` | Kokoro-class | Perfil custo-vs-naturalidade (Q2-C). |
-| `TTS_MAX_CHARS_PER_SCENE` | `2000` | Teto de chars por cena. |
-| `TTS_MAX_RETRIES` | `1` | Retries em falha antes do fallback. |
-| `TTS_MAX_COST_PER_READ` | pequeno | Teto monetário estimado por leitura. |
+| `OPENROUTER_TTS_MODEL` | Kokoro-class (OpenRouter por hora) | Modelo de voz; perfil custo-vs-naturalidade (Q2-C). |
 
 ---
 
@@ -32,11 +29,11 @@
 - **E2E** (provider fake): abrir uma história, acionar "ouvir" na cena → `state.speaking` em `ai`; interromper ao trocar de cena.
 - **Esperado**: narração audível, iniciar/parar correto, interrupção por navegação; estado acessível (`aria-live`/`aria-busy`) anunciando "lendo"/"parado". (Contrato: `tts.openapi.yaml` → `POST /api/narrate` → 200 audio.)
 
-### Cenário 2 — Fallback progressivo quando a IA falha [US2]
+### Cenário 2 — Erro controlado quando a IA ativa falha [US2]
 
-- **Setup**: fake/TS que força erro (ex. 429/502/tetos); `AI_NARRATION_ENABLED=true`.
-- **Comando** (unit+e2e): após erro do provider, o cliente usa Web Speech local; nenhum erro "duro".
-- **Esperado**: 1ª leitura tenta IA; ao falhar (dentro de `TTS_MAX_RETRIES`), cai para voz de sistema com anúncio de que a voz padrão está em uso; repetições não tentam infinitamente.
+- **Setup**: fake/TS que força erro (ex. 429/502/timeout); `AI_NARRATION_ENABLED=true`.
+- **Comando** (unit+e2e): após erro do provedor, o controle entra em **estado de erro**; nenhuma narração inicia; **nenhum** áudio de Web Speech é tocado.
+- **Esperado**: 1ª leitura tenta IA; se falhar, exibe mensagem de erro acessível e o texto da cena segue legível — **sem queda para a voz de sistema**; repetições não tentam por infinito (limite/backoff).
 
 ### Cenário 3 — Zero persistência e anonimato [US3 + invariantes]
 
@@ -58,7 +55,7 @@
 
 - **Setup**: Storybook + test-runner/axe.
 - **Comando**: `pnpm storybook:test`.
-- **Esperado**: novos estados do controle de narração (carregando/erro/fallback) sem violações A/AA; foco/teclado ok; `prefers-reduced-motion` honrado; contraste ≥ 4.5:1 em texto normal.
+- **Esperado**: novos estados do controle de narração (carregando/erro) sem violações A/AA; foco/teclado ok; `prefers-reduced-motion` honrado; contraste ≥ 4.5:1 em texto normal.
 
 ---
 
