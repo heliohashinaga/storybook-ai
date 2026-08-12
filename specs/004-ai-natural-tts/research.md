@@ -24,7 +24,7 @@
 
 ## 2. Fronteira de privacidade e contrato anônimo
 
-- **Decision**: A chamada ao TTS (topologia híbrida ativa) envia **apenas o texto anônimo da cena** do adapter `server-only` ao provedor; nenhum identificador (nome, idade exata, e-mail, id de sessão) é transmitido, logado ou armazenado. O endpoint de narração responde `Cache-Control: no-store`; zero persistência de áudio.
+- **Decision**: A chamada ao TTS (no caminho ativo da IA, server-only) envia **apenas o texto anônimo da cena** do adapter `server-only` ao provedor; nenhum identificador (nome, idade exata, e-mail, id de sessão) é transmitido, logado ou armazenado. O endpoint de narração responde `Cache-Control: no-store`; zero persistência de áudio.
 - **Rationale**:
   - Preserva os invariantes não-negociáveis do AGENTS.md: como a geração já envia o mesmo texto à fronteira do servidor, enviá-lo ao TTS pelo mesmo boundary **não introduz novo identificador**.
   - Áudio é **transitório** (blob em memória → reprodução imediata → descartado). Nenhum cookie/localStorage/DB/cache de áudio.
