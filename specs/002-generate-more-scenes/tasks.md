@@ -68,18 +68,20 @@ OpenAPI contract.
 - [ ] T010 [P] [US1] Update `tests/unit/story-preferences-schema.test.ts` for client `sceneCount` field: valid values, rejected out-of-range, no identifier accepted
 - [ ] T011 [P] [US1] Update `tests/unit/provider-fixtures.test.ts`: `buildSafeCandidate` returns `sceneCount` scenes (3/4/5) deterministically
 - [ ] T012 [P] [US1] Contract test update in `tests/contract/story-generation.openapi.test.ts`: request with `sceneCount` 5 is valid and echoed; response scenes bound [3,5]; still no name/identifier allowed
+- [ ] T013 [P] [US1] Integration test: exercise 3/4/5 scene counts end-to-end through the fake provider → safety pipeline → orchestrator → response in `tests/integration/provider-pipeline.test.ts`; assert exactly `sceneCount` complete scenes and a typed 400 on out-of-range
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Add `sceneCount` (default 3, options 3/4/5) to `src/features/story-request/client/story-preferences-schema.ts` with fast, localized client validation
-- [ ] T014 [US1] Add localized control (label + 3/4/5 options, a11y) to `src/features/story-request/components/story-request-form.tsx`; wire `defaultSceneCount` and in-session reuse (remember last choice for "nova história")
-- [ ] T015 [US1] Add locale strings in `src/features/story-request/locales/pt-BR.json` and `src/features/story-request/locales/en.json` (field label + option labels); no hardcoded strings
-- [ ] T016 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/openrouter-story-generation-provider.ts`: build the prompt for `sceneCount` scenes; validate candidate scene array `min(3).max(5)`
-- [ ] T017 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/fixed-dev-provider.ts` (deterministic variadic scenes)
-- [ ] T018 [US1] Update `src/features/story-generation/server/safety-pipeline.ts`: pass `input.sceneCount` as expected count; reject count mismatch; validate partial sets (never partial-success)
-- [ ] T019 [US1] Update `src/features/story-generation/server/generate-story.ts`: validate result matches `sceneCount`; reject partial/truncated stories; keep budgets/timeouts bounded
-- [ ] T020 [US1] Update `src/app/api/stories/route.ts` to accept and revalidate `sceneCount` (default 3), pass it through, map `400 invalid_input` for out-of-range; keep `Cache-Control: no-store`
-- [ ] T021 [US1] Update server schemas unit coverage for request/response round-trip (3/4/5) in the relevant `tests/unit/` schema test
+- [ ] T014 [US1] Add `sceneCount` (default 3, options 3/4/5) to `src/features/story-request/client/story-preferences-schema.ts` with fast, localized client validation
+- [ ] T015 [US1] Add localized control (label + 3/4/5 options, a11y) to `src/features/story-request/components/story-request-form.tsx`; wire `defaultSceneCount` and in-session reuse (remember last choice for "nova história")
+- [ ] T016 [US1] Extend `src/features/story-request/components/story-request-form.stories.tsx` with default/edge/error states for the scene-count control (incl. out-of-range) + a11y via storybook test-runner
+- [ ] T017 [US1] Add locale strings in `src/features/story-request/locales/pt-BR.json` and `src/features/story-request/locales/en.json` (field label + option labels); no hardcoded strings
+- [ ] T018 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/openrouter-story-generation-provider.ts`: build the prompt for `sceneCount` scenes; validate candidate scene array `min(3).max(5)`
+- [ ] T019 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/fixed-dev-provider.ts` (deterministic variadic scenes)
+- [ ] T020 [US1] Update `src/features/story-generation/server/safety-pipeline.ts`: pass `input.sceneCount` as expected count; reject count mismatch; validate partial sets (never partial-success)
+- [ ] T021 [US1] Update `src/features/story-generation/server/generate-story.ts`: validate result matches `sceneCount`; reject partial/truncated stories; keep budgets/timeouts bounded
+- [ ] T022 [US1] Update `src/app/api/stories/route.ts` to accept and revalidate `sceneCount` (default 3), pass it through, map `400 invalid_input` for out-of-range; keep `Cache-Control: no-store`
+- [ ] T023 [US1] Update server schemas unit coverage for request/response round-trip (3/4/5) in the relevant `tests/unit/` schema test
 
 **Checkpoint**: US1 complete — a 3/4/5-scene story can be requested, generated, and returned fully.
 
@@ -98,13 +100,13 @@ assert Y equals the real count and all scenes reachable.
 
 > **NOTE: Write these tests FIRST, confirm they FAIL before implementing.**
 
-- [ ] T022 [P] [US2] Update `src/features/story-reader/components/story-reader.stories.tsx` with 4- and 5-scene stories (default/edge) + a11y coverage via storybook test-runner
-- [ ] T023 [P] [US2] Update reader navigation e2e `tests/e2e/story-reader-navigation.spec.ts` (or pt-BR/en generate specs) for a 5-scene story across all cenas
+- [ ] T024 [P] [US2] Update `src/features/story-reader/components/story-reader.stories.tsx` with 4- and 5-scene stories (default/edge) + a11y coverage via storybook test-runner
+- [ ] T025 [P] [US2] Update reader navigation e2e `tests/e2e/story-reader-navigation.spec.ts` (or pt-BR/en generate specs) for a 5-scene story across all cenas
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Confirm/update `src/features/story-reader/components/story-reader.tsx` and `src/features/story-reader/client/story-switcher-utils.ts` to drive `total` from `scenes.length` (no hardcoded 3); keep focus move + arrow-nav for N scenes
-- [ ] T025 [US2] Update `src/features/story-reader/client/story-response.ts` parser to accept stories with 3–5 scenes (and reject out-of-range as invalid rather than truncating)
+- [ ] T026 [US2] Confirm/update `src/features/story-reader/components/story-reader.tsx` and `src/features/story-reader/client/story-switcher-utils.ts` to drive `total` from `scenes.length` (no hardcoded 3); keep focus move + arrow-nav for N scenes
+- [ ] T027 [US2] Update `src/features/story-reader/client/story-response.ts` parser to accept stories with 3–5 scenes (and reject out-of-range as invalid rather than truncating)
 
 **Checkpoint**: US2 complete — long stories read correctly, scene-by-scene, with real count.
 
@@ -122,14 +124,15 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 > **NOTE: Write these tests FIRST, confirm they FAIL before implementing.**
 
-- [ ] T026 [P] [US3] Update `tests/unit/build-story-pdf.test.ts` for 4- and 5-scene stories (pages == scene count, order preserved, WebP→PNG per page)
-- [ ] T027 [P] [US3] Update `tests/unit/generate-story.test.ts` (or pipeline test) for a 5-scene consistency candidate: partial scene set never yields success; retry behavior bounded
+- [ ] T028 [P] [US3] Update `tests/unit/build-story-pdf.test.ts` for 4- and 5-scene stories (pages == scene count, order preserved, WebP→PNG per page)
+- [ ] T029 [P] [US3] Update `tests/unit/generate-story.test.ts` (or pipeline test) for a 5-scene consistency candidate: partial scene set never yields success; retry behavior bounded
+- [ ] T030 [P] [US3] Unit test asserting a single `STYLE_DESCRIPTOR`/character is passed to all `sceneCount` illustration prompts (FR-006 style/character consistency)
 
 ### Implementation for User Story 3
 
-- [ ] T028 [US3] Confirm/update `src/features/story-export/client/build-story-pdf.tsx` to iterate all `story.scenes` (no truncation) and include every scene in order
-- [ ] T029 [US3] Update the generation/illustration path so all N scenes share the same character/style descriptor and each scene is independently moderated (no partial success) — see `src/features/story-generation/server/generate-story.ts` and fixture `STYLE_DESCRIPTOR`
-- [ ] T030 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
+- [ ] T031 [US3] Confirm/update `src/features/story-export/client/build-story-pdf.tsx` to iterate all `story.scenes` (no truncation) and include every scene in order
+- [ ] T032 [US3] Update the generation/illustration path so all N scenes share the same character/style descriptor and each scene is independently moderated (no partial success) — see `src/features/story-generation/server/generate-story.ts` and fixture `STYLE_DESCRIPTOR`
+- [ ] T033 [US3] Visual regression: add/adjust `tests/visual/` coverage for a 5-scene story (approved baseline, no unintended diff)
 
 **Checkpoint**: US3 complete — long stories export fully and consistently, never partial.
 
@@ -137,11 +140,11 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T031 [P] Documentation updates: sync `spec.md`/`data-model.md`/`quickstart.md`/`contracts/` if a contract behavior changed during implementation
-- [ ] T032 Code cleanup and refactoring (remove dead code, unused deps; enforce strict TS; no `any`)
-- [ ] T033 Run `pnpm quickstart` validation scenarios (3/4/5, pt-BR + en) end-to-end
-- [ ] T034 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm visual`, `pnpm perf` all green; a11y AA
-- [ ] T035 [P] Privacy invariant re-check: no direct identifier anywhere in payloads/logs/provider fakes/analytics; `Cache-Control: no-store` intact
+- [ ] T034 [P] Documentation updates: sync `spec.md`/`data-model.md`/`quickstart.md`/`contracts/` if a contract behavior changed during implementation
+- [ ] T035 Code cleanup and refactoring (remove dead code, unused deps; enforce strict TS; no `any`)
+- [ ] T036 Run `pnpm quickstart` validation scenarios (3/4/5, pt-BR + en) end-to-end
+- [ ] T037 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm visual`, `pnpm perf` all green; a11y AA
+- [ ] T038 [P] Privacy invariant re-check: no direct identifier anywhere in payloads/logs/provider fakes/analytics; `Cache-Control: no-store` intact
 
 ---
 
@@ -170,9 +173,9 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 - Setup: T002/T003 in parallel.
 - Foundational: T005/T006/T007/T008 in parallel (T004 first — defines shared constants).
-- US1 tests: T009–T012 parallel. US1 implementation: T013→T014→T015 sequential (form), T016/T017 parallel (providers), then T018→T019→T020.
-- US2: T022/T023 tests parallel; T024/T025 impl sequential.
-- US3: T026/T027 tests parallel; T028→T029→T030 impl.
+- US1 tests: T009–T013 parallel. US1 implementation: T014→T015→T016→T017 sequential (form + stories), T018/T019 parallel (providers), then T020→T021→T022.
+- US2: T024/T025 tests parallel; T026/T027 impl sequential.
+- US3: T028/T029/T030 tests parallel; T031→T032→T033 impl.
 - US1/US2/US3 impl can be worked in parallel by different contributors after Foundational (respecting US3's dependency on US1+US2).
 
 ---

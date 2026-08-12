@@ -8,7 +8,7 @@
 
 Esta entrega introduz **contagem de cenas variável (3, 4 ou 5)** na geração de histórias, tornando a extensão prevista em `001` uma capacidade efetiva para o usuário: o responsável escolhe, antes de gerar, quantas cenas a história terá, por meio de um controle acessível e localizado no formulário, com padrão **3** (comportamento de v1 preservado).
 
-O escopo é estritamente a capacidade de contagem variável e o impacto decorrente no contrato (novo campo numérico anônimo de requisição), na orquestração/segurança (validação por `sceneCount`, budgets e retries parametrizados por contagem, nenhum conjunto parcial de cenas tratado como sucesso), e na UI/UX (controle no formulário, leitor e exportação refletindo a contagem real). **NÃO** introduz cadastro, persistência, coleta de identificadores ou mudança de anonimato.
+O escopo é estritamente a capacidade de contagem variável e o impacto decorrente no contrato (novo campo numérico anônimo de requisição), na orquestração/segurança (validação por `sceneCount`, nenhum conjunto parcial de cenas tratado como sucesso; a parametrização de tempo por contagem permanece **adiada** — FR-008), e na UI/UX (controle no formulário, leitor e exportação refletindo a contagem real). **NÃO** introduz cadastro, persistência, coleta de identificadores ou mudança de anonimato.
 
 **Abordagem técnica**: reutiliza a arquitetura estabelecida em `001` — schema `sceneCountSchema` (3–5, padrão 3) como fonte única de verdade no servidor, passado via `ProviderStoryInput`, propagado por safety-pipeline (`expectedCount`), orquestrador, e contratos; o reader/exportação já iteram sobre `story.scenes` dinamicamente, então apenas precisam validar/garantir a contagem real. O contrato `story-generation.openapi.yaml` ganha o campo `sceneCount`.
 
@@ -26,9 +26,9 @@ O escopo é estritamente a capacidade de contagem variável e o impacto decorren
 
 **Project Type**: Web application (Next.js App Router), componente full-stack.
 
-**Performance Goals**: geração ≤120s end-to-end (dimensionada por contagem: 3/4/5); bundle inicial ≤250 KiB gzip (lazy import PDF); LCP ≤2.5s p75; navegação de cena ≤100ms p75.
+**Performance Goals**: geração ≤120s end-to-end (teto único para todas as contagens; granularidade por contagem é decidida em implementação **apenas se a medição real exigir** — não pré-dimensionada); bundle inicial ≤250 KiB gzip (lazy import PDF); LCP ≤2.5s p75; navegação de cena ≤100ms p75.
 
-**Constraints**: permite apenas `sceneCount` inteiro 3–5; histórico de tempos/retries parametrizado por contagem (FR-008); `Cache-Control: no-store`; nenhum identificador direto em payloads/logs/provedores; AA contrast/keyboard/reduced-motion; a11y por leitura de tela.
+**Constraints**: permite apenas `sceneCount` inteiro 3–5; **FR-008 é genérico** — timing por contagem é adiado até medição real, sem escala especulativa; `Cache-Control: no-store`; nenhum identificador direto em payloads/logs/provedores; AA contrast/keyboard/reduced-motion; a11y por leitura de tela.
 
 **Scale/Scope**: geração de 3/4/5 cenas por história; faixa estrita 3–5 (acima disso fora de escopo).
 
@@ -39,7 +39,7 @@ O escopo é estritamente a capacidade de contagem variável e o impacto decorren
 - **Code Quality (PASS)**: TS strict sem `any`; lint/format via scripts existentes; módulos pequenos; sem dead code. O ponto de extensão (`sceneCountSchema`/constantes) continua centralizado em `schemas.ts` — única fonte de verdade.
 - **Testing Standards (PASS)**: test-first; testes determinísticos com fixtures/fakes; cada componente novo/alterado com `.stories.tsx` (default/edge/error) + a11y; atualização dos testes de contrato quando o contrato muda; nunca chamada a IA live.
 - **User Experience (PASS)**: controle acessível e localizado; a11y AA; foco visível/keyboard; `prefers-reduced-motion`; `aria-live`/`aria-busy` nas transições; terminologia consistente ("Cena X de Y" refletindo a contagem real).
-- **Performance (PASS)**: budgets parametrizados por contagem (FR-008); nenhum conjunto parcial tratado como sucesso; lazy import do PDF; budgets CI mantidos verdes.
+- **Performance (PASS)**: nunca conjunto parcial é tratado como sucesso; lazy import do PDF; budgets CI mantidos verdes (gestão de tempo por contagem adiada a medição real — FR-008).
 - **Privacy/Anon (PASS)**: novo campo é apenas a contagem inteira anônima; nenhum identificador adicional em payloads/logs/provedores; `Cache-Control: no-store` preservado (FR-007, SC-003).
 
 **Gates**: sem violações. Todas as mudanças preservam os invariantes do produto; a única nova superfície é um campo numérico anônimo e seu reflexo em UI/UX.
@@ -114,7 +114,7 @@ tests/
 Sem "NEEDS CLARIFICATION" pendentes — stack e escopo definidos no spec (faixa 3–5, padrão 3, validação em duas camadas, retrocompatibilidade). A pesquisa consolida as decisões técnicas:
 
 - **Contagem variável e arquitetura**: confirmar o caminho de `sceneCount` (cliente → contrato → provider → safety → orquestrador → resposta) e o uso das constantes `MIN/MAX/DEFAULT_SCENE_COUNT` como fonte única de verdade, substituindo o `N_SCENES` fixo como ponto de extensão já documentado. Solução de 001 preservada sem nova abstração.
-- **Dimensionamento de timeouts/retries por contagem (FR-008)**: como reutilizar os budgets existentes (geração ≤120s) quando o número de cenas/ilustrações varia (3/4/5), garantindo que histórias longas não gerem timeouts espúrios nem respostas parciais.
+- **Custo de tempo da contagem (FR-008, sem escala especulativa)**: registrar que o custo de 4–5 cenas é `desconhecido` para este produto; definir que a implementação verifica se 4–5 cenas cabem no teto ≤120s e **não adiciona lógica de escala de timeout/retry por contagem antes de medição**; janelas de retry permanecem as existentes, com a invariante de nunca sucesso parcial.
 - **Reader/exportação dinâmicos**: confirmar que `story-reader.tsx` e `build-story-pdf.tsx` iteram sobre `story.scenes` (já dinâmico via `scenes.length`), e catalogar os pontos que assumem "3" (ex. terminologia/testes) que precisam refletir a contagem real.
 - **Estratégia de validação**: esquema `sceneCountSchema` (int 3–5, default 3), validação cliente (erro rápido localizado) + servidor (contrato, 400/422), correção de contratos e testes-fake por contagem.
 
