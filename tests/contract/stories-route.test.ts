@@ -128,7 +128,12 @@ describe("POST /api/stories — route", () => {
     const fake = createFakeProvider({ scenario: "safe" });
     const handler = createStoriesHandler(makeDeps({ provider: fake.provider }));
     await post(handler, { ageBand: "5-7", locale: "pt-BR", theme: "courage" });
-    expect(fake.requests[0]).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage" });
+    expect(fake.requests[0]).toEqual({
+      ageBand: "5-7",
+      locale: "pt-BR",
+      theme: "courage",
+      sceneCount: 3,
+    });
     expect(JSON.stringify(fake.requests[0])).not.toMatch(/"name"/i);
   });
 

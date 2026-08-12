@@ -1,6 +1,6 @@
 import "server-only";
 import { toErrorJson, unsafeUnrecoverable } from "../../../lib/http-errors";
-import { N_SCENES, type SafeError } from "./schemas";
+import type { SafeError } from "./schemas";
 import type {
   GeneratedStoryCandidate,
   ProviderScene,
@@ -12,7 +12,8 @@ import type {
  * Safety pipeline (T025). Takes an unmoderated provider candidate and makes it
  * safe and complete before it can be shown:
  *
- * - schema validation: exactly `N_SCENES` scenes, non-empty localized text;
+ * - schema validation: exactly the requested `sceneCount` (3–5) scenes,
+ *   non-empty localized text;
  * - local rejection of template markers / direct identifiers (never a name
  *   placeholder reaching the reader);
  * - text moderation of every scene body;
@@ -75,11 +76,11 @@ function hasForbiddenContent(value: string): boolean {
  * empty illustration prompt. Invalid output is treated like unsafe output
  * and recovered through bounded regeneration.
  */
-function isStructurallyValid(scene: ProviderScene): boolean {
+function isStructurallyValid(scene: ProviderScene, expectedCount: number): boolean {
   return (
     Number.isInteger(scene.ordinal) &&
     scene.ordinal >= 1 &&
-    scene.ordinal <= N_SCENES &&
+    scene.ordinal <= expectedCount &&
     typeof scene.title === "string" &&
     scene.title.trim().length > 0 &&
     typeof scene.body === "string" &&
@@ -96,14 +97,15 @@ function isStructurallyValid(scene: ProviderScene): boolean {
  */
 async function moderateCandidate(
   provider: StoryGenerationProvider,
-  candidate: GeneratedStoryCandidate
+  candidate: GeneratedStoryCandidate,
+  expectedCount: number
 ): Promise<ModeratedStoryCandidate | null> {
-  if (candidate.scenes.length !== N_SCENES) return null;
+  if (candidate.scenes.length !== expectedCount) return null;
   if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return null;
   if (hasForbiddenContent(candidate.title)) return null;
 
   for (const scene of candidate.scenes) {
-    if (!isStructurallyValid(scene)) return null;
+    if (!isStructurallyValid(scene, expectedCount)) return null;
     if (
       hasForbiddenContent(scene.title) ||
       hasForbiddenContent(scene.body) ||
@@ -143,7 +145,7 @@ export async function runSafetyPipeline(
 
   for (let attempt = 0; attempt <= maxRegenerations; attempt += 1) {
     const candidate = await provider.generateStory(input);
-    const moderated = await moderateCandidate(provider, candidate);
+    const moderated = await moderateCandidate(provider, candidate, input.sceneCount);
     if (moderated) {
       return {
         ok: true,

@@ -51,8 +51,8 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
     heading?.focus();
   }, [currentIndex]);
 
-  // The response schema guarantees at least N_SCENES scenes; this only runs
-  // while typing the byte-level contract.
+  // The response schema guarantees at least MIN_SCENES scenes (up to MAX_SCENES);
+  // this only runs while typing the byte-level contract.
   if (!current) return null;
 
   return (

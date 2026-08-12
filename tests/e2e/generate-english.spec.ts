@@ -24,7 +24,7 @@ import type { GeneratedStory } from "../../src/features/story-generation/server/
  * network, or live-provider dependence.
  */
 
-const ALLOWED_KEYS = ["ageBand", "locale", "theme"] as const;
+const ALLOWED_KEYS = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
 interface RequestPayload {
   ageBand?: string;
@@ -80,7 +80,7 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
     expect(payload[key]).toBeUndefined();
   }
   expect(payload.age).toBeUndefined();
-  expect(payload.ageBand).toBe("8-12"); // age 9 derives to the 8-12 band
+  expect(payload.ageBand).toBe("8-9"); // age 9 derives to the 8-9 band
   expect(payload.locale).toBe("en");
   expect(payload.theme).toBe("friendship");
 
@@ -90,7 +90,7 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
 
   const body = (await response.json()) as GeneratedStory;
   expect(body.locale).toBe("en");
-  expect(body.ageBand).toBe("8-12");
+  expect(body.ageBand).toBe("8-9");
   expect(body.theme).toBe("friendship");
   expect(body.scenes).toHaveLength(3);
 

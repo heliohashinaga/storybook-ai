@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseStoryResponse } from "../../src/features/story-reader/client/story-response";
 import {
-  N_SCENES,
+  MIN_SCENES,
   sceneSchema,
   storyResponseSchema,
 } from "../../src/features/story-generation/server/schemas";
@@ -23,6 +23,7 @@ function validStory() {
     locale: "pt-BR",
     ageBand: "5-7",
     theme: "courage",
+    sceneCount: 3,
     safetyDecision: "approved",
     title: "A missão da estrelinha",
     scenes: [scene(1), scene(2), scene(3)],
@@ -65,18 +66,26 @@ describe("story-response — approved story parsing", () => {
 });
 
 describe("story-response — scene-count extension point", () => {
-  it("validates the scene count against a single exported N_SCENES constant", () => {
-    expect(N_SCENES).toBe(3);
+  it("validates the scene count against the exported MIN_SCENES constant", () => {
+    expect(MIN_SCENES).toBe(3);
   });
 
-  it("rejects a story with more than N_SCENES scenes at the schema boundary", () => {
+  it("rejects a story with more than 5 scenes at the schema boundary", () => {
     const tooLong = validStory();
-    tooLong.scenes = [scene(1), scene(2), scene(3), scene(4)];
+    tooLong.scenes = [scene(1), scene(2), scene(3), scene(4), scene(5), scene(6)];
+    tooLong.sceneCount = 6;
     expect(storyResponseSchema.safeParse(tooLong).success).toBe(false);
   });
 
-  it("rejects a scene whose ordinal is beyond N_SCENES", () => {
-    expect(sceneSchema.safeParse(scene(4)).success).toBe(false);
+  it("accepts a valid 5-scene story at the schema boundary", () => {
+    const five = validStory();
+    five.scenes = [scene(1), scene(2), scene(3), scene(4), scene(5)];
+    five.sceneCount = 5;
+    expect(storyResponseSchema.safeParse(five).success).toBe(true);
+  });
+
+  it("rejects a scene whose ordinal is beyond the max scene count", () => {
+    expect(sceneSchema.safeParse(scene(6)).success).toBe(false);
   });
 });
 

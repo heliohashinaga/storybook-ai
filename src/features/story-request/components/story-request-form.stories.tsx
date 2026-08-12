@@ -55,7 +55,7 @@ export const ValidationError: Story = {
     const age = canvas.getByLabelText(/idade da criança/i);
     await expect(age).toHaveFocus();
     await expect(age).toHaveAttribute("aria-invalid", "true");
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/entre 2 e 12/i);
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/entre 2 e 9/i);
   },
 };
 
@@ -157,7 +157,7 @@ export const EnValidationError: Story = {
     const age = canvas.getByLabelText(/child's age/i);
     await expect(age).toHaveFocus();
     await expect(age).toHaveAttribute("aria-invalid", "true");
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/between 2 and 12|age between/i);
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/between 2 and 9|age between/i);
   },
 };
 

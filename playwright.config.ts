@@ -58,6 +58,15 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // E2E/visual/perf must be deterministic and offline: they run against the
+    // fixed dev provider, never a paid/live model (AGENTS.md privacy/model
+    // rules). A caller can still force a real provider by pre-setting
+    // STORIES_PROVIDER in their environment; default here is the fake.
+    env: {
+      ...(process.env.STORIES_PROVIDER ? {} : { STORIES_PROVIDER: "fake" }),
+      ...(process.env.RATE_LIMIT_MAX ? {} : { RATE_LIMIT_MAX: "100" }),
+      ...(process.env.RATE_LIMIT_WINDOW_MS ? {} : { RATE_LIMIT_WINDOW_MS: "60000" }),
+    },
   },
   // Visual regression: approved screenshots live next to each spec in its
   // `<spec>.spec.ts-snapshots/` directory (Playwright default).

@@ -53,7 +53,7 @@ export interface StorySessionState {
    * exact age, story language and theme stay in memory only — never sent (the
    * payload carries derived ageBand/locale/theme) and never serialized.
    */
-  lastPreferences: { age: number; locale: Locale; theme: Theme } | null;
+  lastPreferences: { age: number; locale: Locale; theme: Theme; sceneCount: number } | null;
   /** Typed, sanitized failure (only code/messageKey/retryable; never raw content). */
   failure: SafeError | null;
 }
@@ -63,7 +63,7 @@ interface StoredSessionState {
   status: StorySessionStatus;
   stories: StoryEntry[];
   activeId: string | null;
-  lastPreferences: { age: number; locale: Locale; theme: Theme } | null;
+  lastPreferences: { age: number; locale: Locale; theme: Theme; sceneCount: number } | null;
   failure: SafeError | null;
 }
 
@@ -80,7 +80,10 @@ export interface StorySessionActions {
   begin: () => void;
   /** Moves to success appending the story (newest-first); selects it.
    *  Stores the anonymized prefs for "generate another" reuse (T050). */
-  succeed: (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => void;
+  succeed: (
+    story: GeneratedStory,
+    prefs?: { age: number; locale: Locale; theme: Theme; sceneCount: number }
+  ) => void;
   /** Moves to failed, keeping the story list and selection. */
   fail: (failure: SafeError) => void;
   /** Selects a story by id without replacing the list. */
@@ -101,7 +104,10 @@ const initialSession: StoredSessionState = {
 
 interface StorySessionContextValue extends StorySessionValue {
   begin: () => void;
-  succeed: (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => void;
+  succeed: (
+    story: GeneratedStory,
+    prefs?: { age: number; locale: Locale; theme: Theme; sceneCount: number }
+  ) => void;
   fail: (failure: SafeError) => void;
   accessStory: (id: string) => void;
   reset: () => void;
@@ -123,7 +129,10 @@ export function StorySessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const succeed = useCallback(
-    (story: GeneratedStory, prefs?: { age: number; locale: Locale; theme: Theme }) => {
+    (
+      story: GeneratedStory,
+      prefs?: { age: number; locale: Locale; theme: Theme; sceneCount: number }
+    ) => {
       const id = nextId();
       setState((prev) => ({
         status: "success" as const,

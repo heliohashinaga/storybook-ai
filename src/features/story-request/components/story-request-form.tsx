@@ -8,7 +8,12 @@ import { Select } from "../../../components/ui/select";
 import { useLocaleContext } from "../../../i18n/locale-provider";
 import { localeCatalog, themeCatalog } from "../../../lib/story-catalog";
 import { deriveAgeBand, type AgeBand } from "../client/age-band";
-import type { Locale, Theme } from "../client/story-preferences-schema";
+import {
+  MAX_SCENES,
+  MIN_SCENES,
+  type Locale,
+  type Theme,
+} from "../client/story-preferences-schema";
 
 /**
  * Anonymous story-request form (T031). The parent provides an `onSubmit` that
@@ -24,6 +29,7 @@ export interface GenerateStoryRequest {
   ageBand: AgeBand;
   locale: Locale;
   theme: Theme;
+  sceneCount: number;
 }
 
 export type SubmitResult = { ok: true } | { ok: false; messageKey: string };
@@ -32,12 +38,14 @@ export type StoryRequestStatus = "idle" | "submitting" | "success";
 
 interface StoryRequestFormProps {
   defaultTheme?: Theme;
+  /** Reuse the last in-session scene count (defaults to 3). */
+  defaultSceneCount?: number;
   /** Reuse the last in-session age so the field isn't blank after 'nova
    *  história' (generate-another uses lastPreferences directly). */
   defaultAge?: number;
   /**
-   * Invoked with the anonymized request (ageBand/locale/theme — the exact
-   * payload) plus the exact age kept in memory only for session reuse
+   * Invoked with the anonymized request (ageBand/locale/theme/sceneCount — the
+   * exact payload) plus the exact age kept in memory only for session reuse
    * (T050). The age is never part of the payload sent to the API.
    */
   onSubmit: (request: GenerateStoryRequest, age: number) => Promise<SubmitResult>;
@@ -46,6 +54,7 @@ interface StoryRequestFormProps {
 
 export function StoryRequestForm({
   defaultTheme = "courage",
+  defaultSceneCount = MIN_SCENES,
   defaultAge,
   onSubmit,
   onSuccess,
@@ -57,6 +66,7 @@ export function StoryRequestForm({
   const [age, setAge] = useState(defaultAge ? String(defaultAge) : "");
   const [locale, setLocale] = useState<Locale>(appLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [sceneCount, setSceneCount] = useState<number>(defaultSceneCount);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
   const [ageError, setAgeError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -75,7 +85,7 @@ export function StoryRequestForm({
     if (submitting) return;
 
     const numericAge = Number(age);
-    if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 12) {
+    if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 9) {
       setAgeError(t("form.age.errorRange"));
       ageInputRef.current?.focus();
       return;
@@ -90,6 +100,7 @@ export function StoryRequestForm({
         ageBand: deriveAgeBand(numericAge),
         locale,
         theme,
+        sceneCount,
       },
       numericAge
     );
@@ -114,7 +125,7 @@ export function StoryRequestForm({
           ref={ageInputRef}
           type="number"
           min="2"
-          max="12"
+          max="9"
           inputMode="numeric"
           className="w-full rounded-md border border-disabled bg-surface px-md py-sm text-body text-text shadow-sm disabled:bg-disabled disabled:text-text-subtle"
           value={age}
@@ -164,6 +175,26 @@ export function StoryRequestForm({
           </option>
         ))}
       </Select>
+
+      <fieldset disabled={disabled} className="flex flex-col gap-xs">
+        <legend className="text-body font-title">{t("form.scenes.label")}</legend>
+        <div role="radiogroup" aria-label={t("form.scenes.label")} className="flex gap-sm">
+          {[MIN_SCENES, 4, MAX_SCENES].map((count) => (
+            <label key={count} className="flex items-center gap-xs text-body">
+              <input
+                type="radio"
+                name="story-request-scene-count"
+                value={count}
+                checked={sceneCount === count}
+                onChange={() => setSceneCount(count)}
+              />
+              <span>
+                {count} {t("form.scenes.scene-unit")}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {submitError ? (
         <div

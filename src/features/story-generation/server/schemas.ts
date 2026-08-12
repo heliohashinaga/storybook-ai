@@ -8,7 +8,7 @@ import { z } from "zod";
  * identifier field (e.g. `name`) before a provider call or response.
  */
 
-export const ageBandSchema = z.enum(["2-4", "5-7", "8-12"]);
+export const ageBandSchema = z.enum(["2-4", "5-7", "8-9"]);
 export const localeSchema = z.enum(["pt-BR", "en"]);
 export const themeSchema = z.enum(["courage", "friendship", "kindness"]);
 
@@ -17,12 +17,22 @@ export type Locale = z.infer<typeof localeSchema>;
 export type Theme = z.infer<typeof themeSchema>;
 
 /**
- * Validated MVP scene count — the single source of truth for the scene-count
+ * Validated scene-count range — the single source of truth for the scene-count
  * extension point (3/4/5). The safety pipeline, the generation orchestrator,
- * and the response/ordinal schema all read from this one constant, so a
- * future variable-scene-count change edits exactly one value here.
+ * and the response/ordinal schema all read from these constants, so a future
+ * change edits exactly one place here. See `specs/002-generate-more-scenes/`.
  */
-export const N_SCENES = 3;
+export const MIN_SCENES = 3;
+export const MAX_SCENES = 5;
+export const DEFAULT_SCENE_COUNT = MIN_SCENES;
+
+/** Optional `sceneCount` on the inbound payload; absent defaults to 3 (v1 behavior). */
+export const sceneCountSchema = z
+  .number()
+  .int()
+  .min(MIN_SCENES)
+  .max(MAX_SCENES)
+  .default(DEFAULT_SCENE_COUNT);
 
 /**
  * The only inbound payload the route accepts. Strict shape: no exact age, no
@@ -33,13 +43,14 @@ export const generateRequestSchema = z
     ageBand: ageBandSchema,
     locale: localeSchema,
     theme: themeSchema,
+    sceneCount: sceneCountSchema.optional(),
   })
   .strict();
 
 /** One approved scene: localized plain text plus a session-only WebP data URI. */
 export const sceneSchema = z
   .object({
-    ordinal: z.number().int().min(1).max(N_SCENES),
+    ordinal: z.number().int().min(1).max(MAX_SCENES),
     title: z.string().min(1).max(100),
     body: z.string().min(1).max(1600),
     illustrationDataUri: z.string().regex(/^data:image\/webp;base64,/),
@@ -50,7 +61,7 @@ export const sceneSchema = z
 export type GeneratedScene = z.infer<typeof sceneSchema>;
 
 /**
- * A safety-approved three-scene story. `safetyDecision` records whether the
+ * A safety-approved story with 3–5 scenes. `safetyDecision` records whether the
  * original candidate was used or a single safe regeneration occurred; unsafe
  * intermediate content is never present.
  */
@@ -59,9 +70,17 @@ export const storyResponseSchema = z
     locale: localeSchema,
     ageBand: ageBandSchema,
     theme: themeSchema,
+    sceneCount: sceneCountSchema,
     safetyDecision: z.enum(["approved", "regenerated"]),
     title: z.string().min(1).max(140),
-    scenes: z.array(sceneSchema).length(N_SCENES),
+    scenes: z
+      .array(sceneSchema)
+      .min(MIN_SCENES)
+      .max(MAX_SCENES)
+      .refine(
+        (s) => s.every((sc, i) => sc.ordinal === i + 1),
+        "scene ordinals must be contiguous from 1"
+      ),
   })
   .strict();
 

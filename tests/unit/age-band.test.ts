@@ -15,9 +15,9 @@ describe("deriveAgeBand", () => {
     }
   });
 
-  it("maps the 8-12 band", () => {
-    for (const age of [8, 9, 10, 11, 12]) {
-      expect(deriveAgeBand(age)).toBe("8-12");
+  it("maps the 8-9 band", () => {
+    for (const age of [8, 9]) {
+      expect(deriveAgeBand(age)).toBe("8-9");
     }
   });
 
@@ -26,12 +26,12 @@ describe("deriveAgeBand", () => {
     expect(deriveAgeBand(4)).toBe("2-4");
     expect(deriveAgeBand(5)).toBe("5-7");
     expect(deriveAgeBand(7)).toBe("5-7");
-    expect(deriveAgeBand(8)).toBe("8-12");
-    expect(deriveAgeBand(12)).toBe("8-12");
+    expect(deriveAgeBand(8)).toBe("8-9");
+    expect(deriveAgeBand(9)).toBe("8-9");
   });
 
-  it("rejects ages outside 2-12", () => {
-    for (const age of [0, 1, 13, 99, -1]) {
+  it("rejects ages outside 2-9", () => {
+    for (const age of [0, 1, 10, 11, 12, 13, 99, -1]) {
       expect(() => deriveAgeBand(age)).toThrow();
     }
   });

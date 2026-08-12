@@ -48,9 +48,10 @@ function scene(
 }
 
 export function buildSafeCandidate(input: ProviderStoryInput): GeneratedStoryCandidate {
+  const count = input.sceneCount ?? 3;
   return {
     title: `Uma história de ${input.theme}`,
-    scenes: [scene(1, input.ageBand), scene(2, input.ageBand), scene(3, input.ageBand)],
+    scenes: Array.from({ length: count }, (_, i) => scene(i + 1, input.ageBand)),
   };
 }
 

@@ -10,11 +10,22 @@ illustrations.
 
 ## Overview
 
-- 🧒 **Age bands**: `2-4`, `5-7`, `8-12`.
+- 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
 - 🎭 **Themes**: courage, friendship, kindness.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
-- 📖 **Three scenes** with generated illustrations and localized alternative text.
+- 📖 **Scenes** with generated illustrations and localized alternative text.
 - 📄 Browser-based **PDF export**.
+
+## How story generation works
+
+A story is produced by a single server-side pipeline under `src/features/story-generation/`:
+
+1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`, `theme`) are re-validated server-side (`Cache-Control: no-store`) and a single generation call lays out the scenes and writes the localized text for each one (title + body), together with each scene's illustration prompt.
+2. **Review** – every scene's text and its illustration prompt are moderated (AI text + image moderation) and checked against template markers and direct identifiers (`{name}`, “child's name”); anything unsafe is auto-regenerated once, otherwise it fails as `unsafe_unrecoverable`.
+3. **Illustration** – only **approved** illustration prompts are rendered to optimized WebP images.
+4. **Final validation** – every scene is given localized `altText` and validated against the response schema before the story is returned; failures map to typed, localized errors (400/422/429/502/504).
+
+All AI-vendor calls stay behind the server-only provider adapter (`story-generation/server`); raw provider output never reaches the client, and unsafe, partial or structurally invalid stories are never delivered.
 
 ## Stack
 
@@ -51,7 +62,7 @@ Configure development secrets (server-side only) in `.env.local`:
 OPENROUTER_API_KEY=replace-with-development-key
 OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
 OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
-OPENROUTER_MODERATION_MODEL=replace-with-approved-moderatiopn-model
+OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
 ```
 
 > Development provider selection: set `STORIES_PROVIDER=fake` only for

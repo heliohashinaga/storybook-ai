@@ -14,7 +14,12 @@ const webpDataUri = "data:image/webp;base64,QUJDRA";
 
 const illustrate = () => Promise.resolve({ dataUri: webpDataUri });
 
-const input: ProviderStoryInput = { ageBand: "5-7", locale: "pt-BR", theme: "courage" };
+const input: ProviderStoryInput = {
+  ageBand: "5-7",
+  locale: "pt-BR",
+  theme: "courage",
+  sceneCount: 3,
+};
 
 function capturingIllustrator() {
   const prompts: string[] = [];
@@ -118,7 +123,7 @@ describe("provider pipeline — structured narrative", () => {
     ] as const;
     for (const { theme, expected } of pt) {
       const result = await generateStory({
-        input: { ageBand: "5-7", locale: "pt-BR", theme },
+        input: { ageBand: "5-7", locale: "pt-BR", theme, sceneCount: 3 },
         provider: createFakeProvider({ scenario: "safe" }).provider,
         illustrate,
       });
@@ -137,7 +142,7 @@ describe("provider pipeline — structured narrative", () => {
     ] as const;
     for (const { theme, expected } of en) {
       const result = await generateStory({
-        input: { ageBand: "2-4", locale: "en", theme },
+        input: { ageBand: "2-4", locale: "en", theme, sceneCount: 3 },
         provider: createFakeProvider({ scenario: "safe" }).provider,
         illustrate,
       });
@@ -370,7 +375,7 @@ describe("provider pipeline — response-size guard", () => {
 });
 
 describe("provider pipeline — scene-count extension point", () => {
-  it("never returns a story whose scene count differs from N_SCENES", async () => {
+  it("never returns a story whose scene count differs from the requested scene count", async () => {
     const fake = createFakeProvider({ scenario: "safe" });
     const oversized: StoryGenerationProvider = {
       async generateStory(i) {

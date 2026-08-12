@@ -22,6 +22,7 @@ const story: GeneratedStory = {
   locale: "pt-BR",
   ageBand: "5-7",
   theme: "courage",
+  sceneCount: 3,
   safetyDecision: "approved",
   title: "A missão da estrelinha",
   scenes: [
@@ -40,7 +41,40 @@ function renderReader() {
 }
 
 describe("story reader — first/middle/last bounds", () => {
+  it("navigates a 5-scene story to the last scene and stops (variable scene count)", async () => {
+    const five: GeneratedStory = {
+      locale: "pt-BR",
+      ageBand: "8-9",
+      theme: "courage",
+      sceneCount: 5,
+      safetyDecision: "approved",
+      title: "A grande jornada",
+      scenes: [
+        scene(1, "A estrelinha parte."),
+        scene(2, "Atravessa o rio."),
+        scene(3, "Encontra a amiga."),
+        scene(4, "Enfrenta a noite."),
+        scene(5, "Volta para casa feliz."),
+      ],
+    };
+    const user = userEvent.setup();
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <StoryReader story={five} />
+      </NextIntlClientProvider>
+    );
+    expect(screen.getByText("A estrelinha parte.")).toBeInTheDocument();
+    expect(screen.getByText(/1 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
+    for (let i = 0; i < 4; i += 1) {
+      await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    }
+    expect(screen.getByText("Volta para casa feliz.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    expect(screen.getByText(/5 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
+  });
+
   it("opens on the first scene with only forward navigation enabled", async () => {
+    const user = userEvent.setup();
     renderReader();
 
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();

@@ -22,7 +22,7 @@ import { test, expect, type Page } from "@playwright/test";
  * live-provider dependence).
  */
 
-const ALLOWED_KEYS = ["ageBand", "locale", "theme"] as const;
+const ALLOWED_KEYS = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
 interface RequestPayload {
   ageBand?: string;
@@ -37,7 +37,7 @@ function assertPrivacyContract(payload: RequestPayload): void {
   for (const forbidden of ["name", "exactAge", "childName", "identifier", "age"]) {
     expect(payload[forbidden]).toBeUndefined();
   }
-  expect(payload.ageBand).toMatch(/^2-4|5-7|8-12$/);
+  expect(payload.ageBand).toMatch(/^2-4|5-7|8-9$/);
   expect(payload.locale).toMatch(/^pt-BR|en$/);
   expect(payload.theme).toMatch(/^courage|friendship|kindness$/);
 }
@@ -175,7 +175,7 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
 
   expect(payloads).toHaveLength(2);
   for (const payload of payloads) {
-    expect(Object.keys(payload)).toEqual(["ageBand", "locale", "theme"]);
+    expect(Object.keys(payload)).toEqual([...ALLOWED_KEYS]);
     expect(payload.locale).toBe("en");
     assertPrivacyContract(payload);
   }

@@ -29,7 +29,7 @@ Forças e restrições:
 
 - **Anonimato por design**: sem perfil, sem persistência — qualquer preferência
   de idioma precisa ser escolhida na sessão e não pode ser lembrada.
-- **Público infantil (2–12)**: no band 8–12 a criança lê e navega sozinha;
+- **Público infantil (2–9)**: no band 8–9 a criança lê e navega sozinha;
   chrome em outro idioma quebra a autonomia.
 - **Gate de acessibilidade** (AA, `aria-live`): UI mista degrada a experiência
   de leitor de tela (anúncios em pt-BR dentro de uma história em EN).

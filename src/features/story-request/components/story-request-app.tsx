@@ -18,9 +18,9 @@ import {
 
 /**
  * Request → story container (T033). Hosts the anonymous request form and the
- * first approved-story state. Submits only `ageBand`/`locale`/`theme`, parses
- * the response through `story-response` (typed, sanitized), and shows the
- * approved three-scene story locally in memory (never persisted).
+ * first approved-story state. Submits only `ageBand`/`locale`/`theme`/
+ * `sceneCount`, parses the response through `story-response` (typed, sanitized),
+ * and shows the approved 3–5 scene story locally in memory (never persisted).
  */
 export function StoryRequestApp() {
   return (
@@ -63,7 +63,11 @@ function StoryRequestFlow() {
     return (
       <section className="flex flex-col gap-md">
         <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <StoryRequestForm onSubmit={handleSubmit} defaultAge={lastPreferences?.age} />
+        <StoryRequestForm
+          onSubmit={handleSubmit}
+          defaultAge={lastPreferences?.age}
+          defaultSceneCount={lastPreferences?.sceneCount}
+        />
       </section>
     );
   }
@@ -84,6 +88,7 @@ function StoryRequestFlow() {
         age: age ?? 0,
         locale: request.locale,
         theme: request.theme,
+        sceneCount: request.sceneCount,
       });
       return { ok: true };
     }
@@ -91,8 +96,8 @@ function StoryRequestFlow() {
     return { ok: false, messageKey: result.error.messageKey.replace(/^story\.error\./, "") };
   }
 
-  /** "Generate another": re-submits reusing the last age/locale/theme (T050).
-   *  Appends a new story via succeed(); never replaces earlier ones. */
+  /** "Generate another": re-submits reusing the last age/locale/theme/count
+   *  (T050). Appends a new story via succeed(); never replaces earlier ones. */
   const generateAnother = () => {
     if (!lastPreferences) return;
     const prefs = lastPreferences;
@@ -101,6 +106,7 @@ function StoryRequestFlow() {
         ageBand: deriveAgeBand(prefs.age),
         locale: prefs.locale,
         theme: prefs.theme,
+        sceneCount: prefs.sceneCount,
       },
       prefs.age
     );
@@ -131,7 +137,11 @@ function StoryRequestFlow() {
   return (
     <section className="flex flex-col gap-md">
       <h1 className="font-title text-title">{t("form.title")}</h1>
-      <StoryRequestForm onSubmit={handleSubmit} defaultAge={lastPreferences?.age} />
+      <StoryRequestForm
+        onSubmit={handleSubmit}
+        defaultAge={lastPreferences?.age}
+        defaultSceneCount={lastPreferences?.sceneCount}
+      />
     </section>
   );
 }

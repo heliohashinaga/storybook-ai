@@ -1,8 +1,14 @@
 import { z } from "zod";
 
-export const ageBandValues = ["2-4", "5-7", "8-12"] as const;
+export const ageBandValues = ["2-4", "5-7", "8-9"] as const;
 export const localeValues = ["pt-BR", "en"] as const;
 export const themeValues = ["courage", "friendship", "kindness"] as const;
+
+/** Client-side scene-count range (3, 4, 5); mirrors `schemas.ts` server bounds. */
+export const MIN_SCENES = 3;
+export const MAX_SCENES = 5;
+export const DEFAULT_SCENE_COUNT = MIN_SCENES;
+export const sceneCountSchema = z.number().int().min(MIN_SCENES).max(MAX_SCENES);
 
 export type Locale = (typeof localeValues)[number];
 export type Theme = (typeof themeValues)[number];
@@ -15,7 +21,7 @@ export type Theme = (typeof themeValues)[number];
  */
 export const storyPreferencesSchema = z
   .object({
-    age: z.number().int().min(2).max(12),
+    age: z.number().int().min(2).max(9),
     locale: z.enum(localeValues),
     theme: z.enum(themeValues),
   })

@@ -48,6 +48,7 @@ function contractStory(theme: "courage" | "kindness" | "friendship"): GeneratedS
     locale: "pt-BR",
     ageBand: "5-7",
     theme,
+    sceneCount: 3,
     safetyDecision: "approved",
     title: "A estrelinha e o mar",
     scenes: [
@@ -58,7 +59,7 @@ function contractStory(theme: "courage" | "kindness" | "friendship"): GeneratedS
   };
 }
 
-const ALLOWED = ["ageBand", "locale", "theme"] as const;
+const ALLOWED = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
 /**
  * The app's submit integration logic, driven against a faked fetch: derive the
@@ -67,10 +68,20 @@ const ALLOWED = ["ageBand", "locale", "theme"] as const;
  */
 async function submitStory(
   session: StorySession,
-  prefs: { age: number; locale: "pt-BR"; theme: "courage" | "kindness" | "friendship" }
+  prefs: {
+    age: number;
+    locale: "pt-BR";
+    theme: "courage" | "kindness" | "friendship";
+    sceneCount: number;
+  }
 ): Promise<Record<string, unknown>> {
-  const ageBand = prefs.age >= 8 ? "8-12" : prefs.age >= 5 ? "5-7" : "2-4";
-  const payload = { ageBand, locale: prefs.locale, theme: prefs.theme };
+  const ageBand = prefs.age >= 8 ? "8-9" : prefs.age >= 5 ? "5-7" : "2-4";
+  const payload = {
+    ageBand,
+    locale: prefs.locale,
+    theme: prefs.theme,
+    sceneCount: prefs.sceneCount,
+  };
   session.begin();
   const response = await vi.mocked(fetch)("/api/stories", {
     method: "POST",
@@ -126,7 +137,7 @@ describe("anonymous-session preference reuse and preserved stories", () => {
     const payloads: Record<string, unknown>[] = [];
     for (const theme of ["courage", "kindness", "friendship"] as const) {
       await act(async () => {
-        payloads.push(await submitStory(read(), { age: 6, locale: "pt-BR", theme }));
+        payloads.push(await submitStory(read(), { age: 6, locale: "pt-BR", theme, sceneCount: 3 }));
       });
     }
 
@@ -140,7 +151,12 @@ describe("anonymous-session preference reuse and preserved stories", () => {
     }
     expect(payloads.map((p) => p.theme)).toEqual(["courage", "kindness", "friendship"]);
     // lastPreferences reflects the most recent reuse.
-    expect(read().lastPreferences).toEqual({ age: 6, locale: "pt-BR", theme: "friendship" });
+    expect(read().lastPreferences).toEqual({
+      age: 6,
+      locale: "pt-BR",
+      theme: "friendship",
+      sceneCount: 3,
+    });
 
     // ---- Preserved readable stories (newest-first) ------------------------
     const stories = read().stories;
@@ -172,12 +188,12 @@ describe("anonymous-session preference reuse and preserved stories", () => {
     render(<StorySessionProvider>{view}</StorySessionProvider>);
 
     await act(async () => {
-      await submitStory(read(), { age: 3, locale: "pt-BR", theme: "courage" }); // 2-4 band
+      await submitStory(read(), { age: 3, locale: "pt-BR", theme: "courage", sceneCount: 3 }); // 2-4 band
     });
     await act(async () => {
       // A parent adjusting age mid-session rederives the band but never sends the
       // exact age; the previous story stays readable.
-      await submitStory(read(), { age: 7, locale: "pt-BR", theme: "friendship" });
+      await submitStory(read(), { age: 7, locale: "pt-BR", theme: "friendship", sceneCount: 3 });
     });
 
     const stories = read().stories;

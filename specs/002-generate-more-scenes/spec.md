@@ -10,21 +10,33 @@
 
 **Scope clarification**: A geração atual produz exatamente 3 cenas fixas por história (especificação de v1). Esta entrega introduz **contagem de cenas variável**: o responsável escolhe quantas cenas a história terá (3, 4 ou 5), dentro de limites validados. NÃO introduz cadastro, persistência, coleta de identificadores nem altera o anonimato — apenas torna a extensão "contagem variável de cenas" (já prevista como direção futura em `001`) uma capacidade efetiva para o usuário.
 
+## Clarifications
+
+### Session 2026-08-12
+
+- Q: Which widget should the scene-count selector (3, 4, 5) use in the form? → A: A radio group (three visible radio buttons) with role="radiogroup" and native arrow-key navigation.
+
+### Session 2026-08-11
+
+- Q: Should the feature assume that generating 5 scenes is slower than 3, or treat the time cost as unknown until it can be measured? → A: Ignore timing entirely for this feature; keep FR-008 generic, decide the time question later during planning.
+- Q: When a parent generates a new story in the same session, should the scene-count choice made earlier be remembered, or reset to the default (3) each time? → A: Remember the in-session selection for subsequent "new story" flows (consistent with age/locale/theme reuse); 3 remains the first-run default.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Escolher quantas cenas a história terá (Priority: P1)
 
-Um responsável escolhe, antes de gerar, quantas cenas a história terá (3, 4 ou 5), por um controle claro e acessível no formulário. A escolha é opcional: se não for alterada, o padrão continua sendo 3 cenas (comportamento atual preservado).
+Um responsável escolhe, antes de gerar, quantas cenas a história terá (3, 4 ou 5), por um grupo de campos (radio group) claro e acessível no formulário, com as três opções visíveis e navegação nativa por teclado. A escolha é opcional: se não for alterada, o padrão continua sendo 3 cenas (comportamento atual preservado).
 
 **Why this priority**: é a interação principal desta entrega — dar ao usuário o controle de duração da história, com o valor padrão preservando o comportamento conhecido de v1.
 
-**Independent Test**: Abrir o formulário no idioma pt-BR e confirmar que há um controle para escolher o número de cenas com as opções 3, 4 e 5 e o valor padrão 3; selecionar 4 e confirmar que a escolha é refletida na solicitação sem que nenhum identificador direto seja coletado.
+**Independent Test**: Abrir o formulário no idioma pt-BR e confirmar que há um grupo de campos (radio group) para escolher o número de cenas com as opções 3, 4 e 5 visíveis e o valor padrão 3; selecionar 4 e confirmar que a escolha é refletida na solicitação sem que nenhum identificador direto seja coletado.
 
 **Acceptance Scenarios**:
 
-1. **Given** um responsável no formulário, **When** visualiza as opções de duração, **Then** ele pode escolher entre 3, 4 ou 5 cenas, com 3 pré-selecionado como padrão e rótulo localizado no idioma ativo.
+1. **Given** um responsável no formulário, **When** visualiza as opções de duração, **Then** ele pode escolher entre 3, 4 ou 5 cenas em um radio group com as três opções visíveis (`role="radiogroup"`), com 3 pré-selecionado como padrão, rótulo localizado no idioma ativo e navegação plena por teclado (setas).
 2. **Given** um responsável que não altera a escolha, **When** gera a história, **Then** a história é gerada com 3 cenas (mesmo comportamento de v1).
 3. **Given** um responsável seleciona 4 cenas, **When** gera a história, **Then** a história retorna com exatamente 4 cenas numeradas em sequência e a escolha é enviada ao servidor apenas como a contagem anônima (sem identificador).
+4. **Given** um responsável que selecionou 4 cenas e gera uma **nova história** na mesma sessão, **When** inicia a nova história, **Then** o controle mantém a escolha anterior (4 cenas), com 3 permanecendo como padrão apenas na primeira execução da sessão.
 
 ---
 
@@ -63,31 +75,31 @@ Ao gerar uma história de 4 ou 5 cenas, todas as cenas partilham o mesmo estilo 
 ### Edge Cases
 
 - O que acontece quando o responsável seleciona **exatamente 3** cenas? Deve produzir o mesmo comportamento de v1, sem mudança visível na história.
-- Como o sistema lida com valores de contagem **inválidos** (ex.: 2, 6, ausente ou texto não numérico)? A validação no cliente dá erro rápido localizado; o servidor re-valida e retorna `422`/`400` de contrato se o valor estiver for a faixa permitida.
+- Como o sistema lida com valores de contagem **inválidos** (ex.: 2, 6, ausente ou texto não numérico)? A validação no cliente dá erro rápido localizado; o servidor re-valida e retorna `400 invalid_input` (malformado) se o valor estiver fora da faixa permitida (3–5).
 - Como o sistema se comporta quando o valor de contagem é **omitido** na requisição? Deve assumir o padrão de 3 cenas (retrocompatível).
-- O que acontece quando uma geração de 5 cenas estoura o **tempo máximo** de geração? O timeout deve ser dimensionado pela contagem escolhida, retornando `504`/`502` mapeados, nunca uma história parcial como sucesso.
-- Como a **leitura em voz alta** (se existente em outras entregas) e a navegação por cena se comportam com 4-5 cenas? A navegação/indicação de progresso devem refletir a contagem real, interrompendo leituras ao trocar de cena.
+- O que acontece quando uma geração de 5 cenas ultrapassa o tempo máximo aceitável de geração? O sistema deve retornar os erro de contrato correspondentes (`504`/`502`) mapeados, nunca uma história parcial como sucesso. *Qualquer parametrização de timeout por contagem é decidida em planejamento; o invariante a preservar é: nunca sucesso parcial.*
+- A **leitura em voz alta** está **fora de escopo desta entrega** (não existe em outras entregas atualmente). A navegação por cena e a indicação de progresso devem refletir a contagem real; a interrupção de leituras ao trocar de cena só se aplica se/quando uma leitura em voz alta existir no produto.
 - O que acontece se o usuário tentar **exportar** uma história de 5 cenas? O documento exportado deve conter todas as cenas na ordem, sem truncar para 3.
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: O usuário responsável DEVE poder escolher o número de cenas para uma história entre **3, 4 ou 5**, por um controle acessível no formulário, com o valor **3 como padrão**, antes de solicitar a geração.
+- **FR-001**: O usuário responsável DEVE poder escolher o número de cenas para uma história entre **3, 4 ou 5**, por um **grupo de campos de seleção (radio group)** acessível no formulário — três opções visíveis com `role="radiogroup"` e navegação nativa por teclas de seta —, com o valor **3 como padrão**, antes de solicitar a geração.
 - **FR-002**: O sistema DEVE aceitar uma solicitação com uma contagem de cenas válida (3, 4 ou 5) e gerar exatamente essa quantidade de cenas sequenciais e numeradas.
-- **FR-003**: O sistema DEVE rejeitar contagens fora da faixa permitida, no cliente com erro de validação localizado imediato e no servidor com a resposta de contrato correspondente, antes de qualquer chamada ao provedor.
+- **FR-003**: O sistema DEVE rejeitar contagens fora da faixa permitida (3–5), no cliente com erro de validação localizado imediato **e no servidor re-validando a contagem antes de qualquer geração**, respondendo com o erro de contrato correspondente (`400 invalid_input` para fora da faixa), antes de qualquer chamada ao provedor.
 - **FR-004**: O sistema DEVE tratar a contagem como opcional e retrocompatível: uma requisição sem contagem (ou com valor omisso) DEVE gerar 3 cenas (comportamento de v1).
 - **FR-005**: O sistema DEVE garantir que um conjunto de cenas só seja considerado uma história bem-sucedida quando **todas** as cenas (texto e ilustração) passarem no pipeline de segurança; nenhum subconjunto parcial DEVE ser tratado como sucesso.
 - **FR-006**: O sistema DEVE manter a consistência de estilo e personagem (anônima) em todas as ilustrações, independentemente da contagem de cenas (3, 4 ou 5).
 - **FR-007**: O sistema DEVE preservar todos os invariantes de anonimato com contagens variáveis: nenhum identificador direto do filho em payloads, logs, telemetria ou provedores; `Cache-Control: no-store` na resposta.
-- **FR-008**: O tempo de geração e os limites de recursos devem ser parametrizados pela contagem de cenas, para que histórias mais longas não causem timeouts espúrios nem respostas parciais (orquestração e retries dimensionados por contagem).
+- **FR-008**: (decisão de capacidade de tempo adiada para o planejamento) O sistema DEVE garantir que uma história de 3, 4 ou 5 cenas nunca retorne um conjunto parcial de cenas como sucesso. *Este requisito foca a invariante “nunca sucesso parcial” (idêntica à FR-005); a questão de tempo (se 5 cenas é mais lento que 3) permanece uma suposição não medida — a parametrização de tempo por contagem será decidida em planejamento/implementação, não antecipada aqui.*
 - **FR-009**: O leitor DEVE navegar e indicar progresso refletindo a contagem real de cenas (ex.: "Cena X de 5"), e a exportação DEVE incluir todas as cenas na ordem.
-- **FR-010**: O sistema DEVE revalidar no servidor a contagem recebida antes de qualquer geração, aplicando os mesmos limites (3–5) como parte do contrato de entrada.
+- **FR-010**: O sistema DEVE revalidar no servidor a contagem recebida antes de qualquer geração, aplicando os mesmos limites (3–5) como parte do contrato de entrada. *(Co-mantido com FR-003 — ver a cláusula “no servidor” de FR-003 como a regra canônica; este requisito é mantido para rastreabilidade explícita do re-validate server-side.)*
 
 ### Key Entities *(include if feature involves data)*
 
 - **Story**: Narrativa gerada com contagem de cenas variável (3–5), parametrizada pela preferência de duração escolhida e alinhada à faixa etária/tema/idioma.
-- **Scene Count / Duração**: Escolha do responsável pelo número de cenas (3, 4 ou 5), enviada ao servidor apenas como valor inteiro anônimo dentro da faixa permitida, validada em duas camadas (cliente e servidor).
+- **Scene Count / Duração**: Escolha do responsável pelo número de cenas (3, 4 ou 5) num radio group no formulário, enviada ao servidor apenas como valor inteiro anônimo dentro da faixa permitida, validada em duas camadas (cliente e servidor).
 - **Scene**: Unidade narrativa sequencial com texto e ilustração; a quantidade por história é determinada pelo Scene Count, modelada por ordinal.
 - **Illustration**: Imagem de cada cena, mantendo consistência de estilo e personagem anônima em toda a história, sem importar a contagem.
 
@@ -95,20 +107,23 @@ Ao gerar uma história de 4 ou 5 cenas, todas as cenas partilham o mesmo estilo 
 
 ### Measurable Outcomes
 
-- **SC-001**: Um responsável consegue escolher e receber uma história com **4 ou 5 cenas** completas e legíveis dentro do tempo máximo de geração (histórias mais longas não estouram o limite e não retornam conteúdo parcial).
-- **SC-002**: **100%** das histórias geradas com contagem variável têm exatamente a contagem de cenas solicitada (3, 4 ou 5), numeradas em sequência e com final claro.
+- **SC-001**: Um responsável consegue escolher e receber uma história com **4 ou 5 cenas** completas e legíveis dentro dos limites aceitáveis de geração do produto, sem retornar conteúdo parcial. *Não assume que histórias mais longas ultrapassam limites; a questão de tempo é verificada em planejamento/implementação.*
+- **SC-002**: **100%** das histórias geradas com contagem variável têm exatamente a contagem de cenas solicitada (3, 4 ou 5) e cenas numeradas em sequência; **a última cena termina com uma frase de encerramento definida** (fecho estrutural verificável por teste), em vez de um fim abrupto.
 - **SC-003**: **100%** das histórias com contagem variável mantêm os invariantes de anonimato e privacidade (sem identificador direto em payloads, logs ou provedores; `Cache-Control: no-store`).
 - **SC-004**: **100%** das histórias de 4 ou 5 cenas são entregues como sucesso apenas quando **todas** as cenas (texto e ilustração) passaram na verificação de segurança e na checagem de consistência.
 - **SC-005**: Histórias com a opção padrão (3 cenas) mantêm comportamento idêntico ao de v1, sem regressão perceptível.
-- **SC-006**: O leitor e a exportação exibem e incluem corretamente todas as cenas da história (ex.: "Cena X de 5", documento sem truncamento) na primeira tentativa para 95% das histórias.
+- **SC-006**: O leitor e a exportação exibem e incluem corretamente todas as cenas da história (ex.: "Cena X de 5", documento sem truncamento) para toda história retornada. O índice de sucesso "na primeira tentativa" (≥95%) é uma métrica **monitorada** pós-implantação (provider-dependente), não um gate determinístico de CI.
 
 ## Assumptions
 
 - **Faixa de contagem**: A faixa suportada é **3 a 5 cenas** (alinhada à direção futura já registrada em `001`: "variable scene counts e.g. 3, 4, or 5"). Contagens acima de 5 ficam fora de escopo desta entrega.
-- **Escolha do responsável (não da faixa etária)**: A contagem é escolhida pelo responsável em um controle no formulário, em vez de ser derivada automaticamente da faixa etária. (Este foi um ponto em aberto; a escolha explícita é o comportamento mais simples e direto.)
+  - **Decisão (3–4–5 confirmada sobre 3–5–7)**: o range contíguo 3–4–5 foi mantido em vez de uma progressão ímpar 3–5–7. Razões: atende bem à curva de atenção por faixa etária (2–4 → curto; 5–7 ≈ 4; 8–9 ≈ 5), oferece granularidade mais previsível (sem pular os pares 4 e 6), e evita o custo de tempo/engenharia ainda não medido de 7 ilustrações (cada cena = 1 ilustração + moderação). A reavaliação de ampliar para 6 (não 7, mantendo contiguidade) pode ser considerada após medição real de tempo de geração em planejamento/implementação.
+- **Escolha do responsável (não da faixa etária)**: A contagem é escolhida pelo responsável em um grupo de campos (radio group) no formulário, em vez de ser derivada automaticamente da faixa etária. (Este foi um ponto em aberto; a escolha explícita é o comportamento mais simples e direto.)
 - **Valor padrão retrocompatível**: Se o responsável não alterar a escolha, o valor é 3, mantendo o comportamento atual de v1 sem quebra.
+- **Reuso em sessão**: A escolha de contagem (quando alterada) é lembrada na mesma sessão para as próximas histórias (consistente com o reuso em memória de idade/idioma/tema); o padrão 3 aplica-se à primeira execução da sessão.
 - **Validação em duas camadas**: A contagem é validada no cliente (erro rápido localizado) e re-validada no servidor (contrato `story-generation.openapi.yaml`) antes de qualquer chamada ao provedor, para segurança e integridade do contrato.
 - **Escopo de regressão**: Não altera o anonimato, a persistência, moderação, taxa de uso, temas, faixa etária, nem idiomas — apenas a capacidade de contagem variável de cenas e o impacto decorrente em UI/UX (controle, leitor, exportação, orquestração).
 - **Compatibilidade de contrato**: A contagem de cenas entra como campo novo no contrato de requisição; respostas continuam usando o modelo sequencial por ordinal já existente; o contrato e os testes de contrato são atualizados.
 - **Dependência**: Preserva os invariantes de segurança e consistência já estabelecidos, incluindo a verificação de que nenhum conjunto parcial de cenas é tratado como sucesso e a parametrização dos budgets por contagem.
-- **Dependência funcional (opcional)**: Se a leitura em voz alta estiver presente em outra entrega, a navegação/interrupção deve refletir a contagem real; caso contrário, permanece fora de escopo desta entrega.
+- **Decisão de latência (paralelização de ilustrações aceita)**: para mitigar a espera com provedores lentos, a geração de ilustrações DEVE poder rodar com **concorrência limitada** (ex. `Promise.allSettled` com `concurrency` ∈ 2–3, mantendo o retry do set inteiro e o timeout `IMAGE_TIMEOUT_MS`), em vez de puramente sequencial. Isso reduz o tempo da geração paralela de cenas sem abrir mão da invariante de “nunca conjunto parcial” (FR-005/FR-008). Se a medição real de latência mostrar rate-limit ou queda de consistência ao paralelizar, a concorrência é reduzida — a decisão de escala permanece adiada até medição, mas a abordagem de paralelização limitada é a recomendada.
+- **Dependência funcional (fora de escopo)**: A leitura em voz alta está fora de escopo desta entrega (não há leitura em voz alta em outras entregas hoje). A navegação por cena, a indicação de progresso e a interrupção ao trocar de cena refletirão a contagem real apenas se/quando uma leitura em voz alta for introduzida no produto.

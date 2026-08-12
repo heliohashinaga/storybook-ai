@@ -5,7 +5,7 @@ import {
   toErrorJson,
   unsafeUnrecoverable,
 } from "../../../lib/http-errors";
-import { N_SCENES, storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
+import { storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
 import { runSafetyPipeline } from "./safety-pipeline";
 import {
   ProviderError,
@@ -25,13 +25,21 @@ import {
  *    story-response schema before it may be returned.
  *
  * Provider transport failures are mapped to typed HTTP errors (unavailable →
- * 502, timeout → 504). Unsafe results never reach the caller. The scene count
- * is enforced here and in the safety pipeline against the single validated
- * `N_SCENES` constant from the shared schemas (extension point for 3/4/5).
+ * 502, timeout → 504). Unsafe results never reach the caller. The requested
+ * scene count (`input.sceneCount`, 3–5) is enforced here and in the safety
+ * pipeline against the shared `MIN_SCENES`/`MAX_SCENES` constants, so a story
+ * is only success when exactly the requested number of scenes is complete.
  */
 
 /** Default limit for a serialized WebP data-URI illustration (responses stay bounded). */
 const DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH = 4 * 1024 * 1024;
+
+/**
+ * Default max illustrations generated in parallel for one set (ADR 0005).
+ * Limited (not unbounded) to mitigate provider rate-limit and preserve visual
+ * or character consistency between scenes.
+ */
+const DEFAULT_ILLUSTRATION_CONCURRENCY = 2;
 
 export interface IllustrationResult {
   /** Optimized WebP data-URI for a scene (validated here for size/format). */
@@ -39,13 +47,18 @@ export interface IllustrationResult {
 }
 
 export interface GenerateStoryOptions {
-  /** Anonymous request: only ageBand, locale, theme. */
+  /** Anonymous request: only ageBand, locale, theme, and requested scene count. */
   input: ProviderStoryInput;
   provider: StoryGenerationProvider;
   /** Generates an optimized illustration from a moderated scene prompt. */
   illustrate: (prompt: string) => Promise<IllustrationResult>;
   /** Bounded retries for the whole illustration set (default 1). */
   imageRetries?: number;
+  /**
+   * Max illustrations generated concurrently within a set (ADR 0005, default 2).
+   * Kept conservative to avoid provider rate-limit and character-style drift.
+   */
+  illustrationConcurrency?: number;
   /** Response-size guard on each illustration data URI (override for tests). */
   maxIllustrationDataUriLength?: number;
 }
@@ -68,8 +81,49 @@ function isValidIllustration(dataUri: string, maxLength: number): boolean {
 }
 
 /**
- * Generates a consistent three-image set with bounded whole-set retry. Returns
- * the data URIs in scene order, or `null` when the set stays incomplete.
+ * Runs `worker` for `items` with at most `limit` in flight at once, resolving
+ * in input order. ADR 0005: illustration sets are generated with **limited**
+ * concurrency rather than `Promise.all` (which would spike provider rate-limit
+ * and weaken style consistency between scenes). If any worker rejects, the
+ * remaining slots stop dispatching (a `cancelled` flag short-circuits the
+ * loop) so the caller can retry the whole set without leaking extra work into
+ * the aborted attempt. In-flight provider calls can't be undone, but no *new*
+ * prompt is issued once the set has failed.
+ */
+async function mapWithConcurrency<T, R>(
+  items: readonly T[],
+  limit: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R | undefined>(items.length);
+  let nextIndex = 0;
+  let cancelled = false;
+
+  async function runSlot() {
+    try {
+      while (!cancelled && nextIndex < items.length) {
+        const index = nextIndex;
+        nextIndex += 1;
+        // `index` was < items.length when read below, so the item is defined.
+        const item = items[index];
+        results[index] = await worker(item!, index);
+      }
+    } finally {
+      // A rejection (or a sibling slot finishing) halts further dispatch.
+      cancelled = true;
+    }
+  }
+
+  const slotCount = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: slotCount }, () => runSlot()));
+  return results as R[];
+}
+
+/**
+ * Generates a consistent N-image set with bounded whole-set retry and limited
+ * concurrency (ADR 0005). Returns the data URIs in scene order, or `null` when
+ * the set stays incomplete. Any failed/oversized illustration rejects the whole
+ * set so a story is never partially illustrated.
  */
 async function illustrateSet(
   prompts: string[],
@@ -78,17 +132,17 @@ async function illustrateSet(
   const maxLength =
     options.maxIllustrationDataUriLength ?? DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH;
   const retries = options.imageRetries ?? 1;
+  const concurrency = options.illustrationConcurrency ?? DEFAULT_ILLUSTRATION_CONCURRENCY;
 
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const dataUris: string[] = [];
-      for (const prompt of prompts) {
+      const dataUris = await mapWithConcurrency(prompts, concurrency, async (prompt) => {
         const result = await options.illustrate(prompt);
         if (!isValidIllustration(result.dataUri, maxLength)) {
           throw new Error("invalid illustration");
         }
-        dataUris.push(result.dataUri);
-      }
+        return result.dataUri;
+      });
       return dataUris;
     } catch {
       if (attempt >= retries) return null;
@@ -113,7 +167,7 @@ function altTextFor(
 
 /**
  * Runs the full anonymous generation pipeline and returns either a validated
- * three-scene story or a typed, localized safe error.
+ * 3–5 scene story (matching `input.sceneCount`) or a typed safe error.
  */
 export async function generateStory(options: GenerateStoryOptions): Promise<GenerateStoryResult> {
   const { input, provider } = options;
@@ -132,10 +186,10 @@ export async function generateStory(options: GenerateStoryOptions): Promise<Gene
     return { ok: false, error: mapProviderError(error) };
   }
 
-  // Defense-in-depth: the orchestration boundary re-binds the single validated
-  // scene count regardless of which safety pipeline produced the candidate, so
-  // a future variable-scene-count extension stays safe here too.
-  if (scenes.length !== N_SCENES) {
+  // Defense-in-depth: the orchestration boundary re-binds the requested scene
+  // count regardless of which safety pipeline produced the candidate, so the
+  // result is only success when exactly `sceneCount` scenes are complete.
+  if (scenes.length !== input.sceneCount) {
     return { ok: false, error: toErrorJson(unsafeUnrecoverable) };
   }
 
@@ -151,6 +205,7 @@ export async function generateStory(options: GenerateStoryOptions): Promise<Gene
     locale: input.locale,
     ageBand: input.ageBand,
     theme: input.theme,
+    sceneCount: input.sceneCount,
     safetyDecision,
     title,
     scenes: scenes.map((scene, index) => ({

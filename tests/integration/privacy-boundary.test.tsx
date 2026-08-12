@@ -29,6 +29,7 @@ function contractStory(theme: "courage" | "friendship"): StorySession["stories"]
     locale: "pt-BR",
     ageBand: "5-7",
     theme,
+    sceneCount: 3,
     safetyDecision: "approved",
     title: "A estrelinha e o mar",
     scenes: new Array(3).fill(null).map((_, i) => ({
@@ -66,7 +67,7 @@ describe("privacy boundary regression (T061)", () => {
   it("the browser request boundary derives only an ageBand — the exact age never leaves the client", async () => {
     // Canonicalisation shared by the request form: an exact age is reduced to a
     // coarse band in-memory, and only the band is eligible to be serialized.
-    const derivative = (age: number): string => (age >= 8 ? "8-12" : age >= 5 ? "5-7" : "2-4");
+    const derivative = (age: number): string => (age >= 8 ? "8-9" : age >= 5 ? "5-7" : "2-4");
 
     const exactAge = 6;
     const payload = { ageBand: derivative(exactAge), locale: "pt-BR", theme: "courage" };
@@ -91,12 +92,18 @@ describe("privacy boundary regression (T061)", () => {
     const { begin, succeed } = session;
     await act(async () => {
       begin();
-      succeed(contractStory("courage"), { age: 6, locale: "pt-BR", theme: "courage" });
+      succeed(contractStory("courage"), {
+        age: 6,
+        locale: "pt-BR",
+        theme: "courage",
+        sceneCount: 3,
+      });
       begin();
       succeed(contractStory("friendship"), {
         age: 6,
         locale: "pt-BR",
         theme: "friendship",
+        sceneCount: 3,
       });
     });
 

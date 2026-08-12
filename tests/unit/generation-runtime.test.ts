@@ -24,6 +24,7 @@ describe("createGenerationRuntime provider selection", () => {
       ageBand: "5-7",
       locale: "pt-BR",
       theme: "courage",
+      sceneCount: 3,
     });
     expect(story.scenes).toHaveLength(3);
     expect(JSON.stringify(story)).not.toMatch(/"name"/i);
@@ -36,9 +37,10 @@ describe("createGenerationRuntime provider selection", () => {
     process.env.STORIES_PROVIDER = "fake";
     const runtime = (await loadRuntime()).createGenerationRuntime();
     const story = await runtime.provider.generateStory({
-      ageBand: "8-12",
+      ageBand: "8-9",
       locale: "en",
       theme: "friendship",
+      sceneCount: 3,
     });
     expect(story.scenes).toHaveLength(3);
     expect(story.title).toMatch(/star/i);

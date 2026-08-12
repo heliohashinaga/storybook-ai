@@ -1,11 +1,16 @@
 openapi: 3.1.0
 info:
   title: Storybook AI Story Generation API
-  version: 1.0.0
+  version: 1.1.0
   description: |
     Generates a non-persistent, safety-approved story for the active browser session. The contract
     deliberately accepts no child name, other direct identifier, or exact age. The browser derives
-    ageBand locally and sends only age band, locale, and an allow-listed theme.
+    ageBand locally and sends only age band, locale, an allow-listed theme, and an anonymous
+    integer scene count (3, 4, or 5).
+
+    **Feature 002 delta**: the request gains an optional `sceneCount` (default `3`); a response now
+    carries 3–5 scenes (a story is only a success when all requested scenes are complete). Existing
+    v1 clients that omit `sceneCount` keep the exact prior behavior (3 scenes).
 servers:
   - url: /api
 paths:
@@ -13,12 +18,14 @@ paths:
     post:
       operationId: generateStory
       tags: [Story generation]
-      summary: Generate a safe three-scene story with illustrations
+      summary: Generate a safe 3–5 scene story with illustrations
       description: |
-        Validates an allow-listed locale, age band, and theme; generates and moderates a story;
-        regenerates one time if the first candidate is unsafe; then returns only the approved story
-        and its optimized scene illustrations. The response must not be cached or logged with
-        request content.
+        Validates an allow-listed locale, age band, theme, and scene count; generates and moderates
+        a story; regenerates one time if the first candidate is unsafe; then returns only the
+        approved story and its optimized scene illustrations. The response must not be cached or
+        logged with request content. Generation keeps a single end-to-end budget ceiling (≤120 s)
+        for every scene count; per-count timeout parametrization is deferred pending real measurement
+        (FR-008). A story is returned only when every requested scene is complete.
       requestBody:
         required: true
         content:
@@ -26,12 +33,19 @@ paths:
             schema:
               $ref: '#/components/schemas/GenerateStoryRequest'
             examples:
-              portugueseCourage:
-                summary: Default Brazilian Portuguese request
+              portugueseCourage3:
+                summary: Default request (3 scenes)
                 value:
                   ageBand: 5-7
                   locale: pt-BR
                   theme: courage
+              portugueseCourage5:
+                summary: Longer story (5 scenes)
+                value:
+                  ageBand: 5-7
+                  locale: pt-BR
+                  theme: courage
+                  sceneCount: 5
       responses:
         '200':
           description: Safety-approved story generated successfully.
@@ -47,11 +61,12 @@ paths:
                 $ref: '#/components/schemas/GeneratedStory'
               examples:
                 portugueseStory:
-                  summary: Safe Portuguese story with no child identifier.
+                  summary: Safe Portuguese story (here 5 scenes) with no child identifier.
                   value:
                     locale: pt-BR
                     ageBand: 5-7
                     theme: courage
+                    sceneCount: 5
                     safetyDecision: approved
                     title: 'A pequena aventura na ponte'
                     scenes:
@@ -70,8 +85,18 @@ paths:
                         body: 'A criança voltou para contar aos amigos que coragem cresce a cada passo.'
                         illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
                         altText: 'Crianças sorrindo juntas em um parque.'
+                      - ordinal: 4
+                        title: 'Um novo desafio'
+                        body: 'No dia seguinte, a criança encontrou uma trilha mais longa e sorriu.'
+                        illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
+                        altText: 'A criança observa uma trilha no meio da floresta.'
+                      - ordinal: 5
+                        title: 'Coragem que vira hábito'
+                        body: 'A criança percebeu que todo desafio fica menor quando começamos.'
+                        illustrationDataUri: 'data:image/webp;base64,UklGRlIAAABXRUJQVlA4...'
+                        altText: 'A criança caminha com confiança pela trilha.'
         '400':
-          description: The request does not match the allow-listed input contract.
+          description: The request does not match the allow-listed input contract (e.g. sceneCount outside 3–5).
           content:
             application/json:
               schema:
@@ -139,14 +164,11 @@ components:
         theme:
           $ref: '#/components/schemas/Theme'
         sceneCount:
-          type: integer
-          minimum: 3
-          maximum: 5
-          default: 3
-          description: Requested scene count (3, 4, or 5). Omitted or null defaults to 3.
+          $ref: '#/components/schemas/SceneCount'
       description: |
         Contains no child name, direct identifier, or exact age. Clients derive ageBand locally.
-        Unknown fields, including name, are rejected.
+        `sceneCount` is optional and defaults to 3 (v1 behavior). Unknown fields, including name,
+        are rejected.
     GeneratedStory:
       type: object
       additionalProperties: false
@@ -159,10 +181,7 @@ components:
         theme:
           $ref: '#/components/schemas/Theme'
         sceneCount:
-          type: integer
-          minimum: 3
-          maximum: 5
-          description: The number of scenes actually returned (matches the requested count, 3–5).
+          $ref: '#/components/schemas/SceneCount'
         safetyDecision:
           type: string
           enum: [approved, regenerated]
@@ -175,7 +194,7 @@ components:
         scenes:
           type: array
           minItems: 3
-          maxItems: 3
+          maxItems: 5
           items:
             $ref: '#/components/schemas/GeneratedScene'
     GeneratedScene:
@@ -186,7 +205,7 @@ components:
         ordinal:
           type: integer
           minimum: 1
-          maximum: 3
+          maximum: 5
         title:
           type: string
           minLength: 1
@@ -205,6 +224,12 @@ components:
           minLength: 1
           maxLength: 300
           description: Localized, age-appropriate illustration description.
+    SceneCount:
+      type: integer
+      minimum: 3
+      maximum: 5
+      default: 3
+      description: Anonymous requested scene count. Defaults to 3 (v1). Values outside 3–5 are rejected.
     AgeBand:
       type: string
       enum: ['2-4', '5-7', '8-9']
