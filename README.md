@@ -1,4 +1,4 @@
-<p align="center">
+⁸<p align="center">
   <img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
 </p>
 
@@ -22,7 +22,7 @@ illustrations.
 | Layer            | Technology                                                   |
 | ---------------- | ------------------------------------------------------------ |
 | Framework        | Next.js 16 (App Router) + React 19                           |
-| Language         | Strict TypeScript (no `any`)                                 |
+| Language         | TypeScript                                 |
 | Styling          | Tailwind (design-system tokens)                              |
 | i18n             | next-intl                                                    |
 | Validation       | Zod                                                          |
@@ -52,7 +52,7 @@ Configure development secrets (server-side only) in `.env.local`:
 OPENROUTER_API_KEY=replace-with-development-key
 OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
 OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
-OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
+OPENROUTER_MODERATION_MODEL=replace-with-approved-moderatiopn-model
 ```
 
 > Development provider selection: set `STORIES_PROVIDER=fake` only for
