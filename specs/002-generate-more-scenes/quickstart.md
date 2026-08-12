@@ -25,7 +25,7 @@ pnpm build
 
 Pesquisa de mercado (ver `research.md`): para este produto, **1 cena ≈ 1 spread/ilustração** de
 livro ilustrado, não 1 página impressa. A faixa **3–5 cenas** é coerente — os menores (2–4) leem
-histórias curtas (3 cenas, ~4–12 min), enquanto 5–7 e 8–12 sustentam 4–5 cenas confortavelmente
+histórias curtas (3 cenas, ~4–12 min), enquanto 5–7 e 8–9 sustentam 4–5 cenas confortavelmente
 (~10–15 min). Valores acima de 5 ficam fora de escopo.
 
 ## Validação end-to-end da contagem de cenas
@@ -58,8 +58,8 @@ Gere histórias de 3, 4 e 5 cenas e acione "Baixar como PDF" em cada uma.
 
 ### 4. Dimensionamento de tempo (FR-008) e nenhuma resposta parcial
 
-Histórias de 5 cenas (caso mais lento) são geradas **dentro do teto** (≤120s) e nunca devolvem um
-conjunto parcial (SC-001, FR-005, SC-004).
+Histórias de 5 cenas (caso esperadamente mais lento) são geradas **dentro do teto único** (≤120s) e nunca devolvem um
+conjunto parcial (SC-001, FR-005, SC-004). A parametrização de timeout por contagem fica adiada até a medição real (FR-008).
 
 **Esperado**: se uma cena falhar, a geração inteira falha com erro localizado/retryable — nunca um
 "sucesso" com menos cenas do que o solicitado.
@@ -92,5 +92,6 @@ pnpm test:performance    # budgets (JS ≤250 KiB, LCP ≤2.5s, nav ≤100ms, ge
 
 A feature mantém: anonimato (sem nome/idade exata/identificador — `sceneCount` é só um inteiro
 anônimo), acessibilidade AA, foco voltado, `prefers-reduced-motion`, `Cache-Control: no-store` e
-budgets de performance dimensionados por contagem. Nenhum teste referencia dados de criança ou
+budgets de performance mantêm o **teto end-to-end único** de ≤120s para todas as contagens
+(a parametrização por contagem fica adiada à medição real, FR-008). Nenhum teste referencia dados de criança ou
 chama IA live.

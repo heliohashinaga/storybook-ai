@@ -23,8 +23,9 @@ paths:
         Validates an allow-listed locale, age band, theme, and scene count; generates and moderates
         a story; regenerates one time if the first candidate is unsafe; then returns only the
         approved story and its optimized scene illustrations. The response must not be cached or
-        logged with request content. Generation timeouts and budgets are sized by scene count; a
-        story is returned only when every requested scene is complete.
+        logged with request content. Generation keeps a single end-to-end budget ceiling (≤120 s)
+        for every scene count; per-count timeout parametrization is deferred pending real measurement
+        (FR-008). A story is returned only when every requested scene is complete.
       requestBody:
         required: true
         content:
@@ -231,7 +232,7 @@ components:
       description: Anonymous requested scene count. Defaults to 3 (v1). Values outside 3–5 are rejected.
     AgeBand:
       type: string
-      enum: ['2-4', '5-7', '8-12']
+      enum: ['2-4', '5-7', '8-9']
     Locale:
       type: string
       enum: [pt-BR, en]

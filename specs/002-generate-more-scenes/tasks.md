@@ -26,7 +26,7 @@ enforces test-first. Write failing tests before implementation.
 
 **Purpose**: Branch + shared fixture groundwork; no behavior change.
 
-- [ ] T001 Create/reconfirm feature branch `002-generate-more-scenes` and ensure working tree matches latest `main`; record scope (3–5 scenes, default 3) in the task file header
+- [ ] T001 Create/reconfirm feature branch `002-generate-more-scenes` and record scope (3–5 scenes, default 3) in the task file header; reconcile the working tree with any in-flight, uncommitted changes (do NOT assume a clean merge to `main` — the branch already carries the age-band 8-9 work and prior spec/documentation edits)
 - [ ] T002 [P] Extend `sceneCount` fixture helper: parametrize `buildSafeCandidate(input)` in `tests/fixtures/story-generation/provider-fixtures.ts` to return `input.sceneCount` scenes (3/4/5), preserving existing 3-scene behavior by default
 - [ ] T003 [P] Extend the fake provider in `tests/fixtures/story-generation/provider-fixtures.ts` to honor `input.sceneCount` across the `safe`, `unsafe-then-safe`, and `double-unsafe` scenarios; keep deterministic (no AI live)
 
@@ -57,29 +57,30 @@ pipeline (never a partial-success result). Requires Phase 2.
 
 **Independent Test**: `pnpm test` — generate a story with `sceneCount` 4 and 5 through the fake
 provider; assert the request carries only anonymous `ageBand`/`locale`/`theme`/`sceneCount` and the
-response returns exactly the requested number of complete scenes; `pnpm test:contract` verifies the
-OpenAPI contract.
+response returns exactly the requested number of complete scenes; the OpenAPI contract is verified
+under the same `pnpm test` run (contract tests live in `tests/contract/`; there is no separate
+`test:contract` script).
 
 ### Tests for User Story 1 ⚠️
 
 > **NOTE: Write these tests FIRST, confirm they FAIL before implementing.**
 
-- [ ] T009 [P] [US1] Unit test for `sceneCountSchema` boundaries and default in `tests/unit/schemas.test.ts` (or extend the existing schema test): 3/4/5 accepted, 2 and 6 rejected, omission defaults to 3
+- [ ] T009 [P] [US1] Unit test for `sceneCountSchema` boundaries and default in `tests/unit/story-preferences-schema.test.ts` (the existing schemas test file — there is no separate `tests/unit/schemas.test.ts`): 3/4/5 accepted, 2 and 6 rejected, omission defaults to 3
 - [ ] T010 [P] [US1] Update `tests/unit/story-preferences-schema.test.ts` for client `sceneCount` field: valid values, rejected out-of-range, no identifier accepted
-- [ ] T011 [P] [US1] Update `tests/unit/provider-fixtures.test.ts`: `buildSafeCandidate` returns `sceneCount` scenes (3/4/5) deterministically
+- [ ] T011 [P] [US1] **Create** `tests/unit/provider-fixtures.test.ts` (file does not exist yet; the fixture helper lives in `tests/fixtures/story-generation/provider-fixtures.ts`): `buildSafeCandidate` returns `sceneCount` scenes (3/4/5) deterministically
 - [ ] T012 [P] [US1] Contract test update in `tests/contract/story-generation.openapi.test.ts`: request with `sceneCount` 5 is valid and echoed; response scenes bound [3,5]; still no name/identifier allowed
-- [ ] T013 [P] [US1] Integration test: exercise 3/4/5 scene counts end-to-end through the fake provider → safety pipeline → orchestrator → response in `tests/integration/provider-pipeline.test.ts`; assert exactly `sceneCount` complete scenes and a typed 400 on out-of-range
+- [ ] T013 [P] [US1] Integration test: exercise 3/4/5 scene counts end-to-end through the fake provider → safety pipeline → orchestrator → response in `tests/integration/provider-pipeline.test.ts`; assert exactly `sceneCount` complete scenes, a typed 400 on out-of-range, and that the final scene has an explicit closing sentence (SC-002 fecho) for each count
 
 ### Implementation for User Story 1
 
 - [ ] T014 [US1] Add `sceneCount` (default 3, options 3/4/5) to `src/features/story-request/client/story-preferences-schema.ts` with fast, localized client validation
-- [ ] T015 [US1] Add localized control (label + 3/4/5 options, a11y) to `src/features/story-request/components/story-request-form.tsx`; wire `defaultSceneCount` and in-session reuse (remember last choice for "nova história")
+- [ ] T015 [US1] Add localized control (label + 3/4/5 options, a11y) to `src/features/story-request/components/story-request-form.tsx`; wire `defaultSceneCount` and in-session reuse (remember last choice for "nova história"). **In-session semantics**: the remembered choice lives in React in-memory state at the app/story level (consistent with age/locale/theme reuse); it survives `handleSubmit` → "nova história" → new form within the same session, and resets only on a fresh full-page session (state is never persisted or passed across a page reload).
 - [ ] T016 [US1] Extend `src/features/story-request/components/story-request-form.stories.tsx` with default/edge/error states for the scene-count control (incl. out-of-range) + a11y via storybook test-runner
 - [ ] T017 [US1] Add locale strings in `src/features/story-request/locales/pt-BR.json` and `src/features/story-request/locales/en.json` (field label + option labels); no hardcoded strings
-- [ ] T018 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/openrouter-story-generation-provider.ts`: build the prompt for `sceneCount` scenes; validate candidate scene array `min(3).max(5)`
-- [ ] T019 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/fixed-dev-provider.ts` (deterministic variadic scenes)
+- [ ] T018 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/openrouter-story-generation-provider.ts`: build the prompt for `sceneCount` scenes; validate candidate scene array `min(3).max(5)`. **SC-002 fecho**: the prompt must instruct the model to end the **last** scene with a definite closing/climax-resolution sentence (a structural fecho), so a 4/5-scene story terminates rather than cutting off abruptly.
+- [ ] T019 [P] [US1] Honor `input.sceneCount` in `src/features/story-generation/server/fixed-dev-provider.ts` (deterministic variadic scenes, with a clear closing sentence on the final scene to satisfy SC-002)
 - [ ] T020 [US1] Update `src/features/story-generation/server/safety-pipeline.ts`: pass `input.sceneCount` as expected count; reject count mismatch; validate partial sets (never partial-success)
-- [ ] T021 [US1] Update `src/features/story-generation/server/generate-story.ts`: validate result matches `sceneCount`; reject partial/truncated stories; keep budgets/timeouts bounded
+- [ ] T021 [US1] Update `src/features/story-generation/server/generate-story.ts`: validate result matches `sceneCount`; reject partial/truncated stories; keep budgets/timeouts bounded (single ≤120 s ceiling holds for 4–5 scenes per SC-001; per-count timing parametrization remains deferred per FR-008 — this task only asserts the global ceiling is not exceeded). **SC-002 fecho (server-side)**: when resolving a generated story, assert the final scene carries an explicit closing sentence (structural fecho); if absent, treat as failed (never return a cut-off story) — making SC-002 testable server-side.
 - [ ] T022 [US1] Update `src/app/api/stories/route.ts` to accept and revalidate `sceneCount` (default 3), pass it through, map `400 invalid_input` for out-of-range; keep `Cache-Control: no-store`
 - [ ] T023 [US1] Update server schemas unit coverage for request/response round-trip (3/4/5) in the relevant `tests/unit/` schema test
 
@@ -93,7 +94,7 @@ OpenAPI contract.
 for 4–5-scene stories with focus management and `prefers-reduced-motion` respected. Requires US1's
 backend to return >3 scenes end-to-end; reader change itself is independent.
 
-**Independent Test**: `pnpm storybook:test` (a11y) + `pnpm e2e` — open a generated 4/5-scene story;
+**Independent Test**: `pnpm storybook:test` (a11y) + `pnpm test:e2e` — open a generated 4/5-scene story;
 assert Y equals the real count and all scenes reachable.
 
 ### Tests for User Story 2 ⚠️
@@ -105,8 +106,8 @@ assert Y equals the real count and all scenes reachable.
 
 ### Implementation for User Story 2
 
-- [ ] T026 [US2] Confirm/update `src/features/story-reader/components/story-reader.tsx` and `src/features/story-reader/client/story-switcher-utils.ts` to drive `total` from `scenes.length` (no hardcoded 3); keep focus move + arrow-nav for N scenes
-- [ ] T027 [US2] Update `src/features/story-reader/client/story-response.ts` parser to accept stories with 3–5 scenes (and reject out-of-range as invalid rather than truncating)
+- [ ] T026 [US2] Confirm/update `src/features/story-reader/components/story-reader.tsx` and `src/features/story-reader/components/story-switcher-utils.ts` (note: the switcher util lives under `components/`, not `client/`) to drive `total` from `scenes.length` (no hardcoded 3); keep focus move + arrow-nav for N scenes
+- [ ] T027 [US2] Update `src/features/story-reader/client/story-response.ts` parser to accept stories with 3–5 scenes (and reject out-of-range as invalid rather than truncating); **mandatory SC-002 fecho**: validate that the last scene ends with an explicit closing sentence (structural fecho) rather than truncating it — assert this unconditionally in tests
 
 **Checkpoint**: US2 complete — long stories read correctly, scene-by-scene, with real count.
 
@@ -117,7 +118,7 @@ assert Y equals the real count and all scenes reachable.
 **Goal**: Export (PDF) renders ALL scenes in order with no truncation; long stories keep style/
 character consistency across 3–5 scenes (never partial as success). Requires US1 + US2.
 
-**Independent Test**: `pnpm test` (PDF unit) + `pnpm visual` — export a 5-scene story; assert N
+**Independent Test**: `pnpm test` (PDF unit) + `pnpm test:visual` — export a 5-scene story; assert N
 pages/scenes and consistent illustration style; assert no partial story is produced on failure.
 
 ### Tests for User Story 3 ⚠️
@@ -126,7 +127,7 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 - [ ] T028 [P] [US3] Update `tests/unit/build-story-pdf.test.ts` for 4- and 5-scene stories (pages == scene count, order preserved, WebP→PNG per page)
 - [ ] T029 [P] [US3] Update `tests/unit/generate-story.test.ts` (or pipeline test) for a 5-scene consistency candidate: partial scene set never yields success; retry behavior bounded
-- [ ] T030 [P] [US3] Unit test asserting a single `STYLE_DESCRIPTOR`/character is passed to all `sceneCount` illustration prompts (FR-006 style/character consistency)
+- [ ] T030 [P] [US3] Unit test asserting a single `STYLE_DESCRIPTOR`/character is passed to all `sceneCount` illustration prompts (FR-006 style/character consistency) — add the assertion in `tests/unit/story-generation-provider.test.ts` (or the pipeline test), asserting the same style descriptor is present in every prompt for 3, 4, and 5 scenes
 - [ ] T031 [P] [US3] Unit test for illustration generation with bounded concurrency (2–3): all N prompts complete under `Promise.allSettled`, retry of the whole set is preserved, and the set still fails as a whole (never partial) when any call rejects (ADR 0005)
 
 ### Implementation for User Story 3
@@ -144,8 +145,8 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 - [ ] T036 [P] Documentation updates: sync `spec.md`/`data-model.md`/`quickstart.md`/`contracts/` if a contract behavior changed during implementation
 - [ ] T037 Code cleanup and refactoring (remove dead code, unused deps; enforce strict TS; no `any`)
-- [ ] T038 Run `pnpm quickstart` validation scenarios (3/4/5, pt-BR + en) end-to-end
-- [ ] T039 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm visual`, `pnpm perf` all green; a11y AA
+- [ ] T038 Run the `specs/002-generate-more-scenes/quickstart.md` validation scenarios (3/4/5, pt-BR + en) end-to-end via `pnpm test:e2e` (there is no `pnpm quickstart` script; the quickstart is a manual doc)
+- [ ] T039 [P] Final verification: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`, `pnpm test:performance` all green; a11y AA. (These are the real `package.json` script names; there is no `perf`/`visual`/`e2e` standalone script.)
 - [ ] T040 [P] Privacy invariant re-check: no direct identifier anywhere in payloads/logs/provider fakes/analytics; `Cache-Control: no-store` intact
 
 ---
@@ -186,9 +187,9 @@ pages/scenes and consistent illustration style; assert no partial story is produ
 
 ```bash
 # Launch all US1 tests together:
-Task: "Unit test sceneCountSchema boundaries in tests/unit/schemas.test.ts"
-Task: "Update story-preferences-schema test for sceneCount in tests/unit/story-preferences-schema.test.ts"
-Task: "Update provider-fixtures test buildSafeCandidate sceneCount in tests/unit/provider-fixtures.test.ts"
+Task: "Unit test sceneCountSchema boundaries in tests/unit/story-preferences-schema.test.ts"
+Task: "Add sceneCount to the story-preferences-schema test in tests/unit/story-preferences-schema.test.ts"
+Task: "Create provider-fixtures test buildSafeCandidate sceneCount in tests/unit/provider-fixtures.test.ts"
 Task: "Update contract test for sceneCount in tests/contract/story-generation.openapi.test.ts"
 
 # Launch provider adapters together:

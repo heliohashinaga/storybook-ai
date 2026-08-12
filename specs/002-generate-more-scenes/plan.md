@@ -1,6 +1,6 @@
 # Implementation Plan: Gerar mais cenas (contagem variável 3–5)
 
-**Branch**: `002-generate-more-scenes` | **Date**: 2026-08-11 | **Spec**: [`specs/002-generate-more-scenes/spec.md`](spec.md)
+**Branch**: `002-generate-more-scenes` | **Date**: 2026-08-12 | **Spec**: [`specs/002-generate-more-scenes/spec.md`](spec.md)
 
 **Input**: Feature specification from `specs/002-generate-more-scenes/spec.md`
 
@@ -28,7 +28,7 @@ O escopo é estritamente a capacidade de contagem variável e o impacto decorren
 
 **Performance Goals**: geração ≤120s end-to-end (teto único para todas as contagens; granularidade por contagem é decidida em implementação **apenas se a medição real exigir** — não pré-dimensionada); bundle inicial ≤250 KiB gzip (lazy import PDF); LCP ≤2.5s p75; navegação de cena ≤100ms p75.
 
-**Constraints**: permite apenas `sceneCount` inteiro 3–5; **FR-008 é genérico** — timing por contagem é adiado até medição real, sem escala especulativa; `Cache-Control: no-store`; nenhum identificador direto em payloads/logs/provedores; AA contrast/keyboard/reduced-motion; a11y por leitura de tela.
+**Constraints**: permite apenas `sceneCount` inteiro 3–5; **FR-008 é genérico** — timing por contagem é adiado até medição real, sem escala especulativa; `Cache-Control: no-store`; nenhum identificador direto em payloads/logs/provedores; AA contrast/keyboard/reduced-motion; a11y por leitura de tela. **Controle de cenas**: grupo de campos (radio group) com `role="radiogroup"`, três opções visíveis (3/4/5) e navegação nativa por teclas de seta (decisão clarificada em 2026-08-12).
 
 **Scale/Scope**: geração de 3/4/5 cenas por história; faixa estrita 3–5 (acima disso fora de escopo).
 
@@ -68,7 +68,7 @@ src/
 │   │   ├── client/
 │   │   │   └── story-preferences-schema.ts      # sceneCount: 3–5, valores e validação cliente
 │   │   ├── components/
-│   │   │   ├── story-request-form.tsx           # controle de cenas (3/4/5, padrão 3)
+│   │   │   ├── story-request-form.tsx           # controle de cenas (radio group 3/4/5, padrão 3)
 │   │   │   └── story-request-form.stories.tsx   # estados default/edge/error + a11y
 │   │   └── locales/
 │   │       ├── pt-BR.json                       # rótulos do controle (label + opções)
@@ -98,7 +98,8 @@ src/
 │   └── api/stories/
 │       └── route.ts                             # aceita + re-valida sceneCount (contrato)
 └── components/ui/
-    └── select.tsx                                # primitiva reutilizável p/ o controle
+    ├── select.tsx                                # primitiva existente (outros controles do form)
+    └── radio.tsx                                 # NOVA primitiva de radio group p/ o controle de cenas (role="radiogroup")
 
 tests/
 ├── unit/                                        # schemas, provider, safety, generate, fixtures

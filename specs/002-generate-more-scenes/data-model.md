@@ -25,7 +25,7 @@ plano-texto, `no-store`) permanecem inalterados.
 |------|---------|-------|
 | `SceneCount` | `3`, `4`, `5` (**novo**) | Inteiro 3–5 com **default 3**. Faixa fixa; derivada de constantes `MIN_SCENES`/`MAX_SCENES`; nenhum texto livre. |
 | `Locale` | `pt-BR`, `en` | Inalterado. |
-| `AgeBand` | `2-4`, `5-7`, `8-12` | Inalterado. |
+| `AgeBand` | `2-4`, `5-7`, `8-9` | Inalterado em relação ao 001 (banda superior `8-9`). |
 | `Theme` | `courage`, `friendship`, `kindness` | Inalterado; temas livres fora de escopo. |
 | `StoryStatus` | ... (inalterado) | O fluxo de status aplica-se a qualquer contagem. |
 | `SafetyDecision` | `approved`, `regenerated`, `rejected` | Inalterado. |
@@ -36,7 +36,7 @@ plano-texto, `no-store`) permanecem inalterados.
 
 | Campo | Tipo | Validação / Notas |
 |------|------|-------------------|
-| `age` | integer | Inalterado (2–12, client-only). |
+| `age` | integer | Inalterado (2–9, client-only). |
 | `locale` | `Locale` | Inalterado. |
 | `theme` | `Theme` | Inalterado. |
 | `sceneCount` | `SceneCount` (**novo**) | Obrigatório na UI; **default 3**; opções 3/4/5; reflete a escolha do responsável. |
@@ -85,7 +85,8 @@ plano-texto, `no-store`) permanecem inalterados.
 3. Uma história **só é sucesso** se tiver exatamente `sceneCount` cenas **todas** moderadas e com
    ilustração (FR-005, FR-008, SC-004). Conjunto parcial nunca é tratado como sucesso.
 4. `ordinal` é 1..K, único, contíguo, em ordem de leitura ascendente.
-5. Timeouts/budgets de geração são dimensionados por `K` (FR-008); `K=5` é o mais lento.
+5. O teto end-to-end é **≤120s** para todas as contagens (SC-001); o dimensionamento do timeout
+   provider/retries por `K` é adiado para a implementação após medição real (FR-008). `K=5` é o caso esperadamente mais lento.
 
 ## Relações (mudanças)
 

@@ -22,14 +22,14 @@ fontes divergem). Mapeados ao produto:
 |-------|--------------------------|------------------------------|------------------|
 | **2–4** | Board/young picture book, 12–24 pág., 50–500 palavras | 3–5 *spreads* (cada cena com ilustração) | 4–12 min |
 | **5–7** | Early reader / picture book, 24–64 pág., 200–5.000 palavras | 3–5 *spreads* | 6–15 min |
-| **8–12** | Middle grade, textos longos (4k–15k palavras em chapter books) | 3–5 *spreads* por leitura pontual | 10–15+ min |
+| **8–9** | Middle grade, textos longos (4k–15k palavras em chapter books) | 3–5 *spreads* por leitura pontual | 10–15+ min |
 
 - A contagem de "páginas" de livro ilustrado é uma **convenção de impressão** (múltiplos de 8 →
   32 pág. padrão ≈ 14–16 *spreads*); o número de **cenas narrativas** é muito menor (padrão
   "Problem → 3 tentativas → clímax → resolução", ex. 14 spreads, mas apenas ~5 beats narrativos).
 - Para 2–4, a duração focada é ~2–5 min por ano de idade (4–6 min aos 2, até 12 min aos 4),
   sugerindo **leituras curtas (3 cenas)** para os menores.
-- Para 5–12, a capacidade de leitura sustenta **4–5 cenas** confortavelmente dentro da janela
+- Para 5–9, a capacidade de leitura sustenta **4–5 cenas** confortavelmente dentro da janela
   diária recomendada (10–15 min; interativas > passivas).
 - **Acima de 5** (6–8 cenas) esticaria demais a atenção dos menores (2–4) e o budget de geração
   (cada cena = 1 ilustração). Fica fora de escopo.
@@ -44,15 +44,11 @@ fontes divergem). Mapeados ao produto:
 
 ## Decisão 2: Dimensionamento de tempo por contagem (FR-008) e comunicação da espera
 
-**Decision**: Manter o budget end-to-end **≤120s** como teto e dimensionar **timeout do provider e
-retries por contagem**: 3 cenas usa os valores atuais; 4 e 5 cenas recebem fatias de tempo
-proporcionais ao nº de ilustrações (o custo dominante é 1 chamada `/images` por cena + moderação).
-O orquestrador usa a **mesma regra de sucesso completa** já existente (nenhuma das N cenas pode
+**Decision**: Manter o budget end-to-end **≤120s** como teto único para todas as contagens (SC-001). O **dimensionamento específico do timeout do provider e retries por contagem é ADIADO** para a fase de implementação após medição real — o plano não antecipa valores concretos por contagem (FR-008). O orquestrador usa a **mesma regra de sucesso completa** já existente (nenhuma das N cenas pode
 falhar/parcial), nunca um subset como sucesso (FR-005).
 
 **Rationale**:
-- Mais cenas = mais ilustrações + mais superfície de moderação → tempo de geração cresce. É
-  medido por contagem e, se 5 cenas aproximar o teto, o UI comunica a espera maior (percepção,
+- Mais cenas = mais ilustrações + mais superfície de moderação → tempo de geração tende a crescer. O **quanto** cresce por contagem é uma suposição não medida: será aferido na implementação e, se 5 cenas aproximar o teto, o UI comunica a espera maior (percepção,
   princípio de performance/perceived performance) em vez de **falhar com timeout espúrio**.
 - A geração de texto é essencialmente constante; o custo incremental está nas **ilustrações** e na
   **checagem de consistência de estilo** (todas as N devem partilhar a mesma personagem/style).
@@ -61,8 +57,8 @@ falhar/parcial), nunca um subset como sucesso (FR-005).
 
 **Alternatives considered**:
 - **Elevar o teto para >120s**: maior latência piora a perceived performance e contraria o budget;
-  prefere-se dimensionar e comunicar a espera. Se a medição real exigir, revisar o budget é issue
-  separado (não do contrato).
+  prefere-se dimensionar e comunicar a espera. (O teto de 120s é único para todas as contagens; a
+  parametrização por contagem, se a medição real apontar a necessidade, é revisada na implementação — issue do plano, não do contrato.)
 - **Limitar só a 3 cenas para 2–4**: mantém tempo curto para os menores, mas contraria a escolha
   do responsável; a faixa 3–5 já comporta "3 cenas" como a escolha curta.
 
