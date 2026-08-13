@@ -62,6 +62,7 @@ Unidade de teste para a **qualidade dos requisitos de roteamento** — valida se
 - [ ] CHK033 Não há terminologia divergente (ex.: `opencode` vs `opencode-go`; `ProviderRoutingResult` vs `RoutedConfig`) entre os artefatos? [Consistency, Traceability]
 - [ ] CHK034 Os requisitos de roteamento mapeiam para tarefas de implementação/verificação (cobertura de FR-001/FR-002 → T004/T007/T012) e testes de aceitação? [Traceability]
 - [ ] CHK035 Os critérios de aceitação de roteamento (User Stories/aceitação) são mensuráveis e testáveis com fakes determinísticos? [Acceptance Criteria, Measurability]
+- [ ] CHK036 Os requisitos especificam o adapter de ilustração **por provedor** (imagem via `createOpenRouterIllustration` quando `IMAGE_MODEL=openrouter/...`; via `createOpenCodeIllustration` quando `opencode-go/...`), com mesmo contrato `IllustrationGenerator`? [Completeness, Coverage, data-model]
 
 ---
 

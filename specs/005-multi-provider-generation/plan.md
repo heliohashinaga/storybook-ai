@@ -71,7 +71,8 @@ src/
 │           ├── provider-routing.ts                # Novo: deriva provedor+modelo por capacidade a partir de *MODEL (FR-002/D2)
 │           ├── opencode-story-generation-provider.ts  # Novo: texto + moderação via OpenCode
 │           ├── openrouter-story-generation-provider.ts # Ajustado: provedor OpenRouter para qualquer capacidade roteada a ele (texto/moderação/imagem); rastreável por capacidade
-│           ├── create-openrouter-illustration.ts   # imagem via OpenRouter (caminho atual preservado)
+│           ├── create-openrouter-illustration.ts   # ilustração via OpenRouter (quando IMAGE_MODEL usa prefixo openrouter)
+│           ├── create-opencode-illustration.ts    # ilustração via OpenCode (quando IMAGE_MODEL usa prefixo opencode-go) — novo; mesmo contrato IllustrationGenerator
 │           ├── generation-runtime.ts              # Ajustado: monta runtime com roteador dual (US1)
 │           ├── generate-story.ts                  # orquestração (inalterado no cliente da capacidade)
 │           ├── safety-pipeline.ts                 # moderação (usa provider de moderação roteado)

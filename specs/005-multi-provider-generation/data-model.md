@@ -48,7 +48,7 @@ O componente consumido pela rota `POST /api/stories` — acopla os provedores po
 | --- | --- | --- | --- |
 | `text` | `StoryGenerationProvider` | sim | Provedor de texto (definido pelo prefixo de `TEXT_MODEL`). |
 | `moderation` | `StoryGenerationProvider` (modo moderação) | sim | Provedor de moderação (definido pelo prefixo de `MODERATION_MODEL`). |
-| `image` | `IllustrationGenerator` (caminho atual) | sim | Provedor de ilustração (definido pelo prefixo de `IMAGE_MODEL`; hoje `createOpenRouterIllustration` + `image-optimizer`). |
+| `image` | `IllustrationGenerator` | sim | Provedor de ilustração (definido pelo prefixo de `IMAGE_MODEL`; `createOpenRouterIllustration` se `openrouter/...`, `createOpenCodeIllustration` se `opencode-go/...`) + `image-optimizer` (lazy sharp). |
 | `rateLimiter` | `RateLimiter` | sim | Rate limiting compartilhado (default 10 req/60 s; `RATE_LIMIT_MAX`/`RATE_LIMIT_WINDOW_MS`). |
 
 **Regras / invariantes**:

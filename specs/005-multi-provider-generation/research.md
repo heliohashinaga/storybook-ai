@@ -26,7 +26,7 @@ Este documento resolve os pontos técnicos de configuração e roteamento de cap
 
 ## R4. Roteador por capacidade (FR-002/D2)
 
-- **Decision**: Módulo puro `provider-routing.ts` que, dado um `*_MODEL` e a capacidade (text | moderation | image), resolve `{ provider: "opencode" | "openrouter", model }` pela regra do primeiro segmento; retorna o provedor concreto correspondente.
+- **Decision**: Módulo puro `provider-routing.ts` que, dado um `*_MODEL` e a capacidade (text | moderation | image), resolve `{ provider: "opencode-go" | "openrouter", model }` pela regra do primeiro segmento; retorna o provedor concreto correspondente.
 - **Rationale**: Manter o roteamento **puro e testável de forma determinística** (sem chamadas externas) evita acoplamento e permite cobertura total via Vitest. O runtime monta um par de provedores (texto/moderação via OpenCode; imagem via OpenRouter) e o `POST /api/stories` os consome sob a interface `StoryGenerationProvider`/by-capability — o usuário nunca vê o roteamento (US1).
 - **Alternatives considered**: Seleção hardcoded no `generation-runtime`. Rejeitado: viola o requisito de flexibilidade por capacidade (FR-002) e dificulta teste. Falha de qualquer capacidade é manejada com erro tipado (`ProviderError`/`kind`); nunca história parcial (invariante).
 
