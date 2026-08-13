@@ -135,6 +135,16 @@ export const ReadAloud: Story = {
       },
     });
 
+    // AI narration is server-controlled; answer 204 (disabled) so the toggle
+    // delegates to the Web Speech fallback and the label flips to "Parar
+    // leitura" (US4.2). Without this the Storybook dev server returns 404 and
+    // the path lands on the accessible error state instead.
+    const originalFetch = window.fetch;
+    window.fetch = () =>
+      Promise.resolve(
+        new Response(null, { status: 204, statusText: "No Content" })
+      ) as Promise<Response>;
+
     const button = within(canvasElement).getByRole("button", { name: /ouvir esta cena/i });
     await expect(button).toBeVisible();
     await expect(button).toHaveAttribute("aria-pressed", "false");
@@ -152,5 +162,8 @@ export const ReadAloud: Story = {
       within(canvasElement).getByRole("button", { name: /ouvir esta cena/i })
     ).toBeVisible();
     await expect(button).toHaveAttribute("aria-pressed", "false");
+
+    // Restore the real fetch for the a11y pass and other stories.
+    window.fetch = originalFetch;
   },
 };

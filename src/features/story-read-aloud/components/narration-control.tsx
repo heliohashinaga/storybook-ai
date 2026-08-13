@@ -35,13 +35,26 @@ const LABEL_BY_STATUS: Record<NarrationStatus, string> = {
   error: "idle",
 };
 
+// The active "speaking" label depends on the voice path: AI audio reads the
+// scene with the SSML voice, while the Web Speech fallback (system) reads it
+// with the browser voice and exposes a plain "Stop reading" toggle.
+const SPEAKING_LABEL_BY_MODE: Record<NarrationMode, string> = {
+  ai: "reading",
+  system: "stop",
+};
+
 const ACTIVE_STATUSES: ReadonlySet<NarrationStatus> = new Set(["busy", "speaking", "stopping"]);
 
-export function NarrationControl({ status, errorMessage = "", onToggle }: NarrationControlProps) {
+export function NarrationControl({
+  status,
+  mode,
+  errorMessage = "",
+  onToggle,
+}: NarrationControlProps) {
   const t = useTranslations("story.narration");
 
   const active = ACTIVE_STATUSES.has(status);
-  const labelKey = LABEL_BY_STATUS[status];
+  const labelKey = status === "speaking" ? SPEAKING_LABEL_BY_MODE[mode] : LABEL_BY_STATUS[status];
   const buttonLabel = t(labelKey);
 
   return (

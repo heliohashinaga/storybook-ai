@@ -113,7 +113,10 @@ export function useAiReadAloud({
     if (!text) return;
 
     // A single control: if something is already playing/loading, stop it.
-    if (startedRef.current || status === "busy") {
+    // `system.speaking` covers the Web Speech fallback (204) path, whose
+    // speech `startedRef` is never set — otherwise a second toggle here would
+    // leave the state stranded on `busy`.
+    if (startedRef.current || status === "busy" || system.speaking) {
       stop();
       return;
     }
