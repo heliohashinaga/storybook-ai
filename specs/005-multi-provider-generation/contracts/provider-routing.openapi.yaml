@@ -23,7 +23,10 @@ paths:
         concrete provider and effective model. The provider is derived from the first path segment before the
         first '/' (opencode-go => opencode, openrouter => openrouter); a value with no prefix falls back to the
         capability's default provider (text/moderation => opencode, image => openrouter). An unrecognized prefix
-        is a configuration error rejected by env validation (zod) at boot - never silent.
+        is a configuration error surfaced through zod env validation at boot (never silent). This /resolve
+        contract documents that the routing boundary rejects an unknown prefix (rendered as HTTP 422 in the
+        contract for a request/response boundary); in the deployed runtime the same condition aborts boot with the
+        typed config error, never a silent fallback.
       requestBody:
         required: true
         content:

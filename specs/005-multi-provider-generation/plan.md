@@ -10,7 +10,7 @@
 
 Reestruturar o adapter de geração de histórias para **dois provedores simultâneos** por **roteamento de capacidade**: **OpenCode** para texto e moderação, **OpenRouter** para imagens. Uma única chamada de geração roteia cada capacidade ao provedor correto e serve a história completa, sem que o usuário perceba o roteamento.
 
-O core é **estrutural** (US1, P1): hoje `createGenerationRuntime` usa um único `createOpenRouterStoryProvider()` que faz texto, moderação e imagem (via `OpenRouterDeps`). A mudança introduz um **roteador por capacidade** que deriva o provedor de cada `*_MODEL` pela convenção `provedor/resto` (primeiro segmento antes da 1ª `/`), com default por capacidade (texto/moderação→OpenCode, imagem→OpenRouter). O env migra para o **novo esquema por capacidade** (`OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`), removendo o esquema antigo `OPENROUTER_*` (decisão D5-C: **somente novo esquema**, breaking change controlado). TTS/voice permanece em OpenRouter (feature `004-ai-natural-tts`) e não faz parte deste roteamento de tradução de imagem/texto.
+O core é **estrutural** (US1, P1): hoje `createGenerationRuntime` usa um único `createOpenRouterStoryProvider()` que faz texto, moderação e imagem (via `OpenRouterDeps`). A mudança introduz um **roteador por capacidade** que deriva o provedor de cada `*_MODEL` pela convenção `provedor/resto` (primeiro segmento antes da 1ª `/`); **não há `defaultProvider`** — um `*_MODEL` sem prefixo de provedor é erro de configuração no boot (texto/moderação usam prefixo `opencode-go/...`, imagem `openrouter/...`). O env migra para o **novo esquema por capacidade** (`OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`), removendo o esquema antigo `OPENROUTER_*` (decisão D5-C: **somente novo esquema**, breaking change controlado). TTS/voice permanece em OpenRouter (feature `004-ai-natural-tts`) e não faz parte deste roteamento de tradução de imagem/texto.
 
 Todos os invariantes se mantêm: anonimato (cada provedor recebe só o payload da sua capacidade, sem identificador; server-only), sem história parcial (erro tipado por capacidade, nunca série de ilustrações parcial), `STORIES_TEST_MODE=fake` e budgets de performance vigentes.
 
@@ -71,7 +71,7 @@ src/
 │           ├── provider-routing.ts                # Novo: deriva provedor+modelo por capacidade a partir de *MODEL (FR-002/D2)
 │           ├── opencode-story-generation-provider.ts  # Novo: texto + moderação via OpenCode
 │           ├── openrouter-story-generation-provider.ts # Ajustado: imagem via OpenRouter (texto/moderacao movidos p/ OpenCode)
-│           ├── create-opencode-illustration.ts    # se fará sentido conforme contrato (imagem OpenRouter mantém caminho atual)
+│           ├── create-openrouter-illustration.ts   # imagem via OpenRouter (caminho atual preservado)
 │           ├── generation-runtime.ts              # Ajustado: monta runtime com roteador dual (US1)
 │           ├── generate-story.ts                  # orquestração (inalterado no cliente da capacidade)
 │           ├── safety-pipeline.ts                 # moderação (usa provider de moderação roteado)

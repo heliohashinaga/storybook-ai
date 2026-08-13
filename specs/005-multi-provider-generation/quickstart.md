@@ -41,7 +41,7 @@ pnpm typecheck     # TS estrito, sem `any` novo em produção
 | --- | --- | --- |
 | `pnpm test` / `pnpm test:limited` | Unit/contrato/env + pipeline com `fetchImpl`/fakes | todo verde; inclui `provider-routing.test.ts`, `env.test.ts` (esquema novo) |
 | `pnpm test:coverage` / `pnpm test:coverage:check` | cobertura (≥80% global; ≥90% safety/validation/orchestration) | gates ok |
-| `pnpm storybook:test` | cada story (default/loading/error/edge) + a11y (WCAG A/AA) | 52/52, a11y sem violações |
+| `pnpm storybook:test` | cada story (default/loading/error/edge) + a11y (WCAG A/AA) | 52/52 (baseline atual), a11y sem violações |
 | `pnpm test:e2e` | rota `POST /api/stories` dual com fake provider (pt-BR + EN) | US1/US3, sem história parcial |
 | `pnpm test:visual` | reader/vista (screenshots aprovados) | sem diff inintencional |
 | `pnpm test:performance` | budgets (geração ≤120 s; JS inicial ≤250 KiB gzip) | budgets respeitados |
@@ -51,7 +51,7 @@ pnpm typecheck     # TS estrito, sem `any` novo em produção
 
 1. **Roteamento dual (US1, fake)**: `STORIES_TEST_MODE=fake` + `POST /api/stories` → a resposta contém todas as cenas **e** todas as ilustrações; nunca série parcial. Logs/payloads sem identificador direto.
 2. **Env novo esquema (D5-C)**: sem `OPENROUTER_*` legado; `TEXT_MODEL=opencode-go/qwen/qwen3.7-flash`, `IMAGE_MODEL=openrouter/qwen/qwen3.7-flash` resolvem `provider-routing` (ver exemplos no contrato). Prefixo desconhecido → falha de validação no boot (nunca silencioso).
-3. **Sem prefixo (default por capacidade)**: `TEXT_MODEL=qwen/qwen3.7-flash` → texto assume default `opencode`; `IMAGE_MODEL=...` → default `openrouter`.
+3. **Sem prefixo (erro de config no boot)**: `TEXT_MODEL=qwen/qwen3.7-flash` (sem `opencode-go/`) → **falha de validação no boot** (nunca silencioso); não há provider default por capacidade.
 4. **Falha de provedor (US3)**: `IMAGE_MODEL` apontando provedor indisponível → erro tipado (`ProviderError`/`kind`) mapeado por HTTP; **nunca** história com conjunto parcial de ilustrações.
 5. **Privacidade**: teste de invariante por capacidade — payload enviado a cada provedor contém apenas a capacidade anônima (ageBand/locale/theme/sceneCount), sem nome/idade exata; nada persistido.
 

@@ -13,7 +13,6 @@ Capacidade de geração gerenciada pelo roteador. Enumerada e finita.
 | Campo | Tipo | Obrigatório | Descrição / validação |
 | --- | --- | --- | --- |
 | `kind` | `'text' \| 'moderation' \| 'image'` | sim | A capacidade roteada pela geração. |
-| `defaultProvider` | `'opencode' \| 'openrouter'` | sim | Provedor default (texto/moderação→`opencode`, imagem→`openrouter`). |
 | `envModelVar` | `string` | sim | Nome da variável de env usada junto a esta capacidade: `TEXT_MODEL`, `MODERATION_MODEL`, `IMAGE_MODEL`. |
 
 **Regras derivadas do spec (FR-002/FR-008)**:
@@ -29,15 +28,15 @@ Resultado da resolução do roteador por capacidade — o que o runtime usa para
 | Campo | Tipo | Obrigatório | Descrição / validação |
 | --- | --- | --- | --- |
 | `capability` | `Capability['kind']` | sim | Capacidade em questão. |
-| `provider` | `'opencode' \| 'openrouter'` | sim | Provedor resolvido. |
+| `provider` | `'opencode-go' \| 'openrouter'` | sim | Provedor resolvido. |
 | `model` | `string` | sim | Modelo efetivamente usado (após remover prefixo de provedor, se houver). |
 | `apiKeyEnv` | `'OPENCODE_GO_API_KEY' \| 'OPENROUTER_API_KEY'` | sim | Chave de API correspondente ao provedor resolvido. |
 
 **Regras de derivação** (convenção FR-002/D2 — primeiro segmento antes da 1ª `/`):
-- `TEXT_MODEL=opencode-go/qwen/qwen3.7-flash` → `{ provider: 'opencode', model: 'qwen/qwen3.7-flash' }`
+- `TEXT_MODEL=opencode-go/qwen/qwen3.7-flash` → `{ provider: 'opencode-go', model: 'qwen/qwen3.7-flash' }`
 - `IMAGE_MODEL=openrouter/qwen/qwen3.7-flash` → `{ provider: 'openrouter', model: 'qwen/qwen3.7-flash' }`
-- `TEXT_MODEL=qwen/qwen3.7-flash` (sem prefixo) → usa `defaultProvider` da capacidade (`opencode`).
-- Prefixo reconhecido: `opencode-go` → `opencode`; `openrouter` → `openrouter`. Prefixo desconhecido → erro de configuração tipado no boot (validação Zod do env), nunca silencioso.
+- `TEXT_MODEL=qwen/qwen3.7-flash` (sem prefixo) → **erro de configuração no boot** (validação Zod); não há `defaultProvider`.
+- Prefixo reconhecido: `opencode-go` → `opencode-go`; `openrouter` → `openrouter`. Prefixo desconhecido ou ausente → erro de configuração tipado no boot (validação Zod do env), nunca silencioso.
 
 ---
 
