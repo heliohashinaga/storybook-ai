@@ -2,7 +2,7 @@ import { describe, expect, it, afterEach, beforeEach, vi } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { useAiReadAloud } from "../../src/features/story-read-aloud/client/use-ai-read-aloud";
 import type { NarrationStatus } from "../../src/features/story-read-aloud/client/tts-state";
-import { fakeMp3Blob } from "./tts/fake";
+import { fakeMp3Bytes } from "./tts/fake";
 
 /**
  * useAiReadAloud (spec 004 — US1 happy path, US2 controlled error, US3
@@ -89,7 +89,7 @@ function installFetchMock(scenario: FetchScenario) {
   const fetchMock = vi.fn(async (_url: string, _init?: RequestInit) => {
     switch (scenario) {
       case "ok":
-        return new Response(fakeMp3Blob(), {
+        return new Response(fakeMp3Bytes(), {
           status: 200,
           headers: { "Content-Type": "audio/mpeg" },
         });
@@ -254,7 +254,7 @@ describe("useAiReadAloud — US2 controlled error (no Web Speech fallback)", () 
       new Response(JSON.stringify({ code: "narration_unavailable" }), { status: 502 })
     );
     fetchMock.mockResolvedValueOnce(
-      new Response(fakeMp3Blob(), {
+      new Response(fakeMp3Bytes(), {
         status: 200,
         headers: { "Content-Type": "audio/mpeg" },
       })
@@ -287,7 +287,7 @@ describe("useAiReadAloud — statuses exposed to the accessible control", () => 
     act(() => result.current.toggle());
     expect(result.current.status).toBe("busy");
 
-    act(() => resolveFetch?.(new Response(fakeMp3Blob(), { status: 200 })));
+    act(() => resolveFetch?.(new Response(fakeMp3Bytes(), { status: 200 })));
     await waitFor(() => expect(result.current.status).toBe("speaking"));
   });
 });

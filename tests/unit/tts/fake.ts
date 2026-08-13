@@ -30,6 +30,20 @@ export function fakeMp3Blob(): Blob {
   return new Blob([MP3_BYTES], { type: FAKE_TTS_FORMAT });
 }
 
+/**
+ * Deterministic MP3 bytes as a `Uint8Array`. Prefer this when constructing a
+ * `new Response(...)` in tests: a `Uint8Array` is a universal `BodyInit` that
+ * `.blob()`/`.arrayBuffer()` consume identically under both jsdom and the
+ * Node/undici `Response` used by the CI environment (avoids the
+ * "object.stream is not a function" failure when a jsdom `Blob` is passed to
+ * an undici `Response`).
+ */
+export function fakeMp3Bytes(): Uint8Array<ArrayBuffer> {
+  // Copy into a fresh ArrayBuffer so `MP3_BYTES` aligns with the generic type
+  // that `BodyInit` expects (arrayBuffer.buffer is a real ArrayBuffer).
+  return new TextEncoder().encode("ID3\x03\x00\x00\x00\x00\x00\x00fake-mp3-tone");
+}
+
 /** Deterministic `synthesize` result. */
 export function fakeSynthesize(_sceneText: string): FakeTtsResult {
   return { format: FAKE_TTS_FORMAT, audio: MP3_BYTES };
