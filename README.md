@@ -11,149 +11,69 @@ with illustrations.
 ## Overview
 
 - 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
-- 🎭 **Themes**: courage, friendship, kindness — chosen via **visual theme cards**.
+- 🎭 **Themes**: courage, friendship, kindness.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
-- 📖 **Scenes** (3–5, variable) with generated illustrations, localized alternative text, and a **scene-progress indicator**.
-- 🔊 **Read-aloud** of the current scene with a single start/stop control and accessible announcements. By default it uses the browser's local Web Speech voice (no network); when AI narration is enabled (`AI_NARRATION_ENABLED`), it uses a server-side neural TTS voice while keeping the flow anonymous — and falls back to a controlled, accessible error rather than silently swapping to Web Speech on provider failure.
-- 📄 Browser-based **PDF export** with loading and failure/retry feedback.
-- 🌓 **Dark mode** following the system preference, plus a session-only manual toggle (no persistence).
-
-All new interactive surfaces (theme cards, read-aloud control, scene progress, PDF export, dark-mode toggle) are keyboard-navigable, expose visible focus, meet WCAG AA contrast, and honor `prefers-reduced-motion`.
+- 📖 **Scenes** `3–5` with generated illustrations.
+- 🔊 **Read-aloud** of the current scene.
+- 📄 **PDF export**.
+- 🌓 **Dark mode**.
 
 ## How story generation works
 
-A story is produced by a single server-side pipeline under `src/features/story-generation/`:
+You pick an age range, a language, and a theme (courage, friendship, kindness).
+The app writes a story with 3–5 scenes — text plus illustrations made for that
+age range — all in a single step. From there you can flip between scenes, listen
+to each one read aloud, export it as a PDF, or change to dark mode.
 
-1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`, `theme`) are re-validated server-side (`Cache-Control: no-store`) and a single generation call lays out the scenes and writes the localized text for each one (title + body), together with each scene's illustration prompt.
-2. **Review** – every scene's text and its illustration prompt are moderated (AI text + image moderation) and checked against template markers and direct identifiers (`{name}`, “child's name”); anything unsafe is auto-regenerated once, otherwise it fails as `unsafe_unrecoverable`.
-3. **Illustration** – only **approved** illustration prompts are rendered to optimized WebP images.
-4. **Final validation** – every scene is given localized `altText` and validated against the response schema before the story is returned; failures map to typed, localized errors (400/422/429/502/504).
-
-All AI-vendor calls stay behind the server-only provider adapter (`story-generation/server`); raw provider output never reaches the client, and unsafe, partial or structurally invalid stories are never delivered.
-
-## Stack
-
-| Layer            | Technology                                      |
-| ---------------- | ----------------------------------------------- |
-| Framework        | Next.js 16 + React 19                           |
-| Language         | TypeScript                                      |
-| Styling          | Tailwind                                        |
-| i18n             | next-intl                                       |
-| Validation       | Zod                                             |
-| AI (server-only) | OpenRouter SDK adapter + safety pipeline        |
-| Images           | sharp                                           |
-| PDF              | @react-pdf/renderer                             |
-| Testing          | Vitest + Testing Library, Storybook, Playwright |
-
-## Prerequisites
-
-- Node.js 22 LTS
-- pnpm enabled through Corepack
-- A credential for the AI provider.
-
-## Setup
-
-```bash
-corepack enable
-pnpm install
-cp .env.example .env.local
-```
-
-Configure development secrets (server-side only) in `.env.local`:
-
-```dotenv
-# OpenRouter provider — read ONLY by the server-only provider adapter.
-OPENROUTER_API_KEY=replace-with-development-key
-OPENROUTER_TEXT_MODEL=replace-with-approved-structured-output-model
-OPENROUTER_IMAGE_MODEL=replace-with-approved-image-model
-OPENROUTER_MODERATION_MODEL=replace-with-approved-moderation-model
-```
-
-> Development provider selection: set `STORIES_PROVIDER=fake` only for
-> deterministic e2e/visual/performance/dev runs — it uses a fixed in-repo
-> provider that never calls a live AI service (no credentials needed). The
-> default `openrouter` provider requires the OpenRouter_* credentials above.
+**Anonymous by design** — the app works without a child's name or exact age,
+and no direct identifier is collected, sent, or stored.
 
 ## Run locally
 
 ```bash
+corepack enable
+pnpm install
+cp .env.example .env.local  # then fill in the provider keys
 pnpm dev
 ```
 
 Open `http://localhost:3000`.
 
-## CI
+> Set `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
+> deterministic dev run — no AI calls are made.
 
-All quality gates run automatically on pushes and pull requests to `main` and
-`develop` via the [CI workflow](.github/workflows/ci.yml): format, lint, strict
-typecheck, unit tests with coverage gates, production build, Storybook/a11y,
-E2E, visual, and performance budgets. No manual step is required before merging.
+## Architecture
 
-## Structure
+A story is produced by a single server-side pipeline under
+`src/features/story-generation/`:
 
-Feature-based layout implemented under `src/`:
+1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`,
+   `theme`) are re-validated server-side and a single generation call lays out
+   the scenes and writes the localized text (title + body) plus each scene's
+   illustration prompt. Per-capability model routing: text/moderation →
+   OpenCode, image → OpenRouter.
+2. **Moderation** – every scene's text and illustration prompt are moderated
+   (AI text + image); unsafe output is regenerated once, else fails as
+   `unsafe_unrecoverable`.
+3. **Illustration** – only **approved** prompts are rendered to optimized WebP.
+4. **Final validation** – each scene gets localized `altText` and is validated
+   against the response schema before it's returned; failures map to typed,
+   localized errors (400/422/429/502/504).
 
-```text
-src/
-├── app/                    # App Router (layout, page, Route Handler POST /api/stories)
-├── components/ui/          # Shared primitives with design tokens
-├── features/               # story-request, story-generation/server, story-reader, story-read-aloud, story-export
-├── i18n/config.ts          # next-intl (pt-BR default + en)
-└── lib/                    # env, http-errors, rate-limit
-```
+All AI-vendor calls stay behind a server-only adapter
+(`story-generation/server`); raw provider output never reaches the client, and
+unsafe, partial, or structurally invalid stories are never delivered.
 
-## License
+**Stack**: Next.js 16 + React 19 · TypeScript (strict) · Tailwind · next-intl ·
+Zod · sharp · @react-pdf/renderer. AI (server-only): OpenRouter + OpenCode,
+routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
 
-This project is made available for **personal and educational purposes** with
-**all rights reserved**. See the [`LICENSE`](LICENSE) file for details, and the
-[disclaimer](#disclaimer--limitation-of-liability) below for the terms covering
-AI-generated content.
+**Quality gates** (run automatically in CI on push/PR to `main` and `develop`):
+`pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test:coverage:check`,
+`pnpm build`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`,
+`pnpm test:performance`. See `package.json` and `.github/workflows/ci.yml`.
 
-## Disclaimer & Limitation of Liability
+## Disclaimer
 
-> This is a personal, non-commercial project built as a hobby and learning exercise.
-> It is **not** a regulated product, medical, educational, or therapeutic service, and
-> is provided **as-is**, without warranty of any kind.
-
-### AI-generated content
-
-- **Story text and illustrations are generated by third-party AI models**, not by a
-  human author or editor. AI output is inherently probabilistic and may contain
-  errors, inconsistencies, inaccuracies, or content that is unexpected, unsuitable,
-  or incorrect for a given context.
-- The project applies automated safety screening and age-appropriateness checks
-  before presenting a story. These checks are **best-effort** and are **no guarantee**
-  that every item of generated content is appropriate, accurate, or error-free.
-- The Author accepts **no responsibility** and **no liability** for any use of the
-  generated content, including its accuracy, suitability, safety, or any direct,
-  indirect, incidental, consequential, or special damages arising from its use.
-
-### Content intended for children
-
-- The reader is responsible for exercising appropriate care and judgment.
-  Content is auto-generated; the Author cannot guarantee that it is always
-  suitable, age-appropriate, or free of values, themes, or wording you may not
-  want. Caregivers should review generated stories and their child's use of the
-  app, especially for unsupervised use.
-- The project is **anonymous by design**: it does not collect, store, or transmit a
-  child's name, exact age, or any direct identifier. It should **not** be relied
-  upon as a privacy, safety, or compliance guarantee for any specific regulatory
-  regime.
-
-### As-is, without warranty
-
-- The project is provided "AS IS". To the fullest extent permitted by applicable
-  law, the Author disclaims all warranties, express or implied (including
-  merchantability and fitness for a particular purpose), and all liability for
-  any damages — whether direct, indirect, incidental, consequential, special, or
-  punitive — arising out of or related to the use of or inability to use this
-  project, its generated content, or its instructions.
-- This disclaimer does not limit rights that cannot be excluded or limited under
-  your local applicable law.
-
-### License & copyright
-
-- No license is granted by mere inspection or use of this repository. Copyright
-  and all other rights are reserved unless and until a license is explicitly
-  added. Nothing here gives you a right to use the Author's name, likeness,
-  trademarks, or original materials without prior written permission.
+AI-generated content and caregiver responsibility are covered in the
+[Disclaimer](DISCLAIMER.md).
