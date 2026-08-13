@@ -49,9 +49,9 @@ Não é uma entidade de dados do usuário — é **configuração** (`env`) lida
 | Variável | Tipo | Efeito |
 |----------|------|--------|
 | `AI_NARRATION_ENABLED` | `boolean` | Liga/desliga o caminho IA |
-| `OPENROUTER_TTS_MODEL` | `string` | Modelo de voz (assume-se OpenRouter por hora); perfil qualidade/custo (Q2-C) |
+| `TTS_MODEL` | `string` | Modelo de voz (assume-se OpenRouter por hora); perfil qualidade/custo (Q2-C) |
 
-Nenhum destes é dado pessoal; não faz parte de entidades de usuário. (Não há teto de custo por narração nesta versão — só `AI_NARRATION_ENABLED` + `OPENROUTER_TTS_MODEL`.)
+Nenhum destes é dado pessoal; não faz parte de entidades de usuário. (Não há teto de custo por narração nesta versão — só `AI_NARRATION_ENABLED` + `TTS_MODEL`.)
 
 ---
 
@@ -59,7 +59,7 @@ Nenhum destes é dado pessoal; não faz parte de entidades de usuário. (Não h�
 
 - **NarrateRequest** → (servidor valida) → **NarrateResponse** (áudio transitório). 1:1 por cena acionada.
 - **NarrateResponse** → (cliente) → atualiza **NarrationState.mode/status**. 1:1 com a cena atual.
-- **Config de voz localizada em `OPENROUTER_TTS_MODEL`** → define o modelo de voz usado pelo `tts-runtime` quando `AI_NARRATION_ENABLED=true`. Não é uma entidade de usuário; sem teto de custo.
+- **Config de voz localizada em `TTS_MODEL`** → define o modelo de voz usado pelo `tts-runtime` quando `AI_NARRATION_ENABLED=true`. Não é uma entidade de usuário; sem teto de custo.
 
 Não há relacionamentos persistentes; nenhuma tabela/coleção/entity de banco.
 

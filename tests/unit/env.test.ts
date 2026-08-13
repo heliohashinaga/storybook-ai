@@ -16,7 +16,7 @@ const valid: ServerEnv = {
   OPENROUTER_IMAGE_MODEL: "some-org/image-model",
   OPENROUTER_MODERATION_MODEL: "some-org/moderation-model",
   AI_NARRATION_ENABLED: true,
-  OPENROUTER_TTS_MODEL: "kokoro-82m",
+  TTS_MODEL: "kokoro-82m",
 };
 
 /**
@@ -35,7 +35,7 @@ describe("env server validation", () => {
     delete process.env.OPENROUTER_IMAGE_MODEL;
     delete process.env.OPENROUTER_MODERATION_MODEL;
     delete process.env.AI_NARRATION_ENABLED;
-    delete process.env.OPENROUTER_TTS_MODEL;
+    delete process.env.TTS_MODEL;
   });
 
   it("parses a fully configured environment", async () => {
@@ -43,7 +43,7 @@ describe("env server validation", () => {
     const result = parseEnv({
       ...validEnv,
       AI_NARRATION_ENABLED: "true",
-      OPENROUTER_TTS_MODEL: "kokoro-82m",
+      TTS_MODEL: "kokoro-82m",
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -115,7 +115,7 @@ describe("env server validation", () => {
     process.env.OPENROUTER_IMAGE_MODEL = validEnv.OPENROUTER_IMAGE_MODEL;
     process.env.OPENROUTER_MODERATION_MODEL = validEnv.OPENROUTER_MODERATION_MODEL;
     process.env.AI_NARRATION_ENABLED = "true";
-    process.env.OPENROUTER_TTS_MODEL = "kokoro-82m";
+    process.env.TTS_MODEL = "kokoro-82m";
     expect(getEnv()).toEqual(valid);
   });
 
@@ -146,19 +146,19 @@ describe("env server validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("parses an optional OPENROUTER_TTS_MODEL", async () => {
+  it("parses an optional TTS_MODEL", async () => {
     const { parseEnv } = await loadEnv();
-    const enabled = parseEnv({ ...validEnv, OPENROUTER_TTS_MODEL: "kokoro-82m" });
+    const enabled = parseEnv({ ...validEnv, TTS_MODEL: "kokoro-82m" });
     expect(enabled.success).toBe(true);
-    if (enabled.success) expect(enabled.data.OPENROUTER_TTS_MODEL).toBe("kokoro-82m");
+    if (enabled.success) expect(enabled.data.TTS_MODEL).toBe("kokoro-82m");
 
     const absent = parseEnv({ ...validEnv });
     expect(absent.success).toBe(true);
   });
 
-  it("rejects an empty OPENROUTER_TTS_MODEL", async () => {
+  it("rejects an empty TTS_MODEL", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, OPENROUTER_TTS_MODEL: "" });
+    const result = parseEnv({ ...validEnv, TTS_MODEL: "" });
     expect(result.success).toBe(false);
   });
 
@@ -168,7 +168,7 @@ describe("env server validation", () => {
     process.env.OPENROUTER_TEXT_MODEL = validEnv.OPENROUTER_TEXT_MODEL;
     process.env.OPENROUTER_IMAGE_MODEL = validEnv.OPENROUTER_IMAGE_MODEL;
     process.env.OPENROUTER_MODERATION_MODEL = validEnv.OPENROUTER_MODERATION_MODEL;
-    process.env.OPENROUTER_TTS_MODEL = "kokoro-82m";
+    process.env.TTS_MODEL = "kokoro-82m";
     process.env.AI_NARRATION_ENABLED = "true";
     expect(getEnv()).toEqual({
       ...valid,

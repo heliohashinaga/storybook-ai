@@ -21,12 +21,13 @@ paths:
       description: |
         Given a capability and a *MODEL env value (e.g. TEXT_MODEL, MODERATION_MODEL, IMAGE_MODEL), return the
         concrete provider and effective model. The provider is derived from the first path segment before the
-        first '/' (opencode-go => opencode, openrouter => openrouter); a value with no prefix falls back to the
-        capability's default provider (text/moderation => opencode, image => openrouter). An unrecognized prefix
-        is a configuration error surfaced through zod env validation at boot (never silent). This /resolve
-        contract documents that the routing boundary rejects an unknown prefix (rendered as HTTP 422 in the
-        contract for a request/response boundary); in the deployed runtime the same condition aborts boot with the
-        typed config error, never a silent fallback.
+        first '/' (opencode-go => opencode-go, openrouter => openrouter). A value with no prefix is a
+        configuration error surfaced through zod env validation at boot (never silent); there is NO default
+        provider, and ANY provider (opencode-go/openrouter) can serve ANY capability (text, moderation, image).
+        An unrecognized prefix is a configuration error too. This /resolve contract documents that the routing
+        boundary rejects an unknown/absent prefix (rendered as HTTP 422 in the contract for a request/response
+        boundary); in the deployed runtime the same condition aborts boot with the typed config error, never a
+        silent fallback.
       requestBody:
         required: true
         content:
@@ -50,7 +51,7 @@ components:
       enum: [text, moderation, image]
     Provider:
       type: string
-      enum: [opencode, openrouter]
+      enum: [opencode-go, openrouter]
     CapabilityInput:
       type: object
       required: [capability, model]
@@ -75,32 +76,37 @@ components:
           $ref: '#/components/schemas/Provider'
         model:
           type: string
-          description: Effective model after removing the provider prefix segment, if any.
+          description: Effective model after removing the provider prefix segment (required).
         apiKeyEnv:
           type: string
           enum: [OPENCODE_GO_API_KEY, OPENROUTER_API_KEY]
-          description: Environment variable holding the provider API key.
+          description: >
+            Environment variable holding the provider API key, derived from the PROVIDER PREFIX of the *MODEL
+            (prefix openroute→OPENROUTER_API_KEY; opencode-go→OPENCODE_GO_API_KEY), not from the capability.
 
   examples:
-    textToOpencode:
+    textToOpencodeGo:
       value:
         capability: text
-        provider: opencode
+        provider: opencode-go
         model: qwen/qwen3.7-flash
         apiKeyEnv: OPENCODE_GO_API_KEY
-    imageToOpenRouter:
+    imageToOpencodeGo:
+      summary: OpenCode serving image (generic — any provider, any capability).
       value:
         capability: image
+        provider: opencode-go
+        model: qwen/qwen3_image
+        apiKeyEnv: OPENCODE_GO_API_KEY
+    textToOpenRouter:
+      summary: OpenRouter serving text (generic — any provider, any capability).
+      value:
+        capability: text
         provider: openrouter
         model: qwen/qwen3.7-flash
         apiKeyEnv: OPENROUTER_API_KEY
-    textualDefaultProvider:
-      summary: TEXT_MODEL without explicit prefix uses the capability default (opencode).
-      value:
-        capability: text
-        provider: opencode
-        model: qwen/qwen3.7-flash
-        apiKeyEnv: OPENCODE_GO_API_KEY
+    missingPrefix:
+      summary: TEXT_MODEL without a provider prefix is a configuration error at boot (no default provider).
 
   notes:
     - The public POST /api/stories contract is unchanged; this routing is in-process and server-only.

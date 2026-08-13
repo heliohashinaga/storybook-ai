@@ -2,7 +2,7 @@
 
 **Spec**: [spec.md](./spec.md) | **Plan**: [plan.md](./plan.md) | **Branch**: `005-multi-provider-generation`
 
-Guia de **validação** do roteamento dual (OpenCode texto/moderação + OpenRouter imagem). Não substitui o contrato; detalhes no [data-model.md](./data-model.md) e [contracts/provider-routing.openapi.yaml](./contracts/provider-routing.openapi.yaml).
+Guia de **validação** do roteamento dual por capacidade (`opencode-go`/`openrouter`). Não substitui o contrato; detalhes no [data-model.md](./data-model.md) e [contracts/provider-routing.openapi.yaml](./contracts/provider-routing.openapi.yaml).
 
 ## Pré-requisitos
 
@@ -12,8 +12,8 @@ Guia de **validação** do roteamento dual (OpenCode texto/moderação + OpenRou
 
 ```bash
 # Provedores
-OPENROUTER_API_KEY=sk-...      # imagem (OpenRouter)
-OPENCODE_GO_API_KEY=sk-...     # texto + moderação (OpenCode)
+OPENROUTER_API_KEY=sk-...      # chave do provedor OpenRouter
+OPENCODE_GO_API_KEY=sk-...     # chave do provedor opencode-go
 
 # Modelos por capacidade (convenção provedor/resto, FR-002)
 TEXT_MODEL=opencode-go/qwen/qwen3.7-flash
@@ -21,7 +21,7 @@ IMAGE_MODEL=openrouter/qwen/qwen3.7-flash
 MODERATION_MODEL=opencode-go/qwen/qwen3.7-flash
 
 # TTS (feature 004, fora deste roteamento) — opcional
-OPENROUTER_TTS_MODEL=...
+TTS_MODEL=...
 AI_NARRATION_ENABLED=false
 
 # Ambientes determinísticos

@@ -32,4 +32,4 @@
 ## Notes
 
 - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
-- **Resolvido**: clarificações resolvidas com as escolhas do usuário: **Q1-C** (server-only controlado por `AI_NARRATION_ENABLED`; **sem fallback para voz de sistema quando IA ativa** — erro controlado) e **Q2-C** (perfil custo-vs-naturalidade configurável por ambiente via `OPENROUTER_TTS_MODEL`). Spec pronto para `/speckit.plan`.
+- **Resolvido**: clarificações resolvidas com as escolhas do usuário: **Q1-C** (server-only controlado por `AI_NARRATION_ENABLED`; **sem fallback para voz de sistema quando IA ativa** — erro controlado) e **Q2-C** (perfil custo-vs-naturalidade configurável por ambiente via `TTS_MODEL`). Spec pronto para `/speckit.plan`.

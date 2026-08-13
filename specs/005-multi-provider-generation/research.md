@@ -21,7 +21,7 @@ Este documento resolve os pontos técnicos de configuração e roteamento de cap
 ## R3. Esquema de variáveis de ambiente por capacidade
 
 - **Decision**: Novo esquema por capacidade (removendo `OPENROUTER_*`, D5-C): `OPENROUTER_API_KEY` (provedor OpenRouter, usado para imagem), `OPENCODE_GO_API_KEY` (provedor OpenCode, texto/moderação), `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL` (cada um com `provedor/resto`).
-- **Rationale**: O roteador por capacidade deriva o provedor e o modelo de cada `*_MODEL` pelo primeiro segmento antes da 1ª `/` (FR-002). Exemplos de aceitação: `TEXT_MODEL=opencode-go/qwen/qwen3.7-flash`, `IMAGE_MODEL=openrouter/qwen/qwen3.7-flash`. Defaults por capacidade seguem (texto/moderação→OpenCode, imagem→OpenRouter) quando o `*_MODEL` não traz prefixo explícito. TTS permanece `OPENROUTER_TTS_MODEL` (feature `004`, fora deste roteamento).
+- **Rationale**: O roteador por capacidade deriva o provedor e o modelo de cada `*_MODEL` pelo primeiro segmento antes da 1ª `/` (FR-002). Exemplos de aceitação: `TEXT_MODEL=opencode-go/qwen/qwen3.7-flash`, `IMAGE_MODEL=openrouter/qwen/qwen3.7-flash`. Defaults por capacidade seguem (texto/moderação→OpenCode, imagem→OpenRouter) quando o `*_MODEL` não traz prefixo explícito. TTS permanece `TTS_MODEL` (feature `004`, fora deste roteamento).
 - **Alternatives considered**: Manter `OPENROUTER_*` com compat. A decisão D5-C já escolheu **somente o novo esquema**, sem fallback; manter dupla leitura adicionaria confusão e breaking com o contrato de env. Remoção é controlada/registrada e o Zod (`src/lib/env.ts`) valida o novo conjunto.
 
 ## R4. Roteador por capacidade (FR-002/D2)

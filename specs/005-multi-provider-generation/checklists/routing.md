@@ -10,7 +10,7 @@ Unidade de teste para a **qualidade dos requisitos de roteamento** — valida se
 ## Requisitos de Roteamento (Completeness)
 
 - [ ] CHK001 São definidos requisitos que cobrem o roteamento de cada capacidade (texto, moderação, imagem) para um provedor de fio? [Completeness, Spec §FR-001, §FR-002]
-- [ ] CHK002 Os requisitos definem explicitamente o provedor canônico para as capacidades de texto e moderação (`opencode-go`) e imagem (`openrouter`)? [Completeness, Spec §FR-001]
+- [ ] CHK002 Os requisitos definem os ids canônicos dos dois provedores (`opencode-go` e `openrouter`) e deixam explícito que **qualquer capacidade pode ser servida por qualquer um deles**, conforme o prefixo do respectivo `*_MODEL` (sem vínculo fixo capacidade→provedor)? [Completeness, Spec §FR-001, §FR-002, Premissas §D3]
 - [ ] CHK003 O spec cobre o roteamento do TTS/voice (feature `004-ai-natural-tts`, assumido OpenRouter) como **fora de escopo**, sem ambiguidade? [Completeness, Out-of-Scope]
 - [ ] CHK004 Está documentado que a capacidade `speech` (se existir) é roteada separadamente e não faz parte desta feature? [Completeness, Gap]
 - [ ] CHK005 Os requisitos especificam o que acontece com cada `*_MODEL`, incluindo `MODERATION_MODEL`, na rota por capacidade? [Completeness, Spec §FR-002]
@@ -31,7 +31,7 @@ Unidade de teste para a **qualidade dos requisitos de roteamento** — valida se
 - [ ] CHK014 O spec especifica a **remoção do esquema legado** `OPENROUTER_*` (decisão D5-C), sem fallback? [Consistency, Spec §FR-008, Premissas §D5]
 - [ ] CHK015 Há requisitos para validar o env no boot (Zod) que rejeitem config inválida de roteamento (prefixo ausente/desconhecido) de forma tipada e não silenciosa? [Completeness, Spec §FR-003]
 - [ ] CHK016 Os requisitos especificam o comportamento de `STORIES_TEST_MODE=fake` em relação ao roteamento (sem chamadas reais a provedores)? [Consistency, Spec §FR-006]
-- [ ] CHK017 O mapeamento `apiKeyEnv` → capacidade (imagem→`OPENROUTER_API_KEY`, texto/moderação→`OPENCODE_GO_API_KEY`) está especificado? [Completeness, data-model `RoutedConfig.apiKeyEnv`]
+- [ ] CHK017 O mapeamento `apiKeyEnv` é derivado do **prefixo** do provedor do `*_MODEL` (prefixo `openrouter`→`OPENROUTER_API_KEY`; `opencode-go`→`OPENCODE_GO_API_KEY`), não da capacidade — está especificado assim? [Completeness, data-model `RoutedConfig.apiKeyEnv`, plan]
 
 ## Semântica de Erro (Scenario/Exception Coverage)
 

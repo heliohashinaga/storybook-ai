@@ -193,12 +193,12 @@ describe("createOpenRouterTtsProvider (T008)", () => {
 });
 
 describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
-  it("uses the env OPENROUTER_TTS_MODEL when no model is injected", async () => {
+  it("uses the env TTS_MODEL when no model is injected", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "sk-env");
     vi.stubEnv("OPENROUTER_TEXT_MODEL", "env/text-model");
     vi.stubEnv("OPENROUTER_IMAGE_MODEL", "env/image-model");
     vi.stubEnv("OPENROUTER_MODERATION_MODEL", "env/moderation-model");
-    vi.stubEnv("OPENROUTER_TTS_MODEL", "env/tts-model");
+    vi.stubEnv("TTS_MODEL", "env/tts-model");
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
 
     const { fetchImpl, calls } = createFakeFetch(() => audioCompletion(BASE64_AUDIO));

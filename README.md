@@ -30,17 +30,31 @@ and no direct identifier is collected, sent, or stored.
 
 ## Run locally
 
+### 1. Setup (one-time)
+
 ```bash
 corepack enable
 pnpm install
-cp .env.example .env.local  # then fill in the provider keys
+cp .env.example .env.local
+```
+
+Then fill in `.env.local` with your provider keys (the first segment of
+each `*_MODEL` selects the provider):
+
+- `OPENROUTER_API_KEY` — used when a model uses the `openrouter/` prefix (any capability)
+- `OPENCODE_GO_API_KEY` — used when a model uses the `opencode-go/` prefix (any capability)
+- `TTS_MODEL` — optional, for TTS narration
+
+> Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
+> deterministic dev run — no AI calls are made.
+
+### 2. Run
+
+```bash
 pnpm dev
 ```
 
 Open `http://localhost:3000`.
-
-> Set `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
-> deterministic dev run — no AI calls are made.
 
 ## Architecture
 
@@ -50,8 +64,9 @@ A story is produced by a single server-side pipeline under
 1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`,
    `theme`) are re-validated server-side and a single generation call lays out
    the scenes and writes the localized text (title + body) plus each scene's
-   illustration prompt. Per-capability model routing: text/moderation →
-   OpenCode, image → OpenRouter.
+   illustration prompt. Per-capability model routing: each `*_MODEL` prefix
+   (`opencode-go/` or `openrouter/`) selects the provider — any provider can
+   serve text, moderation, or image.
 2. **Moderation** – every scene's text and illustration prompt are moderated
    (AI text + image); unsafe output is regenerated once, else fails as
    `unsafe_unrecoverable`.

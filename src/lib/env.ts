@@ -40,7 +40,7 @@ const envSchema = z.object({
    * OpenRouter, billed per character. Optional so narration can be left fully
    * disabled (Web Speech) without any provider credentials.
    */
-  OPENROUTER_TTS_MODEL: z.string().min(1).optional(),
+  TTS_MODEL: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

@@ -11,6 +11,7 @@
 ### Session 2026-08-13
 
 - Q: Qual é o identificador canônico do provedor que o roteamento deve retornar como saída (`RoutedConfig.provider`) — `opencode` ou `opencode-go`? → A: **`opencode-go`** (alinhado a `OPENCODE_GO_API_KEY`); `openrouter` segue o mesmo tratamento. Refinamento: **não há `defaultProvider`** — o provedor é definido **exclusivamente pelo prefixo** do valor do modelo; um valor sem prefixo é erro de configuração no boot (nunca silencioso).
+- Q: Os provedores (`opencode-go`/`openrouter`) são vinculados a capacidades fixas? → A: **Não — são genéricos por capacidade**. Texto, moderação ou imagem podem ser servidos por **qualquer** um dos dois provedores, determinados pelo prefixo do respectivo `*_MODEL` (sem vínculo fixo capacidade→provedor). FR-001/US2/US3/D1/D3 atualizados.
 
 **Input**: Reestruturar o adapter de geração de histórias para **dois provedores simultâneos** por roteamento de capacidade: **OpenCode** para texto/moderação, **OpenRouter** para imagem. (O TTS/voice é tratado pela feature `004-ai-natural-tts` e assume **OpenRouter por hora**, não OpenCode.) O `.env.example` deve passar a usar um esquema de env por capacidade (sem prefixo único `OPENROUTER_`), com a chave e o modelo de cada provedor.
 
@@ -42,7 +43,7 @@ O operador deve poder configurar, no `.env`, a chave e o modelo de cada provedor
 
 **Acceptance Scenarios**:
 
-1. **Given** um `.env` com `TEXT_MODEL=opencode-go/...`, `IMAGE_MODEL=openrouter/...` **When** o adapter lê a config **Then** texto→`opencode-go`, imagem→`openrouter`, moderação→`opencode-go`, com as chaves corretas.
+1. **Given** um `.env` com `TEXT_MODEL=opencode-go/...`, `IMAGE_MODEL=openrouter/...` **When** o adapter lê a config **Then** texto→`opencode-go`, imagem→`openrouter`, moderação→ conforme `MODERATION_MODEL`, com as chaves corretas. *(exemplo: o prefixo de cada `*_MODEL` define o provedor daquela capacidade — qualquer capacidade pode ser servida por `opencode-go` ou `openrouter`.)*
 2. **Given** ausência de uma chave obrigatória para um provedor em uso **Then** a validação de ambiente falha com erro claro (sem vazar a key).
 3. **Given** o esquema antigo (`OPENROUTER_TEXT_MODEL` etc.) presente **Then** o sistema não o usa (migração para o novo esquema) — documentado como breaking change controlado.
 
@@ -50,7 +51,7 @@ O operador deve poder configurar, no `.env`, a chave e o modelo de cada provedor
 
 ### User Story 3 - Manter a experiência anônima com dois provedores (Priority: P2)
 
-O roteamento dual não pode quebrar o contrato anônimo: cada provedor recebe apenas o que é da sua capacidade (texto/modação → OpenCode; imagem → OpenRouter), sem identificador; nenhuma chave é exposta ao cliente; zero persistência adiocional. O texto da cena ou os prompts de imagem podem ir a provedores distintos, mas sempre sem identificador.
+O roteamento dual não pode quebrar o contrato anônimo: **cada provedor recebe apenas o payload da(s) capacidade(s) que serve**, sem identificador; nenhuma chave é exposta ao cliente; zero persistência adicional. **Cada capacidade pode ser servida por qualquer um dos provedores** (`opencode-go` ou `openrouter`), determinada pelo prefixo do respectivo `*_MODEL` — não há vínculo fixo capacidade→provedor. O texto da cena (ou os prompts de imagem) pode ir a qualquer provedor, mas sempre sem identificador.
 
 **Why this priority**: é um invariante não-negociável; garantir que a mudança de provedores não vaze dados. Vem junto/depois dos US1/US2.
 
@@ -58,7 +59,7 @@ O roteamento dual não pode quebrar o contrato anônimo: cada provedor recebe ap
 
 **Acceptance Scenarios**:
 
-1. **Given** uma geração em andamento **When** texto vai ao OpenCode e imagem ao OpenRouter **Then** nenhum identificador aparece em nenhum payload/log de provedor.
+1. **Given** uma geração em andamento **When** cada capacidade é roteada ao provedor indicado pelo prefixo do seu `*_MODEL` (ex.: texto→`opencode-go`, imagem→`openrouter`, ou o inverso, conforme config) **Then** nenhum identificador aparece em nenhum payload/log de provedor.
 2. **Given** o app servindo **Then** nenhuma API key aparece no bundle/cliente (server-only).
 3. **Given** a resposta **Then** nada é persistido além do contrato existente (sem novo storage).
 
@@ -77,7 +78,7 @@ O roteamento dual não pode quebrar o contrato anônimo: cada provedor recebe ap
 
 ### Functional Requirements
 
-- **FR-001**: O sistema DEVE gerar uma história em uma única chamada roteando o texto (e moderação) ao provedor **OpenCode** e a imagem ao provedor **OpenRouter**, preservando o fluxo atual (todas as cenas + ilustrações, sem história parcial).
+- **FR-001**: O sistema DEVE gerar uma história em uma única chamada, roteando **cada capacidade (texto, moderação e imagem) ao provedor definido pelo prefixo do respectivo `*_MODEL`** — `opencode-go` ou `openrouter` podem servir qualquer capacidade (sem vínculo fixo capacidade→provedor) — preservando o fluxo atual (todas as cenas + ilustrações, sem história parcial).
 - **FR-002**: O sistema DEVE ler a config por capacidade: `OPENROUTER_API_KEY` (OpenRouter) e `OPENCODE_GO_API_KEY` (OpenCode) para chaves, e `TEXT_MODEL`/`IMAGE_MODEL`/`MODERATION_MODEL` para modelos. **O provedor de cada capacidade é derivado do valor do modelo pela convenção `provedor/resto`**: o primeiro segmento antes da 1ª `/` identifica o provedor (ex.: `opencode-go/qwen/qwen3.7-flash` → provedor `opencode-go`, modelo `qwen/qwen3.7-flash`; `openrouter/qwen/...` → provedor `openrouter`). **Um valor de modelo sem prefixo de provedor é erro de configuração** (validação Zod no boot, nunca silencioso); não há provider default por capacidade.
 - **FR-003**: O sistema DEVE validar o ambiente (Zod) com o novo schema; a ausência de uma chave obrigatória para uma capacidade ativa falha com erro claro (sem vazar a key) via `getEnv()`.
 - **FR-004**: O sistema DEVE preservar o contrato anônimo: cada provedor recebe apenas o payload da sua capacidade, sem identificador; nenhuma chave no cliente (server-only); zero persistência adicional.
@@ -111,9 +112,9 @@ O roteamento dual não pode quebrar o contrato anônimo: cada provedor recebe ap
 
 ## Assumptions
 
-- **D1**: Moderação vai ao **`opencode-go`** (mesmo provedor do texto) — `MODERATION_MODEL` deve usar prefixo `opencode-go/...`.
+- **D1**: Moderação vai ao provedor indicado pelo prefixo de `MODERATION_MODEL` (pode ser `opencode-go` ou `openrouter`), independente do provedor do texto.
 - **D2**: **Roteamento por prefixo `provedor/resto` no valor do modelo** — o primeiro segmento antes da 1ª `/` é o provedor, o resto é o caminho do modelo (parser determinístico, coberto por teste de contrato). **Sem valor default por capacidade**: um `*_MODEL` sem prefixo de provedor é erro de configuração no boot (nunca silencioso).
-- **D3**: **Imagem sempre `openrouter/...`; texto e moderação sempre `opencode-go/...`** (quando configurados assim); cada capacidade mapeia a um provedor de fio, sem ambiguidade. **Provider id canônico para saída de roteamento: `opencode-go` (texto/moderação) e `openrouter` (imagem).**
+- **D3**: **Cada coexistência de dois provedores é genérica por capacidade**: texto, moderação e imagem podem ser servidos por `opencode-go` ou `openrouter`, conforme o prefixo do respectivo `*_MODEL`. **Provider id canônico para saída de roteamento: `opencode-go` e `openrouter`.**
 - **D4 (default)**: Os **testes/fixtures existentes** do adapter de geração são adaptados como parte (adicionar fake do OpenCode, manter fake do OpenRouter; atualizar contrato/env). `STORIES_TEST_MODE` continua como seletor de teste.
 - **D5 (resolvido)**: **Somente novo esquema (C)** — remover `OPENROUTER_*` imediatamente, sem fallback; o `.env.example` atualizado documenta o novo padrão; breaking change controlado (projeto pessoal, sem dependentes externos).
 - **Sem mudança na UX** do usuário final (histórias e fluxo iguais); a reestruturação é de infra/provedor.
