@@ -126,12 +126,12 @@ jobs:
 
       - name: Run storybook tests
         if: matrix.test == 'storybook'
-        id: test-run
+        id: test-storybook
         run: pnpm storybook:test
 
       - name: Run ${{ matrix.test }} tests
         if: matrix.test != 'storybook'
-        id: test-run
+        id: test-playwright
         run: pnpm test:${{ matrix.test }}
 
       - name: Archive test output on failure (${{ matrix.test }})
