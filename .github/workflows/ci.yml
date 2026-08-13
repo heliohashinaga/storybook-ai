@@ -15,6 +15,12 @@ on:
 permissions:
   contents: read
 
+# Cancel in-flight runs when a newer run is triggered on the same branch.
+# Reduces wasted CI minutes on force-pushes and follow-up commits.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CI: "true"
   NEXT_TELEMETRY_DISABLED: "1"
@@ -56,16 +62,19 @@ jobs:
         run: pnpm typecheck
 
       - name: Unit tests + coverage (≥80% overall; ≥90% safety/validation/orchestration)
+        # vitest is configured to enforce these thresholds, so this fails CI
+        # if the Gini targets (or the safety/validation/orchestration floor)
+        # are not met.
         run: pnpm test:coverage
 
       - name: Production build
         run: pnpm build
 
   browser:
-    name: Browser gates (Storybook a11y, E2E, visual, performance)
+    name: Browser gates (${{ matrix.test }})
     needs: quality
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     # Deterministic provider for the browser/storybook/perf suites — no live AI.
     env:
       STORIES_TEST_MODE: "fake"
@@ -73,6 +82,12 @@ jobs:
       # shared server within a minute; raise the anonymous rate cap so tests
       # are not throttled (production still defaults to 10/min).
       STORY_RATE_LIMIT_MAX_REQUESTS: "10000"
+
+    strategy:
+      matrix:
+        test: [storybook, e2e, visual, performance]
+      fail-fast: false # Don't cancel other tests if one fails
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,30 +103,58 @@ jobs:
           node-version: "22"
           cache: pnpm
 
+      - name: Cache Playwright binaries
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Install Chromium + native deps
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Storybook + a11y
-        run: pnpm storybook:test
+      - name: Build production server
+        # Playwright boots via `next start`, which serves a prebuilt `.next`;
+        # jobs do not share a filesystem, so each browser job builds it.
+        run: pnpm build
 
-      - name: E2E (pt-BR + en, fake provider)
-        run: pnpm test:e2e
+      - name: Run ${{ matrix.test }} tests
+        id: test-run
+        run: pnpm test:${{ matrix.test }}
 
-      - name: Visual regression
-        run: pnpm test:visual
-
-      - name: Performance budgets
-        run: pnpm test:performance
-
-      - name: Archive Playwright test output on failure
+      - name: Archive test output on failure (${{ matrix.test }})
         if: failure()
+        continue-on-error: true # never mask the original test failure
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: test-report-${{ matrix.test }}-${{ github.run_id }}
           path: |
             test-results/
             playwright-report/
+          retention-days: 7
           if-no-files-found: ignore
+
+  # Summary job to gate PR merges. Must pass after all parallel browser tests.
+  verify:
+    name: Verify all checks passed
+    needs: [quality, browser]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check job statuses
+        run: |
+          if [[ "${{ needs.quality.result }}" == "failure" ]]; then
+            echo "❌ Quality gates failed"
+            exit 1
+          fi
+          if [[ "${{ needs.browser.result }}" == "failure" ]]; then
+            echo "❌ Browser tests failed"
+            exit 1
+          fi
+          echo "✅ All CI checks passed"
