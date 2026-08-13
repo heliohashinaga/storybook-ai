@@ -32,7 +32,7 @@
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.5.1",
+    "@react-pdf/renderer": "^4.6.0",
     "next": "^16.3.0",
     "next-intl": "^4.13.5",
     "openai": "^7.4.0",
