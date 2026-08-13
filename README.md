@@ -26,7 +26,8 @@ age range — all in a single step. From there you can flip between scenes, list
 to each one read aloud, export it as a PDF, or change to dark mode.
 
 **Anonymous by design** — the app works without a child's name or exact age,
-and no direct identifier is collected, sent, or stored.
+and no direct identifier is sent or stored; the only in-memory key is a short-lived,
+salted **hash of the connecting IP** used for rate limiting.
 
 ## Run locally
 
