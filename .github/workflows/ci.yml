@@ -4,7 +4,7 @@ name: CI
 # `main`. Mirrors the project's Definition of Done: format, lint, strict
 # typecheck, unit tests with coverage gates, production build, Storybook/a11y,
 # E2E, visual, and performance budgets. All browser tests use deterministic
-# provider fakes (STORIES_PROVIDER=fake) and never call a live AI service.
+# provider fakes (STORIES_TEST_MODE=fake) and never call a live AI service.
 
 on:
   push:
@@ -18,7 +18,7 @@ permissions:
 env:
   CI: "true"
   NEXT_TELEMETRY_DISABLED: "1"
-  # NOTE: STORIES_PROVIDER is intentionally NOT set globally. The unit tests in
+  # NOTE: STORIES_TEST_MODE is intentionally NOT set globally. The unit tests in
   # the quality job (e.g. tests/unit/env.test.ts) assert the env parser returns
   # exactly the configured fields, so a globally-injected provider selector would
   # break them. The fake provider is set only on the browser job, below.
@@ -68,7 +68,7 @@ jobs:
     timeout-minutes: 40
     # Deterministic provider for the browser/storybook/perf suites — no live AI.
     env:
-      STORIES_PROVIDER: "fake"
+      STORIES_TEST_MODE: "fake"
       # A full browser run fires many real POST /api/stories against one
       # shared server within a minute; raise the anonymous rate cap so tests
       # are not throttled (production still defaults to 10/min).

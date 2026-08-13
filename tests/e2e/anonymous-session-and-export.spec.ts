@@ -53,7 +53,9 @@ async function captureStoryCalls(page: Page): Promise<RequestPayload[]> {
   // Safety net: abort any request to a live AI / non-local host. Registered
   // first so the specific capture handler below (added last) wins for
   // `/api/stories`.
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   await page.route("**/api/stories", async (route) => {
     const request = route.request();

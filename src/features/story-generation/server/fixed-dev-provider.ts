@@ -8,7 +8,7 @@ import type {
 /**
  * Deterministic development provider (T036).
  *
- * Used only when the server is explicitly started with `STORIES_PROVIDER=fake`
+ * Used only when the server is explicitly started with `STORIES_TEST_MODE=fake`
  * (e2e/visual/dev runs) — never the production default. It never calls a live
  * AI service: it returns the same approved pt-BR three-scene story and the
  * same safe moderation verdicts every time, so Playwright journeys are

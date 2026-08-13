@@ -54,7 +54,9 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   const requestedPayloads: RequestPayload[] = [];
 
   // Safety net: abort any request to a live AI / non-local host.
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   // Capture the outbound payload, then let the REAL route (dev provider) handle it.
   await page.route("**/api/stories", async (route) => {

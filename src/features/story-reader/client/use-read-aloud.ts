@@ -35,6 +35,10 @@ export interface UseReadAloudOptions {
   text: string;
   /** Active locale (e.g. "pt-BR" or "en") used to choose the voice. */
   locale: string;
+  /** Called when speech starts playing, so parent state can follow. */
+  onStart?: () => void;
+  /** Called when speech ends or is cancelled, so parent state can follow. */
+  onEnd?: () => void;
 }
 
 export interface UseReadAloudResult {
@@ -57,7 +61,20 @@ export interface UseReadAloudResult {
  * Callers MUST invoke `stop()` (or unmount) before navigating to another scene
  * so two scenes never overlap.
  */
-export function useReadAloud({ text, locale }: UseReadAloudOptions): UseReadAloudResult {
+export function useReadAloud({
+  text,
+  locale,
+  onStart,
+  onEnd,
+}: UseReadAloudOptions): UseReadAloudResult {
+  const onStartRef = useRef(onStart);
+  const onEndRef = useRef(onEnd);
+  useEffect(() => {
+    onStartRef.current = onStart;
+  }, [onStart]);
+  useEffect(() => {
+    onEndRef.current = onEnd;
+  }, [onEnd]);
   const supported = useMemo(
     () =>
       typeof window !== "undefined" &&
@@ -71,6 +88,8 @@ export function useReadAloud({ text, locale }: UseReadAloudOptions): UseReadAlou
   const setSpeakingBoth = useCallback((next: boolean) => {
     speakingRef.current = next;
     setSpeaking(next);
+    if (next) onStartRef.current?.();
+    else onEndRef.current?.();
   }, []);
 
   const stop = useCallback(() => {

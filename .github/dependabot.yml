@@ -1,0 +1,9 @@
+# Dependabot version updates configuration.
+# See: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  - package-ecosystem: "npm" # pnpm is covered by the npm ecosystem via pnpm-lock.yaml
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"

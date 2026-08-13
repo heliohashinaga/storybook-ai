@@ -13,14 +13,34 @@ const envSchema = z.object({
   OPENROUTER_IMAGE_MODEL: z.string().min(1),
   OPENROUTER_MODERATION_MODEL: z.string().min(1),
   /**
-   * Provider selector for the generation runtime (read by
-   * `generation-runtime.ts`, not by the OpenRouter adapter which always uses
-   * the real provider). `fake` selects the deterministic dev provider for
-   * e2e/visual/dev runs; anything else or absent means the production
-   * OpenRouter provider. Optional so fake-run environments can omit the
-   * OpenRouter credentials entirely.
+   * Test-only mode switch for the generation and TTS runtimes (read by
+   * `generation-runtime.ts` and `tts-runtime.ts`). `fake` selects the
+   * deterministic offline dev providers for e2e/visual/dev runs and lets the
+   * environment omit provider credentials entirely. Absent (default) means the
+   * real providers, whose per-capability routing is derived from the value of
+   * each `*_MODEL` (see spec 005) — never from this switch.
    */
-  STORIES_PROVIDER: z.enum(["openrouter", "fake"]).optional(),
+  STORIES_TEST_MODE: z.enum(["fake"]).optional(),
+  /**
+   * Whether AI narration (natural TTS voice) is enabled. Read only by the
+   * server-only TTS adapters (`story-read-aloud/server`). When `true`, the
+   * anonymous scene text is sent to the configured neural TTS model and
+   * returned as transient audio; on provider failure an accessible error is
+   * shown (never a fallback to browser Web Speech). When `false`/absent
+   * (default), narration uses the browser's native speechSynthesis. Never
+   * exposed to the client.
+   */
+  AI_NARRATION_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => (v === undefined ? false : v === "true")),
+  /**
+   * Server-only TTS model identifier (cost-vs-naturalness profile configurable
+   * per environment, spec 004 FR-011/Q2-C). Reference: Kokoro 82M via
+   * OpenRouter, billed per character. Optional so narration can be left fully
+   * disabled (Web Speech) without any provider credentials.
+   */
+  OPENROUTER_TTS_MODEL: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

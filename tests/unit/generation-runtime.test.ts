@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 /**
  * Generation-runtime provider selection. The runtime picks between the
  * deterministic fake provider (e2e/visual/dev) and the production OpenRouter
- * provider based solely on the `STORIES_PROVIDER` env selector, so tests may
+ * provider based solely on the `STORIES_TEST_MODE` env selector, so tests may
  * pin the wiring without needing any live AI or provider credentials.
  */
 async function loadRuntime() {
@@ -13,11 +13,11 @@ async function loadRuntime() {
 
 describe("createGenerationRuntime provider selection", () => {
   beforeEach(() => {
-    delete process.env.STORIES_PROVIDER;
+    delete process.env.STORIES_TEST_MODE;
   });
 
-  it("selects the deterministic fixed provider when STORIES_PROVIDER=fake", async () => {
-    process.env.STORIES_PROVIDER = "fake";
+  it("selects the deterministic fixed provider when STORIES_TEST_MODE=fake", async () => {
+    process.env.STORIES_TEST_MODE = "fake";
     const runtime = (await loadRuntime()).createGenerationRuntime();
     // The fake provider returns a fixed, safe, anonymous pt-BR story.
     const story = await runtime.provider.generateStory({
@@ -34,7 +34,7 @@ describe("createGenerationRuntime provider selection", () => {
   });
 
   it("selects an English story from the fixed provider when locale=en (US4)", async () => {
-    process.env.STORIES_PROVIDER = "fake";
+    process.env.STORIES_TEST_MODE = "fake";
     const runtime = (await loadRuntime()).createGenerationRuntime();
     const story = await runtime.provider.generateStory({
       ageBand: "8-9",
