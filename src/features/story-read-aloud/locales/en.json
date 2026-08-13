@@ -8,7 +8,8 @@
       "error": "We couldn't play the audio. Please try again.",
       "unavailable": "AI narration is unavailable right now. The scene is still readable.",
       "retry": "Try again",
-      "busy": "Fetching the narration audio…"
+      "busy": "Fetching the narration audio…",
+      "control": "Narration controls"
     }
   }
 }

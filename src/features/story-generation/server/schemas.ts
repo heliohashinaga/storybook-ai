@@ -47,6 +47,35 @@ export const generateRequestSchema = z
   })
   .strict();
 
+/**
+ * Opaque, in-memory correlation token for the multi-agent pipeline (006). It is
+ * a random hex nonce — never derived from or containing a direct identifier —
+ * and is used solely to correlate stages within one anonymous request.
+ */
+export const generationTokenSchema = z
+  .string()
+  .regex(/^[0-9a-f]{16,}$/i, "generation token must be an opaque hex nonce");
+
+export type GenerationToken = z.infer<typeof generationTokenSchema>;
+
+/**
+ * The anonymous in-memory working context threaded through the multi-agent
+ * pipeline (006). Mirrors the inbound request but carries only the derived,
+ * non-identifying fields plus a short-lived trace token. Reuses the shared
+ * scene-count constants so a future range change edits exactly one place.
+ */
+export const jobContextSchema = z
+  .object({
+    ageBand: ageBandSchema,
+    locale: localeSchema,
+    theme: themeSchema,
+    sceneCountRequested: sceneCountSchema,
+    generationToken: generationTokenSchema,
+  })
+  .strict();
+
+export type JobContext = z.infer<typeof jobContextSchema>;
+
 /** One approved scene: localized plain text plus a session-only WebP data URI. */
 export const sceneSchema = z
   .object({

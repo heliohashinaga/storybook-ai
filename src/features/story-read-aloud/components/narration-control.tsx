@@ -58,7 +58,7 @@ export function NarrationControl({
   const buttonLabel = t(labelKey);
 
   return (
-    <div>
+    <div aria-busy={active || undefined} role="group" aria-label={t("control")}>
       <Button variant="secondary" aria-pressed={active} onClick={onToggle}>
         {buttonLabel}
       </Button>

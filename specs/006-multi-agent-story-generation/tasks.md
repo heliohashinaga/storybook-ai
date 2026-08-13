@@ -32,11 +32,11 @@ description: "Task list for the multi-agent story generation feature"
 
 **Purpose**: Inicializar estrutura do pipeline multi-agente e infra de teste do pipeline.
 
-- [ ] T001 Criar subpacote de agentes em `src/features/story-generation/server/agents/` com barrel `index.ts` (Coordinator, Planner, Writer, Reviewer, Illustrator, Reader)
-- [ ] T002 Definir tipos comuns `agent-result.ts` em `src/features/story-generation/server/agents/agent-result.ts` (`AgentResult<T> = Ok<T> | Err{stage, message, transient}`, `AgentId`)
-- [ ] T003 Implementar política de retry `retry.ts` em `src/features/story-generation/server/agents/retry.ts` (`runWithRetry(fn, { maxAttempts })`, default 2, leitura de env server-only)
-- [ ] T004 [P] Configurar fakes determinísticos do pipeline em `tests/fixtures/story-generation/agents.ts` (Planner/Writer/Reviewer/Illustrator/Reader fakes controláveis)
-- [ ] T005 [P] Adicionar helpers de medição de tempo/budget em `tests/unit/story-generation/agents` baseado em `generation-runtime.ts`
+- [X] T001 Criar subpacote de agentes em `src/features/story-generation/server/agents/` com barrel `index.ts` (Coordinator, Planner, Writer, Reviewer, Illustrator, Reader)
+- [X] T002 Definir tipos comuns `agent-result.ts` em `src/features/story-generation/server/agents/agent-result.ts` (`AgentResult<T> = Ok<T> | Err{stage, message, transient}`, `AgentId`)
+- [X] T003 Implementar política de retry `retry.ts` em `src/features/story-generation/server/agents/retry.ts` (`runWithRetry(fn, { maxAttempts })`, default 2, leitura de env server-only)
+- [X] T004 [P] Configurar fakes determinísticos do pipeline em `tests/fixtures/story-generation/agents.ts` (Planner/Writer/Reviewer/Illustrator/Reader fakes controláveis)
+- [X] T005 [P] Adicionar helpers de medição de tempo/budget em `tests/unit/story-generation/agents` baseado em `generation-runtime.ts`
 
 ---
 
@@ -46,11 +46,11 @@ description: "Task list for the multi-agent story generation feature"
 
 **⚠️ CRITICAL**: Nenhum trabalho de user story começa antes desta fase
 
-- [ ] T006 Criar esqueleto `coordinator.ts` em `src/features/story-generation/server/agents/coordinator.ts` que encadeia Planner→Writer→Reviewer→(Illustrator|Reader) com `AgentResult` e orquestra via `retry.ts`
-- [ ] T007 Add `generateStoryPipeline(ctx: JobContext): Promise<AgentResult<GeneratedStory>>` como API pública do pipeline em `src/features/story-generation/server/agents/coordinator.ts`
-- [ ] T008 Integrar `JobContext` (ageBand, locale, theme, sceneCountRequested, trace token) em `src/features/story-generation/server/schemas.ts` reaproveitando `MIN_SCENES/MAX_SCENES/DEFAULT_SCENE_COUNT`
-- [ ] T009 [P] Mapear `GenerationRuntime` (provider/illustrate/rateLimiter) para os agentes via `src/features/story-generation/server/story-generation-provider.ts` mantendo a interface existente
-- [ ] T010 Adicionar validação Zod de re-validação server (ageBand/locale/theme/sceneCount) antes de qualquer provider em `src/app/api/stories/route.ts` (via `schemas.ts`)
+- [X] T006 Criar esqueleto `coordinator.ts` em `src/features/story-generation/server/agents/coordinator.ts` que encadeia Planner→Writer→Reviewer→(Illustrator|Reader) com `AgentResult` e orquestra via `retry.ts`
+- [X] T007 Add `generateStoryPipeline(ctx: JobContext): Promise<AgentResult<GeneratedStory>>` como API pública do pipeline em `src/features/story-generation/server/agents/coordinator.ts`
+- [X] T008 Integrar `JobContext` (ageBand, locale, theme, sceneCountRequested, trace token) em `src/features/story-generation/server/schemas.ts` reaproveitando `MIN_SCENES/MAX_SCENES/DEFAULT_SCENE_COUNT`
+- [X] T009 [P] Mapear `GenerationRuntime` (provider/illustrate/rateLimiter) para os agentes via `src/features/story-generation/server/story-generation-provider.ts` mantendo a interface existente
+- [X] T010 Adicionar validação Zod de re-validação server (ageBand/locale/theme/sceneCount) antes de qualquer provider em `src/app/api/stories/route.ts` (via `schemas.ts`)
 
 **Checkpoint**: Coordinator tronco funcional — stories podem começar
 
@@ -64,20 +64,20 @@ description: "Task list for the multi-agent story generation feature"
 
 ### Tests for User Story 1 (TDD — escrever primeiro, FAIL antes) ⚠️
 
-- [ ] T011 [P] [US1] Unit de `planner.ts` (outline 3..5 cenas, tema/locale, sem identificador) em `tests/unit/story-generation/agents/planner.test.ts`
-- [ ] T012 [P] [US1] Unit de `writer.ts` (narrativa por faixa etária/tom, sem identificador) em `tests/unit/story-generation/agents/writer.test.ts`
-- [ ] T013 [P] [US1] Unit de orquestração do `coordinator.ts` (ordem e montagem de `GeneratedStory` completo; Reader opcional não bloqueia) em `tests/unit/story-generation/agents/coordinator.test.ts`
-- [ ] T014 [P] [US1] Contrato de pipeline (US1 produz contrato válido `ordinal/title/body/illustrationDataUri`) em `tests/contract/story-generation.pipeline.test.ts`
-- [ ] T015 [P] [US1] Unit de throttling 429 no Coordinator (falha transitória → retry bounded → erro tipado de throttling, sem expor o usuário) em `tests/unit/story-generation/agents/coordinator-throttling.test.ts`
+- [X] T011 [P] [US1] Unit de `planner.ts` (outline 3..5 cenas, tema/locale, sem identificador) em `tests/unit/story-generation/agents/planner.test.ts`
+- [X] T012 [P] [US1] Unit de `writer.ts` (narrativa por faixa etária/tom, sem identificador) em `tests/unit/story-generation/agents/writer.test.ts`
+- [X] T013 [P] [US1] Unit de orquestração do `coordinator.ts` (ordem e montagem de `GeneratedStory` completo; Reader opcional não bloqueia) em `tests/unit/story-generation/agents/coordinator.test.ts`
+- [X] T014 [P] [US1] Contrato de pipeline (US1 produz contrato válido `ordinal/title/body/illustrationDataUri`) em `tests/contract/story-generation.pipeline.test.ts`
+- [X] T015 [P] [US1] Unit de throttling 429 no Coordinator (falha transitória → retry bounded → erro tipado de throttling, sem expor o usuário) em `tests/unit/story-generation/agents/coordinator-throttling.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Implementar `planner.ts` em `src/features/story-generation/server/agents/planner.ts` produzindo `Outline` de 3..5 cenas
-- [ ] T017 [P] [US1] Implementar `writer.ts` em `src/features/story-generation/server/agents/writer.ts` escrevendo narrativa localizada por idade/tom
-- [ ] T018 [US1] Refatorar `generate-story.ts` em `src/features/story-generation/server/generate-story.ts` para delegar a `generateStoryPipeline` (Coordinator) mantendo erros tipados 502/504 e `unsafe_unrecoverable`
-- [ ] T019 [US1] Implementar montagem do `GeneratedStory` no Coordinator em `src/features/story-generation/server/agents/coordinator.ts` (atômica — só após todos os estágios)
-- [ ] T020 [US1] Garantir `POST /api/stories` (`src/app/api/stories/route.ts`) `Cache-Control: no-store` e único entry-point de geração
-- [ ] T021 [P] [US1] Rodar/confirmar `tests/contract/story-generation.openapi.test.ts` existente segue verde como regressão do contrato (SC-006) após o refactor
+- [X] T016 [P] [US1] Implementar `planner.ts` em `src/features/story-generation/server/agents/planner.ts` produzindo `Outline` de 3..5 cenas
+- [X] T017 [P] [US1] Implementar `writer.ts` em `src/features/story-generation/server/agents/writer.ts` escrevendo narrativa localizada por idade/tom
+- [X] T018 [US1] Refatorar `generate-story.ts` em `src/features/story-generation/server/generate-story.ts` para delegar a `generateStoryPipeline` (Coordinator) mantendo erros tipados 502/504 e `unsafe_unrecoverable`
+- [X] T019 [US1] Implementar montagem do `GeneratedStory` no Coordinator em `src/features/story-generation/server/agents/coordinator.ts` (atômica — só após todos os estágios)
+- [X] T020 [US1] Garantir `POST /api/stories` (`src/app/api/stories/route.ts`) `Cache-Control: no-store` e único entry-point de geração
+- [X] T021 [P] [US1] Rodar/confirmar `tests/contract/story-generation.openapi.test.ts` existente segue verde como regressão do contrato (SC-006) após o refactor
 
 **Checkpoint**: US1 funcional e testável isoladamente (deploy/demo = MVP)
 
@@ -91,13 +91,13 @@ description: "Task list for the multi-agent story generation feature"
 
 ### Tests for User Story 2 (TDD) ⚠️
 
-- [ ] T022 [P] [US2] Unit do Reviewer (block, regenerate-once, erro seguro localizado) em `tests/unit/story-generation/agents/reviewer.test.ts`
-- [ ] T023 [P] [US2] Contrato/invariante de privacidade (nenhum `name`/identificador cruza o gate) em `tests/contract/story-generation.privacy.test.ts`
+- [X] T022 [P] [US2] Unit do Reviewer (block, regenerate-once, erro seguro localizado) em `tests/unit/story-generation/agents/reviewer.test.ts`
+- [X] T023 [P] [US2] Contrato/invariante de privacidade (nenhum `name`/identificador cruza o gate) em `tests/contract/story-generation.privacy.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T024 [P] [US2] Implementar `reviewer.ts` em `src/features/story-generation/server/agents/reviewer.ts` (gate autoritativo sobre saída do Writer)
-- [ ] T025 [US2] Integrar Reviewer ao Coordinator pós-Writer em `src/features/story-generation/server/agents/coordinator.ts` (regeneração única com restrições mais fortes)
+- [X] T024 [P] [US2] Implementar `reviewer.ts` em `src/features/story-generation/server/agents/reviewer.ts` (gate autoritativo sobre saída do Writer)
+- [X] T025 [US2] Integrar Reviewer ao Coordinator pós-Writer em `src/features/story-generation/server/agents/coordinator.ts` (regeneração única com restrições mais fortes)
 
 **Checkpoint**: US1 + US2 funcionam e são testáveis independentemente
 
@@ -111,13 +111,13 @@ description: "Task list for the multi-agent story generation feature"
 
 ### Tests for User Story 3 (TDD) ⚠️
 
-- [ ] T026 [P] [US3] Unit do Illustrator (prompt en, 1 ilustração/cena, sem parcial) em `tests/unit/story-generation/agents/illustrator.test.ts`
-- [ ] T027 [P] [US3] Unit de cenário de falha parcial (1 cena falha → erro tipado) em `tests/unit/story-generation/agents/illustrator-partial.test.ts`
+- [X] T026 [P] [US3] Unit do Illustrator (prompt en, 1 ilustração/cena, sem parcial) em `tests/unit/story-generation/agents/illustrator.test.ts`
+- [X] T027 [P] [US3] Unit de cenário de falha parcial (1 cena falha → erro tipado) em `tests/unit/story-generation/agents/illustrator-partial.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T028 [P] [US3] Implementar `illustrator.ts` em `src/features/story-generation/server/agents/illustrator.ts` (prompts sempre em inglês; gatilho por cena)
-- [ ] T029 [US3] Integrar Illustrator ao Coordinator pós-Reviewer em `src/features/story-generation/server/agents/coordinator.ts` (impeds cena não aprovada; conjunto completo exigido)
+- [X] T028 [P] [US3] Implementar `illustrator.ts` em `src/features/story-generation/server/agents/illustrator.ts` (prompts sempre em inglês; gatilho por cena)
+- [X] T029 [US3] Integrar Illustrator ao Coordinator pós-Reviewer em `src/features/story-generation/server/agents/coordinator.ts` (impeds cena não aprovada; conjunto completo exigido)
 
 **Checkpoint**: US1, US2, US3 funcionalmente completas
 
@@ -131,14 +131,14 @@ description: "Task list for the multi-agent story generation feature"
 
 ### Tests for User Story 3-b (TDD) ⚠️
 
-- [ ] T030 [P] [US3-b] Unit de leitura sob demanda (`reader` via `story-read-aloud`, payload sem áudio) em `tests/unit/story-generation/agents/reader.test.ts`
-- [ ] T031 [P] [US3-b] Contrato de ausência de áudio embutido em `GeneratedStory` em `tests/contract/story-generation.no-audio.test.ts`
+- [X] T030 [P] [US3-b] Unit de leitura sob demanda (`reader` via `story-read-aloud`, payload sem áudio) em `tests/unit/story-generation/agents/reader.test.ts`
+- [X] T031 [P] [US3-b] Contrato de ausência de áudio embutido em `GeneratedStory` em `tests/contract/story-generation.no-audio.test.ts`
 
 ### Implementation for User Story 3-b
 
-- [ ] T032 [P] [US3-b] Implementar `reader.ts` em `src/features/story-generation/server/agents/reader.ts` encaminhando texto localizado para `tts-runtime`/`/api/narrate` (reuso, sem nova rota)
-- [ ] T033 [US3-b] Integrar Reader ao Coordinator (pós-aprovação) em `src/features/story-generation/server/agents/coordinator.ts` sem alterar `story-read-aloud`/`use-read-aloud`
-- [ ] T034 [P] [US3-b] Implementar estado acessível do player de narração (anúncio ler/parar via `aria-live`/`aria-busy`) no leitor em `src/features/story-reader/client/` + story de edge em Storybook (AC-2 da US3-b)
+- [X] T032 [P] [US3-b] Implementar `reader.ts` em `src/features/story-generation/server/agents/reader.ts` encaminhando texto localizado para `tts-runtime`/`/api/narrate` (reuso, sem nova rota)
+- [X] T033 [US3-b] Integrar Reader ao Coordinator (pós-aprovação) em `src/features/story-generation/server/agents/coordinator.ts` sem alterar `story-read-aloud`/`use-read-aloud`
+- [X] T034 [P] [US3-b] Implementar estado acessível do player de narração (anúncio ler/parar via `aria-live`/`aria-busy`) no leitor em `src/features/story-reader/client/` + story de edge em Storybook (AC-2 da US3-b)
 
 **Checkpoint**: all stories 1–3 funcionalmente completas
 
@@ -152,13 +152,13 @@ description: "Task list for the multi-agent story generation feature"
 
 ### Tests for User Story 4 (TDD) ⚠️
 
-- [ ] T035 [P] [US4] Unit de dependências/ordenação (nenhum estágio antes de suas dependências) em `tests/unit/story-generation/agents/parallelism.test.ts`
-- [ ] T036 [P] [US4] Teste de latência ponta-a-ponta ≤120 s com fake em `tests/performance/pipeline-latency.test.ts`
+- [X] T035 [P] [US4] Unit de dependências/ordenação (nenhum estágio antes de suas dependências) em `tests/unit/story-generation/agents/parallelism.test.ts`
+- [X] T036 [P] [US4] Teste de latência ponta-a-ponta ≤120 s com fake em `tests/performance/pipeline-latency.test.ts`
 
 ### Implementation for User Story 4
 
-- [ ] T037 [US4] Implementar paralelização segura em `src/features/story-generation/server/agents/coordinator.ts` (ilustrações concorrentes; Illustrator ∥ Reader pós-aprovação)
-- [ ] T038 [US4] Ajustar `generation-runtime.ts` para suportar paralelismo controlado e medição de budget
+- [X] T037 [US4] Implementar paralelização segura em `src/features/story-generation/server/agents/coordinator.ts` (ilustrações concorrentes; Illustrator ∥ Reader pós-aprovação)
+- [X] T038 [US4] Ajustar `generation-runtime.ts` para suportar paralelismo controlado e medição de budget
 
 **Checkpoint**: pipeline completo, dentro do budget, sem quebrar dependências
 
@@ -168,14 +168,14 @@ description: "Task list for the multi-agent story generation feature"
 
 **Purpose**: Robustez, confiabilidade, privacidade e validação final trans-stories.
 
-- [ ] T039 Rodar/integrar invariantes de privacidade (nenhum identificador direto em payload/logs/fakes) em `tests/contract/story-generation.privacy.test.ts`
-- [ ] T040 Atualizar `contracts/story-generation.openapi.yaml`? NÃO — contrato externo inalterado (SC-006); adicionar nota em `specs/006-multi-agent-story-generation/contracts/agent-pipeline.md`
-- [ ] T041 [P] Atualizar/confirmar cobertura ≥80% total e ≥90% safety/validation/orchestration em `pnpm test:coverage:check`
-- [ ] T042 Rodar `quickstart.md` (cenários 1–5) em `specs/006-multi-agent-story-generation/quickstart.md`
-- [ ] T043 [P] Confirmar budgets: geração ≤120 s, navegação ≤100 ms, bundle inicial ≤250 KiB (lazy-import PDF) via `pnpm test:performance`
-- [ ] T044 [P] Garantir strings localizadas (pt-BR/en) via next-intl, sem hardcode, nos novos agentes (erros tipados localizados)
-- [ ] T045 Rodar gates finais `pnpm lint` (0 warnings), `pnpm format:check`, `pnpm typecheck` — após a ÚLTIMA edição
-- [ ] T046 [P] Storybook: stories de loading/error/edge para o leitor (preservar a11y do `use-read-aloud`) via `pnpm storybook:test`
+- [X] T039 Rodar/integrar invariantes de privacidade (nenhum identificador direto em payload/logs/fakes) em `tests/contract/story-generation.privacy.test.ts`
+- [X] T040 Atualizar `contracts/story-generation.openapi.yaml`? NÃO — contrato externo inalterado (SC-006); adicionar nota em `specs/006-multi-agent-story-generation/contracts/agent-pipeline.md`
+- [X] T041 [P] Atualizar/confirmar cobertura ≥80% total e ≥90% safety/validation/orchestration em `pnpm test:coverage:check`
+- [X] T042 Rodar `quickstart.md` (cenários 1–5) em `specs/006-multi-agent-story-generation/quickstart.md`
+- [X] T043 [P] Confirmar budgets: geração ≤120 s, navegação ≤100 ms, bundle inicial ≤250 KiB (lazy-import PDF) via `pnpm test:performance`
+- [X] T044 [P] Garantir strings localizadas (pt-BR/en) via next-intl, sem hardcode, nos novos agentes (erros tipados localizados)
+- [X] T045 Rodar gates finais `pnpm lint` (0 warnings), `pnpm format:check`, `pnpm typecheck` — após a ÚLTIMA edição
+- [X] T046 [P] Storybook: stories de loading/error/edge para o leitor (preservar a11y do `use-read-aloud`) via `pnpm storybook:test`
 
 ---
 

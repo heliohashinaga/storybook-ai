@@ -1,0 +1,183 @@
+import "server-only";
+import type { StoryGenerationProvider } from "../story-generation-provider";
+import { storyResponseSchema, type GeneratedStory } from "../schemas";
+import type { AgentResult } from "./agent-result";
+import type { JobContext, GenerationToken } from "./types";
+import { createStopwatch } from "./timing";
+import { planStory } from "./planner";
+import { writeStory } from "./writer";
+import { reviewStory } from "./reviewer";
+import { illustrateStory } from "./illustrator";
+
+/**
+ * Coordinator agent (specs/006-multi-agent-story-generation/data-model.md).
+ *
+ * The Coordinator is the composition root of the multi-agent pipeline. It runs
+ * the safety gate, then orchestrates the remaining in-memory agents against the
+ * approved narrative and assembles a validated `GeneratedStory`. Stage order:
+ *
+ *   Reviewer (safety gate: fetch + moderate + bounded regeneration)
+ *     → Planner (outline) → Writer (localized narrative) → Illustrator (images)
+ *
+ * The Reader is intentionally out of this synchronous success path — audio is
+ * delivered on demand via the existing `/api/narrate` endpoint (research.md),
+ * never embedded in `GeneratedStory`.
+ *
+ * Transient stage failures surface as an `Err` the caller may retry; permanent
+ * failures (unsafe, malformed) map to a wire-safe localized error. No raw
+ * provider output is ever returned or logged.
+ */
+
+/** Maximum attempts for a non-final, transient stage (respected by Coordinator). */
+export interface PipelineSeams {
+  /** Shared capability seam handed to the agents. */
+  provider: StoryGenerationProvider;
+  /** Localized prompt → optimized WebP data-URI (ADR 0005). */
+  illustrate: (prompt: string) => Promise<{ dataUri: string }>;
+  /** Bounded retries for the whole illustration set (default 1). */
+  imageRetries?: number;
+  /** Max illustrations generated concurrently within a set (default 2). */
+  illustrationConcurrency?: number;
+  /** Response-size guard on each illustration data URI (override for tests). */
+  maxIllustrationDataUriLength?: number;
+  /** Optional on-demand narration hook (Reader). */
+  readOnDemand?: (text: string) => Promise<void>;
+}
+
+export interface GenerateStoryPipelineOptions {
+  ctx: JobContext;
+  seams: PipelineSeams;
+  /**
+   * End-to-end latency budget in ms for the full pipeline (default 120 s, per
+   * the performance budgets enumerated in spec 001). Over-budget stages abort
+   * early with a typed `generation_timeout` instead of exhausting the caller.
+   */
+  pipelineBudgetMs?: number;
+}
+
+/** Creates an opaque, in-memory trace token (no identifiers). */
+export function createGenerationToken(): GenerationToken {
+  return Buffer.from(globalThis.crypto.getRandomValues(new Uint8Array(8))).toString("hex");
+}
+
+/** Retries a stage's function up to `maxAttempts` on transient failures only. */
+async function runStage<T>(
+  fn: () => Promise<AgentResult<T>>,
+  maxAttempts: number
+): Promise<AgentResult<T>> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const result = await fn();
+    if (result.ok) return result;
+    if (!result.transient || attempt >= maxAttempts) return result;
+    // transient → retry up to maxAttempts
+  }
+  // Unreachable while maxAttempts >= 1, but kept for exhaustiveness.
+  return {
+    ok: false,
+    stage: "review",
+    message: "story.error.generationUnavailable",
+    transient: true,
+  };
+}
+
+/**
+ * Runs the full anonymous multi-agent pipeline and returns either a validated
+ * 3–5 scene story or a typed safe error. Used by `generateStory` and by the
+ * `/api/stories` route's test seams.
+ */
+export async function generateStoryPipeline(
+  options: GenerateStoryPipelineOptions
+): Promise<AgentResult<GeneratedStory>> {
+  const { ctx, seams } = options;
+  const budgetMs = options.pipelineBudgetMs ?? 120_000;
+  const maxAttempts = Number(process.env.STORY_PIPELINE_MAX_ATTEMPTS ?? 2);
+  const clock = createStopwatch();
+
+  // Stage 1 — safety gate (only source of the text-generation provider call).
+  const reviewed = await runStage(
+    () => reviewStory(ctx, { provider: seams.provider }),
+    maxAttempts
+  );
+  if (!reviewed.ok) {
+    return {
+      ok: false,
+      stage: reviewed.stage,
+      message: "story.error.generationUnavailable",
+      transient: reviewed.transient,
+      errorCode: reviewed.errorCode,
+    };
+  }
+  clock.tick("review");
+
+  // Stage 2/3 — plan + write (pure transforms of the approved narrative).
+  const outline = planStory(ctx, reviewed.value);
+  if (!outline.ok) return outline;
+  clock.tick("plan");
+
+  const written = writeStory(ctx, outline.value, reviewed.value);
+  if (!written.ok) return written;
+  clock.tick("write");
+
+  // Stage 4 — illustrations (concurrency + whole-set retry), per ADR 0005.
+  const illustrated = await illustrateStory(ctx, reviewed.value, {
+    illustrate: seams.illustrate,
+    imageRetries: seams.imageRetries,
+    illustrationConcurrency: seams.illustrationConcurrency,
+    maxIllustrationDataUriLength: seams.maxIllustrationDataUriLength,
+  });
+  clock.tick("illustrate");
+  if (!illustrated.ok) return illustrated;
+
+  // Enforce the end-to-end latency budget: if stages exceeded it before/while
+  // assembling, surface a typed timeout rather than returning a stale story.
+  if (clock.isOverBudget(budgetMs)) {
+    return {
+      ok: false,
+      stage: "assemble",
+      message: "story.error.generationTimeout",
+      transient: true,
+      errorCode: "generation_timeout",
+    };
+  }
+
+  // Defense-in-depth: re-bind the requested scene count regardless of which
+  // stage produced the candidate.
+  if (illustrated.value.scenes.length !== ctx.sceneCountRequested) {
+    return {
+      ok: false,
+      stage: "assemble",
+      message: "story.error.generationUnavailable",
+      transient: false,
+      errorCode: "unsafe_unrecoverable",
+    };
+  }
+
+  const story: GeneratedStory = {
+    locale: ctx.locale,
+    ageBand: ctx.ageBand,
+    theme: ctx.theme,
+    sceneCount: ctx.sceneCountRequested,
+    safetyDecision: illustrated.value.safetyDecision,
+    title: illustrated.value.title,
+    scenes: illustrated.value.scenes.map((scene) => ({
+      ordinal: scene.ordinal,
+      title: scene.title,
+      body: scene.body,
+      illustrationDataUri: scene.illustrationDataUri,
+      altText: scene.altText,
+    })),
+  };
+
+  const parsed = storyResponseSchema.safeParse(story);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      stage: "assemble",
+      message: "story.error.generationUnavailable",
+      transient: false,
+      errorCode: "generation_unavailable",
+    };
+  }
+
+  return { ok: true, value: parsed.data };
+}
