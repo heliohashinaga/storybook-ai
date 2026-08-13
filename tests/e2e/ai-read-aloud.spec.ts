@@ -25,7 +25,9 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
 }) => {
   // Safety net: never touch a live AI / non-local host; the fixed dev
   // provider on the server answers locally (US3 network guard).
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   // Capture every POST /api/narrate payload the hook issues.
   const narrateBodies: string[] = [];
@@ -84,7 +86,9 @@ test("AI narration failure shows an accessible error and never falls back to Web
     }
   });
 
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
   // Force the TTS provider to fail with a 502 while AI narration is active.
   await page.route("**/api/narrate", (route) =>
     route.fulfill({
@@ -124,7 +128,9 @@ test("AI narration failure shows an accessible error and never falls back to Web
 });
 
 test("narration is on-demand with zero persistence (no prefetch, no storage)", async ({ page }) => {
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   let narrateRequests = 0;
   page.on("request", (request) => {

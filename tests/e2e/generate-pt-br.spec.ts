@@ -12,9 +12,9 @@ import type { GeneratedStory } from "../../src/features/story-generation/server/
  *   - captures + asserts the outbound payload (privacy contract: exactly
  *     `ageBand`/`locale`/`theme` — never an exact age or a direct identifier);
  *   - blocks any request to a non-local host as a safety net, so nothing can
- *     ever leak to a live AI service (unchanged because localhost never
- *     matches the negative-lookahead matcher, and `route.continue()` keeps the
- *     development-provider request on the local dev server).
+ *     ever leak to a live AI service (unchanged because localhost/127.0.0.1
+ *     never matches the negative-lookahead matcher, and `route.continue()`
+ *     keeps the development-provider request on the local dev server).
  *
  * The response is then asserted against real server behaviour: `no-store`,
  * a valid three-scene safety-approved story with WebP data URIs and localized
@@ -56,7 +56,9 @@ test("default pt-BR journey sends only ageBand/locale/theme and renders a safe s
   // Safety net: abort any request to a live AI / non-local host. Registered
   // first so the specific capture handler below (added last) wins for
   // `/api/stories`.
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   // Capture the outbound payload, then let the REAL route (dev provider)
   // handle it so server-side validation/safety actually run.

@@ -29,7 +29,9 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
 }) => {
   // Safety net: never touch a live AI / non-local host; the fixed dev
   // provider on the server answers locally.
-  await page.route(/^https?:\/\/(?!localhost)/i, (route) => route.abort("failed"));
+  await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
+    route.abort("failed")
+  );
 
   const responsePromise = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
