@@ -113,10 +113,27 @@ unsafe, partial, or structurally invalid stories are never delivered.
 Zod · sharp · @react-pdf/renderer. AI (server-only): OpenRouter + OpenCode,
 routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
 
-**Quality gates** (run automatically in CI on push/PR to `main` and `develop`):
-`pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test:coverage:check`,
-`pnpm build`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`,
-`pnpm test:performance`. See `package.json` and `.github/workflows/ci.yml`.
+**Quality gates** are enforced in two layers.
+
+- **Per commit** (fast, run by the pre-commit hook): lint (no warnings),
+  formatting (no Prettier drift), and strict TypeScript (`pnpm lint`,
+  `pnpm format:check`, `pnpm typecheck`).
+
+- **Per push/PR to `main`/`develop`** (CI, run automatically):
+
+  | Validation       | What it checks                                          |
+  | ---------------- | ------------------------------------------------------- |
+  | Lint             | no lint warnings                                        |
+  | Format           | no Prettier drift                                       |
+  | Typecheck        | strict TypeScript, no `any` in production               |
+  | Test coverage    | ≥80% overall; ≥90% safety/validation/orchestration      |
+  | Build            | production build compiles                               |
+  | Storybook + a11y | every story renders + no accessibility violations       |
+  | E2E              | pt-BR & EN journeys, fake provider, no live AI          |
+  | Visual           | no unintended screenshot regression                     |
+  | Performance      | LCP, route JS, scene navigation, and generation budgets |
+
+  See `package.json` scripts and `.github/workflows/ci.yml`.
 
 ## Disclaimer
 
