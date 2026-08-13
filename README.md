@@ -52,12 +52,15 @@ of each `*_MODEL` selects the provider):
 
 #### 🧠 Models (first segment = provider, unprefixed models are rejected at boot)
 
-| Variable           | Default      | Example                          |
-| ------------------ | ------------ | -------------------------------- |
-| `TEXT_MODEL`       | — (required) | `opencode-go/qwen/qwen3.7-flash` |
-| `MODERATION_MODEL` | — (required) | `opencode-go/qwen/qwen3.7-flash` |
-| `IMAGE_MODEL`      | — (required) | `openrouter/qwen/qwen3.7-flash`  |
-| `TTS_MODEL`        | — (optional) | `openrouter/qwen/qwen3.7-flash`  |
+Each capability routes **independently**, so every `*_MODEL` can point to a
+different provider/model with the fitting capability.
+
+| Variable           | Purpose                                  | Example                          |
+| ------------------ | ---------------------------------------- | -------------------------------- |
+| `TEXT_MODEL`       | story narrative generation (text, req)   | `opencode-go/qwen/qwen3.7-flash` |
+| `MODERATION_MODEL` | safety moderation (text + image prompts) | `opencode-go/qwen/qwen3.7-flash` |
+| `IMAGE_MODEL`      | illustration generation (WebP, req)      | `openrouter/qwen/qwen3.7-flash`  |
+| `TTS_MODEL`        | narration voice (AI TTS, optional)       | `openrouter/qwen/qwen3.7-flash`  |
 
 #### ⚙️ Mode
 
