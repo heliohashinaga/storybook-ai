@@ -32,7 +32,7 @@
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.5.1",
+    "@react-pdf/renderer": "^4.6.0",
     "next": "^16.3.0",
     "next-intl": "^4.13.5",
     "openai": "^7.4.0",
@@ -51,10 +51,10 @@
     "@storybook/react": "^10.5.7",
     "@storybook/test-runner": "^0.24.4",
     "@tailwindcss/postcss": "^4.3.3",
-    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
-    "@types/node": "^22.15.0",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
@@ -67,9 +67,9 @@
     "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "start-server-and-test": "^3.0.12",
-    "storybook": "^10.5.6",
+    "storybook": "^10.5.7",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.10"
   }
