@@ -52,7 +52,14 @@ export function useAiReadAloud({
   locale,
   errorLabel = "",
 }: UseAiReadAloudOptions): UseAiReadAloudResult {
-  const system = useReadAloud({ text, locale });
+  const system = useReadAloud({
+    text,
+    locale,
+    // Surface Web Speech start/stop on the accessible control so the label
+    // toggles "ouvir esta cena" → "parar leitura" and back (US4.2).
+    onStart: () => setStatus("speaking"),
+    onEnd: () => setStatus((prev) => (prev === "speaking" ? "idle" : prev)),
+  });
   const [status, setStatus] = useState<NarrationStatus>("idle");
   const [mode, setMode] = useState<NarrationMode>("ai");
   const [errorMessage, setErrorMessage] = useState("");
@@ -123,8 +130,9 @@ export function useAiReadAloud({
       .then(async (response) => {
         if (response.status === 204) {
           // AI narration disabled server-side → delegate to Web Speech.
+          // onStart/onEnd on `useReadAloud` keep `status` in sync so the
+          // control shows "parar leitura" while the system speech plays.
           setMode("system");
-          setStatus("idle");
           system.toggle();
           return;
         }

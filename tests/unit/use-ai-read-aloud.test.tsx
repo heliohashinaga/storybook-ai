@@ -221,7 +221,9 @@ describe("useAiReadAloud — 204 delegates to Web Speech (AI disabled)", () => {
     act(() => result.current.toggle());
 
     await waitFor(() => expect(result.current.mode).toBe("system"));
-    expect(result.current.status).toBe("idle");
+    // Web Speech is speaking → the accessible control reflects an in-progress
+    // narration ("parar leitura"), not an idle/"ouvir esta cena" state.
+    await waitFor(() => expect(result.current.status).toBe("speaking"));
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(speech.speak).toHaveBeenCalledTimes(1);
     expect(speech.calls()[0]!.text).toBe(SCENE_TEXT);
