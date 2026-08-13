@@ -124,7 +124,13 @@ jobs:
         # jobs do not share a filesystem, so each browser job builds it.
         run: pnpm build
 
+      - name: Run storybook tests
+        if: matrix.test == 'storybook'
+        id: test-run
+        run: pnpm storybook:test
+
       - name: Run ${{ matrix.test }} tests
+        if: matrix.test != 'storybook'
         id: test-run
         run: pnpm test:${{ matrix.test }}
 
