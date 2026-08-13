@@ -115,17 +115,19 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
 
 **Quality gates** are enforced in two layers.
 
-- **Per commit** (fast, run by the pre-commit hook): lint (no warnings),
-  formatting (no Prettier drift), and strict TypeScript (`pnpm lint`,
-  `pnpm format:check`, `pnpm typecheck`).
+- **Per commit** (fast, enforced by the pre-commit hook):
 
-- **Per push/PR to `main`/`develop`** (CI, run automatically):
+  | Validation | What it checks              |
+  | ---------- | --------------------------- |
+  | Lint       | no lint warnings            |
+  | Format     | no Prettier drift           |
+  | Typecheck  | strict TypeScript, no `any` |
+
+- **Per push/PR to `main`/`develop`** (CI, run automatically, on top of the
+  per-commit gate):
 
   | Validation       | What it checks                                          |
   | ---------------- | ------------------------------------------------------- |
-  | Lint             | no lint warnings                                        |
-  | Format           | no Prettier drift                                       |
-  | Typecheck        | strict TypeScript, no `any` in production               |
   | Test coverage    | ≥80% overall; ≥90% safety/validation/orchestration      |
   | Build            | production build compiles                               |
   | Storybook + a11y | every story renders + no accessibility violations       |
