@@ -1,5 +1,4 @@
 import "server-only";
-import { getEnv } from "../../../lib/env";
 import { createFixedTtsProvider } from "./fixed-tts-provider";
 import { createOpenRouterTtsProvider } from "./openrouter-tts-provider";
 import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
@@ -51,8 +50,22 @@ function resolveDefaultProvider(): TtsProvider {
     : createOpenRouterTtsProvider();
 }
 
+/**
+ * Reads the AI-narration toggle directly from `process.env` (mirrors how
+ * `generation-runtime.ts` reads `STORIES_PROVIDER`). We deliberately do NOT
+ * call `getEnv()` here: `getEnv()` validates the *whole* server schema at
+ * module load, including the story-generation `OPENROUTER_*` credentials that
+ * are unrelated to TTS, which would throw during `next build` on a host without
+ * those credentials. The OpenRouter TTS adapter resolves its own key/model
+ * lazily inside `synthesize`, so nothing here requires a full env validation.
+ */
+function resolveEnabled(deps: TtsRuntimeDeps): boolean {
+  if (deps.enabled !== undefined) return deps.enabled;
+  return process.env.AI_NARRATION_ENABLED === "true";
+}
+
 export function createTtsRuntime(deps: TtsRuntimeDeps = {}): TtsRuntime {
-  const enabled = deps.enabled ?? getEnv().AI_NARRATION_ENABLED;
+  const enabled = resolveEnabled(deps);
   const provider = deps.provider ?? resolveDefaultProvider();
 
   return {
