@@ -14,7 +14,7 @@ with illustrations.
 - 🎭 **Themes**: courage, friendship, kindness — chosen via **visual theme cards**.
 - 🌎 **Languages**: `pt-BR` (default) and `en`.
 - 📖 **Scenes** (3–5, variable) with generated illustrations, localized alternative text, and a **scene-progress indicator**.
-- 🔊 **Read-aloud** of the current scene spoken locally in-browser (Web Speech — no network transmission) with a single start/stop control and accessible announcements.
+- 🔊 **Read-aloud** of the current scene with a single start/stop control and accessible announcements. By default it uses the browser's local Web Speech voice (no network); when AI narration is enabled (`AI_NARRATION_ENABLED`), it uses a server-side neural TTS voice while keeping the flow anonymous — and falls back to a controlled, accessible error rather than silently swapping to Web Speech on provider failure.
 - 📄 Browser-based **PDF export** with loading and failure/retry feedback.
 - 🌓 **Dark mode** following the system preference, plus a session-only manual toggle (no persistence).
 
@@ -97,7 +97,7 @@ Feature-based layout implemented under `src/`:
 src/
 ├── app/                    # App Router (layout, page, Route Handler POST /api/stories)
 ├── components/ui/          # Shared primitives with design tokens
-├── features/               # story-request, story-generation/server, story-reader, story-export
+├── features/               # story-request, story-generation/server, story-reader, story-read-aloud, story-export
 ├── i18n/config.ts          # next-intl (pt-BR default + en)
 └── lib/                    # env, http-errors, rate-limit
 ```

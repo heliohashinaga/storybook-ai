@@ -7,6 +7,13 @@ import { injectAxe, checkA11y } from "axe-playwright";
  * against it (WCAG 2 A/AA). Per-story opt-out via `parameters.a11y.disable`.
  */
 const config: TestRunnerConfig = {
+  async prepare({ page }) {
+    // Workaround for a known test-runner/Storybook navigation issue where the
+    // hard iframe navigation on slow/loaded hosts exceeds Playwright's default
+    // 30s `page.goto` timeout (the fixed ({{viewMode}}) URL is re-navigated).
+    // Bumping the default here keeps the a11y checks unchanged.
+    await page.setDefaultTimeout(120_000);
+  },
   async preVisit(page) {
     await injectAxe(page);
   },

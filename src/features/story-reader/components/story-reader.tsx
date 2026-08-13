@@ -4,12 +4,13 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { GeneratedStory } from "../../story-generation/server/schemas";
-import { useReadAloud } from "../client/use-read-aloud";
+import { useAiReadAloud } from "../../story-read-aloud/client/use-ai-read-aloud";
+import { NarrationControl } from "../../story-read-aloud/components/narration-control";
 import { SceneProgress } from "./scene-progress";
 import { SceneView } from "./scene-view";
 
 /**
- * Scene-by-scene reader (T040).
+ * Scene-by-scene reader (T040, extended by spec 004).
  *
  * Shows one scene at a time with ordered next/previous navigation, a localized
  * progress indicator ("Cena X de Y"), and arrow-key navigation when the scene
@@ -17,9 +18,16 @@ import { SceneView } from "./scene-view";
  * scene and next on the last. When the scene changes, programmatic focus moves
  * to the new scene heading (G194-adjacent pattern for dynamic content). The
  * reader keeps its position in-memory for the session; nothing is persisted.
+ *
+ * Narration (spec 004): the reader uses the AI narration hook, which extends
+ * the progressive `useReadAloud` (Web Speech) pattern. When AI narration is
+ * enabled server-side it plays transient AI audio; otherwise `/api/narrate`
+ * answers 204 and the hook delegates to Web Speech. A provider failure is
+ * surfaced as an accessible error without falling back to Web Speech (US2).
  */
 export function StoryReader({ story }: { story: GeneratedStory }) {
   const t = useTranslations("story.reader");
+  const tn = useTranslations("story.narration");
   const scenes = story.scenes;
   const [currentIndex, setCurrentIndex] = useState(0);
   const regionRef = useRef<HTMLElement>(null);
@@ -28,8 +36,18 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
   const total = scenes.length;
   const current = scenes[currentIndex];
 
+  // Test-first: read-aloud (US2). Local, single start/stop control; speech is
+  // cancelled whenever the scene text changes so two scenes never overlap.
+  // Extends `useReadAloud` for AI narration (spec 004 US1-US3).
+  const readerText = current ? `${current.title}. ${current.body}` : "";
+  const readAloud = useAiReadAloud({
+    text: readerText,
+    locale: story.locale ?? "pt-BR",
+    errorLabel: tn("error"),
+  });
+
   function goTo(index: number) {
-    // Stop any in-progress narration before moving to another scene.
+    // Stop any in-progress narration (AI or system) before moving on.
     readAloud.stop();
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
@@ -43,14 +61,6 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
       goTo(currentIndex - 1);
     }
   }
-
-  // Test-first: read-aloud (US2). Local, single start/stop control; speech is
-  // cancelled whenever the scene text changes so two scenes never overlap.
-  const readerText = current ? `${current.title}. ${current.body}` : "";
-  const readAloud = useReadAloud({
-    text: readerText,
-    locale: story.locale ?? "pt-BR",
-  });
 
   // Move focus to the new scene heading on navigation, but never steal focus
   // on the initial render.
@@ -82,14 +92,12 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
       <SceneView scene={current} />
 
       {readAloud.supported && (
-        <div>
-          <Button variant="secondary" aria-pressed={readAloud.speaking} onClick={readAloud.toggle}>
-            {readAloud.speaking ? t("stopReading") : t("readAloud")}
-          </Button>
-          <span aria-live="polite" className="sr-only">
-            {readAloud.speaking ? t("reading") : ""}
-          </span>
-        </div>
+        <NarrationControl
+          status={readAloud.status}
+          mode={readAloud.mode}
+          errorMessage={readAloud.errorMessage}
+          onToggle={readAloud.toggle}
+        />
       )}
 
       <div className="flex items-center justify-between gap-md">

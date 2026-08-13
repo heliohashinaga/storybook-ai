@@ -21,6 +21,26 @@ const envSchema = z.object({
    * OpenRouter credentials entirely.
    */
   STORIES_PROVIDER: z.enum(["openrouter", "fake"]).optional(),
+  /**
+   * Whether AI narration (natural TTS voice) is enabled. Read only by the
+   * server-only TTS adapters (`story-read-aloud/server`). When `true`, the
+   * anonymous scene text is sent to the configured neural TTS model and
+   * returned as transient audio; on provider failure an accessible error is
+   * shown (never a fallback to browser Web Speech). When `false`/absent
+   * (default), narration uses the browser's native speechSynthesis. Never
+   * exposed to the client.
+   */
+  AI_NARRATION_ENABLED: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) => (v === undefined ? false : v === "true")),
+  /**
+   * Server-only TTS model identifier (cost-vs-naturalness profile configurable
+   * per environment, spec 004 FR-011/Q2-C). Reference: Kokoro 82M via
+   * OpenRouter, billed per character. Optional so narration can be left fully
+   * disabled (Web Speech) without any provider credentials.
+   */
+  OPENROUTER_TTS_MODEL: z.string().min(1).optional(),
 });
 
 export type ServerEnv = z.infer<typeof envSchema>;

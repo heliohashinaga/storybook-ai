@@ -75,7 +75,7 @@ specs/004-ai-natural-tts/
 # Single project (Next.js App Router) — segue a estrutura feature-based existente
 src/
 ├── features/
-│   └── story-read-aloud/            # NOVA feature server-only do TTS (ou estende story-generation)
+│   └── story-read-aloud/            # NOVA feature server-only do TTS (padrão de adapter da geração)
 │       ├── server/                  # server-only boundary
 │       │   ├── tts-provider.ts       # interface + ProviderError (padrão story-generation-provider)
 │       │   ├── openrouter-tts-provider.ts

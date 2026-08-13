@@ -70,7 +70,7 @@ Não há relacionamentos persistentes; nenhuma tabela/coleção/entity de banco.
 - `sceneText` obrigatório, `1..2000`, sem identificador (zod no cliente + re-validação no servidor).
 - `locale` ∈ {`pt-BR`, `en`}.
 - Se `sceneText` inválido/fora do limite do schema → 400 (sem chamada TTS).
-- Se `sceneText` inválido/fora do limite do schema → 400 (sem chamada TTS).
+- Se `locale` inválido fora do enum → 400 (sem chamada TTS).
 - Com `AI_NARRATION_ENABLED=true` e provedor indisponível/erro → **erro acessível** (sem fallback para Web Speech); com `false`, o cliente usa Web Speech diretamente.
 
 ## 4. Anonimato / zero persistência (invariantes de teste)

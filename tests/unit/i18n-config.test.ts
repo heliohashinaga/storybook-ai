@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getMessages } from "../../src/i18n/config";
 import ptBR from "../../src/features/story-request/locales/pt-BR.json";
+import ptBRNarration from "../../src/features/story-read-aloud/locales/pt-BR.json";
 import {
   invalidInput,
   unsupportedLocale,
@@ -11,12 +12,17 @@ import {
 } from "../../src/lib/http-errors";
 
 describe("i18n message catalog", () => {
-  it("returns the pt-BR baseline catalog", () => {
-    expect(getMessages()).toBe(ptBR);
+  it("returns the pt-BR baseline catalog with narration keys merged", () => {
+    const catalog = getMessages();
+    // The base story-request strings are present.
+    expect(catalog.story.form.submit).toBe("Criar história");
+    // The story-read-aloud narration namespace is merged in.
+    expect(catalog.story.narration.reading).toBe("Lendo a cena com voz de IA");
+    expect(ptBRNarration).toBeDefined();
   });
 
   it("contains every messageKey referenced by the typed HTTP errors", () => {
-    const catalog = ptBR as unknown as Record<string, unknown>;
+    const catalog = getMessages() as unknown as Record<string, unknown>;
     const keys = [
       invalidInput,
       unsupportedLocale,

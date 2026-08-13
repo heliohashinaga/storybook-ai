@@ -47,9 +47,9 @@
 
 ## 5. Configuração e teto de custo (Q2-C)
 
-- **Decision**: Variáveis de ambiente (server): `AI_NARRATION_ENABLED` (liga/desliga) e `OPENROUTER_TTS_MODEL` (provedor/modelo de voz; assume-se OpenRouter por hora). `tts-runtime.ts` chama o provedor e, em falha/indisponibilidade, sinaliza fallback para a voz de sistema (Web Speech).
-- **Rationale**: personaliza o perfil custo-vs-naturalidade sem deploy; garante que um projeto pessoal não estourara custo; teto+retries dão comportamento gracioso (FR-007).
-- **Alternativas**: teto fixo em código (rejeitado — pouco flexível para P2).
+- **Decision**: Variáveis de ambiente (server): `AI_NARRATION_ENABLED` (liga/desliga) e `OPENROUTER_TTS_MODEL` (provedor/modelo de voz; assume-se OpenRouter por hora). `tts-runtime.ts` resolve o caminho: com `AI_NARRATION_ENABLED=true`, chama o provedor de TTS e, em falha/indisponibilidade, sinaliza **erro acessível** ao cliente (sem fallback para a voz de sistema — FR-006/FR-007, US2); com `false`, o motor não chama o provedor e o cliente usa a voz de sistema (Web Speech) diretamente.
+- **Rationale**: personaliza o perfil custo-vs-naturalidade sem deploy; sem **teto de custo por narração** nesta versão (configuração só `AI_NARRATION_ENABLED` + `OPENROUTER_TTS_MODEL`, conforme spec/data-model). Limite de tentativas/backoff dão comportamento gracioso em falha persistente do provedor (FR-007) — mas nunca transicionam de `ai` para Web Speech.
+- **Alternativas**: teto fixo em código (rejeitado — a spec declara explicitamente "sem teto de custo por narração"); falha ativa → queda para Web Speech (rejeitado — FR-006/US2 exigem erro acessível, sem fallback).
 
 ## 6. UX do controle de leitura (reutilizar use-read-aloud)
 

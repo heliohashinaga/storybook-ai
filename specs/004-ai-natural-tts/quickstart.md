@@ -9,13 +9,13 @@
 ## Pré-requisitos
 
 - Node 22+, `pnpm install`. (Não é necessário `AI_NARRATION_ENABLED`/`TTS_*` para testes: o fake/provider local substitui por padrão.)
-- Suítes já existentes verdes (baseline): `pnpm test` (307), `pnpm storybook:test`, `pnpm test:e2e` (fake provider), `pnpm test:visual`, `pnpm test:performance`.
+- Suítes já existentes verdes (baseline): `pnpm test` (322+), `pnpm storybook:test`, `pnpm test:e2e` (fake provider), `pnpm test:visual`, `pnpm test:performance`.
 
 ## Variáveis de ambiente (server-only, para o caminho IA real)
 
 | Variável | Default | Uso |
 |----------|---------|-----|
-| `AI_NARRATION_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ sempre Web Speech fallback (seguro). |
+| `AI_NARRATION_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ usa a voz de sistema (Web Speech) no navegador (seguro). |
 | `OPENROUTER_TTS_MODEL` | Kokoro-class (OpenRouter por hora) | Modelo de voz; perfil custo-vs-naturalidade (Q2-C). |
 
 ---
@@ -51,7 +51,13 @@
 - **Comando**: `pnpm test:performance`.
 - **Esperado**: JS inicial ≤ 250 KiB gzip (TTS NÃO está no bundle inicial — só via `/narrate` sob demanda); LCP p75 ≤ 2.5s; navegação de cena ≤ 100ms p75; geração ≤ 120s. A narração sob demanda não degrada esses valores.
 
-### Cenário 5 — Acessibilidade (WCAG A/AA) e reduced-motion
+### Cenário 5 — Naturalidade/preferência (SC-002, proxy verificável em CI)
+
+- **Em CI**: `tests/unit/naturalness-preference.test.ts` compara de forma **determinística** a qualificação A/B entre um áudio de IA (blob fake rotulado) e a voz de sistema; assere que o caminho IA é selecionado quando habilitado (proxy — sem medição com participantes).
+- **Pós-lançamento (NÃO medido por este teste)**: estudo com participantes mede se a preferência por IA atinge ≥80%. Esse critério é documentado aqui como métrica pós-lançamento; não há chamada a TTS real em nenhum teste.
+- **Perfil custo-vs-naturalidade**: `OPENROUTER_TTS_MODEL` resolve o modelo (custo-eficiente vs premium) por ambiente (Q2-C/SC-007); validado por `tests/unit/tts-model-resolution.test.ts`.
+
+### Cenário 6 — Acessibilidade (WCAG A/AA) e reduced-motion
 
 - **Setup**: Storybook + test-runner/axe.
 - **Comando**: `pnpm storybook:test`.
