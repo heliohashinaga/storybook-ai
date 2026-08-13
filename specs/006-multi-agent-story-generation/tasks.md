@@ -32,10 +32,10 @@ description: "Task list for the multi-agent story generation feature"
 
 **Purpose**: Inicializar estrutura do pipeline multi-agente e infra de teste do pipeline.
 
-- [X] T001 Criar subpacote de agentes em `src/features/story-generation/server/agents/` com barrel `index.ts` (Coordinator, Planner, Writer, Reviewer, Illustrator, Reader)
+- [X] T001 Criar subpacote de agentes em `src/features/story-generation/server/agents/` com barrel `index.ts` (Coordinator, Planner, Writer, Moderator, Illustrator, Reader)
 - [X] T002 Definir tipos comuns `agent-result.ts` em `src/features/story-generation/server/agents/agent-result.ts` (`AgentResult<T> = Ok<T> | Err{stage, message, transient}`, `AgentId`)
 - [X] T003 Implementar política de retry `retry.ts` em `src/features/story-generation/server/agents/retry.ts` (`runWithRetry(fn, { maxAttempts })`, default 2, leitura de env server-only)
-- [X] T004 [P] Configurar fakes determinísticos do pipeline em `tests/fixtures/story-generation/agents.ts` (Planner/Writer/Reviewer/Illustrator/Reader fakes controláveis)
+- [X] T004 [P] Configurar fakes determinísticos do pipeline em `tests/fixtures/story-generation/agents.ts` (Planner/Writer/Moderator/Illustrator/Reader fakes controláveis)
 - [X] T005 [P] Adicionar helpers de medição de tempo/budget em `tests/unit/story-generation/agents` baseado em `generation-runtime.ts`
 
 ---
@@ -46,7 +46,7 @@ description: "Task list for the multi-agent story generation feature"
 
 **⚠️ CRITICAL**: Nenhum trabalho de user story começa antes desta fase
 
-- [X] T006 Criar esqueleto `coordinator.ts` em `src/features/story-generation/server/agents/coordinator.ts` que encadeia Planner→Writer→Reviewer→(Illustrator|Reader) com `AgentResult` e orquestra via `retry.ts`
+- [X] T006 Criar esqueleto `coordinator.ts` em `src/features/story-generation/server/agents/coordinator.ts` que encadeia Planner→Writer→Moderator→(Illustrator|Reader) com `AgentResult` e orquestra via `retry.ts`
 - [X] T007 Add `generateStoryPipeline(ctx: JobContext): Promise<AgentResult<GeneratedStory>>` como API pública do pipeline em `src/features/story-generation/server/agents/coordinator.ts`
 - [X] T008 Integrar `JobContext` (ageBand, locale, theme, sceneCountRequested, trace token) em `src/features/story-generation/server/schemas.ts` reaproveitando `MIN_SCENES/MAX_SCENES/DEFAULT_SCENE_COUNT`
 - [X] T009 [P] Mapear `GenerationRuntime` (provider/illustrate/rateLimiter) para os agentes via `src/features/story-generation/server/story-generation-provider.ts` mantendo a interface existente
@@ -58,7 +58,7 @@ description: "Task list for the multi-agent story generation feature"
 
 ## Phase 3: User Story 1 - Geração coordenada por agentes (Priority: P1) 🎯 MVP
 
-**Goal**: Pipeline coordenado em que cada role executa suas ações (Planner planeja, Writer escreve, Reviewer aprova, Coordinator monta) e retorna `GeneratedStory` completo. O passo do **Reader** é opcional nesta story (entregue integralmente na US3-b) e não bloqueia a conclusão (ref. AC-1 da spec).
+**Goal**: Pipeline coordenado em que cada role executa suas ações (Planner planeja, Writer escreve, Moderator aprova, Coordinator monta) e retorna `GeneratedStory` completo. O passo do **Reader** é opcional nesta story (entregue integralmente na US3-b) e não bloqueia a conclusão (ref. AC-1 da spec).
 
 **Independent Test**: `pnpm exec vitest run tests/unit/story-generation` com fakes — verificar cada role produziu saída (outline, narrativa, aprovação), ordem respeitada e resultado completo; `tests/contract/story-generation.openapi.test.ts` continua verde (contrato inalterado, regressão SC-006); throttling 429 tratado como transitório.
 
@@ -83,21 +83,21 @@ description: "Task list for the multi-agent story generation feature"
 
 ---
 
-## Phase 4: User Story 2 - Reviewer como gate autoritativo (Priority: P1)
+## Phase 4: User Story 2 - Moderator como gate autoritativo (Priority: P1)
 
-**Goal**: Reviewer valida segurança/tom/adequação; rejeita→regenera 1x→senão erro seguro localizado; nada inseguro retorna/loga. TDD por invariante de privacidade.
+**Goal**: Moderator valida segurança/tom/adequação; rejeita→regenera 1x→senão erro seguro localizado; nada inseguro retorna/loga. TDD por invariante de privacidade.
 
 **Independent Test**: fakes devolvendo candidato inseguro → bloqueado; regeneração única; 2ª insegura → erro seguro genérico; assert nenhum identificador direto em payload/logs/fakes.
 
 ### Tests for User Story 2 (TDD) ⚠️
 
-- [X] T022 [P] [US2] Unit do Reviewer (block, regenerate-once, erro seguro localizado) em `tests/unit/story-generation/agents/reviewer.test.ts`
+- [X] T022 [P] [US2] Unit do Moderator (block, regenerate-once, erro seguro localizado) em `tests/unit/story-generation/agents/moderator.test.ts`
 - [X] T023 [P] [US2] Contrato/invariante de privacidade (nenhum `name`/identificador cruza o gate) em `tests/contract/story-generation.privacy.test.ts`
 
 ### Implementation for User Story 2
 
-- [X] T024 [P] [US2] Implementar `reviewer.ts` em `src/features/story-generation/server/agents/reviewer.ts` (gate autoritativo sobre saída do Writer)
-- [X] T025 [US2] Integrar Reviewer ao Coordinator pós-Writer em `src/features/story-generation/server/agents/coordinator.ts` (regeneração única com restrições mais fortes)
+- [X] T024 [P] [US2] Implementar `moderator.ts` em `src/features/story-generation/server/agents/moderator.ts` (gate autoritativo sobre saída do Writer)
+- [X] T025 [US2] Integrar Moderator ao Coordinator pós-Writer em `src/features/story-generation/server/agents/coordinator.ts` (regeneração única com restrições mais fortes)
 
 **Checkpoint**: US1 + US2 funcionam e são testáveis independentemente
 
@@ -117,7 +117,7 @@ description: "Task list for the multi-agent story generation feature"
 ### Implementation for User Story 3
 
 - [X] T028 [P] [US3] Implementar `illustrator.ts` em `src/features/story-generation/server/agents/illustrator.ts` (prompts sempre em inglês; gatilho por cena)
-- [X] T029 [US3] Integrar Illustrator ao Coordinator pós-Reviewer em `src/features/story-generation/server/agents/coordinator.ts` (impeds cena não aprovada; conjunto completo exigido)
+- [X] T029 [US3] Integrar Illustrator ao Coordinator pós-Moderator em `src/features/story-generation/server/agents/coordinator.ts` (impeds cena não aprovada; conjunto completo exigido)
 
 **Checkpoint**: US1, US2, US3 funcionalmente completas
 
@@ -187,7 +187,7 @@ description: "Task list for the multi-agent story generation feature"
 - **Foundational (Phase 2)**: depende do Setup; **BLOQUEIA** todas as stories
 - **User Stories (Phase 3+)**: todas dependem do Foundational
   - US1 (P1) primeiro; US2 (P1) pode entrar em paralelo com US1 após T010/T019
-  - US3 (P2) e US3-b (P2) dependem do Coordinator (US1) + Reviewer (US2)
+  - US3 (P2) e US3-b (P2) dependem do Coordinator (US1) + Moderator (US2)
   - US4 (P3) depende de US3/US3-b
 - **Polish (Phase 8)**: depende de todas as stories desejadas completas
 
@@ -195,7 +195,7 @@ description: "Task list for the multi-agent story generation feature"
 
 - **US1 (P1)**: somente Foundational — base do pipeline
 - **US2 (P1)**: Foundational + orchestration US1; testável isoladamente via fakes
-- **US3 (P2)**: Foundational + US1 (Coordinator) + US2 (Reviewer gate)
+- **US3 (P2)**: Foundational + US1 (Coordinator) + US2 (Moderator gate)
 - **US3-b (P2)**: Foundational + US1 (Coordinator); reusa `story-read-aloud` existente
 - **US4 (P3)**: US3 + US3-b (paralelização de Illustrator/Reader)
 

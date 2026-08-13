@@ -6,7 +6,7 @@ import type { ModeratedStoryCandidate } from "../safety-pipeline";
 /**
  * Illustrator agent (specs/006-multi-agent-story-generation/data-model.md).
  *
- * Given the Reviewer-approved narrative, the Illustrator generates a
+ * Given the Moderator-approved narrative, the Illustrator generates a
  * consistent illustration per scene and derives localized, age-safe alt text.
  * Illustration sets are generated with **limited** concurrency (ADR 0005) and
  * bounded whole-set retry: any missing/oversized illustration rejects the whole

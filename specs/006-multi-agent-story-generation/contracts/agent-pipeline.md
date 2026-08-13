@@ -24,11 +24,11 @@ generateStoryPipeline(ctx: JobContext): Promise<AgentResult<GeneratedStory>>
 ### Etapas e dependências (ordem obrigatória)
 
 ```
-Planner → Writer → Reviewer ┬→ Illustrator → (imagens por cena)
+Planner → Writer → Moderator ┬→ Illustrator → (imagens por cena)
                              └→ Reader      → (áudio por demanda, opcional/ativado por config)
 ```
 
-- **Reviewer** opera sombre a saída do **Writer** (gate antes de ilustração).
+- **Moderator** opera sombre a saída do **Writer** (gate antes de ilustração).
 - **Illustrator** e **Reader** NUNCA antecedem a aprovação das cenas.
 - **Coordinator** encadeia; aplica `retry.ts` (default `maxAttempts=2`, configurável via env
   server-only) e monta `GeneratedStory` apenas quando todos os estágios obrigatórios concluírem.
@@ -44,7 +44,7 @@ Planner → Writer → Reviewer ┬→ Illustrator → (imagens por cena)
 
 - `Err` com `transient=false` (ou esgotados retries) → resposta de erro tipado; **nunca**
   `GeneratedStory` parcial.
-- `Err` vindo do Reviewer pós-regeneração → erro seguro, genérico e localizado.
+- `Err` vindo do Moderator pós-regeneração → erro seguro, genérico e localizado.
 - Sucesso: `Ok(GeneratedStory)` completo — narrativa + todas as ilustrações; áudio por demanda
   (não embutido).
 
@@ -53,7 +53,7 @@ Planner → Writer → Reviewer ┬→ Illustrator → (imagens por cena)
 | Estágio | Condição | Retorno |
 |---------|----------|---------|
 | planner/writer | falha transiente esgotada | erro tipado `Err{stage}` |
-| reviewer | candidato inseguro pós 1 regeneração | erro seguro genérico localizado |
+| moderator | candidato inseguro pós 1 regeneração | erro seguro genérico localizado |
 | illustrator | conjunto parcial de imagens | erro tipado (não "sucesso" parcial) |
 | reader | áudio indisponível | erro/fallback controlado (nunca quebra história completa) |
 

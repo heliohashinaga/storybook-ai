@@ -15,7 +15,7 @@ export const AGENT_IDS = [
   "coordinator",
   "planner",
   "writer",
-  "reviewer",
+  "moderator",
   "illustrator",
   "reader",
 ] as const;
@@ -24,7 +24,7 @@ export type AgentId = (typeof AGENT_IDS)[number];
 
 /** Which pipeline stage produced an error (drives retry + messaging). */
 export type AgentStage =
-  "plan" | "write" | "review" | "illustrate" | "read" | "assemble" | "rate-limit";
+  "plan" | "write" | "moderate" | "illustrate" | "read" | "assemble" | "rate-limit";
 
 export interface AgentOk<T> {
   ok: true;

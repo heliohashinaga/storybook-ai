@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateStory } from "../../src/features/story-generation/server/generate-story";
-import { reviewStory } from "../../src/features/story-generation/server/agents/reviewer";
+import { moderateStory } from "../../src/features/story-generation/server/agents/moderator";
 import type { JobContext } from "../../src/features/story-generation/server/agents/types";
 import { createFakeProvider } from "../fixtures/story-generation/provider-fixtures";
 
@@ -42,7 +42,7 @@ describe("pipeline privacy invariants (T023/T039)", () => {
       sceneCountRequested: 3,
       generationToken: "token",
     };
-    const result = await reviewStory(ctx, { provider });
+    const result = await moderateStory(ctx, { provider });
     expect(result.ok).toBe(true);
 
     expect(seen).toHaveLength(1);

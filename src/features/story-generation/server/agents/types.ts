@@ -27,7 +27,7 @@ export interface Outline {
   scenes: SceneOutline[];
 }
 
-/** One written scene (the "narrative"), before the Reviewer signs off. */
+/** One written scene (the "narrative"). */
 export interface WrittenScene {
   ordinal: number;
   title: string;

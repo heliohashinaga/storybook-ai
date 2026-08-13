@@ -104,30 +104,30 @@ export function createWriterFake(options: { fail?: boolean } = {}): WriterFake {
   return state;
 }
 
-export interface ReviewerFake {
+export interface ModeratorFake {
   calls: number;
   /** Emit a safe approval (default) or a transient/permanent error. */
   mode?: "safe" | "unavailable" | "unsafe";
-  review: () => Promise<AgentResult<ModeratedStoryCandidate>>;
+  moderate: () => Promise<AgentResult<ModeratedStoryCandidate>>;
 }
 
-/** Deterministic Reviewer fake: approval or a scripted failure mode. */
-export function createReviewerFake(
+/** Deterministic Moderator fake: approval or a scripted failure mode. */
+export function createModeratorFake(
   ctx: JobContext,
   options: { mode?: "safe" | "unavailable" | "unsafe" } = {}
-): ReviewerFake {
+): ModeratorFake {
   const mode = options.mode ?? "safe";
   const metrics = { calls: 0 };
   const state = {
     calls: 0,
     mode,
-    async review(): Promise<AgentResult<ModeratedStoryCandidate>> {
+    async moderate(): Promise<AgentResult<ModeratedStoryCandidate>> {
       metrics.calls += 1;
       state.calls = metrics.calls;
       if (state.mode === "unavailable") {
         return {
           ok: false,
-          stage: "review",
+          stage: "moderate",
           message: "story.error.generationUnavailable",
           transient: true,
           errorCode: "generation_unavailable",
@@ -136,7 +136,7 @@ export function createReviewerFake(
       if (state.mode === "unsafe") {
         return {
           ok: false,
-          stage: "review",
+          stage: "moderate",
           message: "story.error.unsafeUnrecoverable",
           transient: false,
           errorCode: "unsafe_unrecoverable",
@@ -144,7 +144,7 @@ export function createReviewerFake(
       }
       return { ok: true, value: approvedFor(ctx) };
     },
-  } satisfies ReviewerFake;
+  } satisfies ModeratorFake;
   return state;
 }
 

@@ -92,11 +92,10 @@ Open `http://localhost:3000`.
 ## Architecture
 
 A story is produced by a **multi-agent pipeline** under
-`src/features/story-generation/` (see
-`specs/006-multi-agent-story-generation/`). The six agents are typed,
+`src/features/story-generation/`. The six agents are typed,
 in-memory, and run server-side; each is a focused, independently testable stage:
 
-1. **Reviewer** – the pipeline's single safety gate. It calls the provider with
+1. **Moderator** – the pipeline's single safety gate. It calls the provider with
    only the allow-listed inputs (`ageBand`, `locale`, `theme`, `sceneCount`),
    then **moderates** every scene's text and illustration prompt (AI text +
    image), regenerating once on unsafe output (else `unsafe_unrecoverable`).
@@ -138,7 +137,7 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Format     | no Prettier drift           |
   | Typecheck  | strict TypeScript, no `any` |
 
-- **Per push/PR to `main`/`develop`** (CI, run automatically, on top of the
+- **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):
 
   | Validation       | What it checks                                          |

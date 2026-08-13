@@ -31,7 +31,7 @@ STORIES_TEST_MODE=fake pnpm test -- story-generation/server/agents
 pnpm exec vitest run --pool threads --maxWorkers 2 2>/dev/null   # se forks worker falhar (host limitado)
 ```
 
-**Esperado**: Planner→Writer→Reviewer→Illustrator executam em ordem; resultado é um
+**Esperado**: Planner→Writer→Moderator→Illustrator executam em ordem; resultado é um
 `GeneratedStory` completo (narrativa + todas as ilustrações em cada cena); cada agente produziu sua
 saída (outline, narrativa, aprovação, prompts/imagens). Nunca `GeneratedStory` parcial no sucesso.
 
@@ -49,11 +49,11 @@ pnpm exec vitest run src/features/story-read-aloud
 `/api/narrate`; com `AI_NARRATION_ENABLED=false` cai para fallback Web Speech/desligado do
 `004-ai-natural-tts`. Narração parcial nunca é "sucesso" no contexto da história.
 
-### 3. Reviewer é gate autoritativo (US2) — segurança/anonimato
+### 3. Moderator é gate autoritativo (US2) — segurança/anonimato
 
 ```bash
 # Fakes configurados: writer devolve candidato inseguro → bloqueado; regenera 1x; 2ª insegura → erro seguro
-pnpm exec vitest run src/features/story-generation/server/safety-pipeline   # + agentes/reviewer
+pnpm exec vitest run src/features/story-generation/server/safety-pipeline   # + agentes/moderator
 ```
 
 **Esperado**: nada inseguro retorna/loga; regeneração única com restrições mais fortes; erro seguro,

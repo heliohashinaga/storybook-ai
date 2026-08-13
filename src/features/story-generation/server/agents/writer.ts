@@ -6,7 +6,7 @@ import type { ModeratedStoryCandidate } from "../safety-pipeline";
 /**
  * Writer agent (specs/006-multi-agent-story-generation/data-model.md).
  *
- * Given the Planner's `Outline` and the Reviewer-approved narrative, the
+ * Given the Planner's `Outline` and the Moderator-approved narrative, the
  * Writer materializes the localized `WrittenStory`: a `title` plus one written
  * scene per planned scene, preserving each scene's ordinal so downstream
  * agents (Illustrator) can map illustration back unambiguously. It is a pure,

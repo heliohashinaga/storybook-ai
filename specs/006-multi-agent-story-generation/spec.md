@@ -13,7 +13,7 @@
 Transformar a geração de histórias infantis de uma única chamada monolítica de provedor em um
 pipeline **multi-agente coordenado e entregável**, no qual cada **agente executa de fato as ações
 da sua role**: **Coordinator** (orquestra, retries e monta o resultado final), **Planner** (define
-a estrutura de cenas), **Writer** (escreve a narrativa), **Reviewer** (gata autoritativa de
+a estrutura de cenas), **Writer** (escreve a narrativa), **Moderator** (gata autoritativa de
 segurança/tom/adequação etária), **Illustrator** (gera prompts de imagem em inglês e dispara a
 geração de ilustrações) e **Reader** (lê em voz alta o texto da cena, gerando o áudio da narração
 por voz). Isso concretiza a direção futura documentada em
@@ -40,7 +40,7 @@ completa e ilustrada em um único resultado.
 O responsável (cuidador) solicita uma história informando apenas faixa etária, tema e idioma. Em
 vez de uma única chamada de provedor, o sistema executa um pipeline coordenado: um **Planner**
 define a estrutura de cenas, o **Writer** escreve a narrativa ajustada à faixa etária e tom, o
-**Reviewer** aprova segurança/tom/adequação, o **Illustrator** gera os prompts (em inglês) e
+**Moderator** aprova segurança/tom/adequação, o **Illustrator** gera os prompts (em inglês) e
 gatilha as ilustrações de cada cena aprovada, e o **Reader** lê em voz alta o texto de cada cena
 (áudio narrativo). O **Coordinator** encadeia esses passos, aplica
 política de retry limitado e monta a história final completa (narrativa + ilustrações).
@@ -56,7 +56,7 @@ uma geração e verificar que cada role produziu sua saída (outline, narrativa,
 **Acceptance Scenarios**:
 
 1. **Given** um pedido válido (faixa etária, tema, idioma) e provedor fake, **When** a geração é
-   disparada, **Then** o pipeline executa Planner → Writer → Reviewer → Illustrator → Reader em
+   disparada, **Then** o pipeline executa Planner → Writer → Moderator → Illustrator → Reader em
    sequência e retorna uma história completa (narrativa + todas as ilustrações).
 2. **Given** uma geração em andamento, **When** qualquer agente falha de forma transiente, **Then**
    o **Coordinator** reexecuta com retry limitado (política bounded) e, persistindo a falha, retorna
@@ -66,15 +66,15 @@ uma geração e verificar que cada role produziu sua saída (outline, narrativa,
 
 ---
 
-### User Story 2 - Reviewer como gate autoritativo de segurança (Priority: P1)
+### User Story 2 - Moderator como gate autoritativo de segurança (Priority: P1)
 
 Em qualquer estágio em que conteúdo não seguro, de tom inadequado ou fora da faixa etária seja
-candidato a retorno, o **Reviewer** atua como **porta autoritativa**: rejeita o candidato, o
+candidato a retorno, o **Moderator** atua como **porta autoritativa**: rejeita o candidato, o
 sistema regenera **uma vez** com restrições mais fortes e, se ainda inseguro, retorna um erro
 seguro genérico e localizado. Nenhum conteúdo inseguro é mostrado, logado ou retornado.
 
 **Why this priority**: Segurança é requisito não-negociável do projeto (constitution/privacy). O
-Reviewer herda e formaliza o comportamento atual de "moderar → regenerar uma vez → senão erro" e o
+Moderator herda e formaliza o comportamento atual de "moderar → regenerar uma vez → senão erro" e o
 torna responsabilidade explícita de um agente, garantindo a barreira em qualquer arquitetura.
 
 **Independent Test**: Com o provedor fake configurado para produção de conteúdo inseguro,
@@ -84,12 +84,12 @@ conteúdo inseguro no log/resposta. Pode ser testado isoladamente do Illustrator
 
 **Acceptance Scenarios**:
 
-1. **Given** um candidato inseguro produzido pelo Writer, **When** o Reviewer o avalia, **Then**
+1. **Given** um candidato inseguro produzido pelo Writer, **When** o Moderator o avalia, **Then**
    ele é bloqueado e o Writer regenera **uma única vez** com restrições mais fortes.
-2. **Given** o candidato regenerado ainda inseguro, **When** o Reviewer o avalia novamente, **Then**
+2. **Given** o candidato regenerado ainda inseguro, **When** o Moderator o avalia novamente, **Then**
    o sistema retorna um erro seguro, genérico e localizado, sem história parcial.
-3. **Given** qualquer saída de agente avaliada pelo Reviewer, **When** avaliada, **Then** o
-   Reviewer a aprova ou rejeita; nunca uma saída insegura chega ao resultado final ou aos logs.
+3. **Given** qualquer saída de agente avaliada pelo Moderator, **When** avaliada, **Then** o
+   Moderator a aprova ou rejeita; nunca uma saída insegura chega ao resultado final ou aos logs.
 
 ---
 
@@ -152,7 +152,7 @@ que nunca há narração parcial como resultado bem-sucedido.
 
 O **Coordinator** orquestra o fluxo e, **onde seguro e economicamente vantajoso**, paraleliza
 estágios independentes (por exemplo, Illustrator após aprovação das cenas) para respeitar o budget
-de latência ≤120 s ponta-a-ponta. A ordem e as dependências corretas são mantidas: o Reviewer
+de latência ≤120 s ponta-a-ponta. A ordem e as dependências corretas são mantidas: o Moderator
 sempre opera sobre a saída do Writer; o Illustrator e o Reader nunca antecedem a aprovação da cena.
 
 **Why this priority**: Garante que o sistema multi-agente não regrida no budget de performance
@@ -167,7 +167,7 @@ estritamente serial.
 **Acceptance Scenarios**:
 
 1. **Given** uma geração, **When** o Coordinator orquestra, **Then** nenhum estágio executa antes
-   de suas dependências satisfeitas (Planner → Writer → Reviewer; Illustrator após aprovação).
+   de suas dependências satisfeitas (Planner → Writer → Moderator; Illustrator após aprovação).
 2. **Given** o perfil de latência do provedor fake, **When** a geração roda, **Then** o tempo
    ponta-a-ponta respeita o budget definido, sem regressão em relação à estimativa serial.
 
@@ -178,7 +178,7 @@ estritamente serial.
 - **Falha transiente de um agente**: risco de ambiente/não-cobertura é absorvido pelo retry bounded
   do Coordinator (padrão até 2 tentativas / 1 retry por estágio, máximo configurável); a falha
   persistente gera erro tipado por estágio, nunca história parcial.
-- **Candidato inseguro após regeneração**: o Reviewer bloqueia e o sistema retorna erro seguro
+- **Candidato inseguro após regeneração**: o Moderator bloqueia e o sistema retorna erro seguro
   genérico e localizado (comportamento "moderar → regenerar uma vez → senão erro").
 - **Ilustração parcial**: uma falha de ilustração em uma cena nunca vira um "sucesso" com conjunto
   incompleto — o conjunto parcial é tratado como erro tipado.
@@ -199,13 +199,13 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
 ### Functional Requirements
 
 - **FR-001**: O sistema DEVE expor uma pipeline multi-agente em que cada role tem um agente
-  executando suas ações — **Coordinator**, **Planner**, **Writer**, **Reviewer** e **Illustrator** —
+  executando suas ações — **Coordinator**, **Planner**, **Writer**, **Moderator** e **Illustrator** —
   substituindo a chamada monolítica atual de geração completa.
 - **FR-002**: O **Planner** DEVE produzir a estrutura de cenas (outline) derivada apenas de faixa
   etária, tema e locale; o número de cenas DEVE respeitar a faixa variável (3 default, até 5).
 - **FR-003**: O **Writer** DEVE escrever a narrativa a partir do outline, ajustando vocabulário e
   tom à faixa etária (`2-4 | 5-7 | 8-9`) e ao tema.
-- **FR-004**: O **Reviewer** DEVE validar segurança, tom e adequação à faixa etária de cada
+- **FR-004**: O **Moderator** DEVE validar segurança, tom e adequação à faixa etária de cada
   candidato e atuar como **porta autoritativa**; ao rejeitar, DEVE disparar **uma única**
   regeneração com restrições mais fortes e, se ainda inseguro, retornar erro seguro genérico e
   localizado.
@@ -220,7 +220,7 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
   endpoint existente `POST /api/narrate` (a chamada passa o texto localizado da cena; cada cena gera
   o seu áudio por chamada) — não é criada uma nova rota dedicada.
 - **FR-006**: O **Coordinator** DEVE orquestrar os estágios respeitando as dependências (Planner →
-  Writer → Reviewer, Illustrator e Reader após aprovação), aplicar retry limitado e montar o
+  Writer → Moderator, Illustrator e Reader após aprovação), aplicar retry limitado e montar o
   resultado final completo (narrativa + ilustrações).
 - **FR-006-b**: A política de retry do Coordinator DEVE ter como padrão **até 2 tentativas (1 retry)** por
   estágio que falha de forma transitória (incluindo throttling 429), com o máximo de tentativas
@@ -229,7 +229,7 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
 - **FR-007**: O sistema DEVE preservar a fronteira de privacidade/anônimo: nenhum agente recebe
   nome ou identificador direto; apenas faixa etária derivada, locale e tema permitido transitam.
   (c.f. FR-010 original; aplica-se uniformemente a cada agente.)
-- **FR-008**: O sistema DEVE usar apenas conteúdo seguro: todo retorno passou pelo Reviewer; nada
+- **FR-008**: O sistema DEVE usar apenas conteúdo seguro: todo retorno passou pelo Moderator; nada
   inseguro é mostrado, logado ou retornado.
 - **FR-009**: O resultado final DEVE permanecer compatível com o contrato HTTP/API atual
   (`story-generation.openapi.yaml`) e com o modelo `GeneratedStory`, sem alterar cliente, reader,
@@ -243,7 +243,7 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
 
 ### Key Entities
 
-- **Agente (Role)**: unidade responsável por uma etapa (Coordinator, Planner, Writer, Reviewer,
+- **Agente (Role)**: unidade responsável por uma etapa (Coordinator, Planner, Writer, Moderator,
   Illustrator, Reader); possui responsabilidade, ações de saída e política de erro. Sem entidade
   persistente — instâncias transitórias em memória.
 - **Outline (Estrutura de cenas)**: saída do Planner — lista ordenada de cenas com propósito/tema;
@@ -264,7 +264,7 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
   em 100% dos casos de sucesso com provedor fake.
 - **SC-002**: O tempo ponta-a-ponta de geração completa (até 5 cenas) respeita o budget existente
   (≤120 s), medido com provedor fake determinístico.
-- **SC-003**: 100% dos candidatos inseguros são bloqueados pelo Reviewer antes de qualquer retorno
+- **SC-003**: 100% dos candidatos inseguros são bloqueados pelo Moderator antes de qualquer retorno
   ou log; a regeneração única é disparada e, se persistir insegurança, um erro seguro e localizado
   é retornado.
 - **SC-004**: 0% de resultados com conjunto de ilustrações parcial como sucesso — uma falha de
@@ -289,7 +289,7 @@ persistindo, retorna erro tipado de throttling — sem expor detalhes que identi
 ## Assumptions
 
 - **Roles = MAS documentado (decisão A)**: "roles" refere-se às responsabilidades dos agentes de
-geração de histórias concretizados aqui — **Coordinator, Planner, Writer, Reviewer, Illustrator** e
+geração de histórias concretizados aqui — **Coordinator, Planner, Writer, Moderator, Illustrator** e
 **Reader** (novo) — cada um executando de fato suas ações. A interpretação foi confirmada pelo
 usuário como a do `future-multi-agent-system.md`, e não roles de orquestração/crew externa.
 - **Nome do agente de voz**: a role que lê o texto da cena em voz alta é chamada de **Reader** (o

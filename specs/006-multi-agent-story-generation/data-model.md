@@ -11,7 +11,7 @@ transitórias (em memória por pedido). Nenhuma é persistida.
 
 Responsabilidade de um estágio do pipeline. Não é persistido — instância transitória por pedido.
 
-- `id`: `"coordinator" | "planner" | "writer" | "reviewer" | "illustrator" | "reader"`
+- `id`: `"coordinator" | "planner" | "writer" | "moderator" | "illustrator" | "reader"`
 - `role`: responsabilidade textual (ex.: "gate de segurança")
 - `policy`: `{ maxAttempts: number }` — herdado do Coordinator (`retry.ts`), default `2`
 
@@ -49,7 +49,7 @@ transita.
 ## 4. Cena (resultado por cena)
 
 - `index*`
-- `narrative*`: texto localizado da cena (Writer → Reviewer)
+- `narrative*`: texto localizado da cena (Writer → Moderator)
 - `imagePrompt*`: prompt de imagem **sempre em inglês** (Illustrator)
 - `illustration*`: URL/asset da ilustração (opcional em transição até completar o conjunto)
 - `narrativeAudio`*(opcional)*: referência/URL do áudio narrativo sob demanda (Reader) — NÃO embute
@@ -58,7 +58,7 @@ transita.
 
 **Regras**:
 - Nunca um conjunto parcial de ilustrações **nem** de narração vira "sucesso" (FR-005/FR-005-b).
-- Ilustração/narração de cena só é gerada após aprovação do Reviewer.
+- Ilustração/narração de cena só é gerada após aprovação do Moderator.
 
 ## 5. AgentResult / Erro tipado
 
@@ -71,7 +71,7 @@ Union interna para robustez/observabilidade.
 - `transient: true` → Coordinator refaz via `retry.ts` (`maxAttempts` default 2).
 - `transient: false` (ou esgotados retries) → erro tipado final; **nunca** `GeneratedStory` parcial.
 
-## 6. SafetyVeredict (Reviewer)
+## 6. SafetyVeredict (Moderator)
 
 - `approved*`: booleano
 - `reason`*(rejeição)*: motivo codificado (violência/tom/faixa etária/outro)
@@ -80,7 +80,7 @@ Union interna para robustez/observabilidade.
 **Regras (gate autoritativo)**:
 - Rejeita → Writer regenera **uma única vez** com restrições mais fortes (FR-004).
 - Segundo candidato rejeitado → erro seguro genérico e localizado; nada inseguro é retornado/logado.
-- Ilustração: Reviewer valida tipo de cenário sugerido só quanto a atributos não-inseguros; texto
+- Ilustração: Moderator valida tipo de cenário sugerido só quanto a atributos não-inseguros; texto
   narrativo é a única saída de usuário que passa o gate de conteúdo.
 
 ## 7. GeneratedStory (contrato externo — INALTERADO)
@@ -105,7 +105,7 @@ inalterado. Ilustração e narrativa agregam-se no `body`/`illustrationDataUri` 
 ```
 JobContext 1 ──► 0..1 Outline (Planner)
 Outline 1 ──► 1..N Cena
-Cena 1 ──► 1 Narrative (Writer → Reviewer)
+Cena 1 ──► 1 Narrative (Writer → Moderator)
 Cena 1 ──► 0..1 ImagePrompt → Illustration (Illustrator)
 Cena 1 ──► 0..1 NarrativeAudio (Reader, sob demanda)
 GeneratedStory 1 ──► 0..1 AgentResult: Ok(GeneratedStory) | Err(stage)

@@ -6,7 +6,7 @@ export { createStopwatch, nowMs } from "./timing";
 export type { Stopwatch, TimedStage } from "./timing";
 export { planStory, type PlannerSeams } from "./planner";
 export { writeStory, type WriterSeams } from "./writer";
-export { reviewStory, type ReviewerSeams } from "./reviewer";
+export { moderateStory, type ModeratorSeams } from "./moderator";
 export { illustrateStory, type IllustratorSeams } from "./illustrator";
 export { readScene, type ReaderSeams } from "./reader";
 export { generateStoryPipeline, createGenerationToken, type PipelineSeams } from "./coordinator";

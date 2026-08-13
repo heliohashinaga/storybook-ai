@@ -5,7 +5,7 @@ fundamenta o design em `data-model.md`, `contracts/` e `quickstart.md`.
 
 ## 1. Mecanismo de orquestração (spike)
 
-**Unknown**: Como encadear Coordinator → Planner → Writer → Reviewer → Illustrator → Reader de modo
+**Unknown**: Como encadear Coordinator → Planner → Writer → Moderator → Illustrator → Reader de modo
 que cada agente seja individualmente testável e a falha seja tipada?
 
 **Decision**: Orquestração via **funções tipadas em processo** (`coordinator.ts` orquestra agentes
@@ -32,16 +32,16 @@ estado genérica nem runtime de agentes.
 
 **Unknown**: Quais estágios podem ser paralelos sem quebrar dependências, dentro do budget ≤120 s?
 
-**Decision**: A linha crítica **Planner → Writer → Reviewer → (Illustrator | Reader)** permanece
+**Decision**: A linha crítica **Planner → Writer → Moderator → (Illustrator | Reader)** permanece
 serial. A única paralelização segura é **ilustrações múltiplas** (N cenas por vez, depois de o
-Reviewer aprovar todas) e, se configurado, **Illustrator ∥ Reader** após a aprovação das cenas —
+Moderator aprovar todas) e, se configurado, **Illustrator ∥ Reader** após a aprovação das cenas —
 apenas quando independentes e dentro do budget.
 
-**Rationale**: Reviewer DEVE ver a saída do Writer; Illustrator e Reader NUNCA antecedem a aprovação
+**Rationale**: Moderator DEVE ver a saída do Writer; Illustrator e Reader NUNCA antecedem a aprovação
 da cena (FR-006 / US2). Gerar imagens em paralelo (até 5) reduz latência sem violar dependências.
 
 **Alternatives considered**: paralelizar Writer por cena (risco de incoerência de voz), paralelizar
-Reviewer de ilustração (não é gate de narrativa) — rejeitadas por complexidade/risco.
+Moderator de ilustração (não é gate de narrativa) — rejeitadas por complexidade/risco.
 
 ## 3. Mapeamento da role Reader sobre TTS existente
 
@@ -67,7 +67,7 @@ payload); endpoint novo dedicado de áudio por cena na mesma rota de geração (
 (1 retry), lido de **env/config server-only** (ex.: `STORY_MAX_AGENT_ATTEMPTS`, sem valor default
 público). Falha transiente → retry; persistente → erro tipado por estágio. Nunca história parcial.
 
-**Rationale**: Alinha à política "regenerar uma vez" do Reviewer (FR-004) e mantém o budget ≤120 s
+**Rationale**: Alinha à política "regenerar uma vez" do Moderator (FR-004) e mantém o budget ≤120 s
 (testado em `quickstart.md`).
 
 ## 5. Observabilidade por estágio (postergada para o plano)
@@ -94,4 +94,4 @@ ilustração/áudio já otimizados nas features 004/005; nenhum identificador di
 
 **Decision**: Narrativa/UI/alt-text seguem `locale` (pt-BR default, en) via next-intl; **prompts de
 imagem** gerados pelo Illustrator são **sempre em inglês**, independente do locale. Ajuste de
-vocabulário à faixa etária (`2-4 | 5-7 | 8-9`) é responsabilidade do Writer, validada pelo Reviewer.
+vocabulário à faixa etária (`2-4 | 5-7 | 8-9`) é responsabilidade do Writer, validada pelo Moderator.

@@ -10,7 +10,7 @@ Transformar a geração de histórias infantis de uma única chamada monolítica
 **pipeline multi-agente coordenado**, onde cada **agente executa de fato as ações da sua role**:
 **Coordinator** (orquestra estágios, aplica retry bounded/configurável e monta o resultado final),
 **Planner** (define a estrutura de cenas), **Writer** (escreve a narrativa ajustada à faixa etária e
-tom), **Reviewer** (gate autoritativo de segurança/tom/adequação etária), **Illustrator** (gera
+tom), **Moderator** (gate autoritativo de segurança/tom/adequação etária), **Illustrator** (gera
 prompts de imagem em inglês e gatilha as ilustrações de cada cena) e **Reader** (lê o texto da cena
 em voz alta, gerando áudio narrativo sob demanda).
 
@@ -55,7 +55,7 @@ navegação de cena ≤100 ms p75; bundle inicial da rota ≤250 KiB gzip.
 
 **Constraints**: `POST /api/stories` é o **único** entry-point server de geração (regra de anonimato);
 `Cache-Control: no-store`; nenhum identificador direto em UI/API/logs/payloads; provador de segurança
-(Reviewer) é gate autoritativo antes de qualquer retorno; conjunto parcial de ilustrações/narração
+(Moderator) é gate autoritativo antes de qualquer retorno; conjunto parcial de ilustrações/narração
 nunca é "sucesso"; todas as strings pelos catálogos next-intl.
 
 **Scale/Scope**: personal, não-comercial; volume baixo de usuários; até 5 cenas por história; foco em
@@ -68,7 +68,7 @@ correção, segurança e testabilidade por agente, não em throughput.
 | Gate (Constitution 1.1.0) | Status | Justificativa |
 |----------------------------|--------|---------------|
 | **Code Quality**: TypeScript strict, sem `any` em produção; lint=0 warnings; format/typecheck no gate | ✅ Passa | Pipeline tipado; cada agente é uma função/estrato tipado; sem `any` novo justificado. |
-| **Testing**: cobertura ≥80% total; ≥90% safety/validation/orchestration; testes determinísticos (fakes, sem wall-clock/rede) | ✅ Passa | Por-agente testável isoladamente; Reviewer e Coordinator em ≥90%; fakes determinísticos. |
+| **Testing**: cobertura ≥80% total; ≥90% safety/validation/orchestration; testes determinísticos (fakes, sem wall-clock/rede) | ✅ Passa | Por-agente testável isoladamente; Moderator e Coordinator em ≥90%; fakes determinísticos. |
 | **UX & Accessibility**: AA contrast, foco visível/keyboard, `prefers-reduced-motion`, `aria-live`/`aria-busy` para async | ✅ Passa | Leitor e narração (Reader) preservam estados acessíveis; UI inalterada no contrato. |
 | **Performance**: ≤120 s geração; ≤250 KiB bundle inicial; navegação ≤100 ms; lazy-import PDF | ✅ Passa | Pipeline respeita budget; áudio sob demanda não engorda bundle inicial; serial baseline garantido. |
 | **Privacy/Anonymity (AGENTS.md)**: nenhum identificador direto; só faixa idade/tema/locale; servidor-only adapters; `no-store` | ✅ Passa | Cada agente recebe só dados anonimizados; adaptadores de provedor restritos a server. |
@@ -104,10 +104,10 @@ src/
 │   │   ├── client/                   # form/leitor — inalterado
 │   │   ├── server/
 │   │   │   ├── agents/               # NOVO — pipeline multi-agente
-│   │   │   │   ├── coordinator.ts    #   orquestra Planner→Writer→Reviewer→(Illustrator|Reader); retry; montagem
+│   │   │   │   ├── coordinator.ts    #   orquestra Planner→Writer→Moderator→(Illustrator|Reader); retry; montagem
 │   │   │   │   ├── planner.ts        #   outline de cenas (faixa variável 3..5)
 │   │   │   │   ├── writer.ts         #   narrativa por faixa etária/tom
-│   │   │   │   ├── reviewer.ts       #   gate autoritativo de segurança/tom/adequação; regenerar 1x
+│   │   │   │   ├── moderator.ts       #   gate autoritativo de segurança/tom/adequação; regenerar 1x
 │   │   │   │   ├── illustrator.ts    #   prompts de imagem em inglês; gatilho de ilustrações por cena
 │   │   │   │   ├── reader.ts         #   encaminha texto p/ áudio sob demanda (story-read-aloud)
 │   │   │   │   ├── agent-result.ts   #   tipos comuns (AgentResult, erro tipado por estágio)
@@ -115,7 +115,7 @@ src/
 │   │   │   ├── generate-story.ts     #   REFACTOR: orquestra o Coordinator (substitui chamada monolítica)
 │   │   │   ├── generation-runtime.ts #   clock/injeção para determinismo e medição de budget
 │   │   │   ├── provider-routing.ts   #   roteamento por capacidade (005) — Planner/Writer/Illustrator
-│   │   │   ├── safety-pipeline.ts    #   (mantém regras base; Reviewer expõe o gate)
+│   │   │   ├── safety-pipeline.ts    #   (mantém regras base; Moderator expõe o gate)
 │   │   │   ├── story-generation-provider.ts  # boundary — assinatura preservada
 │   │   │   └── ...                   # adaptadores existentes (OpenRouter/OpenCode/fixed) — preservados
 │   │   └── locales/                  # pt-BR / en

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   createIllustratorFake,
+  createModeratorFake,
   createPlannerFake,
   createReaderFake,
-  createReviewerFake,
   createWriterFake,
 } from "../../../fixtures/story-generation/agents";
 import type { JobContext } from "../../../../src/features/story-generation/server/agents/types";
@@ -54,16 +54,16 @@ describe("agent pipeline fakes (T004)", () => {
     }
   });
 
-  it("reviewer fake approves safe input", async () => {
-    const fake = createReviewerFake(ctx);
-    const result = await fake.review();
+  it("moderator fake approves safe input", async () => {
+    const fake = createModeratorFake(ctx);
+    const result = await fake.moderate();
     expect(result.ok).toBe(true);
     expect(fake.calls).toBe(1);
   });
 
-  it("reviewer fake surfaces unsafe and unavailable modes", async () => {
-    expect((await createReviewerFake(ctx, { mode: "unsafe" }).review()).ok).toBe(false);
-    expect((await createReviewerFake(ctx, { mode: "unavailable" }).review()).ok).toBe(false);
+  it("moderator fake surfaces unsafe and unavailable modes", async () => {
+    expect((await createModeratorFake(ctx, { mode: "unsafe" }).moderate()).ok).toBe(false);
+    expect((await createModeratorFake(ctx, { mode: "unavailable" }).moderate()).ok).toBe(false);
   });
 
   it("illustrator fake emits one WebP per scene", async () => {

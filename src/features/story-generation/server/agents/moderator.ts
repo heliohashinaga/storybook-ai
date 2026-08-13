@@ -6,9 +6,9 @@ import { runSafetyPipeline, type ModeratedStoryCandidate } from "../safety-pipel
 import { ProviderError, type StoryGenerationProvider } from "../story-generation-provider";
 
 /**
- * Reviewer agent (specs/006-multi-agent-story-generation/data-model.md).
+ * Moderator agent (specs/006-multi-agent-story-generation/data-model.md).
  *
- * The Reviewer is the authoritative safety gate of the pipeline. It delegates
+ * The Moderator is the authoritative safety gate of the pipeline. It delegates
  * to `runSafetyPipeline`, which fetches the structured narrative from the
  * anonymous provider call and:
  *  1. rejects template markers / direct identifiers locally,
@@ -21,7 +21,7 @@ import { ProviderError, type StoryGenerationProvider } from "../story-generation
  * deterministic fakes (turn-based "unsafe-then-safe") behave as before.
  */
 
-export interface ReviewerSeams {
+export interface ModeratorSeams {
   provider: StoryGenerationProvider;
 }
 
@@ -33,9 +33,9 @@ export interface ReviewerSeams {
  * @param ctx anonymous job context
  * @param seams provider capability seam(s)
  */
-export async function reviewStory(
+export async function moderateStory(
   ctx: JobContext,
-  seams: ReviewerSeams
+  seams: ModeratorSeams
 ): Promise<AgentResult<ModeratedStoryCandidate>> {
   const { provider } = seams;
   let moderation;
@@ -48,7 +48,7 @@ export async function reviewStory(
     if (error instanceof ProviderError) {
       return {
         ok: false,
-        stage: "review",
+        stage: "moderate",
         message:
           error.kind === "timeout"
             ? "story.error.generationTimeout"
@@ -59,7 +59,7 @@ export async function reviewStory(
     }
     return {
       ok: false,
-      stage: "review",
+      stage: "moderate",
       message: "story.error.generationUnavailable",
       transient: true,
     };
@@ -69,7 +69,7 @@ export async function reviewStory(
     // A typed, wire-safe error from the pipeline (e.g. unsafe_unrecoverable).
     return {
       ok: false,
-      stage: "review",
+      stage: "moderate",
       message: moderation.error.messageKey ?? "story.error.generationUnavailable",
       transient: false,
       errorCode: moderation.error.code,

@@ -7,7 +7,7 @@ import type { ProviderStoryInput } from "../story-generation-provider";
 /**
  * Planner agent (specs/006-multi-agent-story-generation/data-model.md).
  *
- * Given the Reviewer-approved narrative, the Planner derives the `Outline` —
+ * Given the Moderator-approved narrative, the Planner derives the `Outline` —
  * the anti-anonymous structural plan of the story: one scene per approved
  * scene, in order, with a theme-aligned purpose and no identifiers. It IS a
  * pure, deterministic transform of the moderated candidate (no provider call),
@@ -41,7 +41,7 @@ export function purposeFor(ctx: JobContext, index: number): string {
 /**
  * Produces the `Outline` from the approved, moderated narrative. Returns
  * `Ok<Outline>` (3–5 scenes) when the candidate is structurally sound, or an
- * `Err` when the candidate is malformed (defense-in-depth; the Reviewer and
+ * `Err` when the candidate is malformed (defense-in-depth; the Moderator and
  * Coordinator also validate, so this is a cheap re-derivation gate).
  *
  * @param ctx anonymous job context

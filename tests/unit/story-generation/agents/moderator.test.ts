@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { reviewStory } from "../../../../src/features/story-generation/server/agents/reviewer";
+import { moderateStory } from "../../../../src/features/story-generation/server/agents/moderator";
 import type { JobContext } from "../../../../src/features/story-generation/server/agents/types";
 import { createFakeProvider } from "../../../fixtures/story-generation/provider-fixtures";
 
@@ -13,10 +13,10 @@ function ctx(): JobContext {
   };
 }
 
-describe("reviewer agent", () => {
+describe("moderator agent", () => {
   it("approves a safe narrative in one generate call", async () => {
     const fake = createFakeProvider({ scenario: "safe" });
-    const result = await reviewStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), { provider: fake.provider });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.safetyDecision).toBe("approved");
@@ -27,7 +27,7 @@ describe("reviewer agent", () => {
 
   it("regenerates once when the first narrative is unsafe, then approves", async () => {
     const fake = createFakeProvider({ scenario: "unsafe-then-safe" });
-    const result = await reviewStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), { provider: fake.provider });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.safetyDecision).toBe("regenerated");
@@ -37,10 +37,10 @@ describe("reviewer agent", () => {
 
   it("returns an Err for an unavailable provider (transient, generation_unavailable)", async () => {
     const fake = createFakeProvider({ scenario: "unavailable" });
-    const result = await reviewStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), { provider: fake.provider });
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.stage).toBe("review");
+      expect(result.stage).toBe("moderate");
       expect(result.transient).toBe(true);
       expect(result.errorCode).toBe("generation_unavailable");
     }
@@ -48,7 +48,7 @@ describe("reviewer agent", () => {
 
   it("returns a transient timeout error code for a timeout provider", async () => {
     const fake = createFakeProvider({ scenario: "timeout" });
-    const result = await reviewStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), { provider: fake.provider });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.errorCode).toBe("generation_timeout");
@@ -58,7 +58,7 @@ describe("reviewer agent", () => {
 
   it("returns a permanent unsafe_unrecoverable error when never safe", async () => {
     const fake = createFakeProvider({ scenario: "double-unsafe" });
-    const result = await reviewStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), { provider: fake.provider });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.transient).toBe(false);

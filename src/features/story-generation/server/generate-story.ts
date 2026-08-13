@@ -15,7 +15,7 @@ import type { ProviderStoryInput, StoryGenerationProvider } from "./story-genera
  *
  * `generateStory` is the thin, contract-stable entry point. It builds an
  * anonymous `JobContext` and delegates to the `Coordinator`, which runs the
- * multi-agent pipeline (Reviewer safety gate → Planner → Writer →
+ * multi-agent pipeline (Moderator safety gate → Planner → Writer →
  * Illustrator). This keeps the external `POST /api/stories` contract, the
  * `GeneratedStory` model, the privacy/anonymous boundary, and the frontend
  * behavior identical while decomposing the work into focused agents

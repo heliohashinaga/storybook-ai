@@ -6,7 +6,7 @@ import type { JobContext, GenerationToken } from "./types";
 import { createStopwatch } from "./timing";
 import { planStory } from "./planner";
 import { writeStory } from "./writer";
-import { reviewStory } from "./reviewer";
+import { moderateStory } from "./moderator";
 import { illustrateStory } from "./illustrator";
 
 /**
@@ -16,7 +16,7 @@ import { illustrateStory } from "./illustrator";
  * the safety gate, then orchestrates the remaining in-memory agents against the
  * approved narrative and assembles a validated `GeneratedStory`. Stage order:
  *
- *   Reviewer (safety gate: fetch + moderate + bounded regeneration)
+ *   Moderator (safety gate: fetch + moderate + bounded regeneration)
  *     → Planner (outline) → Writer (localized narrative) → Illustrator (images)
  *
  * The Reader is intentionally out of this synchronous success path — audio is
@@ -74,7 +74,7 @@ async function runStage<T>(
   // Unreachable while maxAttempts >= 1, but kept for exhaustiveness.
   return {
     ok: false,
-    stage: "review",
+    stage: "moderate",
     message: "story.error.generationUnavailable",
     transient: true,
   };
@@ -94,32 +94,32 @@ export async function generateStoryPipeline(
   const clock = createStopwatch();
 
   // Stage 1 — safety gate (only source of the text-generation provider call).
-  const reviewed = await runStage(
-    () => reviewStory(ctx, { provider: seams.provider }),
+  const moderated = await runStage(
+    () => moderateStory(ctx, { provider: seams.provider }),
     maxAttempts
   );
-  if (!reviewed.ok) {
+  if (!moderated.ok) {
     return {
       ok: false,
-      stage: reviewed.stage,
+      stage: moderated.stage,
       message: "story.error.generationUnavailable",
-      transient: reviewed.transient,
-      errorCode: reviewed.errorCode,
+      transient: moderated.transient,
+      errorCode: moderated.errorCode,
     };
   }
-  clock.tick("review");
+  clock.tick("moderate");
 
   // Stage 2/3 — plan + write (pure transforms of the approved narrative).
-  const outline = planStory(ctx, reviewed.value);
+  const outline = planStory(ctx, moderated.value);
   if (!outline.ok) return outline;
   clock.tick("plan");
 
-  const written = writeStory(ctx, outline.value, reviewed.value);
+  const written = writeStory(ctx, outline.value, moderated.value);
   if (!written.ok) return written;
   clock.tick("write");
 
   // Stage 4 — illustrations (concurrency + whole-set retry), per ADR 0005.
-  const illustrated = await illustrateStory(ctx, reviewed.value, {
+  const illustrated = await illustrateStory(ctx, moderated.value, {
     illustrate: seams.illustrate,
     imageRetries: seams.imageRetries,
     illustrationConcurrency: seams.illustrationConcurrency,
