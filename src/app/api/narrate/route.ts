@@ -7,12 +7,19 @@ import {
 import type { TtsProviderError } from "../../../features/story-read-aloud/server/tts-provider";
 import {
   narrateInvalidInput,
+  narrateRateLimited,
   narrateTimeout,
   narrateUnavailable,
   narrateUnsupportedLocale,
   toNarrateErrorJson,
   type NarrateHttpError,
 } from "../../../features/story-read-aloud/server/narrate-http-errors";
+import {
+  createPseudoAnonymousKey,
+  generateSalt,
+  InMemoryRateLimiter,
+  type RateLimiter,
+} from "../../../lib/rate-limit";
 
 /**
  * `POST /api/narrate` — server-only AI narration (spec 004, US1-US3).
@@ -60,6 +67,10 @@ function providerErrorJson(error: TtsProviderError): Response {
 
 export interface NarrateRouteDeps {
   runtime: TtsRuntime;
+  /** Per-anonymous-user rate limiter for TTS synthesis (spec 004 rate-limit). */
+  rateLimiter: RateLimiter;
+  /** Per-boot salt used to derive the pseudo-anonymous bucket key. */
+  salt: string;
 }
 
 export function createNarrateHandler(deps: NarrateRouteDeps) {
@@ -86,6 +97,19 @@ export function createNarrateHandler(deps: NarrateRouteDeps) {
       return jsonError(400, toNarrateErrorJson(narrateInvalidInput));
     }
 
+    // Anonymous per-user TTS budget (spec 004 rate-limit): bound synthesis cost
+    // without storing any identity. The salt is per-boot and the IP is hashed,
+    // so no raw IP or identifier is ever retained.
+    const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const ip = forwarded || "unknown";
+    const key = createPseudoAnonymousKey({ ip, salt: deps.salt });
+    const rate = await deps.rateLimiter.consume(key);
+    if (!rate.allowed) {
+      const response = jsonError(429, toNarrateErrorJson(narrateRateLimited));
+      response.headers.set("Retry-After", String(rate.retryAfterSeconds ?? 1));
+      return response;
+    }
+
     const { sceneText, locale } = parsed.data;
     // Only `sceneText`/`locale` are sent to the provider — no identifier,
     // exact age, or theme ever crosses this boundary.
@@ -108,6 +132,15 @@ export function createNarrateHandler(deps: NarrateRouteDeps) {
   };
 }
 
+const TTS_RATE_LIMIT_MAX_REQUESTS = Number(process.env.TTS_RATE_LIMIT_MAX_REQUESTS ?? 30);
+const TTS_RATE_LIMIT_WINDOW_MS = Number(process.env.TTS_RATE_LIMIT_WINDOW_MS ?? 60_000);
+
 const runtime = createTtsRuntime();
 
-export const POST = createNarrateHandler({ runtime });
+const salt = generateSalt();
+const rateLimiter = new InMemoryRateLimiter({
+  limit: TTS_RATE_LIMIT_MAX_REQUESTS,
+  windowMs: TTS_RATE_LIMIT_WINDOW_MS,
+});
+
+export const POST = createNarrateHandler({ runtime, rateLimiter, salt });

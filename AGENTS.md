@@ -11,7 +11,8 @@ UI conventions).
 personalized children's stories, **anonymous by design**. The child picks age,
 locale, and theme; the app returns a multi-scene story (3 by default, variable
 up to 5 c.f. `specs/002-generate-more-scenes/`) with illustrations. No name or
-direct identifier is ever collected, sent, logged, or stored.
+direct identifier is ever sent, logged, or stored; the only in-memory key is a
+short-lived, salted hash of the connecting IP used for rate limiting.
 
 This is a **personal, non-commercial project** (my hobby). The codebase is
 implemented under `src/`; features are driven by Spec Kit artifacts under

@@ -26,21 +26,68 @@ age range — all in a single step. From there you can flip between scenes, list
 to each one read aloud, export it as a PDF, or change to dark mode.
 
 **Anonymous by design** — the app works without a child's name or exact age,
-and no direct identifier is collected, sent, or stored.
+and no direct identifier is sent or stored; the only in-memory key is a short-lived,
+salted **hash of the connecting IP** used for rate limiting.
 
 ## Run locally
+
+### 1. Setup (one-time)
 
 ```bash
 corepack enable
 pnpm install
-cp .env.example .env.local  # then fill in the provider keys
+cp .env.example .env.local
+```
+
+Then fill in `.env.local` with your provider **keys** (used only when a model
+carries the matching provider prefix) and your **models** (the first segment
+of each `*_MODEL` selects the provider):
+
+#### 🔑 Provider keys
+
+| Variable              | Purpose                                                           |
+| --------------------- | ----------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`  | Used when a model uses the `openrouter/` prefix (any capability)  |
+| `OPENCODE_GO_API_KEY` | Used when a model uses the `opencode-go/` prefix (any capability) |
+
+#### 🧠 Models (first segment = provider, unprefixed models are rejected at boot)
+
+Each capability routes **independently**, so every `*_MODEL` can point to a
+different provider/model with the fitting capability.
+
+| Variable           | Purpose                                  | Example                          |
+| ------------------ | ---------------------------------------- | -------------------------------- |
+| `TEXT_MODEL`       | story narrative generation (text, req)   | `opencode-go/qwen/qwen3.7-flash` |
+| `MODERATION_MODEL` | safety moderation (text + image prompts) | `opencode-go/qwen/qwen3.7-flash` |
+| `IMAGE_MODEL`      | illustration generation (WebP, req)      | `openrouter/qwen/qwen3.7-flash`  |
+| `TTS_MODEL`        | narration voice (AI TTS, optional)       | `openrouter/qwen/qwen3.7-flash`  |
+
+#### ⚙️ Mode
+
+| Variable               | Default | Purpose                                                  |
+| ---------------------- | ------- | -------------------------------------------------------- |
+| `STORIES_TEST_MODE`    | unset   | `fake` → deterministic offline dev provider, no AI calls |
+| `AI_NARRATION_ENABLED` | `false` | enable the AI neural voice (requires `TTS_MODEL`)        |
+
+#### ⏱️ Rate limiting (anonymous, per IP)
+
+| Variable                        | Default | Purpose                                |
+| ------------------------------- | ------- | -------------------------------------- |
+| `STORY_RATE_LIMIT_MAX_REQUESTS` | `10`    | max story-generation requests / window |
+| `STORY_RATE_LIMIT_WINDOW_MS`    | `60000` | rate-limit window for story generation |
+| `TTS_RATE_LIMIT_MAX_REQUESTS`   | `30`    | max narration requests / window        |
+| `TTS_RATE_LIMIT_WINDOW_MS`      | `60000` | rate-limit window for narration        |
+
+> Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
+> deterministic dev run — no AI calls are made.
+
+### 2. Run
+
+```bash
 pnpm dev
 ```
 
 Open `http://localhost:3000`.
-
-> Set `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
-> deterministic dev run — no AI calls are made.
 
 ## Architecture
 
@@ -50,8 +97,9 @@ A story is produced by a single server-side pipeline under
 1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`,
    `theme`) are re-validated server-side and a single generation call lays out
    the scenes and writes the localized text (title + body) plus each scene's
-   illustration prompt. Per-capability model routing: text/moderation →
-   OpenCode, image → OpenRouter.
+   illustration prompt. Per-capability model routing: each `*_MODEL` prefix
+   (`opencode-go/` or `openrouter/`) selects the provider — any provider can
+   serve text, moderation, or image.
 2. **Moderation** – every scene's text and illustration prompt are moderated
    (AI text + image); unsafe output is regenerated once, else fails as
    `unsafe_unrecoverable`.
@@ -68,10 +116,29 @@ unsafe, partial, or structurally invalid stories are never delivered.
 Zod · sharp · @react-pdf/renderer. AI (server-only): OpenRouter + OpenCode,
 routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
 
-**Quality gates** (run automatically in CI on push/PR to `main` and `develop`):
-`pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test:coverage:check`,
-`pnpm build`, `pnpm storybook:test`, `pnpm test:e2e`, `pnpm test:visual`,
-`pnpm test:performance`. See `package.json` and `.github/workflows/ci.yml`.
+**Quality gates** are enforced in two layers.
+
+- **Per commit** (fast, enforced by the pre-commit hook):
+
+  | Validation | What it checks              |
+  | ---------- | --------------------------- |
+  | Lint       | no lint warnings            |
+  | Format     | no Prettier drift           |
+  | Typecheck  | strict TypeScript, no `any` |
+
+- **Per push/PR to `main`/`develop`** (CI, run automatically, on top of the
+  per-commit gate):
+
+  | Validation       | What it checks                                          |
+  | ---------------- | ------------------------------------------------------- |
+  | Test coverage    | ≥80% overall; ≥90% safety/validation/orchestration      |
+  | Build            | production build compiles                               |
+  | Storybook + a11y | every story renders + no accessibility violations       |
+  | E2E              | pt-BR & EN journeys, fake provider, no live AI          |
+  | Visual           | no unintended screenshot regression                     |
+  | Performance      | LCP, route JS, scene navigation, and generation budgets |
+
+  See `package.json` scripts and `.github/workflows/ci.yml`.
 
 ## Disclaimer
 

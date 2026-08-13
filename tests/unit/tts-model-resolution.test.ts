@@ -4,16 +4,17 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
  * Model resolution by environment (spec 004, T018 / SC-007).
  *
  * The cost-vs-naturalness profile is configured purely via the server-only
- * `OPENROUTER_TTS_MODEL` env var. This test pins the resolution
+ * `TTS_MODEL` env var. This test pins the resolution
  * deterministically (stubbed env, no TTS call, no fallback to the system
  * voice — model selection happens entirely server-side).
  */
 
 const required: Record<string, string> = {
   OPENROUTER_API_KEY: "sk-test-123",
-  OPENROUTER_TEXT_MODEL: "some-org/text-model",
-  OPENROUTER_IMAGE_MODEL: "some-org/image-model",
-  OPENROUTER_MODERATION_MODEL: "some-org/moderation-model",
+  OPENCODE_GO_API_KEY: "sk-opencode-test-123",
+  TEXT_MODEL: "opencode-go/some-org/text-model",
+  IMAGE_MODEL: "openrouter/some-org/image-model",
+  MODERATION_MODEL: "openrouter/some-org/moderation-model",
 };
 
 /** Cost-efficient default profile (research.md §5, Kokoro 82M via OpenRouter). */
@@ -30,29 +31,29 @@ async function loadEnv() {
   return await import("../../src/lib/env");
 }
 
-describe("OPENROUTER_TTS_MODEL env resolution (T018 / SC-007)", () => {
+describe("TTS_MODEL env resolution (T018 / SC-007)", () => {
   beforeEach(() => {
-    delete process.env.OPENROUTER_TTS_MODEL;
+    delete process.env.TTS_MODEL;
     delete process.env.AI_NARRATION_ENABLED;
   });
 
   it("resolves a cost-efficient model profile from env", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...required, OPENROUTER_TTS_MODEL: COST_EFFICIENT_MODEL });
+    const result = parseEnv({ ...required, TTS_MODEL: COST_EFFICIENT_MODEL });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.OPENROUTER_TTS_MODEL).toBe(COST_EFFICIENT_MODEL);
+      expect(result.data.TTS_MODEL).toBe(COST_EFFICIENT_MODEL);
     }
   });
 
   it("resolves a premium model profile from env", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...required, OPENROUTER_TTS_MODEL: PREMIUM_MODEL });
+    const result = parseEnv({ ...required, TTS_MODEL: PREMIUM_MODEL });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.OPENROUTER_TTS_MODEL).toBe(PREMIUM_MODEL);
+      expect(result.data.TTS_MODEL).toBe(PREMIUM_MODEL);
     }
   });
 
@@ -61,30 +62,30 @@ describe("OPENROUTER_TTS_MODEL env resolution (T018 / SC-007)", () => {
 
     const cost = parseEnv({
       ...required,
-      OPENROUTER_TTS_MODEL: COST_EFFICIENT_MODEL,
+      TTS_MODEL: COST_EFFICIENT_MODEL,
       AI_NARRATION_ENABLED: "true",
     });
     expect(cost.success).toBe(true);
     if (cost.success) {
-      expect(cost.data.OPENROUTER_TTS_MODEL).toBe(COST_EFFICIENT_MODEL);
+      expect(cost.data.TTS_MODEL).toBe(COST_EFFICIENT_MODEL);
       expect(cost.data.AI_NARRATION_ENABLED).toBe(true);
     }
 
     const premium = parseEnv({
       ...required,
-      OPENROUTER_TTS_MODEL: PREMIUM_MODEL,
+      TTS_MODEL: PREMIUM_MODEL,
       AI_NARRATION_ENABLED: "true",
     });
     expect(premium.success).toBe(true);
     if (premium.success) {
-      expect(premium.data.OPENROUTER_TTS_MODEL).toBe(PREMIUM_MODEL);
+      expect(premium.data.TTS_MODEL).toBe(PREMIUM_MODEL);
       expect(premium.data.AI_NARRATION_ENABLED).toBe(true);
     }
   });
 
   it("rejects an empty TTS model identifier (fail-fast, no silent system fallback)", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...required, OPENROUTER_TTS_MODEL: "" });
+    const result = parseEnv({ ...required, TTS_MODEL: "" });
     expect(result.success).toBe(false);
   });
 
@@ -93,7 +94,7 @@ describe("OPENROUTER_TTS_MODEL env resolution (T018 / SC-007)", () => {
     const result = parseEnv({ ...required });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.OPENROUTER_TTS_MODEL).toBeUndefined();
+      expect(result.data.TTS_MODEL).toBeUndefined();
       expect(result.data.AI_NARRATION_ENABLED).toBe(false);
     }
   });

@@ -13,6 +13,7 @@ import "server-only";
 export const narrateErrorCodes = [
   "invalid_input",
   "unsupported_locale",
+  "narration_rate_limited",
   "narration_unavailable",
   "narration_timeout",
 ] as const;
@@ -48,6 +49,13 @@ export const narrateUnavailable: NarrateHttpError = {
   status: 502,
   code: "narration_unavailable",
   messageKey: "story.narration.unavailable",
+  retryable: true,
+};
+
+export const narrateRateLimited: NarrateHttpError = {
+  status: 429,
+  code: "narration_rate_limited",
+  messageKey: "story.narration.rateLimited",
   retryable: true,
 };
 

@@ -64,8 +64,10 @@ export default defineConfig({
     // STORIES_TEST_MODE in their environment; default here is the fake.
     env: {
       ...(process.env.STORIES_TEST_MODE ? {} : { STORIES_TEST_MODE: "fake" }),
-      ...(process.env.RATE_LIMIT_MAX ? {} : { RATE_LIMIT_MAX: "100" }),
-      ...(process.env.RATE_LIMIT_WINDOW_MS ? {} : { RATE_LIMIT_WINDOW_MS: "60000" }),
+      ...(process.env.STORY_RATE_LIMIT_MAX_REQUESTS
+        ? {}
+        : { STORY_RATE_LIMIT_MAX_REQUESTS: "100" }),
+      ...(process.env.STORY_RATE_LIMIT_WINDOW_MS ? {} : { STORY_RATE_LIMIT_WINDOW_MS: "60000" }),
       // AI narration is exercised in the ai-read-aloud e2e spec. With
       // STORIES_TEST_MODE=fake the server uses the offline fixed TTS provider,
       // so enabling narration is deterministic and needs no credentials; a

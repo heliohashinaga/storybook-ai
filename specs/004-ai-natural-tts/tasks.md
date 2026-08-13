@@ -10,7 +10,7 @@
 
 ## Phase 1 — Setup (infraestrutura)
 
-- [x] T001 Definir/comentar as variáveis de ambiente TTS em `.env.example` conforme `research.md` (§5): `AI_NARRATION_ENABLED` e `OPENROUTER_TTS_MODEL` (server-only, nunca no cliente)
+- [x] T001 Definir/comentar as variáveis de ambiente TTS em `.env.example` conforme `research.md` (§5): `AI_NARRATION_ENABLED` e `TTS_MODEL` (server-only, nunca no cliente)
 - [x] T002 [P] Criar os tipos de referência dos testes de contrato: `tests/unit/tts.contract.ts` (fixture de teste, NÃO código de produção) exportando `NarrateRequest`/`NarrateError` alinhados ao `contracts/tts.openapi.yaml`; não criar arquivo de schema separado em `src/` (o schema real será Zod na rota/contrato)
 - [x] T003 Criar a base de catálogos i18n do recurso: `src/features/story-read-aloud/locales/pt-BR.json` e `en.json` com as chaves de estado/erro da narração (lendo/parado/erro/indisponível), seguindo o padrão next-intl do repo
 
@@ -35,7 +35,7 @@
 - [x] T015 [US1] Integrar no leitor: `src/features/story-reader/components/story-reader.tsx` e `scene-view.tsx` — substituir rota do controle para `use-ai-read-aloud` (mantendo `use-read-aloud` como base p/ `AI_NARRATION_ENABLED=false`) e adicionar catálogo local + estado de erro quando IA ativa falha
 - [x] T016 [P] [US1] E2E do caminho feliz: `tests/e2e/ai-read-aloud.spec.ts` (provider fake) — abrir história, acionar "ouvir" na cena, estado `speaking`/`mode:ai`, interromper ao navegar; sem chamada a TTS real; inspecionar payload do `/narrate` (só `sceneText`/`locale`)
 - [x] T017 [P] [US1] Teste de naturalidade/preferência (proxy de SC-002): `tests/unit/naturalness-preference.test.ts` — comparação determinística A/B entre voz de IA (blob fake rotulado) e voz de sistema; assere que o caminho IA é selecionado quando habilitado. NOTA: é um proxy verificável em CI; o critério de estudo com participantes (preferência IA ≥80%) é métrica pós-lançamento, documentado no `quickstart.md` e NÃO medido por este teste
-- [x] T018 [P] [US1] Teste de resolução de modelo por ambiente (SC-007): `tests/unit/tts-model-resolution.test.ts` — verifica que `OPENROUTER_TTS_MODEL` resolve o perfil certo (custo-eficiente vs premium) conforme `research.md`/data-model, sem tocar em código e sem cair em voz de sistema; determinístico (stub de env)
+- [x] T018 [P] [US1] Teste de resolução de modelo por ambiente (SC-007): `tests/unit/tts-model-resolution.test.ts` — verifica que `TTS_MODEL` resolve o perfil certo (custo-eficiente vs premium) conforme `research.md`/data-model, sem tocar em código e sem cair em voz de sistema; determinístico (stub de env)
 
 ## Phase 4 — [US2] Erro controlado quando a IA ativa falha (P2)
 

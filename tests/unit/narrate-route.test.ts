@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import type { TtsRuntime } from "../../src/features/story-read-aloud/server/tts-runtime";
 import { TtsProviderError } from "../../src/features/story-read-aloud/server/tts-provider";
+import { InMemoryRateLimiter } from "../../src/lib/rate-limit";
 
 /**
  * `POST /api/narrate` route tests (spec 004, T011/T023).
@@ -16,12 +17,9 @@ import { TtsProviderError } from "../../src/features/story-read-aloud/server/tts
  * the runtime is invoked; every response carries `Cache-Control: no-store`.
  */
 
-/** Required env vars so the module-level `createTtsRuntime()` boots in tests. */
+/** Required env vars so the module-level runtime boots in tests. */
 const REQUIRED_ENV: Record<string, string> = {
   OPENROUTER_API_KEY: "test-key",
-  OPENROUTER_TEXT_MODEL: "test/text-model",
-  OPENROUTER_IMAGE_MODEL: "test/image-model",
-  OPENROUTER_MODERATION_MODEL: "test/moderation-model",
 };
 
 let route: typeof import("../../src/app/api/narrate/route");
@@ -45,6 +43,30 @@ function makeRuntime(overrides: Partial<TtsRuntime> = {}) {
     runtime: { enabled: true, synthesize, ...overrides } as TtsRuntime,
     synthesize,
   };
+}
+
+/** Builds a handler wired with a high-cap anonymous rate limiter + salt. */
+function makeHandler(runtime: TtsRuntime) {
+  return route.createNarrateHandler({
+    runtime,
+    rateLimiter: new InMemoryRateLimiter({
+      limit: 1_000_000,
+      windowMs: 60_000,
+    }),
+    salt: "test-salt",
+  });
+}
+
+/** Builds a handler with a low (e.g. 1-request) anonymous rate limit + salt. */
+function makeLimitedHandler(runtime: TtsRuntime, limit: number) {
+  return route.createNarrateHandler({
+    runtime,
+    rateLimiter: new InMemoryRateLimiter({
+      limit,
+      windowMs: 60_000,
+    }),
+    salt: "test-salt",
+  });
 }
 
 function post(
@@ -73,7 +95,7 @@ function rawPost(handler: ReturnType<typeof route.createNarrateHandler>, body: s
 describe("POST /api/narrate — route", () => {
   it("answers 204 (no-store, empty body) when AI narration is disabled, without touching the runtime", async () => {
     const { runtime, synthesize } = makeRuntime({ enabled: false });
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
     const response = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
 
     expect(response.status).toBe(204);
@@ -86,7 +108,7 @@ describe("POST /api/narrate — route", () => {
     const { runtime, synthesize } = makeRuntime();
     const audio = new Uint8Array([1, 2, 3, 4, 5]);
     synthesize.mockResolvedValue({ format: "audio/mpeg", audio, mode: "ai" });
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, {
       sceneText: "Era uma vez uma estrelinha.",
@@ -106,7 +128,7 @@ describe("POST /api/narrate — route", () => {
 
   it("rejects malformed JSON as invalid input (400) without calling the runtime", async () => {
     const { runtime, synthesize } = makeRuntime();
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await rawPost(handler, "{not-json");
 
@@ -118,7 +140,7 @@ describe("POST /api/narrate — route", () => {
 
   it("rejects a missing/empty body as invalid input (400)", async () => {
     const { runtime, synthesize } = makeRuntime();
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await rawPost(handler, null);
 
@@ -130,7 +152,7 @@ describe("POST /api/narrate — route", () => {
 
   it("rejects empty/whitespace-only sceneText (400) and a missing locale (400)", async () => {
     const { runtime, synthesize } = makeRuntime();
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const whitespace = await post(handler, { sceneText: "   ", locale: "pt-BR" });
     expect(whitespace.status).toBe(400);
@@ -147,7 +169,7 @@ describe("POST /api/narrate — route", () => {
 
   it("rejects an unsupported locale as unsupported_locale (422)", async () => {
     const { runtime, synthesize } = makeRuntime();
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, { sceneText: "Era uma vez", locale: "fr" });
 
@@ -159,7 +181,7 @@ describe("POST /api/narrate — route", () => {
 
   it("rejects a payload smuggling an identifier (400) before the runtime is invoked", async () => {
     const { runtime, synthesize } = makeRuntime();
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, {
       sceneText: "Era uma vez",
@@ -181,7 +203,7 @@ describe("POST /api/narrate — route", () => {
       audio: new Uint8Array([7]),
       mode: "ai",
     });
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, { sceneText: "Era uma vez", locale: "en" });
 
@@ -198,7 +220,7 @@ describe("POST /api/narrate — route", () => {
       audio: new Uint8Array([3]),
       mode: "ai",
     });
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
     const max = route.NARRATE_TEXT_MAX;
 
     const atMax = await post(handler, { sceneText: "a".repeat(max), locale: "pt-BR" });
@@ -219,7 +241,7 @@ describe("POST /api/narrate — route", () => {
     synthesize.mockRejectedValue(
       new TtsProviderError({ kind: "unavailable", message: "TTS down" })
     );
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
 
@@ -232,7 +254,7 @@ describe("POST /api/narrate — route", () => {
   it("maps a provider timeout error to 504 (narration_timeout, no-store)", async () => {
     const { runtime, synthesize } = makeRuntime();
     synthesize.mockRejectedValue(new TtsProviderError({ kind: "timeout", message: "TTS slow" }));
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
 
@@ -247,11 +269,34 @@ describe("POST /api/narrate — route", () => {
     synthesize.mockRejectedValue(
       new TtsProviderError({ kind: "unavailable", message: "TTS down" })
     );
-    const handler = route.createNarrateHandler({ runtime });
+    const handler = makeHandler(runtime);
 
     const response = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
 
     expect(response.status).toBe(502);
+    expect(synthesize).toHaveBeenCalledTimes(1);
+  });
+
+  it("ratelimits a second request under a 1-request limit with 429 narration_rate_limited (T028/FR-005)", async () => {
+    const { runtime, synthesize } = makeRuntime();
+    synthesize.mockResolvedValue({
+      format: "audio/mpeg",
+      audio: new Uint8Array([1]),
+      mode: "ai",
+    });
+    const handler = makeLimitedHandler(runtime, 1);
+
+    const first = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
+    expect(first.status).toBe(200);
+    expect(synthesize).toHaveBeenCalledTimes(1);
+
+    const second = await post(handler, { sceneText: "Outra estrelinha", locale: "pt-BR" });
+    expect(second.status).toBe(429);
+    expect(second.headers.get("cache-control")).toBe("no-store");
+    expect(second.headers.get("retry-after")).toBeTruthy();
+    const body = (await second.json()) as { code: string };
+    expect(body.code).toBe("narration_rate_limited");
+    // The throttled request never reaches the expensive TTS provider.
     expect(synthesize).toHaveBeenCalledTimes(1);
   });
 });

@@ -9,7 +9,7 @@ import { TtsProviderError, type TtsProviderErrorKind } from "./tts-provider";
  * Server-only OpenRouter TTS adapter (spec 004, T008).
  *
  * Synthesizes the anonymous active-scene text into transient MP3 bytes using
- * the configured TTS model (`OPENROUTER_TTS_MODEL`, or an injected value for
+ * the configured TTS model (`TTS_MODEL`, or an injected value for
  * tests) with `output_modalities: "speech"`. It reads the API key/model only
  * from the validated server env (`src/lib/env.ts`); raw provider output is
  * never logged or returned — only typed bytes / typed `TtsProviderError`.
@@ -40,7 +40,7 @@ function resolveDeps(deps: OpenRouterTtsDeps) {
   const env = requiresEnv ? getEnv() : null;
   return {
     apiKey: deps.apiKey ?? env?.OPENROUTER_API_KEY ?? "",
-    model: deps.model ?? env?.OPENROUTER_TTS_MODEL ?? "",
+    model: deps.model ?? env?.TTS_MODEL ?? "",
     baseUrl: deps.baseUrl ?? DEFAULT_BASE_URL,
     timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     maxRetries: deps.maxRetries ?? 2,
