@@ -1,0 +1,104 @@
+openapi: 3.1.0
+info:
+  title: Storybook AI Provider Routing (capability-based)
+  version: 1.0.0
+  description: |
+    Server-only internal contract for the multi-provider generation router (spec 005). It captures how
+    the runtime resolves a concrete provider + model for each generation capability (text, moderation,
+    image) from the per-capability environment schema. This document governs the internal routing boundary
+    only; the public story-generation API (POST /api/stories) is unchanged and remains in
+    story-generation.openapi.yaml. No child identifier, exact age, or persisted state is ever part of this
+    contract: only anonymous capability payloads are routed to providers.
+servers:
+  - url: internal # not an HTTP endpoint; documents the in-process routing resolution
+
+paths:
+  /resolve:
+    post:
+      operationId: resolveCapability
+      tags: [Provider routing]
+      summary: Resolve the provider and model for a generation capability
+      description: |
+        Given a capability and a *MODEL env value (e.g. TEXT_MODEL, MODERATION_MODEL, IMAGE_MODEL), return the
+        concrete provider and effective model. The provider is derived from the first path segment before the
+        first '/' (opencode-go => opencode, openrouter => openrouter); a value with no prefix falls back to the
+        capability's default provider (text/moderation => opencode, image => openrouter). An unrecognized prefix
+        is a configuration error rejected by env validation (zod) at boot - never silent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CapabilityInput'
+      responses:
+        '200':
+          description: Provider and model resolved for the capability.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutedConfig'
+        '422':
+          description: Unrecognized provider prefix in the model value (configuration error).
+
+components:
+  schemas:
+    Capability:
+      type: string
+      enum: [text, moderation, image]
+    Provider:
+      type: string
+      enum: [opencode, openrouter]
+    CapabilityInput:
+      type: object
+      required: [capability, model]
+      additionalProperties: false
+      properties:
+        capability:
+          $ref: '#/components/schemas/Capability'
+        model:
+          type: string
+          minLength: 1
+          description: |
+            Value of the per-capability env var (e.g. TEXT_MODEL='opencode-go/qwen/qwen3.7-flash' or
+            IMAGE_MODEL='openrouter/qwen/qwen3.7-flash'). May be prefixed with a provider segment.
+    RoutedConfig:
+      type: object
+      required: [capability, provider, model, apiKeyEnv]
+      additionalProperties: false
+      properties:
+        capability:
+          $ref: '#/components/schemas/Capability'
+        provider:
+          $ref: '#/components/schemas/Provider'
+        model:
+          type: string
+          description: Effective model after removing the provider prefix segment, if any.
+        apiKeyEnv:
+          type: string
+          enum: [OPENCODE_GO_API_KEY, OPENROUTER_API_KEY]
+          description: Environment variable holding the provider API key.
+
+  examples:
+    textToOpencode:
+      value:
+        capability: text
+        provider: opencode
+        model: qwen/qwen3.7-flash
+        apiKeyEnv: OPENCODE_GO_API_KEY
+    imageToOpenRouter:
+      value:
+        capability: image
+        provider: openrouter
+        model: qwen/qwen3.7-flash
+        apiKeyEnv: OPENROUTER_API_KEY
+    textualDefaultProvider:
+      summary: TEXT_MODEL without explicit prefix uses the capability default (opencode).
+      value:
+        capability: text
+        provider: opencode
+        model: qwen/qwen3.7-flash
+        apiKeyEnv: OPENCODE_GO_API_KEY
+
+  notes:
+    - The public POST /api/stories contract is unchanged; this routing is in-process and server-only.
+    - Invariants preserved: no partial story (typed ProviderError per capability), no persistence, anonymous payloads.
