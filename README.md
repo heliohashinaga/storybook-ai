@@ -39,12 +39,41 @@ pnpm install
 cp .env.example .env.local
 ```
 
-Then fill in `.env.local` with your provider keys (the first segment of
-each `*_MODEL` selects the provider):
+Then fill in `.env.local` with your provider **keys** (used only when a model
+carries the matching provider prefix) and your **models** (the first segment
+of each `*_MODEL` selects the provider):
 
-- `OPENROUTER_API_KEY` — used when a model uses the `openrouter/` prefix (any capability)
-- `OPENCODE_GO_API_KEY` — used when a model uses the `opencode-go/` prefix (any capability)
-- `TTS_MODEL` — optional, for TTS narration
+#### 🔑 Provider keys
+
+| Variable              | Purpose                                                           |
+| --------------------- | ----------------------------------------------------------------- |
+| `OPENROUTER_API_KEY`  | Used when a model uses the `openrouter/` prefix (any capability)  |
+| `OPENCODE_GO_API_KEY` | Used when a model uses the `opencode-go/` prefix (any capability) |
+
+#### 🧠 Models (first segment = provider, unprefixed models are rejected at boot)
+
+| Variable           | Default      | Example                          |
+| ------------------ | ------------ | -------------------------------- |
+| `TEXT_MODEL`       | — (required) | `opencode-go/qwen/qwen3.7-flash` |
+| `MODERATION_MODEL` | — (required) | `opencode-go/qwen/qwen3.7-flash` |
+| `IMAGE_MODEL`      | — (required) | `openrouter/qwen/qwen3.7-flash`  |
+| `TTS_MODEL`        | — (optional) | `openrouter/qwen/qwen3.7-flash`  |
+
+#### ⚙️ Mode
+
+| Variable               | Default | Purpose                                                  |
+| ---------------------- | ------- | -------------------------------------------------------- |
+| `STORIES_TEST_MODE`    | unset   | `fake` → deterministic offline dev provider, no AI calls |
+| `AI_NARRATION_ENABLED` | `false` | enable the AI neural voice (requires `TTS_MODEL`)        |
+
+#### ⏱️ Rate limiting (anonymous, per IP)
+
+| Variable                        | Default | Purpose                                |
+| ------------------------------- | ------- | -------------------------------------- |
+| `STORY_RATE_LIMIT_MAX_REQUESTS` | `10`    | max story-generation requests / window |
+| `STORY_RATE_LIMIT_WINDOW_MS`    | `60000` | rate-limit window for story generation |
+| `TTS_RATE_LIMIT_MAX_REQUESTS`   | `30`    | max narration requests / window        |
+| `TTS_RATE_LIMIT_WINDOW_MS`      | `60000` | rate-limit window for narration        |
 
 > Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
 > deterministic dev run — no AI calls are made.
