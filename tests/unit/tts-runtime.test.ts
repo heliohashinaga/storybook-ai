@@ -98,13 +98,8 @@ describe("createTtsRuntime (T010 — default provider resolution)", () => {
   it("resolves the deterministic offline provider when STORIES_TEST_MODE=fake", async () => {
     vi.stubEnv("STORIES_TEST_MODE", "fake");
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
-    // The fake provider path must not require OpenRouter credentials, but the
-    // env schema still validates required vars for getEnv(); stub them so the
-    // runtime's env read succeeds deterministically.
-    vi.stubEnv("OPENROUTER_API_KEY", "sk-test");
-    vi.stubEnv("OPENROUTER_TEXT_MODEL", "env/text-model");
-    vi.stubEnv("OPENROUTER_IMAGE_MODEL", "env/image-model");
-    vi.stubEnv("OPENROUTER_MODERATION_MODEL", "env/moderation-model");
+    // The fake provider path never requires credentials or `getEnv()`, so no
+    // model/API-key env is needed here (no legacy `OPENROUTER_*` residue).
 
     const runtime = createTtsRuntime();
 

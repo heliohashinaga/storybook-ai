@@ -17,12 +17,9 @@ import { InMemoryRateLimiter } from "../../src/lib/rate-limit";
  * the runtime is invoked; every response carries `Cache-Control: no-store`.
  */
 
-/** Required env vars so the module-level `createTtsRuntime()` boots in tests. */
+/** Required env vars so the module-level runtime boots in tests. */
 const REQUIRED_ENV: Record<string, string> = {
   OPENROUTER_API_KEY: "test-key",
-  OPENROUTER_TEXT_MODEL: "test/text-model",
-  OPENROUTER_IMAGE_MODEL: "test/image-model",
-  OPENROUTER_MODERATION_MODEL: "test/moderation-model",
 };
 
 let route: typeof import("../../src/app/api/narrate/route");
@@ -54,6 +51,18 @@ function makeHandler(runtime: TtsRuntime) {
     runtime,
     rateLimiter: new InMemoryRateLimiter({
       limit: 1_000_000,
+      windowMs: 60_000,
+    }),
+    salt: "test-salt",
+  });
+}
+
+/** Builds a handler with a low (e.g. 1-request) anonymous rate limit + salt. */
+function makeLimitedHandler(runtime: TtsRuntime, limit: number) {
+  return route.createNarrateHandler({
+    runtime,
+    rateLimiter: new InMemoryRateLimiter({
+      limit,
       windowMs: 60_000,
     }),
     salt: "test-salt",
@@ -265,6 +274,29 @@ describe("POST /api/narrate — route", () => {
     const response = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
 
     expect(response.status).toBe(502);
+    expect(synthesize).toHaveBeenCalledTimes(1);
+  });
+
+  it("ratelimits a second request under a 1-request limit with 429 narration_rate_limited (T028/FR-005)", async () => {
+    const { runtime, synthesize } = makeRuntime();
+    synthesize.mockResolvedValue({
+      format: "audio/mpeg",
+      audio: new Uint8Array([1]),
+      mode: "ai",
+    });
+    const handler = makeLimitedHandler(runtime, 1);
+
+    const first = await post(handler, { sceneText: "Era uma vez", locale: "pt-BR" });
+    expect(first.status).toBe(200);
+    expect(synthesize).toHaveBeenCalledTimes(1);
+
+    const second = await post(handler, { sceneText: "Outra estrelinha", locale: "pt-BR" });
+    expect(second.status).toBe(429);
+    expect(second.headers.get("cache-control")).toBe("no-store");
+    expect(second.headers.get("retry-after")).toBeTruthy();
+    const body = (await second.json()) as { code: string };
+    expect(body.code).toBe("narration_rate_limited");
+    // The throttled request never reaches the expensive TTS provider.
     expect(synthesize).toHaveBeenCalledTimes(1);
   });
 });
