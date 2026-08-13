@@ -8,7 +8,7 @@
 
 ## Summary
 
-Reestruturar o adapter de geração de histórias para **dois provedores simultâneos** por **roteamento de capacidade**: **OpenCode** para texto e moderação, **OpenRouter** para imagens. Uma única chamada de geração roteia cada capacidade ao provedor correto e serve a história completa, sem que o usuário perceba o roteamento.
+Reestruturar o adapter de geração de histórias para **dois provedores simultâneos** por **roteamento de capacidade**: cada capacidade (texto, moderação, imagem) é roteada ao provedor derivado do prefixo do respectivo `*_MODEL` — **qualquer um dos dois provedores (`opencode-go`/`openrouter`) pode servir qualquer capacidade**, sem vínculo fixo capacidade→provedor (D3). Uma única chamada de geração roteia cada capacidade ao provedor correto e serve a história completa, sem que o usuário perceba o roteamento.
 
 O core é **estrutural** (US1, P1): hoje `createGenerationRuntime` usa um único `createOpenRouterStoryProvider()` que faz texto, moderação e imagem (via `OpenRouterDeps`). A mudança introduz um **roteador por capacidade** que deriva o provedor de cada `*_MODEL` pela convenção `provedor/resto` (primeiro segmento antes da 1ª `/`); **não há `defaultProvider`** — um `*_MODEL` sem prefixo de provedor é erro de configuração no boot. **Qualquer provedor (`opencode-go`/`openrouter`) pode servir qualquer capacidade** (texto, moderação, imagem), conforme o prefixo do respectivo `*_MODEL`. O env migra para o **novo esquema por capacidade** (`OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`), removendo o esquema antigo `OPENROUTER_*` (decisão D5-C: **somente novo esquema**, breaking change controlado). TTS/voice permanece em OpenRouter (feature `004-ai-natural-tts`) e não faz parte deste roteamento de tradução de imagem/texto.
 
@@ -30,7 +30,7 @@ Todos os invariantes se mantêm: anonimato (cada provedor recebe só o payload d
 
 **Performance Goals**: geração completa ≤120 s end-to-end (texto + moderação + N imagens, N≤5); JS inicial ≤250 KiB gzip (sem impacto do roteamento); navegador de cena ≤100 ms p75
 
-**Constraints**: sem identificador direto no payload/log/provedor (ânima); sever-only para chaves/provedores; image-optimizer mantém lazy `sharp`; rate limiting por provedor (default 10 req/60 s, `RATE_LIMIT_MAX`/`RATE_LIMIT_WINDOW_MS`); remoção de `OPENROUTER_*` sem fallback (D5-C)
+**Constraints**: sem identificador direto no payload/log/provedor (ânima); sever-only para chaves/provedores; image-optimizer mantém lazy `sharp`; rate limiting da geração por IP (hash + salt rotativo, IP não retido em claro; default 10 req/60 s, `STORY_RATE_LIMIT_MAX_REQUESTS`/`STORY_RATE_LIMIT_WINDOW_MS`); narração TTS com limite próprio (`TTS_RATE_LIMIT_*`, feature 004); remoção de `OPENROUTER_*` sem fallback (D5-C)
 
 **Scale/Scope**: projeto pessoal não-comercial; roteamento de capacidade (texto, moderação, imagem) em um único adapter de geração
 

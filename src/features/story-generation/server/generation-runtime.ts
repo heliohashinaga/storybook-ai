@@ -30,12 +30,12 @@ export interface GenerationRuntime {
 export function createGenerationRuntime(): GenerationRuntime {
   const useFake = process.env.STORIES_TEST_MODE === "fake";
   // Anonymous rate limiting. Production default is 10 requests / 60s; CI and
-  // e2e/visual/perf suites raise the cap via RATE_LIMIT_MAX so a full browser
+  // e2e/visual/perf suites raise the cap via STORY_RATE_LIMIT_MAX_REQUESTS so a full browser
   // test run (many real POST /api/stories) against one shared server is not
   // throttled. Read directly from process.env like STORIES_TEST_MODE because
   // this seam must also operate in fake/test envs that omit OpenRouter creds.
-  const rateLimitMax = Number(process.env.RATE_LIMIT_MAX ?? 10);
-  const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000);
+  const rateLimitMax = Number(process.env.STORY_RATE_LIMIT_MAX_REQUESTS ?? 10);
+  const rateLimitWindowMs = Number(process.env.STORY_RATE_LIMIT_WINDOW_MS ?? 60_000);
   return {
     provider: useFake ? createFixedDevProvider() : createOpenRouterStoryProvider(),
     illustrate: useFake ? createFixedDevIllustration() : createOpenRouterIllustration(),

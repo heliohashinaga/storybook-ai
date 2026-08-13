@@ -68,11 +68,11 @@ O roteamento dual não pode quebrar o contrato anônimo: **cada provedor recebe 
 
 ### Edge Cases
 
-- **Provedor que não oferece capacidade**: se um provedor/`TTS_MODEL` não suportar imagem (ou o texto), o roteamento deve escolher o provedor com a capacidade; nunca forçar uma capacidade ao provedor errado.
+- **Provedor que não oferece capacidade**: o roteamento é **sempre por prefixo** (D2) — não há fallback/re-seleção para outro provedor. Se um `*_MODEL` for roteado a um provedor que não suporta aquela capacidade (ex.: imagem apontada a um provedor sem suporte a imagem), o sistema DEVE falhar com erro de configuração tipado no boot (nunca forçar a capacidade a outro provedor nem executar silenciosamente).
 - **Chave ausente por capacidade**: capacidade ativa sem sua chave ⇒ erro de validação de env claro (não silencioso).
 - **Valor de modelo com prefixo ausente**: roteamento DEVE exigir o prefixo do provedor e falhar com erro de configuração tipado no boot (nunca silencioso); **não há provider default por capacidade**.
 - **Falha parcial de provedor**: um provedor (ex. imagem) falha enquanto o outro (texto) funciona ⇒ erro tipado e sem história parcial (invariante do projeto: série ilustrações nunca parcial).
-- **Rate limiting / custo por capacidade**: limites de taxa ou custo aplicam-se por provedor; sem estouro ou erro duro.
+- **Rate limiting / custo por capacidade**: o rate limit de geração limita **chamadas do usuário do app** (quantas gerações de história por IP por janela) — bucket por IP com hash + salt rotativo, **não** por provedor/modelo; o IP **nunca é retido em claro nem enviado ao provedor** (evita enquadrar IP como dado pessoal). Ao exceder o limite, responder erro tipado/HTTP mapeado (ex.: `429`, sem estouro ou erro duro). Default: `STORY_RATE_LIMIT_MAX_REQUESTS=10`, `STORY_RATE_LIMIT_WINDOW_MS=60000` (10 req/60 s) por IP. A narração TTS (feature 004) tem **limite próprio** (`TTS_RATE_LIMIT_MAX_REQUESTS=30`/`TTS_RATE_LIMIT_WINDOW_MS=60000`), separado porque navegar/narrar várias cenas seguidas é fluxo normal de leitura. A preocupação de **custo por capacidade** (modelo caro vs barato) é ortogonal e tratada no roteamento (spec/plan D3), não nestes edge cases.
 - **Backward-compatibilidade de env**: migração do esquema `OPENROUTER_*` para o novo — resolver com um período de suporte/deprecação ou errata explícita no `.env.example` (decisão de clarificação D5 abaixo).
 
 ## Requirements *(mandatory)*
@@ -94,7 +94,7 @@ O roteamento dual não pode quebrar o contrato anônimo: **cada provedor recebe 
 
 ### Key Entities *(include if feature involves data)*
 
-- **Capability** (mapeamento de capacidade→provedor derivado da config): texto/modação→OpenCode, imagem→OpenRouter, [speech→TTS_MODEL]. Modelado no `data-model.md` como `Capability` + `RoutedConfig` (resultado não persistido da resolução por capacidade).
+- **Capability** (mapeamento de capacidade→provedor derivado da config): texto/moderação/imagem podem ser servidos por `opencode-go` **ou** `openrouter`, determinados pelo prefixo do respectivo `*_MODEL` (sem vínculo fixo capacidade→provedor); [speech→TTS_MODEL]. Modelado no `data-model.md` como `Capability` + `RoutedConfig` (resultado não persistido da resolução por capacidade).
 - **EnvConfig (servidor)**: `OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`, `STORIES_TEST_MODE` — lidas/validadas via `getEnv()` (Zod). Sem chaves no cliente.
 - **RoutedConfig** *(resultado de roteamento para diagnóstico/teste)*: para cada capacidade, o provedor+modelo+`apiKeyEnv` resolvido — modelado em `data-model.md` (`opencode-go`/`openrouter`; sem `defaultProvider`). *(antes referido como "ProviderRoutingResult"; canônica agora é `RoutedConfig`.)*
 - **Sem novas entidades de dados persistentes** — as histórias e ilustrações seguem o contrato atual; apenas o mecanismo de roteamento muda.
@@ -109,7 +109,7 @@ O roteamento dual não pode quebrar o contrato anônimo: **cada provedor recebe 
 - **SC-004**: **Sem regressão de testes** — toda a suíte existente (unit/contrato/e2e/visual/perf) permanece verde com o `STORIES_TEST_MODE`/fakes; nenhuma configuração de teste quebrada.
 - **SC-005**: Budgets de performance vigentes mantidos (geração ≤120s; JS inicial ≤250KiB gzip; LCP/nav ≤ budget) — roteamento dual não degrada.
 - **SC-006**: Sem história parcial: qualquer falha de um provedor (capacidade) resulta em erro tipado/graceful (nunca série de ilustrações parcial), coberto por testes.
-- **SC-007**: Migração avisada: o esquema antigo (`OPENROUTER_*`) é tratado conforme D5 (migração/depreciação) e documentado no `.env.example`.
+- **SC-007**: Migração avisada: o esquema antigo (`OPENROUTER_*`) é removido imediatamente — decisão D5-C, **somente novo esquema, sem período de depreciação** — e o `.env.example` documenta o novo padrão (breaking change controlado).
 
 ## Assumptions
 

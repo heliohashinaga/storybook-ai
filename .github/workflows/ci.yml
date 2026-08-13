@@ -72,7 +72,7 @@ jobs:
       # A full browser run fires many real POST /api/stories against one
       # shared server within a minute; raise the anonymous rate cap so tests
       # are not throttled (production still defaults to 10/min).
-      RATE_LIMIT_MAX: "10000"
+      STORY_RATE_LIMIT_MAX_REQUESTS: "10000"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
