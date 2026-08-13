@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 /**
  * Fills the anonymous request form (age 6 → band 5-7, courage theme, 5 scenes)
  * and submits, like the T023 journey. Runs against the production build whose
- * server was started with `STORIES_PROVIDER=fake` (deterministic provider).
+ * server was started with `STORIES_TEST_MODE=fake` (deterministic provider).
  */
 async function fillAndSubmit(page: Page) {
   await page.getByLabel(/Idade da criança/i).fill("6");

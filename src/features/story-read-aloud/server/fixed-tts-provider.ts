@@ -4,7 +4,7 @@ import type { SynthesizedAudio, TtsProvider } from "./tts-provider";
 /**
  * Deterministic development TTS provider (spec 004, T007 mirror).
  *
- * Selected only when `STORIES_PROVIDER=fake` (e2e/visual/dev runs) — never the
+ * Selected only when `STORIES_TEST_MODE=fake` (e2e/visual/dev runs) — never the
  * production default. It never calls a live TTS service: it returns the same
  * tiny MP3 bytes every time, with the tone's header derived from the input
  * length so e2e payload inspection stays deterministic and anonymous.

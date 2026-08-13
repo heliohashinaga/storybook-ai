@@ -12,14 +12,13 @@ import type { StoryGenerationProvider } from "./story-generation-provider";
  * handler over these seams, so tests inject fakes while production selects the
  * real pieces here.
  *
- * Provider selection is controlled by `STORIES_PROVIDER` (default `openrouter`):
- * - `fake` → the deterministic development provider/illustrator (used only by
- *   e2e/visual/dev runs; never calls a live AI service);
- * - `openrouter` (production default) → the server-only OpenRouter adapter with
- *   models read from `src/lib/env.ts`.
- * The fake path is read directly from `process.env` and never requires the
- * OpenRouter credentials to be present, so e2e runs stay fully deterministic
- * and offline.
+ * Test mode is selected by `STORIES_TEST_MODE`:
+ * - `fake` → the deterministic offline development provider/illustrator (used
+ *   only by e2e/visual/dev runs; never calls a live AI service) and never
+ *   requires provider credentials to be present;
+ * - absent (production default) → the real server-only adapters, whose
+ *   per-capability provider routing is derived from each `*_MODEL` (spec 005)
+ *   with credentials/models read from `src/lib/env.ts`.
  */
 export interface GenerationRuntime {
   provider: StoryGenerationProvider;
@@ -29,11 +28,11 @@ export interface GenerationRuntime {
 }
 
 export function createGenerationRuntime(): GenerationRuntime {
-  const useFake = process.env.STORIES_PROVIDER === "fake";
+  const useFake = process.env.STORIES_TEST_MODE === "fake";
   // Anonymous rate limiting. Production default is 10 requests / 60s; CI and
   // e2e/visual/perf suites raise the cap via RATE_LIMIT_MAX so a full browser
   // test run (many real POST /api/stories) against one shared server is not
-  // throttled. Read directly from process.env like STORIES_PROVIDER because
+  // throttled. Read directly from process.env like STORIES_TEST_MODE because
   // this seam must also operate in fake/test envs that omit OpenRouter creds.
   const rateLimitMax = Number(process.env.RATE_LIMIT_MAX ?? 10);
   const rateLimitWindowMs = Number(process.env.RATE_LIMIT_WINDOW_MS ?? 60_000);

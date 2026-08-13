@@ -95,8 +95,8 @@ describe("createTtsRuntime (T022 — controlled failure, no fallback, no retry)"
 });
 
 describe("createTtsRuntime (T010 — default provider resolution)", () => {
-  it("resolves the deterministic offline provider when STORIES_PROVIDER=fake", async () => {
-    vi.stubEnv("STORIES_PROVIDER", "fake");
+  it("resolves the deterministic offline provider when STORIES_TEST_MODE=fake", async () => {
+    vi.stubEnv("STORIES_TEST_MODE", "fake");
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
     // The fake provider path must not require OpenRouter credentials, but the
     // env schema still validates required vars for getEnv(); stub them so the

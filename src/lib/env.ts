@@ -13,14 +13,14 @@ const envSchema = z.object({
   OPENROUTER_IMAGE_MODEL: z.string().min(1),
   OPENROUTER_MODERATION_MODEL: z.string().min(1),
   /**
-   * Provider selector for the generation runtime (read by
-   * `generation-runtime.ts`, not by the OpenRouter adapter which always uses
-   * the real provider). `fake` selects the deterministic dev provider for
-   * e2e/visual/dev runs; anything else or absent means the production
-   * OpenRouter provider. Optional so fake-run environments can omit the
-   * OpenRouter credentials entirely.
+   * Test-only mode switch for the generation and TTS runtimes (read by
+   * `generation-runtime.ts` and `tts-runtime.ts`). `fake` selects the
+   * deterministic offline dev providers for e2e/visual/dev runs and lets the
+   * environment omit provider credentials entirely. Absent (default) means the
+   * real providers, whose per-capability routing is derived from the value of
+   * each `*_MODEL` (see spec 005) — never from this switch.
    */
-  STORIES_PROVIDER: z.enum(["openrouter", "fake"]).optional(),
+  STORIES_TEST_MODE: z.enum(["fake"]).optional(),
   /**
    * Whether AI narration (natural TTS voice) is enabled. Read only by the
    * server-only TTS adapters (`story-read-aloud/server`). When `true`, the

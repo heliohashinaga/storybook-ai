@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
  * T037 — reader visual regression: one approved screenshot per scene position.
  *
  * Runs against the production build with the deterministic fake provider
- * (STORIES_PROVIDER=fake); no live AI, no wall-clock dependence. Baselines
+ * (STORIES_TEST_MODE=fake); no live AI, no wall-clock dependence. Baselines
  * live in tests/visual/__screenshots__ and are reviewed before merge.
  *
  * The reader shows exactly one scene at a time (T040), so each position is

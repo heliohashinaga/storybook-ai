@@ -61,13 +61,13 @@ export default defineConfig({
     // E2E/visual/perf must be deterministic and offline: they run against the
     // fixed dev provider, never a paid/live model (AGENTS.md privacy/model
     // rules). A caller can still force a real provider by pre-setting
-    // STORIES_PROVIDER in their environment; default here is the fake.
+    // STORIES_TEST_MODE in their environment; default here is the fake.
     env: {
-      ...(process.env.STORIES_PROVIDER ? {} : { STORIES_PROVIDER: "fake" }),
+      ...(process.env.STORIES_TEST_MODE ? {} : { STORIES_TEST_MODE: "fake" }),
       ...(process.env.RATE_LIMIT_MAX ? {} : { RATE_LIMIT_MAX: "100" }),
       ...(process.env.RATE_LIMIT_WINDOW_MS ? {} : { RATE_LIMIT_WINDOW_MS: "60000" }),
       // AI narration is exercised in the ai-read-aloud e2e spec. With
-      // STORIES_PROVIDER=fake the server uses the offline fixed TTS provider,
+      // STORIES_TEST_MODE=fake the server uses the offline fixed TTS provider,
       // so enabling narration is deterministic and needs no credentials; a
       // caller can override by pre-setting AI_NARRATION_ENABLED.
       ...(process.env.AI_NARRATION_ENABLED ? {} : { AI_NARRATION_ENABLED: "true" }),

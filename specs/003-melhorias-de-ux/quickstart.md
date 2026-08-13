@@ -5,7 +5,7 @@ Este guia valida as melhorias de experiência end-to-end sobre o fluxo existente
 ## Pré-requisitos
 
 - `pnpm install`
-- `.env.local` com `STORIES_PROVIDER=fake` para execução determinística (gitignored).
+- `.env.local` com `STORIES_TEST_MODE=fake` para execução determinística (gitignored).
 - Chromium nativo: `pnpm exec playwright install --with-deps chromium` (ou `sh scripts/setup-chromium-deps.sh`).
 
 ## Setup

@@ -9,7 +9,7 @@ import { TtsProviderError } from "./tts-provider";
  *
  * Resolves the TTS provider and orchestrates a single `synthesize` call for the
  * anonymous active-scene text. Provider selection mirrors the generation
- * runtime: `STORIES_PROVIDER=fake` selects the deterministic offline provider
+ * runtime: `STORIES_TEST_MODE=fake` selects the deterministic offline provider
  * (e2e/visual/dev), otherwise the server-only OpenRouter adapter reading its
  * model/key from `src/lib/env.ts`.
  *
@@ -37,7 +37,7 @@ export interface TtsRuntimeDeps {
   enabled?: boolean;
   /** Provider seam for tests; defaults to the env-resolved provider. */
   provider?: TtsProvider;
-  /** Provider selector mirroring `STORIES_PROVIDER` (`fake` → offline dev). */
+  /** Provider selector mirroring `STORIES_TEST_MODE` (`fake` → offline dev). */
   storiesProvider?: string;
 }
 
@@ -45,14 +45,14 @@ export interface TtsRuntimeDeps {
 function resolveDefaultProvider(): TtsProvider {
   // Production default is OpenRouter; `fake` selects the deterministic offline
   // dev provider so e2e/visual runs never call a live TTS service.
-  return process.env.STORIES_PROVIDER === "fake"
+  return process.env.STORIES_TEST_MODE === "fake"
     ? createFixedTtsProvider()
     : createOpenRouterTtsProvider();
 }
 
 /**
  * Reads the AI-narration toggle directly from `process.env` (mirrors how
- * `generation-runtime.ts` reads `STORIES_PROVIDER`). We deliberately do NOT
+ * `generation-runtime.ts` reads `STORIES_TEST_MODE`). We deliberately do NOT
  * call `getEnv()` here: `getEnv()` validates the *whole* server schema at
  * module load, including the story-generation `OPENROUTER_*` credentials that
  * are unrelated to TTS, which would throw during `next build` on a host without

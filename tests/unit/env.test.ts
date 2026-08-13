@@ -77,23 +77,23 @@ describe("env server validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("defaults to the openrouter provider when STORIES_PROVIDER is absent", async () => {
+  it("defaults to the openrouter provider when STORIES_TEST_MODE is absent", async () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({ ...validEnv });
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.STORIES_PROVIDER).toBeUndefined();
+    if (result.success) expect(result.data.STORIES_TEST_MODE).toBeUndefined();
   });
 
   it("accepts the fake provider selector as an optional override", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, STORIES_PROVIDER: "fake" });
+    const result = parseEnv({ ...validEnv, STORIES_TEST_MODE: "fake" });
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.STORIES_PROVIDER).toBe("fake");
+    if (result.success) expect(result.data.STORIES_TEST_MODE).toBe("fake");
   });
 
-  it("rejects an unknown STORIES_PROVIDER value", async () => {
+  it("rejects an unknown STORIES_TEST_MODE value", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, STORIES_PROVIDER: "bad" });
+    const result = parseEnv({ ...validEnv, STORIES_TEST_MODE: "bad" });
     expect(result.success).toBe(false);
   });
 

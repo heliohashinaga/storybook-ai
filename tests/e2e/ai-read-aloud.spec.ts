@@ -5,7 +5,7 @@ import { expect, test, type Page } from "@playwright/test";
  * controlled error without Web Speech fallback, and zero persistence.
  *
  * Runs against the production build whose server was started with
- * `STORIES_PROVIDER=fake` (deterministic offline provider) and
+ * `STORIES_TEST_MODE=fake` (deterministic offline provider) and
  * `AI_NARRATION_ENABLED=true` so `/api/narrate` answers with transient audio
  * bytes from the fixed TTS provider — never a live TTS service. Every test
  * blocks non-local hosts so no real provider is ever reached.
