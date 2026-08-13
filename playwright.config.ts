@@ -36,7 +36,7 @@ export default defineConfig({
     ? [["html", { open: "never" }]]
     : [["html", { open: "never" }], ["list"]],
   use: {
-    baseURL: `http://localhost:${PORT}`,
+    baseURL: `http://127.0.0.1:${PORT}`,
     trace: "on-first-retry",
     // Anonymous by design: no cookies/persistent state. Visual snapshots in
     // `tests/visual` use screenshot-based regression via `toHaveScreenshot`.
@@ -55,7 +55,7 @@ export default defineConfig({
   // code states. See ADR 0002.
   webServer: {
     command: "pnpm start",
-    url: `http://localhost:${PORT}`,
+    url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     // E2E/visual/perf must be deterministic and offline: they run against the
