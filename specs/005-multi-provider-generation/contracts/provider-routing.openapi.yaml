@@ -67,6 +67,10 @@ components:
             IMAGE_MODEL='openrouter/qwen/qwen3.7-flash'). May be prefixed with a provider segment.
     RoutedConfig:
       type: object
+      description: >
+        Resolved route for one capability. Note: when capability=image and provider=opencode-go, the
+        illustration is produced via createOpenCodeIllustration (data-model `image` row); when provider=openrouter,
+        via createOpenRouterIllustration. Routing bounds; illustration adapter selection lives in the provider layer.
       required: [capability, provider, model, apiKeyEnv]
       additionalProperties: false
       properties:
