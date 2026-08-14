@@ -91,22 +91,33 @@ Open `http://localhost:3000`.
 
 ## Architecture
 
-A story is produced by a single server-side pipeline under
-`src/features/story-generation/`:
+A story is produced by a **multi-agent pipeline** under
+`src/features/story-generation/`. The six agents are typed,
+in-memory, and run server-side; each is a focused, independently testable stage:
 
-1. **Outline + writing** – the allow-listed inputs (`ageBand`, `locale`,
-   `theme`) are re-validated server-side and a single generation call lays out
-   the scenes and writes the localized text (title + body) plus each scene's
-   illustration prompt. Per-capability model routing: each `*_MODEL` prefix
-   (`opencode-go/` or `openrouter/`) selects the provider — any provider can
-   serve text, moderation, or image.
-2. **Moderation** – every scene's text and illustration prompt are moderated
-   (AI text + image); unsafe output is regenerated once, else fails as
-   `unsafe_unrecoverable`.
-3. **Illustration** – only **approved** prompts are rendered to optimized WebP.
-4. **Final validation** – each scene gets localized `altText` and is validated
-   against the response schema before it's returned; failures map to typed,
-   localized errors (400/422/429/502/504).
+1. **Moderator** – the pipeline's single safety gate. It calls the provider with
+   only the allow-listed inputs (`ageBand`, `locale`, `theme`, `sceneCount`),
+   then **moderates** every scene's text and illustration prompt (AI text +
+   image), regenerating once on unsafe output (else `unsafe_unrecoverable`).
+2. **Planner** – derives the story `Outline` (scene structure + theme-aligned
+   purposes) from the approved narrative.
+3. **Writer** – materializes the localized `WrittenStory` (title + scenes, with
+   illustration prompts) from the approved narrative.
+4. **Illustrator** – renders only **approved** prompts to optimized WebP with
+   bounded concurrency and whole-set retry, so a story is never partially
+   illustrated.
+5. **Coordinator** – composes the stages, retries transient failures (bounded,
+   env-driven), enforces the ≤120 s latency budget, and assembles + validates
+   the final `GeneratedStory`.
+6. **Reader** – exposes a scene's text for **on-demand** narration via the
+   dedicated `/api/narrate` endpoint (no audio is ever embedded in the story
+   payload).
+
+Every scene gets localized `altText` and is validated against the response
+schema before it's returned; failures map to typed, localized errors
+(400/422/429/502/504). Per-capability model routing: each `*_MODEL` prefix
+(`opencode-go/` or `openrouter/`) selects the provider — any provider can serve
+text, moderation, image, or TTS.
 
 All AI-vendor calls stay behind a server-only adapter
 (`story-generation/server`); raw provider output never reaches the client, and
@@ -126,7 +137,7 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Format     | no Prettier drift           |
   | Typecheck  | strict TypeScript, no `any` |
 
-- **Per push/PR to `main`/`develop`** (CI, run automatically, on top of the
+- **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):
 
   | Validation       | What it checks                                          |

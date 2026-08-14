@@ -70,10 +70,10 @@ function resolveDeps(deps: OpenRouterDeps) {
   const env = requiresEnv ? getEnv() : null;
   return {
     apiKey: deps.apiKey ?? env?.OPENROUTER_API_KEY ?? "",
-    textModel: deps.textModel ?? (env ? modelWithoutProviderPrefix(env.TEXT_MODEL) : ""),
-    imageModel: deps.imageModel ?? (env ? modelWithoutProviderPrefix(env.IMAGE_MODEL) : ""),
+    textModel: deps.textModel ?? (env ? modelWithoutProviderPrefix(env.PLANNER_MODEL) : ""),
+    imageModel: deps.imageModel ?? (env ? modelWithoutProviderPrefix(env.ILLUSTRATOR_MODEL) : ""),
     moderationModel:
-      deps.moderationModel ?? (env ? modelWithoutProviderPrefix(env.MODERATION_MODEL) : ""),
+      deps.moderationModel ?? (env ? modelWithoutProviderPrefix(env.MODERATOR_MODEL) : ""),
     baseUrl: deps.baseUrl ?? DEFAULT_BASE_URL,
     timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     maxRetries: deps.maxRetries ?? 2,

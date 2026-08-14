@@ -16,9 +16,11 @@ const values = (overrides: Partial<typeof process.env> = {}) => {
   const base = {
     OPENROUTER_API_KEY: "sk-or-test",
     OPENCODE_GO_API_KEY: "sk-oc-test",
-    TEXT_MODEL: "openrouter/qwen/qwen3.7-flash",
-    IMAGE_MODEL: "openrouter/openai/gpt-5-image-mini",
-    MODERATION_MODEL: "openrouter/openai/gpt-4o-mini",
+    PLANNER_MODEL: "openrouter/qwen/qwen3.7-flash",
+    WRITER_MODEL: "openrouter/qwen/qwen3.7-flash",
+    MODERATOR_MODEL: "openrouter/openai/gpt-4o-mini",
+    ILLUSTRATOR_MODEL: "openrouter/openai/gpt-5-image-mini",
+    READER_MODEL: "openrouter/hexgrad/kokoro-82m",
   };
   for (const [key, val] of Object.entries({ ...base, ...overrides })) {
     process.env[key] = val as string;
@@ -31,9 +33,11 @@ describe("DEFAULT_SEAMS (production adapter binding)", () => {
     for (const key of [
       "OPENROUTER_API_KEY",
       "OPENCODE_GO_API_KEY",
-      "TEXT_MODEL",
-      "IMAGE_MODEL",
-      "MODERATION_MODEL",
+      "PLANNER_MODEL",
+      "WRITER_MODEL",
+      "MODERATOR_MODEL",
+      "ILLUSTRATOR_MODEL",
+      "READER_MODEL",
     ] as const) {
       delete process.env[key];
     }
@@ -54,7 +58,7 @@ describe("DEFAULT_SEAMS (production adapter binding)", () => {
   });
 
   it("storyProviderFactory routes an opencode-go route to the OpenCode adapter", () => {
-    values({ TEXT_MODEL: "opencode-go/qwen/qwen3.7-flash" });
+    values({ PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash" });
     const factory = DEFAULT_SEAMS.storyProviderFactory({
       capability: "text",
       provider: "opencode-go",
@@ -81,7 +85,7 @@ describe("DEFAULT_SEAMS (production adapter binding)", () => {
   });
 
   it("illustrationFactory routes an opencode-go image route to the OpenCode illustrator", async () => {
-    values({ IMAGE_MODEL: "opencode-go/qwen/qwen3_image" });
+    values({ ILLUSTRATOR_MODEL: "opencode-go/qwen/qwen3_image" });
     const illustrate = DEFAULT_SEAMS.illustrationFactory({
       capability: "image",
       provider: "opencode-go",

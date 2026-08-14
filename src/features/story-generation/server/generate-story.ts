@@ -5,59 +5,53 @@ import {
   toErrorJson,
   unsafeUnrecoverable,
 } from "../../../lib/http-errors";
-import { storyResponseSchema, type GeneratedStory, type SafeError } from "./schemas";
-import { runSafetyPipeline } from "./safety-pipeline";
-import {
-  ProviderError,
-  type ProviderStoryInput,
-  type StoryGenerationProvider,
-} from "./story-generation-provider";
+import { generateStoryPipeline, createGenerationToken } from "./agents";
+import type { JobContext } from "./agents/types";
+import { type GeneratedStory, type SafeError } from "./schemas";
+import type { ProviderStoryInput, StoryGenerationProvider } from "./story-generation-provider";
 
 /**
- * N-scene generation orchestration (T027). Composes the provider, the safety
- * pipeline, and illustration generation into one anonymous story request:
+ * N-scene generation orchestration (T027 → 006 multi-agent pipeline).
  *
- * 1. `runSafetyPipeline` moderates the structured narrative (text **and** each
- *    illustration prompt) with bounded auto-regeneration.
- * 2. A consistent three-image set is generated from the moderated prompts,
- *    with bounded whole-set retry when any illustration is missing/oversized.
- * 3. Every scene gets localized alt text; the result is validated against the
- *    story-response schema before it may be returned.
+ * `generateStory` is the thin, contract-stable entry point. It builds an
+ * anonymous `JobContext` and delegates to the `Coordinator`, which runs the
+ * multi-agent pipeline (Planner → Writer → Moderator →
+ * Illustrator). This keeps the external `POST /api/stories` contract, the
+ * `GeneratedStory` model, the privacy/anonymous boundary, and the frontend
+ * behavior identical while decomposing the work into focused agents
+ * (specs/006-multi-agent-story-generation/).
  *
  * Provider transport failures are mapped to typed HTTP errors (unavailable →
  * 502, timeout → 504). Unsafe results never reach the caller. The requested
- * scene count (`input.sceneCount`, 3–5) is enforced here and in the safety
- * pipeline against the shared `MIN_SCENES`/`MAX_SCENES` constants, so a story
- * is only success when exactly the requested number of scenes is complete.
+ * scene count (`input.sceneCount`, 3–5) is enforced by the Coordinator and the
+ * safety pipeline against the shared `MIN_SCENES`/`MAX_SCENES` constants, so a
+ * story is only success when exactly the requested number of scenes is
+ * complete.
  */
-
-/** Default limit for a serialized WebP data-URI illustration (responses stay bounded). */
-const DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH = 4 * 1024 * 1024;
-
-/**
- * Default max illustrations generated in parallel for one set (ADR 0005).
- * Limited (not unbounded) to mitigate provider rate-limit and preserve visual
- * or character consistency between scenes.
- */
-const DEFAULT_ILLUSTRATION_CONCURRENCY = 2;
 
 export interface IllustrationResult {
-  /** Optimized WebP data-URI for a scene (validated here for size/format). */
+  /** Optimized WebP data-URI for a scene (validated for size/format). */
   dataUri: string;
 }
 
 export interface GenerateStoryOptions {
   /** Anonymous request: only ageBand, locale, theme, and requested scene count. */
   input: ProviderStoryInput;
-  provider: StoryGenerationProvider;
+  /**
+   * Shared provider used by all text agents when no per-agent providers are
+   * given (backward compat). Optional: when per-agent providers are supplied,
+   * each agent uses its own model instead.
+   */
+  provider?: StoryGenerationProvider;
+  /** Optional per-agent providers (spec 006). When absent, the single `provider` is shared. */
+  plannerProvider?: StoryGenerationProvider;
+  writerProvider?: StoryGenerationProvider;
+  moderatorProvider?: StoryGenerationProvider;
   /** Generates an optimized illustration from a moderated scene prompt. */
   illustrate: (prompt: string) => Promise<IllustrationResult>;
   /** Bounded retries for the whole illustration set (default 1). */
   imageRetries?: number;
-  /**
-   * Max illustrations generated concurrently within a set (ADR 0005, default 2).
-   * Kept conservative to avoid provider rate-limit and character-style drift.
-   */
+  /** Max illustrations generated concurrently within a set (ADR 0005, default 2). */
   illustrationConcurrency?: number;
   /** Response-size guard on each illustration data URI (override for tests). */
   maxIllustrationDataUriLength?: number;
@@ -66,103 +60,27 @@ export interface GenerateStoryOptions {
 export type GenerateStoryResult =
   { ok: true; story: GeneratedStory } | { ok: false; error: SafeError };
 
-/** Maps provider transport errors to the typed, localized HTTP error contract. */
-function mapProviderError(error: unknown): SafeError {
-  if (error instanceof ProviderError) {
-    if (error.kind === "timeout") return toErrorJson(generationTimeout);
-    // unavailable and invalid_structured_output both mean "no valid result".
-    return toErrorJson(generationUnavailable);
-  }
-  return toErrorJson(generationUnavailable);
-}
-
-function isValidIllustration(dataUri: string, maxLength: number): boolean {
-  return /^data:image\/webp;base64,/.test(dataUri) && dataUri.length <= maxLength;
-}
-
-/**
- * Runs `worker` for `items` with at most `limit` in flight at once, resolving
- * in input order. ADR 0005: illustration sets are generated with **limited**
- * concurrency rather than `Promise.all` (which would spike provider rate-limit
- * and weaken style consistency between scenes). If any worker rejects, the
- * remaining slots stop dispatching (a `cancelled` flag short-circuits the
- * loop) so the caller can retry the whole set without leaking extra work into
- * the aborted attempt. In-flight provider calls can't be undone, but no *new*
- * prompt is issued once the set has failed.
- */
-async function mapWithConcurrency<T, R>(
-  items: readonly T[],
-  limit: number,
-  worker: (item: T, index: number) => Promise<R>
-): Promise<R[]> {
-  const results = new Array<R | undefined>(items.length);
-  let nextIndex = 0;
-  let cancelled = false;
-
-  async function runSlot() {
-    try {
-      while (!cancelled && nextIndex < items.length) {
-        const index = nextIndex;
-        nextIndex += 1;
-        // `index` was < items.length when read below, so the item is defined.
-        const item = items[index];
-        results[index] = await worker(item!, index);
-      }
-    } finally {
-      // A rejection (or a sibling slot finishing) halts further dispatch.
-      cancelled = true;
-    }
-  }
-
-  const slotCount = Math.min(limit, items.length);
-  await Promise.all(Array.from({ length: slotCount }, () => runSlot()));
-  return results as R[];
-}
-
-/**
- * Generates a consistent N-image set with bounded whole-set retry and limited
- * concurrency (ADR 0005). Returns the data URIs in scene order, or `null` when
- * the set stays incomplete. Any failed/oversized illustration rejects the whole
- * set so a story is never partially illustrated.
- */
-async function illustrateSet(
-  prompts: string[],
-  options: GenerateStoryOptions
-): Promise<string[] | null> {
-  const maxLength =
-    options.maxIllustrationDataUriLength ?? DEFAULT_MAX_ILLUSTRATION_DATA_URI_LENGTH;
-  const retries = options.imageRetries ?? 1;
-  const concurrency = options.illustrationConcurrency ?? DEFAULT_ILLUSTRATION_CONCURRENCY;
-
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      const dataUris = await mapWithConcurrency(prompts, concurrency, async (prompt) => {
-        const result = await options.illustrate(prompt);
-        if (!isValidIllustration(result.dataUri, maxLength)) {
-          throw new Error("invalid illustration");
-        }
-        return result.dataUri;
-      });
-      return dataUris;
-    } catch {
-      if (attempt >= retries) return null;
-    }
+/** Maps an agent error code (preserved from the provider boundary) to a SafeError. */
+function safeErrorFor(errorCode: string | undefined): SafeError {
+  switch (errorCode) {
+    case "generation_timeout":
+      return toErrorJson(generationTimeout);
+    case "unsafe_unrecoverable":
+      return toErrorJson(unsafeUnrecoverable);
+    default:
+      // Unknown / absent code from a stage = a transport (generation) failure → 502.
+      return toErrorJson(generationUnavailable);
   }
 }
 
-/** Deterministic, localized, age-safe alt text (never a direct identifier). */
-function altTextFor(
-  locale: "pt-BR" | "en",
-  theme: "courage" | "friendship" | "kindness",
-  ordinal: number
-): string {
-  if (locale === "en") {
-    const themeEn =
-      theme === "courage" ? "courage" : theme === "friendship" ? "friendship" : "kindness";
-    return `Scene ${ordinal} of a story about ${themeEn}.`;
-  }
-  const themePt = theme === "courage" ? "coragem" : theme === "friendship" ? "amizade" : "bondade";
-  return `Ilustração da cena ${ordinal} de uma história sobre ${themePt}.`;
+function buildJobContext(input: ProviderStoryInput): JobContext {
+  return {
+    ageBand: input.ageBand,
+    locale: input.locale,
+    theme: input.theme,
+    sceneCountRequested: input.sceneCount,
+    generationToken: createGenerationToken(),
+  };
 }
 
 /**
@@ -170,56 +88,35 @@ function altTextFor(
  * 3–5 scene story (matching `input.sceneCount`) or a typed safe error.
  */
 export async function generateStory(options: GenerateStoryOptions): Promise<GenerateStoryResult> {
-  const { input, provider } = options;
+  const { input, illustrate, imageRetries, illustrationConcurrency, maxIllustrationDataUriLength } =
+    options;
 
-  let safetyDecision: "approved" | "regenerated";
-  let title: string;
-  let scenes: { ordinal: number; title: string; body: string; illustrationPrompt: string }[];
-
-  try {
-    const moderated = await runSafetyPipeline({ provider, input });
-    if (!moderated.ok) return { ok: false, error: moderated.error };
-    safetyDecision = moderated.candidate.safetyDecision;
-    title = moderated.candidate.title;
-    scenes = moderated.candidate.scenes;
-  } catch (error) {
-    return { ok: false, error: mapProviderError(error) };
+  const ctx = buildJobContext(input);
+  // Per-agent providers: when only a single provider is given (backward compat
+  // for test fakes), all three text agents share it. When per-agent providers
+  // are passed, each agent uses its own model. At least one source must exist.
+  if (!options.provider && !options.plannerProvider) {
+    throw new Error("generateStory requires a provider (single or per-agent).");
   }
+  const plannerProvider = options.plannerProvider ?? options.provider!;
+  const writerProvider = options.writerProvider ?? options.provider!;
+  const moderatorProvider = options.moderatorProvider ?? options.provider!;
 
-  // Defense-in-depth: the orchestration boundary re-binds the requested scene
-  // count regardless of which safety pipeline produced the candidate, so the
-  // result is only success when exactly `sceneCount` scenes are complete.
-  if (scenes.length !== input.sceneCount) {
-    return { ok: false, error: toErrorJson(unsafeUnrecoverable) };
+  const result = await generateStoryPipeline({
+    ctx,
+    seams: {
+      plannerProvider,
+      writerProvider,
+      moderatorProvider,
+      illustrate,
+      imageRetries,
+      illustrationConcurrency,
+      maxIllustrationDataUriLength,
+    },
+  });
+
+  if (result.ok) {
+    return { ok: true, story: result.value };
   }
-
-  const dataUris = await illustrateSet(
-    scenes.map((scene) => scene.illustrationPrompt),
-    options
-  );
-  if (!dataUris) {
-    return { ok: false, error: toErrorJson(generationUnavailable) };
-  }
-
-  const story: GeneratedStory = {
-    locale: input.locale,
-    ageBand: input.ageBand,
-    theme: input.theme,
-    sceneCount: input.sceneCount,
-    safetyDecision,
-    title,
-    scenes: scenes.map((scene, index) => ({
-      ordinal: scene.ordinal,
-      title: scene.title,
-      body: scene.body,
-      illustrationDataUri: dataUris[index] ?? "",
-      altText: altTextFor(input.locale, input.theme, index + 1),
-    })),
-  };
-
-  const parsed = storyResponseSchema.safeParse(story);
-  if (!parsed.success) {
-    return { ok: false, error: toErrorJson(generationUnavailable) };
-  }
-  return { ok: true, story: parsed.data };
+  return { ok: false, error: safeErrorFor(result.errorCode) };
 }

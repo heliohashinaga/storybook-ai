@@ -84,7 +84,7 @@ describe("provider-routing (capability-based)", () => {
   it("throws for an invalid capability label", () => {
     expect(() =>
       resolveCapability({
-        capability: "speech" as Capability,
+        capability: "video" as Capability,
         model: "opencode-go/qwen/qwen3.7-flash",
       })
     ).toThrowError(ProviderRoutingError);

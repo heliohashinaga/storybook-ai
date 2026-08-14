@@ -93,6 +93,11 @@ export const Busy: Story = {
       "aria-pressed",
       "true"
     );
+    // While the audio is being fetched, the control region advertises
+    // aria-busy (T034) so assistive tech knows work is in progress.
+    const group = canvasElement.querySelector("[role=group]");
+    await expect(group).toHaveAttribute("aria-busy", "true");
+    await expect(group).toHaveAttribute("aria-label", "Controle de narração");
     // The busy label is announced via the sr-only aria-live region in
     // addition to the visible button label.
     await expect(canvas.getAllByText(/obtendo o áudio da narração/i).length).toBeGreaterThanOrEqual(

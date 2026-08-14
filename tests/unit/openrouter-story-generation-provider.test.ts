@@ -220,9 +220,11 @@ describe("createOpenRouterStoryProvider", () => {
   it("reads model identifiers only from the server environment", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "sk-env");
     vi.stubEnv("OPENCODE_GO_API_KEY", "sk-opencode-env");
-    vi.stubEnv("TEXT_MODEL", "opencode-go/env/text-model");
-    vi.stubEnv("IMAGE_MODEL", "openrouter/env/image-model");
-    vi.stubEnv("MODERATION_MODEL", "openrouter/env/moderation-model");
+    vi.stubEnv("PLANNER_MODEL", "opencode-go/env/text-model");
+    vi.stubEnv("WRITER_MODEL", "opencode-go/env/text-model");
+    vi.stubEnv("MODERATOR_MODEL", "openrouter/env/moderation-model");
+    vi.stubEnv("ILLUSTRATOR_MODEL", "openrouter/env/image-model");
+    vi.stubEnv("READER_MODEL", "openrouter/env/reader-model");
 
     const { fetchImpl, calls } = createFakeFetch(() => chatCompletion(validCandidateJson()));
 

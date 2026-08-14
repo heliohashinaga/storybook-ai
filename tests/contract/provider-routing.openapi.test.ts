@@ -72,7 +72,7 @@ describe("provider-routing contract", () => {
     );
     expect(() =>
       resolveCapability({
-        capability: "speech" as Capability,
+        capability: "video" as Capability,
         model: "opencode-go/qwen/qwen3.7-flash",
       })
     ).toThrowError(ProviderRoutingError);

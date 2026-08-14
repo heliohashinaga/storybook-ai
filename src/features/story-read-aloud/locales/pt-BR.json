@@ -8,7 +8,8 @@
       "error": "Não foi possível reproduzir o áudio. Tente novamente.",
       "unavailable": "A narração por voz de IA está indisponível no momento. A cena continua legível.",
       "retry": "Tentar novamente",
-      "busy": "Obtendo o áudio da narração…"
+      "busy": "Obtendo o áudio da narração…",
+      "control": "Controle de narração"
     }
   }
 }
