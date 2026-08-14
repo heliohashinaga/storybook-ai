@@ -155,7 +155,7 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 - [X] T055 **Storybook/a11y**: `pnpm storybook:test` (default/loading/error/edge + a11y AA) — comportamento coincide com o app
 - [X] T056 **E2E/visual/perf**: `pnpm test:e2e` (pt-BR + EN, fake), `pnpm test:visual` (base aprovada da nova paleta), `pnpm test:performance` (≤250 KiB JS inicial; export PDF lazy; navegação ≤100 ms p75)
 - [X] T057 **DoD**: 6 temas no catálogo (SC-007), nenhum identificador em payload/log/catálogo/fixtures (SC-004), tokens com AA (SC-002), identidade em 100% das telas (SC-001), gates verdes (SC-005/SC-006)
-- [ ] T058 Commit: `:lipstick: feat(story-generation): adopt story-blossom-room design system + 6 themes` (gitmoji + Conventional Commits)
+- [X] T058 Commit: `:lipstick: feat(story-generation): adopt story-blossom-room design system + 6 themes` (gitmoji + Conventional Commits)
 
 ---
 
