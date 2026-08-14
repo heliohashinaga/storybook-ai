@@ -119,6 +119,10 @@ const KNOWN_KEYS = [
   "STORIES_TEST_MODE",
   "AI_NARRATION_ENABLED",
   "TTS_MODEL",
+  // pipeline & per-model-request timeout/retry (in ms / count)
+  "MODEL_TIMEOUT_MS",
+  "MODEL_MAX_ATTEMPTS",
+  "PIPELINE_TIMEOUT_MS",
   // removed legacy vars (rejected by .strict() under D5-C: no compat)
   "OPENROUTER_TEXT_MODEL",
   "OPENROUTER_IMAGE_MODEL",

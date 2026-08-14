@@ -66,22 +66,26 @@ export function createGenerationToken(): GenerationToken {
   return Buffer.from(globalThis.crypto.getRandomValues(new Uint8Array(8))).toString("hex");
 }
 
-/** Retries a stage's function up to `maxAttempts` on transient failures only. */
-async function runStage<T>(
-  fn: () => Promise<AgentResult<T>>,
-  maxAttempts: number
-): Promise<AgentResult<T>> {
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const result = await fn();
-    if (result.ok) return result;
-    if (!result.transient || attempt >= maxAttempts) return result;
-  }
-  return {
-    ok: false,
-    stage: "plan",
-    message: "story.error.generationUnavailable",
-    transient: true,
-  };
+/**
+ * Reads the end-to-end pipeline timeout budget from env (ms), default 120 s
+ * (the generation performance budget). Lets operators raise/lower the limit
+ * without a code change; the provider per-call timeout stays the real guard.
+ */
+export function defaultPipelineTimeoutMs(): number {
+  const raw = process.env.PIPELINE_TIMEOUT_MS;
+  if (!raw) return 120_000;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 1000 ? parsed : 120_000;
+}
+
+/**
+ * Runs a single pipeline stage exactly once (no pipeline-level retry). Model
+ * request retry/timeout is handled at the provider call level (per model
+ * request); if a stage still fails, the error returns for the user to retry
+ * manually (regenerate button) — a failure is never silently re-run end-to-end.
+ */
+async function runOnce<T>(fn: () => Promise<AgentResult<T>>): Promise<AgentResult<T>> {
+  return fn();
 }
 
 /**
@@ -93,15 +97,11 @@ export async function generateStoryPipeline(
   options: GenerateStoryPipelineOptions
 ): Promise<AgentResult<GeneratedStory>> {
   const { ctx, seams } = options;
-  const budgetMs = options.pipelineBudgetMs ?? 120_000;
-  const maxAttempts = Number(process.env.STORY_PIPELINE_MAX_ATTEMPTS ?? 2);
+  const budgetMs = options.pipelineBudgetMs ?? defaultPipelineTimeoutMs();
   const clock = createStopwatch();
 
   // Stage 1 — Planner: generate the story structure (Outline) via its own model.
-  const plan = await runStage(
-    () => planStory(ctx, { provider: seams.plannerProvider }),
-    maxAttempts
-  );
+  const plan = await runOnce(() => planStory(ctx, { provider: seams.plannerProvider }));
   if (!plan.ok) {
     return {
       ok: false,
@@ -114,9 +114,8 @@ export async function generateStoryPipeline(
   clock.tick("plan");
 
   // Stage 2 — Writer: generate the localized narrative via its own model.
-  const written = await runStage(
-    () => writeStory(ctx, plan.value, { provider: seams.writerProvider }),
-    maxAttempts
+  const written = await runOnce(() =>
+    writeStory(ctx, plan.value, { provider: seams.writerProvider })
   );
   if (!written.ok) {
     return {
@@ -130,9 +129,8 @@ export async function generateStoryPipeline(
   clock.tick("write");
 
   // Stage 3 — Moderator: safety gate on the Writer's narrative.
-  const moderated = await runStage(
-    () => moderateStory(ctx, written.value, { provider: seams.moderatorProvider }),
-    maxAttempts
+  const moderated = await runOnce(() =>
+    moderateStory(ctx, written.value, { provider: seams.moderatorProvider })
   );
   if (!moderated.ok) {
     return {

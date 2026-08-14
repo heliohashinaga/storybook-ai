@@ -1,14 +1,14 @@
 import "server-only";
 
 /**
- * Bounded retry policy for the multi-agent pipeline
- * (specs/006-multi-agent-story-generation/research.md).
+ * Bounded per-model-request helper (specs/006-multi-agent-story-generation).
  *
- * Agents execute over a network provider that can fail transiently (rate
- * limit 429, timeout, provider blip). Rather than retrying ad hoc inside each
- * agent, the Coordinator runs stages through a single bounded helper:
- * `runWithRetry`. Defaults are read from server-only env so the operator can
- * tune them, but the retry count is always capped (never infinite).
+ * Retry/timeout happen at the level of a SINGLE provider/model request, not the
+ * whole pipeline. The Coordinator runs each stage exactly once (no pipeline
+ * retry); if a model call still fails the error surfaces and the user retries
+ * manually (regenerate button). Defaults are read from server-only env so the
+ * operator can tune them, but the retry count is always capped (never
+ * infinite).
  */
 
 export interface RetryPolicy {
@@ -16,13 +16,25 @@ export interface RetryPolicy {
   maxAttempts: number;
 }
 
-/** Reads the pipeline max-attempts from env (default 2), server-only. */
+/** Reads the per-model-request max attempts from env (default 2). */
 export function defaultMaxAttempts(): number {
-  const raw = process.env.STORY_PIPELINE_MAX_ATTEMPTS;
+  const raw = process.env.MODEL_MAX_ATTEMPTS;
   if (!raw) return 2;
   const parsed = Number.parseInt(raw, 10);
   if (Number.isInteger(parsed) && parsed >= 1) return parsed;
   return 2;
+}
+
+/**
+ * Reads the per-model-request timeout from env (ms, default 60000). Frames a
+ * single provider/model call so a slow/hung model fails fast instead of
+ * languishing the whole pipeline.
+ */
+export function defaultModelTimeoutMs(): number {
+  const raw = process.env.MODEL_TIMEOUT_MS;
+  if (!raw) return 60_000;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isInteger(parsed) && parsed >= 1000 ? parsed : 60_000;
 }
 
 export type RetryOperation<T> = (
@@ -30,15 +42,13 @@ export type RetryOperation<T> = (
 ) => Promise<{ ok: true; value: T } | { ok: false; message?: string; transient?: boolean }>;
 
 /**
- * Runs `op` up to `maxAttempts` times. The helper exits early on the first
- * success (or the first permanent/`{ ok: false }` result) and only re-invokes
- * `op` when the previous attempt threw a *transient* error (the caller signals
- * success vs. transient failure via the discriminated return). When all
- * attempts fail or throw, it rejects so the Coordinator can map the stage to a
- * typed safe error.
+ * Re-runs a single model request `op` up to `maxAttempts` times. Exits early
+ * on success or a permanent `{ ok: false }`; only a *transient* throw is
+ * retried. This bounds a flaky per-model call without re-running the pipeline
+ * (no pipeline-level retry). All failures surface a generic, localized key.
  *
  * @param op callback receiving the 1-based attempt number
- * @param policy bounded attempt count (default env-driven, capped at 2)
+ * @param policy bounded attempt count (default env-driven, capped)
  */
 export async function runWithRetry<T>(
   op: RetryOperation<T>,

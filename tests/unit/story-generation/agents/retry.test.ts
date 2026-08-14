@@ -11,17 +11,17 @@ describe("retry policy", () => {
   });
 
   it("defaultMaxAttempts returns 2 when unset", () => {
-    delete process.env.STORY_PIPELINE_MAX_ATTEMPTS;
+    delete process.env.MODEL_MAX_ATTEMPTS;
     expect(defaultMaxAttempts()).toBe(2);
   });
 
   it("defaultMaxAttempts reads a valid env override", () => {
-    process.env.STORY_PIPELINE_MAX_ATTEMPTS = "3";
+    process.env.MODEL_MAX_ATTEMPTS = "3";
     expect(defaultMaxAttempts()).toBe(3);
   });
 
   it("defaultMaxAttempts falls back to 2 for invalid env", () => {
-    process.env.STORY_PIPELINE_MAX_ATTEMPTS = "not-a-number";
+    process.env.MODEL_MAX_ATTEMPTS = "not-a-number";
     expect(defaultMaxAttempts()).toBe(2);
   });
 
