@@ -148,7 +148,7 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 ## Phase 9 — Polonia & cross-cutting (review final)
 
-- [ ] T051 **Review**: revisar `contracts/design-tokens-and-themes.md` — atualizar o trecho `story-generation.openapi.yaml` do enum `theme` (3→6) se ainda não atualizado na US4
+- [ ] T051 **Review**: revisar `contracts/design-tokens-and-themes.md` e `contracts/design-system.md` — atualizar o trecho `story-generation.openapi.yaml` do enum `theme` (3→6) se ainda não atualizado na US4; confirmar que os valores/tokens do design-system.md foram registrados em `globals.css`/`tailwind.config.ts`
 - [ ] T052 **Gates**: `pnpm lint` (0 warnings), `pnpm format:check` (sem drift), `pnpm typecheck` (sem `any` novo) e `pnpm format` em qualquer arquivo novo/editado — **após a última edição**
 - [ ] T053 **Test**: `pnpm test` (unit/contrato/pipeline) e `pnpm test:coverage:check` (≥80% total; ≥90% safety/validation/orchestration)
 - [ ] T054 **Storybook/a11y**: `pnpm storybook:test` (default/loading/error/edge + a11y AA) — comportamento coincide com o app
@@ -171,6 +171,6 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 ## Notas
 
 - Nenhum teste chama AI real — fakes + fixtures da US4 (T018) suprem fakes/visual/e2e; T024 garante, também, o encaminhamento do `theme` nos adapters reais (opencode/openrouter) para SC-007.
-- Mapeamento de tokens `accent`→`primary` (paleta): decisão de implementação — ver `contracts/design-tokens-and-themes.md` §2 e US6 (T047/T048).
+- Mapeamento de tokens `accent`→`primary` (paleta): decisão de implementação — ver `contracts/design-system.md` §2 nota e US6 (T047/T048).
 - A nova paleta é a **nova linha de base** da regressão visual (churn de cor esperado e aprovado, não como diff indesejado).
-- `tasks.md` foi gerado por `/speckit.tasks`; seguir `checklists/requirements.md` e `contracts/design-tokens-and-themes.md`.
+- `tasks.md` foi gerado por `/speckit.tasks`; seguir `checklists/requirements.md`, `contracts/design-tokens-and-themes.md` e `contracts/design-system.md`.

@@ -1,7 +1,7 @@
 # Quickstart — Validação da identidade visual e da expansão de temas
 
 **Phase 1 output** — guia de validação acionável. Detalhes de implementação ficam em `tasks.md`;
-contratos e entidades em `contracts/design-tokens-and-themes.md` e `data-model.md` (não duplicados
+contratos e entidades em `contracts/design-tokens-and-themes.md`, `contracts/design-system.md` e `data-model.md` (não duplicados
 aqui).
 
 ## Pré-requisitos
@@ -86,4 +86,4 @@ orçamento; a importação pesada de export PDF permanece atrasada.
 - A nova paleta é a linha de base aprovada da regressão visual (o churn de cor é esperado e
   aprovado como base nova, não como diff indesejado — SC-001).
 - Detalhes de implementação (mapas de tokens, `tasks.md` por arquivo) seguem em `tasks.md` e
-  `contracts/design-tokens-and-themes.md`.
+  `contracts/design-tokens-and-themes.md` e `contracts/design-system.md`.

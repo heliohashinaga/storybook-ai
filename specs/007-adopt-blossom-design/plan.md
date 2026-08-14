@@ -94,7 +94,9 @@ specs/007-adopt-blossom-design/
 ├── research.md          # Phase 0 output — decisão de tokens/paleta, fontes e escopo de temas
 ├── data-model.md        # Phase 1 output — entidades: Theme union ampliada, tokens visuais, catálogo
 ├── quickstart.md        # Phase 1 output — guia de validação end-to-end
-├── contracts/           # Phase 1 output — contrato de temas (schema/catálogo) e tokens visuais
+├── contracts/           # Phase 1 output — contrato de temas (schema/catálogo), tokens visuais e o estudo `design-system.md`
+│   ├── design-tokens-and-themes.md   # contrato do enum `theme` + tokens
+│   └── design-system.md              # estudo da identidade visual (valores/uso) extraído do story-blossom-room
 └── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 
