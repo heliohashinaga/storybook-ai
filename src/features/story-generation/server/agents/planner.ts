@@ -1,24 +1,24 @@
 import "server-only";
 import type { AgentResult } from "./agent-result";
 import type { JobContext, Outline, SceneOutline } from "./types";
-import type { ModeratedStoryCandidate } from "../safety-pipeline";
-import type { ProviderStoryInput } from "../story-generation-provider";
+import type {
+  ProviderError,
+  ProviderStoryInput,
+  StoryGenerationProvider,
+} from "../story-generation-provider";
 
 /**
- * Planner agent (specs/006-multi-agent-story-generation/data-model.md).
+ * Planner agent (specs/006-multi-agent-story-generation).
  *
- * Given the Moderator-approved narrative, the Planner derives the `Outline` —
- * the anti-anonymous structural plan of the story: one scene per approved
- * scene, in order, with a theme-aligned purpose and no identifiers. It IS a
- * pure, deterministic transform of the moderated candidate (no provider call),
- * so the Coordinator can run it only after the safety gate has passed and any
- * safe regeneration has settled.
+ * The Planner is the first stage of the pipeline and genuinely plans the story
+ * structure. It calls its own LLM (`plannerProvider` → `PLANNER_MODEL`) to
+ * generate the story skeleton, then derives a validated `Outline` (scene count,
+ * theme-aligned purposes) from that generation — *not* from any other agent's
+ * output.
  */
 
-/** Surface type for a Planner capability seam (currently unused — reserved). */
 export interface PlannerSeams {
-  /** Reserved for a future planning capability; today planning is a pure transform. */
-  readonly _?: never;
+  provider: StoryGenerationProvider;
 }
 
 /** Builds the anonymous provider input from the job context (no identifiers). */
@@ -39,41 +39,72 @@ export function purposeFor(ctx: JobContext, index: number): string {
 }
 
 /**
- * Produces the `Outline` from the approved, moderated narrative. Returns
- * `Ok<Outline>` (3–5 scenes) when the candidate is structurally sound, or an
- * `Err` when the candidate is malformed (defense-in-depth; the Moderator and
- * Coordinator also validate, so this is a cheap re-derivation gate).
+ * Plans the story structure by calling its own provider. Returns
+ * `Ok<Outline>` (3–5 scenes, one purpose per scene aligned to the theme),
+ * or an `Err` for a provider transport failure (transient so the Coordinator
+ * may retry) or a structural mismatch.
  *
- * @param ctx anonymous job context
- * @param approved the safety-approved narrative (moderated candidate)
+ * @param ctx   anonymous job context
+ * @param seams provider for planning
  */
-export function planStory(
+export async function planStory(
   ctx: JobContext,
-  approved: ModeratedStoryCandidate
-): AgentResult<Outline> {
-  if (!approved || !Array.isArray(approved.scenes) || approved.scenes.length < 3) {
+  seams: PlannerSeams
+): Promise<AgentResult<Outline>> {
+  const { provider } = seams;
+  if (ctx.sceneCountRequested < 3 || ctx.sceneCountRequested > 5) {
+    return {
+      ok: false,
+      stage: "plan",
+      message: "story.error.invalidInput",
+      transient: false,
+    };
+  }
+
+  let candidate;
+  try {
+    candidate = await provider.generateStory(providerInputFor(ctx));
+  } catch (error) {
+    const err = error as ProviderError | undefined;
+    if (err && "kind" in err) {
+      return {
+        ok: false,
+        stage: "plan",
+        message:
+          err.kind === "timeout"
+            ? "story.error.generationTimeout"
+            : "story.error.generationUnavailable",
+        transient: true,
+        errorCode: err.kind === "timeout" ? "generation_timeout" : "generation_unavailable",
+      };
+    }
+    return {
+      ok: false,
+      stage: "plan",
+      message: "story.error.generationUnavailable",
+      transient: true,
+    };
+  }
+
+  if (
+    !candidate ||
+    !Array.isArray(candidate.scenes) ||
+    candidate.scenes.length !== ctx.sceneCountRequested
+  ) {
     return {
       ok: false,
       stage: "plan",
       message: "story.error.generationUnavailable",
       transient: false,
+      errorCode: "unsafe_unrecoverable",
     };
   }
 
-  const scenes: SceneOutline[] = approved.scenes.map((scene, index) => ({
+  const scenes: SceneOutline[] = candidate.scenes.map((_scene, index) => ({
     index: index + 1,
     purpose: purposeFor(ctx, index + 1),
     setting: undefined,
   }));
-
-  if (scenes.length !== ctx.sceneCountRequested) {
-    return {
-      ok: false,
-      stage: "plan",
-      message: "story.error.generationUnavailable",
-      transient: false,
-    };
-  }
 
   return { ok: true, value: { scenes } };
 }

@@ -15,21 +15,30 @@ const envSchema = z
     OPENROUTER_API_KEY: z.string().min(1),
     OPENCODE_GO_API_KEY: z.string().min(1),
     /**
-     * Per-capability model identifiers in `provider/model` convention. The first
+     * Per-agent model identifiers in `provider/model` convention. The first
      * segment before the first `/` identifies the provider; a value without a
      * known provider prefix (or with an unknown one) is a boot-time config
-     * error, never silent (spec 005 FR-002).
+     * error, never silent (spec 006: each pipeline agent routes to its own
+     * model/provider).
      */
-    TEXT_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
+    PLANNER_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
       message:
-        "TEXT_MODEL must name a provider via its first segment (opencode-go|openrouter), e.g. opencode-go/qwen/qwen3.7-flash.",
+        "PLANNER_MODEL must name a provider via its first segment (opencode-go|openrouter), e.g. opencode-go/qwen/qwen3.7-flash.",
     }),
-    IMAGE_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
-      message: "IMAGE_MODEL must name a provider via its first segment (opencode-go|openrouter).",
-    }),
-    MODERATION_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
+    WRITER_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
       message:
-        "MODERATION_MODEL must name a provider via its first segment (opencode-go|openrouter).",
+        "WRITER_MODEL must name a provider via its first segment (opencode-go|openrouter), e.g. opencode-go/qwen/qwen3.7-flash.",
+    }),
+    MODERATOR_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
+      message:
+        "MODERATOR_MODEL must name a provider via its first segment (opencode-go|openrouter), e.g. opencode-go/qwen/qwen3.7-flash.",
+    }),
+    ILLUSTRATOR_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
+      message:
+        "ILLUSTRATOR_MODEL must name a provider via its first segment (opencode-go|openrouter).",
+    }),
+    READER_MODEL: z.string().min(1).refine(hasKnownProviderPrefix, {
+      message: "READER_MODEL must name a provider via its first segment (opencode-go|openrouter).",
     }),
     /**
      * Test-only mode switch for the generation and TTS runtimes (read by
@@ -99,12 +108,14 @@ export function parseEnv(source: NodeJS.ProcessEnv | Record<string, string | und
 
 /** Keys the server env schema owns, plus legacy vars it must reject under D5-C. */
 const KNOWN_KEYS = [
-  // new per-capability schema
+  // per-agent schema (spec 006)
   "OPENROUTER_API_KEY",
   "OPENCODE_GO_API_KEY",
-  "TEXT_MODEL",
-  "IMAGE_MODEL",
-  "MODERATION_MODEL",
+  "PLANNER_MODEL",
+  "WRITER_MODEL",
+  "MODERATOR_MODEL",
+  "ILLUSTRATOR_MODEL",
+  "READER_MODEL",
   "STORIES_TEST_MODE",
   "AI_NARRATION_ENABLED",
   "TTS_MODEL",

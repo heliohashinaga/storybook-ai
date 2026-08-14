@@ -7,10 +7,10 @@ import {
 } from "../../../lib/env";
 
 /**
- * Capabilities the router can resolve. `speech`/TTS is intentionally excluded:
- * it is handled by story-read-aloud (feature 004) and OpenRouter-only for now.
+ * Capabilities the router can resolve. `speech`/TTS is now included for the
+ * Reader agent (spec 006); it was previously handled by story-read-aloud alone.
  */
-export type Capability = "text" | "moderation" | "image";
+export type Capability = "text" | "moderation" | "image" | "speech";
 
 /** Canonical provider identifiers understood by capability routing (spec 005). */
 export const ProviderIdSet: readonly ProviderId[] = PROVIDER_IDS;
@@ -40,7 +40,28 @@ export class ProviderRoutingError extends Error {
   readonly name = "ProviderRoutingError";
 }
 
-const CAPABILITIES: readonly Capability[] = ["text", "moderation", "image"];
+const CAPABILITIES: readonly Capability[] = ["text", "moderation", "image", "speech"];
+
+/** Maps a pipeline agent id to its capability (spec 006 per-agent models). */
+export const CAPABILITY_BY_AGENT: Record<AgentId, Capability> = {
+  planner: "text",
+  writer: "text",
+  moderator: "moderation",
+  illustrator: "image",
+  reader: "speech",
+};
+
+/** Canonical agent ids for per-agent model routing (spec 006). */
+export type AgentId = "planner" | "writer" | "moderator" | "illustrator" | "reader";
+
+/** Per-agent model env var names (spec 006). */
+export const MODEL_VAR_BY_AGENT: Record<AgentId, string> = {
+  planner: "PLANNER_MODEL",
+  writer: "WRITER_MODEL",
+  moderator: "MODERATOR_MODEL",
+  illustrator: "ILLUSTRATOR_MODEL",
+  reader: "READER_MODEL",
+};
 
 /**
  * Resolve the concrete provider + effective model for one capability from the
@@ -55,7 +76,7 @@ export function resolveCapability(input: { capability: Capability; model: string
 
   if (!CAPABILITIES.includes(capability)) {
     throw new ProviderRoutingError(
-      `Unsupported capability "${capability}"; expected text, moderation, or image.`
+      `Unsupported capability "${capability}"; expected text, moderation, image, or speech.`
     );
   }
 

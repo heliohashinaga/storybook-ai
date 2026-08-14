@@ -23,7 +23,7 @@ import { ProviderError } from "./story-generation-provider";
  * capability the router derives from the `*_MODEL` prefix — here `text`,
  * `moderation`, and `moderateImage` all go through chat completions. It does
  * NOT generate illustrations (that is `create-opencode-illustration.ts` when
- * `IMAGE_MODEL` routes to `opencode-go`).
+ * `ILLUSTRATOR_MODEL` routes to `opencode-go`).
  *
  * Transport is a single injectable `fetchImpl` via the OpenAI-compatible SDK;
  * injecting `fetch` keeps every test deterministic with no live AI.
@@ -70,9 +70,9 @@ function resolveDeps(deps: OpenCodeDeps) {
   const env = requiresEnv ? getEnv() : null;
   return {
     apiKey: deps.apiKey ?? env?.OPENCODE_GO_API_KEY ?? "",
-    textModel: deps.textModel ?? (env ? modelWithoutProviderPrefix(env.TEXT_MODEL) : ""),
+    textModel: deps.textModel ?? (env ? modelWithoutProviderPrefix(env.PLANNER_MODEL) : ""),
     moderationModel:
-      deps.moderationModel ?? (env ? modelWithoutProviderPrefix(env.MODERATION_MODEL) : ""),
+      deps.moderationModel ?? (env ? modelWithoutProviderPrefix(env.MODERATOR_MODEL) : ""),
     baseUrl: deps.baseUrl ?? DEFAULT_BASE_URL,
     timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     maxRetries: deps.maxRetries ?? 2,

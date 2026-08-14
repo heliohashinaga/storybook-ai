@@ -5,13 +5,6 @@ import { createFakeProvider } from "../../../fixtures/story-generation/provider-
 
 const WEBP = "data:image/webp;base64,QUJDRA==";
 
-/**
- * T036 — latency & budget: the pipeline is latency-bounded end-to-end (full
- * generation budget ≤ 120 s; the Coordinator accepts a configurable
- * `pipelineBudgetMs`). When a stage pushes the total elapsed time past the
- * budget, the Coordinator must surface a typed `generation_timeout` rather
- * than a stale/partial story — even if the provider would otherwise succeed.
- */
 describe("pipeline latency & budget (T036)", () => {
   const ctx: JobContext = {
     ageBand: "5-7",
@@ -27,7 +20,9 @@ describe("pipeline latency & budget (T036)", () => {
     const result = await generateStoryPipeline({
       ctx,
       seams: {
-        provider: fake.provider,
+        plannerProvider: fake.provider,
+        writerProvider: fake.provider,
+        moderatorProvider: fake.provider,
         illustrate: async () => ({ dataUri: WEBP }),
       },
     });
@@ -41,8 +36,9 @@ describe("pipeline latency & budget (T036)", () => {
     const result = await generateStoryPipeline({
       ctx,
       seams: {
-        provider: fake.provider,
-        // A slow illustration crosses the artificially tiny budget.
+        plannerProvider: fake.provider,
+        writerProvider: fake.provider,
+        moderatorProvider: fake.provider,
         illustrate: async () => {
           await new Promise((r) => setTimeout(r, 30));
           return { dataUri: WEBP };

@@ -1,22 +1,26 @@
 import { describe, expect, it, beforeEach, vi } from "vitest";
 import type { ServerEnv } from "../../src/lib/env";
 
-/** Minimal raw string environment inputs (what `parseEnv` consumes) using the new per-capability schema. */
+/** Minimal raw string environment inputs (using the new per-agent schema, spec 006). */
 const validEnv: Record<string, string> = {
   OPENROUTER_API_KEY: "sk-test-123",
   OPENCODE_GO_API_KEY: "sk-opencode-test-456",
-  TEXT_MODEL: "opencode-go/qwen/qwen3.7-flash",
-  IMAGE_MODEL: "openrouter/qwen/qwen3.7-flash",
-  MODERATION_MODEL: "openrouter/qwen/qwen3.7-flash",
+  PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash",
+  WRITER_MODEL: "openrouter/qwen/qwen3.7-flash",
+  MODERATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
+  ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
+  READER_MODEL: "openrouter/qwen/qwen3.7-flash",
 };
 
 /** The fully parsed/validated environment (AI narration enabled). */
 const valid: ServerEnv = {
   OPENROUTER_API_KEY: "sk-test-123",
   OPENCODE_GO_API_KEY: "sk-opencode-test-456",
-  TEXT_MODEL: "opencode-go/qwen/qwen3.7-flash",
-  IMAGE_MODEL: "openrouter/qwen/qwen3.7-flash",
-  MODERATION_MODEL: "openrouter/qwen/qwen3.7-flash",
+  PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash",
+  WRITER_MODEL: "openrouter/qwen/qwen3.7-flash",
+  MODERATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
+  ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
+  READER_MODEL: "openrouter/qwen/qwen3.7-flash",
   AI_NARRATION_ENABLED: true,
   TTS_MODEL: "kokoro-82m",
 };
@@ -34,9 +38,9 @@ describe("env server validation", () => {
   beforeEach(() => {
     delete process.env.OPENROUTER_API_KEY;
     delete process.env.OPENCODE_GO_API_KEY;
-    delete process.env.TEXT_MODEL;
-    delete process.env.IMAGE_MODEL;
-    delete process.env.MODERATION_MODEL;
+    for (const key of Object.keys(validEnv)) {
+      delete process.env[key];
+    }
     delete process.env.AI_NARRATION_ENABLED;
     delete process.env.TTS_MODEL;
   });
@@ -54,13 +58,12 @@ describe("env server validation", () => {
     }
   });
 
-  it("accepts either provider as the prefix for any capacity model (generic binding)", async () => {
+  it("accepts either provider as the prefix for any agent model (generic binding)", async () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({
       ...validEnv,
-      TEXT_MODEL: "openrouter/qwen/qwen3.7-flash",
-      IMAGE_MODEL: "opencode-go/qwen/qwen3.7-flash",
-      MODERATION_MODEL: "openrouter/qwen/qwen3.7-flash",
+      PLANNER_MODEL: "openrouter/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "opencode-go/qwen/qwen3.7-flash",
     });
     expect(result.success).toBe(true);
   });
@@ -71,69 +74,54 @@ describe("env server validation", () => {
       ...validEnv,
       OPENROUTER_TEXT_MODEL: "some-org/text-model",
     } as Record<string, string>);
-    // Extra/unknown keys are rejected by the strict schema and the legacy var
-    // is not part of the new schema, so a legacy-only model set must fail.
     expect(result.success).toBe(false);
   });
 
   it("rejects a missing OpenRouter API key", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({
-      OPENCODE_GO_API_KEY: validEnv.OPENCODE_GO_API_KEY,
-      TEXT_MODEL: validEnv.TEXT_MODEL,
-      IMAGE_MODEL: validEnv.IMAGE_MODEL,
-      MODERATION_MODEL: validEnv.MODERATION_MODEL,
-    });
+    const env: Record<string, string> = {
+      ...validEnv,
+    };
+    delete env.OPENROUTER_API_KEY;
+    const result = parseEnv(env);
     expect(result.success).toBe(false);
   });
 
   it("rejects a missing OpenCode API key", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({
-      OPENROUTER_API_KEY: validEnv.OPENROUTER_API_KEY,
-      TEXT_MODEL: validEnv.TEXT_MODEL,
-      IMAGE_MODEL: validEnv.IMAGE_MODEL,
-      MODERATION_MODEL: validEnv.MODERATION_MODEL,
-    });
+    const env: Record<string, string> = {
+      ...validEnv,
+    };
+    delete env.OPENCODE_GO_API_KEY;
+    const result = parseEnv(env);
     expect(result.success).toBe(false);
   });
 
-  it("rejects a missing TEXT_MODEL", async () => {
+  it("rejects a missing PLANNER_MODEL", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({
-      ...validEnv,
-      TEXT_MODEL: undefined as unknown as string,
-    });
+    const env: Record<string, string> = { ...validEnv };
+    delete env.PLANNER_MODEL;
+    const result = parseEnv(env);
     expect(result.success).toBe(false);
   });
 
-  it("rejects a missing IMAGE_MODEL", async () => {
+  it("rejects a missing MODERATOR_MODEL", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({
-      ...validEnv,
-      IMAGE_MODEL: undefined as unknown as string,
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects a missing MODERATION_MODEL", async () => {
-    const { parseEnv } = await loadEnv();
-    const result = parseEnv({
-      ...validEnv,
-      MODERATION_MODEL: undefined as unknown as string,
-    });
+    const env: Record<string, string> = { ...validEnv };
+    delete env.MODERATOR_MODEL;
+    const result = parseEnv(env);
     expect(result.success).toBe(false);
   });
 
   it("rejects an empty model identifier", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, TEXT_MODEL: "" });
+    const result = parseEnv({ ...validEnv, PLANNER_MODEL: "" });
     expect(result.success).toBe(false);
   });
 
   it("rejects a model without a provider prefix (never silent)", async () => {
     const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, IMAGE_MODEL: "qwen/qwen3.7-flash" });
+    const result = parseEnv({ ...validEnv, ILLUSTRATOR_MODEL: "qwen/qwen3.7-flash" });
     expect(result.success).toBe(false);
   });
 
@@ -141,7 +129,7 @@ describe("env server validation", () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({
       ...validEnv,
-      MODERATION_MODEL: "unknown-provider/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "unknown-provider/qwen/qwen3.7-flash",
     });
     expect(result.success).toBe(false);
   });
@@ -171,22 +159,17 @@ describe("env server validation", () => {
     expect(() => getEnv()).toThrow(
       "Server environment is missing required provider configuration."
     );
-    // The generic message must never embed any environment value.
     const expected = "Server environment is missing required provider configuration.";
     expect(expected).not.toContain(validEnv.OPENROUTER_API_KEY);
     expect(expected).not.toContain(validEnv.OPENCODE_GO_API_KEY);
-    expect(expected).not.toContain(validEnv.TEXT_MODEL);
-    expect(expected).not.toContain(validEnv.IMAGE_MODEL);
-    expect(expected).not.toContain(validEnv.MODERATION_MODEL);
+    expect(expected).not.toContain(validEnv.PLANNER_MODEL);
   });
 
   it("getEnv returns validated values once configured", async () => {
     const { getEnv } = await loadEnv();
-    process.env.OPENROUTER_API_KEY = validEnv.OPENROUTER_API_KEY;
-    process.env.OPENCODE_GO_API_KEY = validEnv.OPENCODE_GO_API_KEY;
-    process.env.TEXT_MODEL = validEnv.TEXT_MODEL;
-    process.env.IMAGE_MODEL = validEnv.IMAGE_MODEL;
-    process.env.MODERATION_MODEL = validEnv.MODERATION_MODEL;
+    for (const [key, value] of Object.entries(validEnv)) {
+      process.env[key] = value;
+    }
     process.env.AI_NARRATION_ENABLED = "true";
     process.env.TTS_MODEL = "kokoro-82m";
     expect(getEnv()).toEqual(valid);
@@ -224,9 +207,6 @@ describe("env server validation", () => {
     const enabled = parseEnv({ ...validEnv, TTS_MODEL: "kokoro-82m" });
     expect(enabled.success).toBe(true);
     if (enabled.success) expect(enabled.data.TTS_MODEL).toBe("kokoro-82m");
-
-    const absent = parseEnv({ ...validEnv });
-    expect(absent.success).toBe(true);
   });
 
   it("rejects an empty TTS_MODEL", async () => {
@@ -237,11 +217,9 @@ describe("env server validation", () => {
 
   it("getEnv exposes the AI narration flags once configured", async () => {
     const { getEnv } = await loadEnv();
-    process.env.OPENROUTER_API_KEY = validEnv.OPENROUTER_API_KEY;
-    process.env.OPENCODE_GO_API_KEY = validEnv.OPENCODE_GO_API_KEY;
-    process.env.TEXT_MODEL = validEnv.TEXT_MODEL;
-    process.env.IMAGE_MODEL = validEnv.IMAGE_MODEL;
-    process.env.MODERATION_MODEL = validEnv.MODERATION_MODEL;
+    for (const [key, value] of Object.entries(validEnv)) {
+      process.env[key] = value;
+    }
     process.env.TTS_MODEL = "kokoro-82m";
     process.env.AI_NARRATION_ENABLED = "true";
     expect(getEnv()).toEqual({

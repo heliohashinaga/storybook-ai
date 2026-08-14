@@ -10,18 +10,20 @@ import { moderateStory } from "./moderator";
 import { illustrateStory } from "./illustrator";
 
 /**
- * Coordinator agent (specs/006-multi-agent-story-generation/data-model.md).
+ * Coordinator agent (specs/006-multi-agent-story-generation).
  *
  * The Coordinator is the composition root of the multi-agent pipeline. It runs
- * the safety gate, then orchestrates the remaining in-memory agents against the
- * approved narrative and assembles a validated `GeneratedStory`. Stage order:
+ * the agents in order, each with its own provider/model (per-agent routing,
+ * spec 006). Stage order:
  *
- *   Moderator (safety gate: fetch + moderate + bounded regeneration)
- *     → Planner (outline) → Writer (localized narrative) → Illustrator (images)
+ *   Planner (generate outline via PLANNER_MODEL)
+ *     → Writer (generate narrative via WRITER_MODEL)
+ *       → Moderator (safety gate via MODERATOR_MODEL: moderate + bounded
+ *         regeneration)
+ *         → Illustrator (images via ILLUSTRATOR_MODEL)
  *
  * The Reader is intentionally out of this synchronous success path — audio is
- * delivered on demand via the existing `/api/narrate` endpoint (research.md),
- * never embedded in `GeneratedStory`.
+ * delivered on demand via the existing `/api/narrate` endpoint.
  *
  * Transient stage failures surface as an `Err` the caller may retry; permanent
  * failures (unsafe, malformed) map to a wire-safe localized error. No raw
@@ -30,8 +32,12 @@ import { illustrateStory } from "./illustrator";
 
 /** Maximum attempts for a non-final, transient stage (respected by Coordinator). */
 export interface PipelineSeams {
-  /** Shared capability seam handed to the agents. */
-  provider: StoryGenerationProvider;
+  /** Per-agent provider for the Planner (PLANNER_MODEL). */
+  plannerProvider: StoryGenerationProvider;
+  /** Per-agent provider for the Writer (WRITER_MODEL). */
+  writerProvider: StoryGenerationProvider;
+  /** Per-agent provider for the Moderator (MODERATOR_MODEL). */
+  moderatorProvider: StoryGenerationProvider;
   /** Localized prompt → optimized WebP data-URI (ADR 0005). */
   illustrate: (prompt: string) => Promise<{ dataUri: string }>;
   /** Bounded retries for the whole illustration set (default 1). */
@@ -69,12 +75,10 @@ async function runStage<T>(
     const result = await fn();
     if (result.ok) return result;
     if (!result.transient || attempt >= maxAttempts) return result;
-    // transient → retry up to maxAttempts
   }
-  // Unreachable while maxAttempts >= 1, but kept for exhaustiveness.
   return {
     ok: false,
-    stage: "moderate",
+    stage: "plan",
     message: "story.error.generationUnavailable",
     transient: true,
   };
@@ -93,9 +97,41 @@ export async function generateStoryPipeline(
   const maxAttempts = Number(process.env.STORY_PIPELINE_MAX_ATTEMPTS ?? 2);
   const clock = createStopwatch();
 
-  // Stage 1 — safety gate (only source of the text-generation provider call).
+  // Stage 1 — Planner: generate the story structure (Outline) via its own model.
+  const plan = await runStage(
+    () => planStory(ctx, { provider: seams.plannerProvider }),
+    maxAttempts
+  );
+  if (!plan.ok) {
+    return {
+      ok: false,
+      stage: plan.stage,
+      message: "story.error.generationUnavailable",
+      transient: plan.transient,
+      errorCode: plan.errorCode,
+    };
+  }
+  clock.tick("plan");
+
+  // Stage 2 — Writer: generate the localized narrative via its own model.
+  const written = await runStage(
+    () => writeStory(ctx, plan.value, { provider: seams.writerProvider }),
+    maxAttempts
+  );
+  if (!written.ok) {
+    return {
+      ok: false,
+      stage: written.stage,
+      message: "story.error.generationUnavailable",
+      transient: written.transient,
+      errorCode: written.errorCode,
+    };
+  }
+  clock.tick("write");
+
+  // Stage 3 — Moderator: safety gate on the Writer's narrative.
   const moderated = await runStage(
-    () => moderateStory(ctx, { provider: seams.provider }),
+    () => moderateStory(ctx, written.value, { provider: seams.moderatorProvider }),
     maxAttempts
   );
   if (!moderated.ok) {
@@ -109,15 +145,6 @@ export async function generateStoryPipeline(
   }
   clock.tick("moderate");
 
-  // Stage 2/3 — plan + write (pure transforms of the approved narrative).
-  const outline = planStory(ctx, moderated.value);
-  if (!outline.ok) return outline;
-  clock.tick("plan");
-
-  const written = writeStory(ctx, outline.value, moderated.value);
-  if (!written.ok) return written;
-  clock.tick("write");
-
   // Stage 4 — illustrations (concurrency + whole-set retry), per ADR 0005.
   const illustrated = await illustrateStory(ctx, moderated.value, {
     illustrate: seams.illustrate,
@@ -128,8 +155,7 @@ export async function generateStoryPipeline(
   clock.tick("illustrate");
   if (!illustrated.ok) return illustrated;
 
-  // Enforce the end-to-end latency budget: if stages exceeded it before/while
-  // assembling, surface a typed timeout rather than returning a stale story.
+  // Enforce the end-to-end latency budget.
   if (clock.isOverBudget(budgetMs)) {
     return {
       ok: false,
@@ -140,8 +166,7 @@ export async function generateStoryPipeline(
     };
   }
 
-  // Defense-in-depth: re-bind the requested scene count regardless of which
-  // stage produced the candidate.
+  // Defense-in-depth scene-count check.
   if (illustrated.value.scenes.length !== ctx.sceneCountRequested) {
     return {
       ok: false,

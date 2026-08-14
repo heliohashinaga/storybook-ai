@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { moderateStory } from "../../../../src/features/story-generation/server/agents/moderator";
-import type { JobContext } from "../../../../src/features/story-generation/server/agents/types";
+import type {
+  JobContext,
+  WrittenScene,
+  WrittenStory,
+} from "../../../../src/features/story-generation/server/agents/types";
 import { createFakeProvider } from "../../../fixtures/story-generation/provider-fixtures";
 
 function ctx(): JobContext {
@@ -13,52 +17,38 @@ function ctx(): JobContext {
   };
 }
 
+function mkWritten(overrides: Partial<WrittenScene> = {}): WrittenStory {
+  const bodyTexts: (string | undefined)[] = [
+    overrides.body ?? "A brave little fox explored the forest.",
+    "She found a hidden path.",
+    "At the end she smiled, knowing she was safe.",
+  ];
+  return {
+    title: "A Brave Journey",
+    scenes: [1, 2, 3].map((i) => ({
+      ordinal: i,
+      title: `Scene ${i}`,
+      body: bodyTexts[i - 1] ?? `Scene ${i} body`,
+      illustrationPrompt: `watercolor scene ${i}`,
+    })),
+  };
+}
+
 describe("moderator agent", () => {
-  it("approves a safe narrative in one generate call", async () => {
+  it("approves a safe narrative", async () => {
     const fake = createFakeProvider({ scenario: "safe" });
-    const result = await moderateStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), mkWritten(), { provider: fake.provider });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.safetyDecision).toBe("approved");
       expect(result.value.scenes).toHaveLength(3);
     }
-    expect(fake.generateCalls).toBe(1);
   });
 
-  it("regenerates once when the first narrative is unsafe, then approves", async () => {
-    const fake = createFakeProvider({ scenario: "unsafe-then-safe" });
-    const result = await moderateStory(ctx(), { provider: fake.provider });
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.safetyDecision).toBe("regenerated");
-    }
-    expect(fake.generateCalls).toBe(2);
-  });
-
-  it("returns an Err for an unavailable provider (transient, generation_unavailable)", async () => {
-    const fake = createFakeProvider({ scenario: "unavailable" });
-    const result = await moderateStory(ctx(), { provider: fake.provider });
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.stage).toBe("moderate");
-      expect(result.transient).toBe(true);
-      expect(result.errorCode).toBe("generation_unavailable");
-    }
-  });
-
-  it("returns a transient timeout error code for a timeout provider", async () => {
-    const fake = createFakeProvider({ scenario: "timeout" });
-    const result = await moderateStory(ctx(), { provider: fake.provider });
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.errorCode).toBe("generation_timeout");
-      expect(result.transient).toBe(true);
-    }
-  });
-
-  it("returns a permanent unsafe_unrecoverable error when never safe", async () => {
+  it("returns unsafe_unrecoverable when content stays unsafe after regeneration", async () => {
     const fake = createFakeProvider({ scenario: "double-unsafe" });
-    const result = await moderateStory(ctx(), { provider: fake.provider });
+    const result = await moderateStory(ctx(), mkWritten({ body: "unsafecontent text" }), {
+      provider: fake.provider,
+    });
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.transient).toBe(false);

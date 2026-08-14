@@ -42,7 +42,17 @@ describe("pipeline privacy invariants (T023/T039)", () => {
       sceneCountRequested: 3,
       generationToken: "token",
     };
-    const result = await moderateStory(ctx, { provider });
+    // Pass a WrittenStory to satisfy the moderator's 3-arg signature (spec 006).
+    const written = {
+      title: "Test Story",
+      scenes: [1, 2, 3].map((i) => ({
+        ordinal: i,
+        title: `Scene ${i}`,
+        body: `Body of scene ${i}.`,
+        illustrationPrompt: `watercolor scene ${i}`,
+      })),
+    };
+    const result = await moderateStory(ctx, written, { provider });
     expect(result.ok).toBe(true);
 
     expect(seen).toHaveLength(1);

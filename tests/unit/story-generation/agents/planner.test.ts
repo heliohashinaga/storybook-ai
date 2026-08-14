@@ -5,8 +5,7 @@ import {
   purposeFor,
 } from "../../../../src/features/story-generation/server/agents/planner";
 import type { JobContext } from "../../../../src/features/story-generation/server/agents/types";
-import type { ModeratedStoryCandidate } from "../../../../src/features/story-generation/server/safety-pipeline";
-import { buildSafeCandidate } from "../../../fixtures/story-generation/provider-fixtures";
+import { createFakeProvider } from "../../../fixtures/story-generation/provider-fixtures";
 
 function ctx(overrides: Partial<JobContext> = {}): JobContext {
   return {
@@ -19,40 +18,36 @@ function ctx(overrides: Partial<JobContext> = {}): JobContext {
   };
 }
 
-function approved(sceneCount: number): ModeratedStoryCandidate {
-  const base = buildSafeCandidate({
-    ageBand: "5-7",
-    locale: "pt-BR",
-    theme: "friendship",
-    sceneCount,
-  });
-  return { ...base, safetyDecision: "approved" };
-}
-
 describe("planner agent", () => {
-  it("produces an outline with one scene pSer scene countRequested", () => {
-    const result = planStory(ctx({ sceneCountRequested: 4 }), approved(4));
+  it("plans an outline by calling its own provider (genuine planning)", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const result = await planStory(ctx({ sceneCountRequested: 4 }), {
+      provider: fake.provider,
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.scenes).toHaveLength(4);
-      const first = result.value.scenes[0]!;
-      const last = result.value.scenes[3]!;
-      expect(first.index).toBe(1);
-      expect(last.index).toBe(4);
-      expect(first.purpose).toBe("scene-1-friendship");
+      expect(result.value.scenes[0]!.index).toBe(1);
+      expect(result.value.scenes[3]!.index).toBe(4);
+      expect(result.value.scenes[0]!.purpose).toBe("scene-1-friendship");
     }
+    expect(fake.generateCalls).toBe(1);
   });
 
-  it("returns an Err when the approved candidate has too few scenes", () => {
-    const result = planStory(ctx({ sceneCountRequested: 3 }), approved(2));
+  it("returns an Err when the provider returns too few scenes", async () => {
+    const fake = createFakeProvider({ scenario: "invalid" });
+    const result = await planStory(ctx({ sceneCountRequested: 3 }), {
+      provider: fake.provider,
+    });
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.stage).toBe("plan");
-    }
+    if (!result.ok) expect(result.stage).toBe("plan");
   });
 
-  it("returns an Err when the scene count mismatches the request", () => {
-    const result = planStory(ctx({ sceneCountRequested: 5 }), approved(3));
+  it("returns an Err when the scene count mismatches the request", async () => {
+    const fake = createFakeProvider({ scenario: "invalid" });
+    const result = await planStory(ctx({ sceneCountRequested: 5 }), {
+      provider: fake.provider,
+    });
     expect(result.ok).toBe(false);
   });
 

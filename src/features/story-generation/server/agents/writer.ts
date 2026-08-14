@@ -1,49 +1,38 @@
 import "server-only";
 import type { AgentResult } from "./agent-result";
 import type { JobContext, Outline, WrittenScene, WrittenStory } from "./types";
-import type { ModeratedStoryCandidate } from "../safety-pipeline";
+import { providerInputFor } from "./planner";
+import type { ProviderError, StoryGenerationProvider } from "../story-generation-provider";
 
 /**
- * Writer agent (specs/006-multi-agent-story-generation/data-model.md).
+ * Writer agent (specs/006-multi-agent-story-generation).
  *
- * Given the Planner's `Outline` and the Moderator-approved narrative, the
- * Writer materializes the localized `WrittenStory`: a `title` plus one written
- * scene per planned scene, preserving each scene's ordinal so downstream
- * agents (Illustrator) can map illustration back unambiguously. It is a pure,
- * deterministic transform of the moderated candidate — no provider call, so
- * the Coordinator runs it after the safety gate has passed.
+ * Given the Planner's `Outline`, the Writer generates the localized narrative
+ * (title + prose + illustration prompts) via its own LLM
+ * (`writerProvider` → `WRITER_MODEL`). It validates that the returned story
+ * matches the outline's scene breadth before passing it to the Moderator.
  */
 
-/**
- * Surface type for a Writer capability seam (reserved — today the Writer is a
- * pure transform of the already-approved candidate and needs no provider).
- */
-export type WriterSeams = object;
+export interface WriterSeams {
+  provider: StoryGenerationProvider;
+}
 
 /**
- * Produces the localized `WrittenStory` from the approved candidate. Returns
- * `Ok<WrittenStory>` when the candidate is structurally sound and matches the
- * outline breadth, or an `Err` (defense-in-depth) on mismatch.
+ * Writes the localized narrative from the Planner's outline using the Writer's
+ * own generateStory call.
  *
- * @param ctx anonymous job context
- * @param outline planner output describing the scene structure
- * @param approved the safety-approved narrative (moderated candidate)
+ * @param ctx     anonymous job context
+ * @param outline Planner output describing the scene structure
+ * @param seams   provider for writing
  */
-export function writeStory(
+export async function writeStory(
   ctx: JobContext,
   outline: Outline,
-  approved: ModeratedStoryCandidate,
-  _seams: WriterSeams = {}
-): AgentResult<WrittenStory> {
-  const expected = ctx.sceneCountRequested;
-  if (
-    !approved ||
-    typeof approved.title !== "string" ||
-    !Array.isArray(approved.scenes) ||
-    approved.scenes.length !== expected ||
-    !outline ||
-    outline.scenes.length !== expected
-  ) {
+  seams: WriterSeams
+): Promise<AgentResult<WrittenStory>> {
+  const { provider } = seams;
+
+  if (!outline || !outline.scenes || outline.scenes.length !== ctx.sceneCountRequested) {
     return {
       ok: false,
       stage: "write",
@@ -52,7 +41,47 @@ export function writeStory(
     };
   }
 
-  const scenes: WrittenScene[] = approved.scenes.map((scene, index) => ({
+  let candidate;
+  try {
+    candidate = await provider.generateStory(providerInputFor(ctx));
+  } catch (error) {
+    const err = error as ProviderError | undefined;
+    if (err && "kind" in err) {
+      return {
+        ok: false,
+        stage: "write",
+        message:
+          err.kind === "timeout"
+            ? "story.error.generationTimeout"
+            : "story.error.generationUnavailable",
+        transient: true,
+        errorCode: err.kind === "timeout" ? "generation_timeout" : "generation_unavailable",
+      };
+    }
+    return {
+      ok: false,
+      stage: "write",
+      message: "story.error.generationUnavailable",
+      transient: true,
+    };
+  }
+
+  if (
+    !candidate ||
+    typeof candidate.title !== "string" ||
+    !Array.isArray(candidate.scenes) ||
+    candidate.scenes.length !== ctx.sceneCountRequested
+  ) {
+    return {
+      ok: false,
+      stage: "write",
+      message: "story.error.generationUnavailable",
+      transient: false,
+      errorCode: "unsafe_unrecoverable",
+    };
+  }
+
+  const scenes: WrittenScene[] = candidate.scenes.map((scene, index) => ({
     ordinal: index + 1,
     title: typeof scene.title === "string" ? scene.title : "",
     body: typeof scene.body === "string" ? scene.body : "",
@@ -60,5 +89,5 @@ export function writeStory(
       typeof scene.illustrationPrompt === "string" ? scene.illustrationPrompt : "",
   }));
 
-  return { ok: true, value: { title: approved.title, scenes } };
+  return { ok: true, value: { title: candidate.title, scenes } };
 }

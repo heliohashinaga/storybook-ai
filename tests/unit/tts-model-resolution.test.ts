@@ -12,9 +12,11 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 const required: Record<string, string> = {
   OPENROUTER_API_KEY: "sk-test-123",
   OPENCODE_GO_API_KEY: "sk-opencode-test-123",
-  TEXT_MODEL: "opencode-go/some-org/text-model",
-  IMAGE_MODEL: "openrouter/some-org/image-model",
-  MODERATION_MODEL: "openrouter/some-org/moderation-model",
+  PLANNER_MODEL: "opencode-go/some-org/text-model",
+  WRITER_MODEL: "opencode-go/some-org/text-model",
+  MODERATOR_MODEL: "openrouter/some-org/moderation-model",
+  ILLUSTRATOR_MODEL: "openrouter/some-org/image-model",
+  READER_MODEL: "openrouter/some-org/reader-model",
 };
 
 /** Cost-efficient default profile (research.md §5, Kokoro 82M via OpenRouter). */

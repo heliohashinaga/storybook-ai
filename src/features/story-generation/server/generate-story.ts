@@ -15,7 +15,7 @@ import type { ProviderStoryInput, StoryGenerationProvider } from "./story-genera
  *
  * `generateStory` is the thin, contract-stable entry point. It builds an
  * anonymous `JobContext` and delegates to the `Coordinator`, which runs the
- * multi-agent pipeline (Moderator safety gate → Planner → Writer →
+ * multi-agent pipeline (Planner → Writer → Moderator →
  * Illustrator). This keeps the external `POST /api/stories` contract, the
  * `GeneratedStory` model, the privacy/anonymous boundary, and the frontend
  * behavior identical while decomposing the work into focused agents
@@ -37,7 +37,16 @@ export interface IllustrationResult {
 export interface GenerateStoryOptions {
   /** Anonymous request: only ageBand, locale, theme, and requested scene count. */
   input: ProviderStoryInput;
-  provider: StoryGenerationProvider;
+  /**
+   * Shared provider used by all text agents when no per-agent providers are
+   * given (backward compat). Optional: when per-agent providers are supplied,
+   * each agent uses its own model instead.
+   */
+  provider?: StoryGenerationProvider;
+  /** Optional per-agent providers (spec 006). When absent, the single `provider` is shared. */
+  plannerProvider?: StoryGenerationProvider;
+  writerProvider?: StoryGenerationProvider;
+  moderatorProvider?: StoryGenerationProvider;
   /** Generates an optimized illustration from a moderated scene prompt. */
   illustrate: (prompt: string) => Promise<IllustrationResult>;
   /** Bounded retries for the whole illustration set (default 1). */
@@ -79,20 +88,26 @@ function buildJobContext(input: ProviderStoryInput): JobContext {
  * 3–5 scene story (matching `input.sceneCount`) or a typed safe error.
  */
 export async function generateStory(options: GenerateStoryOptions): Promise<GenerateStoryResult> {
-  const {
-    input,
-    provider,
-    illustrate,
-    imageRetries,
-    illustrationConcurrency,
-    maxIllustrationDataUriLength,
-  } = options;
+  const { input, illustrate, imageRetries, illustrationConcurrency, maxIllustrationDataUriLength } =
+    options;
 
   const ctx = buildJobContext(input);
+  // Per-agent providers: when only a single provider is given (backward compat
+  // for test fakes), all three text agents share it. When per-agent providers
+  // are passed, each agent uses its own model. At least one source must exist.
+  if (!options.provider && !options.plannerProvider) {
+    throw new Error("generateStory requires a provider (single or per-agent).");
+  }
+  const plannerProvider = options.plannerProvider ?? options.provider!;
+  const writerProvider = options.writerProvider ?? options.provider!;
+  const moderatorProvider = options.moderatorProvider ?? options.provider!;
+
   const result = await generateStoryPipeline({
     ctx,
     seams: {
-      provider,
+      plannerProvider,
+      writerProvider,
+      moderatorProvider,
       illustrate,
       imageRetries,
       illustrationConcurrency,

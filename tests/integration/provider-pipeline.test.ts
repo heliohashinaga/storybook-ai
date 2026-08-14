@@ -182,8 +182,18 @@ describe("provider pipeline — moderation calls (text and image)", () => {
   });
 
   it("regenerates when a specific scene body is unsafe (scene 0) and never leaks it", async () => {
-    const fake = createFakeProvider({ scenario: "unsafe-text-scene-0-then-safe" });
-    const result = await generateStory({ input, provider: fake.provider, illustrate });
+    // Per-agent providers: the Writer's own generateStory call returns the
+    // unsafe-then-safe candidate, so the Moderator must regenerate it.
+    const planner = createFakeProvider({ scenario: "safe" });
+    const writer = createFakeProvider({ scenario: "unsafe-text-scene-0-then-safe" });
+    const moderator = createFakeProvider({ scenario: "safe" });
+    const result = await generateStory({
+      input,
+      plannerProvider: planner.provider,
+      writerProvider: writer.provider,
+      moderatorProvider: moderator.provider,
+      illustrate,
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.story.safetyDecision).toBe("regenerated");
@@ -191,8 +201,16 @@ describe("provider pipeline — moderation calls (text and image)", () => {
   });
 
   it("regenerates when scene 2's body is unsafe", async () => {
-    const fake = createFakeProvider({ scenario: "unsafe-text-scene-2-then-safe" });
-    const result = await generateStory({ input, provider: fake.provider, illustrate });
+    const planner = createFakeProvider({ scenario: "safe" });
+    const writer = createFakeProvider({ scenario: "unsafe-text-scene-2-then-safe" });
+    const moderator = createFakeProvider({ scenario: "safe" });
+    const result = await generateStory({
+      input,
+      plannerProvider: planner.provider,
+      writerProvider: writer.provider,
+      moderatorProvider: moderator.provider,
+      illustrate,
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.story.safetyDecision).toBe("regenerated");
@@ -200,8 +218,16 @@ describe("provider pipeline — moderation calls (text and image)", () => {
   });
 
   it("regenerates when a scene's illustration prompt is unsafe", async () => {
-    const fake = createFakeProvider({ scenario: "unsafe-illustration-scene-1-then-safe" });
-    const result = await generateStory({ input, provider: fake.provider, illustrate });
+    const planner = createFakeProvider({ scenario: "safe" });
+    const writer = createFakeProvider({ scenario: "unsafe-illustration-scene-1-then-safe" });
+    const moderator = createFakeProvider({ scenario: "safe" });
+    const result = await generateStory({
+      input,
+      plannerProvider: planner.provider,
+      writerProvider: writer.provider,
+      moderatorProvider: moderator.provider,
+      illustrate,
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.story.safetyDecision).toBe("regenerated");
@@ -234,9 +260,17 @@ describe("provider pipeline — illustration-set consistency", () => {
   });
 
   it("rejects an inconsistent illustration set (missing shared style marker) and regenerates", async () => {
-    const fake = createFakeProvider({ scenario: "inconsistent-illustrations" });
-    const imageSpy = vi.spyOn(fake.provider, "moderateImage");
-    const result = await generateStory({ input, provider: fake.provider, illustrate });
+    const planner = createFakeProvider({ scenario: "safe" });
+    const writer = createFakeProvider({ scenario: "inconsistent-illustrations" });
+    const moderator = createFakeProvider({ scenario: "safe" });
+    const imageSpy = vi.spyOn(moderator.provider, "moderateImage");
+    const result = await generateStory({
+      input,
+      plannerProvider: planner.provider,
+      writerProvider: writer.provider,
+      moderatorProvider: moderator.provider,
+      illustrate,
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     // First attempt had an inconsistent prompt (rejected by image moderation);
@@ -278,11 +312,15 @@ describe("provider pipeline — direct identifier / template marker rejection", 
 
 describe("provider pipeline — safety integration (text and image)", () => {
   it("never leaks an unsafe first attempt into the returned story", async () => {
-    const fake = createFakeProvider({ scenario: "unsafe-then-safe" });
+    const planner = createFakeProvider({ scenario: "safe" });
+    const writer = createFakeProvider({ scenario: "unsafe-then-safe" });
+    const moderator = createFakeProvider({ scenario: "safe" });
     const illustrator = capturingIllustrator();
     const result = await generateStory({
       input,
-      provider: fake.provider,
+      plannerProvider: planner.provider,
+      writerProvider: writer.provider,
+      moderatorProvider: moderator.provider,
       illustrate: illustrator.illustrate,
     });
     expect(result.ok).toBe(true);

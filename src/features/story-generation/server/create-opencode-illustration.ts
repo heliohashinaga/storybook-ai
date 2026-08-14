@@ -4,7 +4,7 @@ import { ProviderError } from "./story-generation-provider";
 
 /**
  * OpenCode illustration adapter (spec 005, T011b). Generate the optimized WebP
- * data-URI for a scene prompt when `IMAGE_MODEL` routes to the `opencode-go`
+ * data-URI for a scene prompt when `ILLUSTRATOR_MODEL` routes to the `opencode-go`
  * provider prefix (`create-openrouter-illustration` covers `openrouter`).
  *
  * Transport + concurrency follow the same contract as the OpenRouter adapter
@@ -41,7 +41,7 @@ function resolveDeps(deps: OpenCodeIllustrationDeps) {
   const env = requiresEnv ? getEnv() : null;
   return {
     apiKey: deps.apiKey ?? env?.OPENCODE_GO_API_KEY ?? "",
-    imageModel: deps.imageModel ?? (env ? stripPrefix(env.IMAGE_MODEL) : ""),
+    imageModel: deps.imageModel ?? (env ? stripPrefix(env.ILLUSTRATOR_MODEL) : ""),
     baseUrl: deps.baseUrl ?? "https://opencode.ai/zen/go/v1",
     timeoutMs: deps.timeoutMs ?? IMAGE_TIMEOUT_MS,
     fetchImpl: deps.fetchImpl ?? fetch,

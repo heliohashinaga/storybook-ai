@@ -24,12 +24,18 @@ import type { RealAdapterSeams } from "../../src/features/story-generation/serve
  * re-imports so a fresh `getEnv()` sees the new `*_MODEL` values.
  */
 
-const envKey = (value: { TEXT_MODEL: string; MODERATION_MODEL: string; IMAGE_MODEL: string }) => {
+const envKey = (value: {
+  PLANNER_MODEL: string;
+  MODERATOR_MODEL: string;
+  ILLUSTRATOR_MODEL: string;
+}) => {
   process.env.OPENROUTER_API_KEY = "sk-or-test";
   process.env.OPENCODE_GO_API_KEY = "sk-oc-test";
-  process.env.TEXT_MODEL = value.TEXT_MODEL;
-  process.env.MODERATION_MODEL = value.MODERATION_MODEL;
-  process.env.IMAGE_MODEL = value.IMAGE_MODEL;
+  process.env.PLANNER_MODEL = value.PLANNER_MODEL;
+  process.env.WRITER_MODEL = "opencode-go/qwen/qwen3.7-flash";
+  process.env.MODERATOR_MODEL = value.MODERATOR_MODEL;
+  process.env.ILLUSTRATOR_MODEL = value.ILLUSTRATOR_MODEL;
+  process.env.READER_MODEL = "openrouter/hexgrad/kokoro-82m";
 };
 
 const input: ProviderStoryInput = {
@@ -89,9 +95,11 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     for (const key of [
       "OPENROUTER_API_KEY",
       "OPENCODE_GO_API_KEY",
-      "TEXT_MODEL",
-      "IMAGE_MODEL",
-      "MODERATION_MODEL",
+      "PLANNER_MODEL",
+      "WRITER_MODEL",
+      "MODERATOR_MODEL",
+      "ILLUSTRATOR_MODEL",
+      "READER_MODEL",
       "AI_NARRATION_ENABLED",
       "TTS_MODEL",
     ] as const) {
@@ -99,11 +107,11 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     }
   });
 
-  it("routes text to the TEXT_MODEL prefix provider and moderation to the moderation prefix", async () => {
+  it("routes text to the PLANNER_MODEL prefix provider and moderation to the moderator prefix", async () => {
     envKey({
-      TEXT_MODEL: "opencode-go/qwen/qwen3.7-flash",
-      MODERATION_MODEL: "openrouter/safety/guard",
-      IMAGE_MODEL: "openrouter/qwen/qwen3_image",
+      PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "openrouter/safety/guard",
+      ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3_image",
     });
     const { createRealRuntime } = await load();
     const { seams, storyFactory } = spySeams();
@@ -124,11 +132,11 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     expect(storyFactory).toHaveBeenCalledTimes(2);
   });
 
-  it("routes image to the IMAGE_MODEL prefix provider", async () => {
+  it("routes image to the ILLUSTRATOR_MODEL prefix provider", async () => {
     envKey({
-      TEXT_MODEL: "opencode-go/qwen/qwen3.7-flash",
-      MODERATION_MODEL: "openrouter/safety/guard",
-      IMAGE_MODEL: "openrouter/qwen/qwen3_image",
+      PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "openrouter/safety/guard",
+      ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3_image",
     });
     const { createRealRuntime } = await load();
     const { seams, illustrationFactory } = spySeams();
@@ -141,11 +149,11 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     expect(illustration.dataUri).toBe("data:image/webp;base64,openrouter-img");
   });
 
-  it("routes image via the OpenCode illustrator for an opencode-go IMAGE_MODEL (inverse)", async () => {
+  it("routes image via the OpenCode illustrator for an opencode-go ILLUSTRATOR_MODEL (inverse)", async () => {
     envKey({
-      TEXT_MODEL: "openrouter/qwen/qwen3.7-flash",
-      MODERATION_MODEL: "opencode-go/safety/guard",
-      IMAGE_MODEL: "opencode-go/qwen/qwen3_image",
+      PLANNER_MODEL: "openrouter/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "opencode-go/safety/guard",
+      ILLUSTRATOR_MODEL: "opencode-go/qwen/qwen3_image",
     });
     const { createRealRuntime } = await load();
     const { seams, illustrationFactory } = spySeams();
@@ -158,11 +166,11 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     expect(illustration.dataUri).toBe("data:image/webp;base64,opencode-img");
   });
 
-  it("routes text via OpenRouter for an openrouter TEXT_MODEL (inverse)", async () => {
+  it("routes text via OpenRouter for an openrouter PLANNER_MODEL (inverse)", async () => {
     envKey({
-      TEXT_MODEL: "openrouter/qwen/qwen3.7-flash",
-      MODERATION_MODEL: "opencode-go/safety/guard",
-      IMAGE_MODEL: "openrouter/qwen/qwen3_image",
+      PLANNER_MODEL: "openrouter/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "opencode-go/safety/guard",
+      ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3_image",
     });
     const { createRealRuntime } = await load();
     const { seams, storyFactory } = spySeams();
@@ -189,5 +197,44 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     expect(story.scenes).toHaveLength(3);
     const illustration = await runtime.illustrate("any");
     expect(illustration.dataUri).toMatch(/^data:image\/webp;base64,/);
+
+    // Per-agent getters also resolve to the shared fake in fake mode (no
+    // credentials required, no per-agent construction).
+    await expect(
+      runtime.plannerProvider.generateStory({ ...input, sceneCount: 3 })
+    ).resolves.toBeDefined();
+    await expect(
+      runtime.writerProvider.generateStory({ ...input, sceneCount: 3 })
+    ).resolves.toBeDefined();
+    await expect(runtime.moderatorProvider.moderateText("ok")).resolves.toEqual({ safe: true });
+  });
+
+  it("builds each per-agent provider lazily from its own *_MODEL (spec 006)", async () => {
+    envKey({
+      PLANNER_MODEL: "opencode-go/qwen/qwen3.7-flash",
+      MODERATOR_MODEL: "openrouter/safety/guard",
+      ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3_image",
+    });
+    const { createRealRuntime } = await load();
+    const { seams, storyFactory } = spySeams();
+    const runtime = createRealRuntime(seams);
+
+    // Planner provider → text routed from PLANNER_MODEL (opencode-go).
+    await runtime.plannerProvider.generateStory(input);
+    expect(storyFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ capability: "text", provider: "opencode-go" })
+    );
+
+    // Writer provider → text routed from WRITER_MODEL (opencode-go).
+    await runtime.writerProvider.generateStory(input);
+    expect(storyFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ capability: "text", provider: "opencode-go" })
+    );
+
+    // Moderator provider → moderation routed from MODERATOR_MODEL (openrouter).
+    await runtime.moderatorProvider.moderateText("content");
+    expect(storyFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ capability: "moderation", provider: "openrouter" })
+    );
   });
 });
