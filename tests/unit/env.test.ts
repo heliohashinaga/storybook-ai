@@ -43,6 +43,9 @@ describe("env server validation", () => {
     }
     delete process.env.AI_NARRATION_ENABLED;
     delete process.env.TTS_MODEL;
+    delete process.env.MODEL_TIMEOUT_MS;
+    delete process.env.MODEL_MAX_ATTEMPTS;
+    delete process.env.PIPELINE_TIMEOUT_MS;
   });
 
   it("parses a fully configured environment", async () => {
@@ -225,5 +228,31 @@ describe("env server validation", () => {
     expect(getEnv()).toEqual({
       ...valid,
     });
+  });
+
+  it("accepts optional timeout/attempts/pipeline knobs (coerced to numbers)", async () => {
+    const { parseEnv } = await loadEnv();
+    const result = parseEnv({
+      ...validEnv,
+      MODEL_TIMEOUT_MS: "30000",
+      MODEL_MAX_ATTEMPTS: "2",
+      PIPELINE_TIMEOUT_MS: "120000",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.MODEL_TIMEOUT_MS).toBe(30000);
+      expect(result.data.MODEL_MAX_ATTEMPTS).toBe(2);
+      expect(result.data.PIPELINE_TIMEOUT_MS).toBe(120000);
+    }
+  });
+
+  it("rejects a non-numeric timeout/attempts knob (fail-fast, never silent)", async () => {
+    const { parseEnv } = await loadEnv();
+    const timeout = parseEnv({ ...validEnv, MODEL_TIMEOUT_MS: "fast" });
+    expect(timeout.success).toBe(false);
+    const attempts = parseEnv({ ...validEnv, MODEL_MAX_ATTEMPTS: "many" });
+    expect(attempts.success).toBe(false);
+    const pipeline = parseEnv({ ...validEnv, PIPELINE_TIMEOUT_MS: "-5" });
+    expect(pipeline.success).toBe(false);
   });
 });

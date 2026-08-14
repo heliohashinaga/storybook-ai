@@ -69,6 +69,17 @@ const envSchema = z
      * disabled (Web Speech) without any provider credentials.
      */
     TTS_MODEL: z.string().min(1).optional(),
+    /**
+     * Optional per-model-request timeout (ms), attempt-count, and pipeline
+     * budget knobs (spec 006 / commit 5864dae). Read by the per-agent provider
+     * construction (`generation-runtime.ts`) and the per-model-request retry
+     * policy (`agents/retry.ts`); when absent each adapter/helper keeps its
+     * documented default. These must be schema-owned so they parse under
+     * `.strict()` instead of failing boot when set.
+     */
+    MODEL_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
+    MODEL_MAX_ATTEMPTS: z.coerce.number().int().positive().optional(),
+    PIPELINE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
   })
   .strict();
 

@@ -5,7 +5,11 @@ import type {
   ProviderStoryInput,
 } from "../../src/features/story-generation/server/story-generation-provider";
 import type { Route } from "../../src/features/story-generation/server/provider-routing";
-import type { RealAdapterSeams } from "../../src/features/story-generation/server/generation-runtime";
+import type {
+  IllustrationProviderOptions,
+  RealAdapterSeams,
+  StoryProviderOptions,
+} from "../../src/features/story-generation/server/generation-runtime";
 
 /**
  * Deterministic **capability routing** test for the production dual runtime
@@ -53,19 +57,21 @@ interface FakeStoryProvider {
 
 function spySeams() {
   const storyFactory = vi.fn(
-    (route: Route) => () =>
-      route.provider === "opencode-go"
-        ? fakeProvider("opencode-story")
-        : fakeProvider("openrouter-story")
+    (route: Route, _options: StoryProviderOptions = {}) =>
+      () =>
+        route.provider === "opencode-go"
+          ? fakeProvider("opencode-story")
+          : fakeProvider("openrouter-story")
   );
   const illustrationFactory = vi.fn(
-    (route: Route) => () =>
-      Promise.resolve({
-        dataUri:
-          route.provider === "opencode-go"
-            ? "data:image/webp;base64,opencode-img"
-            : "data:image/webp;base64,openrouter-img",
-      })
+    (route: Route, _options: IllustrationProviderOptions = {}) =>
+      () =>
+        Promise.resolve({
+          dataUri:
+            route.provider === "opencode-go"
+              ? "data:image/webp;base64,opencode-img"
+              : "data:image/webp;base64,openrouter-img",
+        })
   );
   const seams: RealAdapterSeams = { storyProviderFactory: storyFactory, illustrationFactory };
   return { seams, storyFactory, illustrationFactory };
@@ -119,7 +125,8 @@ describe("createRealRuntime capability routing (route-selection)", () => {
 
     const story = await runtime.provider.generateStory(input);
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "text", provider: "opencode-go" })
+      expect.objectContaining({ capability: "text", provider: "opencode-go" }),
+      expect.objectContaining({})
     );
     expect(story.title).toBe("opencode-story");
 
@@ -127,7 +134,8 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     await runtime.provider.moderateText("review this text");
     await runtime.provider.moderateImage("an illustration prompt");
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "moderation", provider: "openrouter" })
+      expect.objectContaining({ capability: "moderation", provider: "openrouter" }),
+      expect.objectContaining({})
     );
     expect(storyFactory).toHaveBeenCalledTimes(2);
   });
@@ -144,7 +152,8 @@ describe("createRealRuntime capability routing (route-selection)", () => {
 
     const illustration = await runtime.illustrate("scene prompt");
     expect(illustrationFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "image", provider: "openrouter" })
+      expect.objectContaining({ capability: "image", provider: "openrouter" }),
+      expect.objectContaining({})
     );
     expect(illustration.dataUri).toBe("data:image/webp;base64,openrouter-img");
   });
@@ -161,7 +170,8 @@ describe("createRealRuntime capability routing (route-selection)", () => {
 
     const illustration = await runtime.illustrate("scene prompt");
     expect(illustrationFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "image", provider: "opencode-go" })
+      expect.objectContaining({ capability: "image", provider: "opencode-go" }),
+      expect.objectContaining({})
     );
     expect(illustration.dataUri).toBe("data:image/webp;base64,opencode-img");
   });
@@ -178,7 +188,8 @@ describe("createRealRuntime capability routing (route-selection)", () => {
 
     const story = await runtime.provider.generateStory(input);
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "text", provider: "openrouter" })
+      expect.objectContaining({ capability: "text", provider: "openrouter" }),
+      expect.objectContaining({})
     );
     expect(story.title).toBe("openrouter-story");
   });
@@ -222,19 +233,22 @@ describe("createRealRuntime capability routing (route-selection)", () => {
     // Planner provider → text routed from PLANNER_MODEL (opencode-go).
     await runtime.plannerProvider.generateStory(input);
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "text", provider: "opencode-go" })
+      expect.objectContaining({ capability: "text", provider: "opencode-go" }),
+      expect.objectContaining({})
     );
 
     // Writer provider → text routed from WRITER_MODEL (opencode-go).
     await runtime.writerProvider.generateStory(input);
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "text", provider: "opencode-go" })
+      expect.objectContaining({ capability: "text", provider: "opencode-go" }),
+      expect.objectContaining({})
     );
 
     // Moderator provider → moderation routed from MODERATOR_MODEL (openrouter).
     await runtime.moderatorProvider.moderateText("content");
     expect(storyFactory).toHaveBeenCalledWith(
-      expect.objectContaining({ capability: "moderation", provider: "openrouter" })
+      expect.objectContaining({ capability: "moderation", provider: "openrouter" }),
+      expect.objectContaining({})
     );
   });
 });

@@ -42,10 +42,30 @@ export interface GenerationRuntime {
 }
 
 /**
+ * Per-model-request provider knobs derived from `MODEL_TIMEOUT_MS` and
+ * `MODEL_MAX_ATTEMPTS` (spec 006 / commit 5864dae). Each adapter already honors
+ * `timeoutMs` and `maxRetries`; these options close the env → provider wiring in
+ * {@link createRealRuntime}, letting an operator tune them via env.
+ */
+export interface StoryProviderOptions {
+  /** Per-model-request timeout (ms), from `MODEL_TIMEOUT_MS`. */
+  timeoutMs?: number;
+  /** Automatic retries after the first attempt, from `MODEL_MAX_ATTEMPTS - 1`. */
+  maxRetries?: number;
+}
+
+/** Illustration provider knobs — only the timeout (image retries live at the set level). */
+export interface IllustrationProviderOptions {
+  /** Per-model-request timeout (ms), from `MODEL_TIMEOUT_MS`. */
+  timeoutMs?: number;
+}
+
+/**
  * Adapter seams used by {@link createRealRuntime}. Production binds the real
  * OpenCode/OpenRouter adapters; tests inject spies to observe which provider
  * each capability is routed to without any live AI. Each factory receives the
- * already-resolved {@link Route} for the capability it serves.
+ * already-resolved {@link Route} for the capability it serves plus the optional
+ * per-agent provider options derived from env.
  */
 export interface RealAdapterSeams {
   /**
@@ -53,19 +73,61 @@ export interface RealAdapterSeams {
    * returned provider's `generateStory`/`moderateText`/`moderateImage` cover
    * the routed capability (D3 — any provider may serve any capability).
    */
-  storyProviderFactory: (route: Route) => () => StoryGenerationProvider;
+  storyProviderFactory: (
+    route: Route,
+    options?: StoryProviderOptions
+  ) => () => StoryGenerationProvider;
   /** Returns an illustration function for an image route. */
-  illustrationFactory: (route: Route) => (prompt: string) => Promise<{ dataUri: string }>;
+  illustrationFactory: (
+    route: Route,
+    options?: IllustrationProviderOptions
+  ) => (prompt: string) => Promise<{ dataUri: string }>;
 }
 
 export const DEFAULT_SEAMS: RealAdapterSeams = {
-  storyProviderFactory: (route) =>
-    route.provider === "opencode-go" ? createOpenCodeStoryProvider : createOpenRouterStoryProvider,
-  illustrationFactory: (route) =>
-    route.provider === "opencode-go"
-      ? createOpenCodeIllustration()
-      : createOpenRouterIllustration(),
+  // Returns a lazy thunk so per-agent providers are only constructed on access.
+  storyProviderFactory: (route, options) => () =>
+    (route.provider === "opencode-go"
+      ? createOpenCodeStoryProvider
+      : createOpenRouterStoryProvider)(options),
+  // `illustrationFactory` returns the illustration function directly
+  // (options forwarded to the real adapter).
+  illustrationFactory: (route, options) =>
+    (route.provider === "opencode-go" ? createOpenCodeIllustration : createOpenRouterIllustration)(
+      options
+    ),
 };
+
+/** Reads a positive integer env override, or `undefined` when unset/invalid. */
+function readOptionalInt(source: string | undefined, min: number): number | undefined {
+  if (source === undefined) return undefined;
+  const parsed = Number.parseInt(source, 10);
+  return Number.isInteger(parsed) && parsed >= min ? parsed : undefined;
+}
+
+/**
+ * Per-model-request provider options from `MODEL_TIMEOUT_MS` and
+ * `MODEL_MAX_ATTEMPTS` (spec 006 / commit 5864dae). Values are injected **only
+ * when explicitly set** so an unset env keeps each adapter's own documented
+ * default (text 60 s, image 120 s; SDK `maxRetries` 2). Parsing mirrors
+ * `agents/retry.ts`, and `maxRetries` is derived from the total attempt count
+ * (`MODEL_MAX_ATTEMPTS` total attempts ⇒ `total - 1` retries after the first),
+ * which is what the OpenRouter/OpenCode SDKs accept.
+ */
+function modelProviderOptions(): StoryProviderOptions {
+  const timeoutMs = readOptionalInt(process.env.MODEL_TIMEOUT_MS, 1000);
+  const maxAttempts = readOptionalInt(process.env.MODEL_MAX_ATTEMPTS, 1);
+  const options: StoryProviderOptions = {};
+  if (timeoutMs !== undefined) options.timeoutMs = timeoutMs;
+  if (maxAttempts !== undefined) options.maxRetries = maxAttempts - 1;
+  return options;
+}
+
+/** Illustration provider options: only the timeout (image retries are set-level). */
+function illustrationProviderOptions(): IllustrationProviderOptions {
+  const timeoutMs = readOptionalInt(process.env.MODEL_TIMEOUT_MS, 1000);
+  return timeoutMs !== undefined ? { timeoutMs } : {};
+}
 
 /** Build a provider for one agent from its `*_MODEL` env var. */
 function createAgentProvider(
@@ -79,7 +141,7 @@ function createAgentProvider(
     throw new Error(`Missing env var: ${modelVar}`);
   }
   const route = resolveCapability({ capability, model });
-  return seams.storyProviderFactory(route)();
+  return seams.storyProviderFactory(route, modelProviderOptions())();
 }
 
 /** Production default provider (composite) routed per agent model. */
@@ -93,17 +155,22 @@ function createRealProvider(seams: RealAdapterSeams): StoryGenerationProvider {
 
   return {
     async generateStory(input) {
-      return (textProvider ??= seams.storyProviderFactory(textRoute())()).generateStory(input);
+      return (textProvider ??= seams.storyProviderFactory(
+        textRoute(),
+        modelProviderOptions()
+      )()).generateStory(input);
     },
     async moderateText(content) {
-      return (moderationProvider ??= seams.storyProviderFactory(moderationRoute())()).moderateText(
-        content
-      );
+      return (moderationProvider ??= seams.storyProviderFactory(
+        moderationRoute(),
+        modelProviderOptions()
+      )()).moderateText(content);
     },
     async moderateImage(prompt) {
-      return (moderationProvider ??= seams.storyProviderFactory(moderationRoute())()).moderateImage(
-        prompt
-      );
+      return (moderationProvider ??= seams.storyProviderFactory(
+        moderationRoute(),
+        modelProviderOptions()
+      )()).moderateImage(prompt);
     },
   };
 }
@@ -116,7 +183,7 @@ function createRealIllustration(seams: RealAdapterSeams) {
       capability: "image",
       model: getEnv().ILLUSTRATOR_MODEL,
     });
-    impl ??= seams.illustrationFactory(route);
+    impl ??= seams.illustrationFactory(route, illustrationProviderOptions());
     return impl(prompt);
   };
 }
