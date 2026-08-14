@@ -16,13 +16,13 @@ export interface RetryPolicy {
   maxAttempts: number;
 }
 
-/** Reads the per-model-request max attempts from env (default 2). */
+/** Reads the per-model-request max attempts from env (default 1 = no retry). */
 export function defaultMaxAttempts(): number {
   const raw = process.env.MODEL_MAX_ATTEMPTS;
-  if (!raw) return 2;
+  if (!raw) return 1;
   const parsed = Number.parseInt(raw, 10);
   if (Number.isInteger(parsed) && parsed >= 1) return parsed;
-  return 2;
+  return 1;
 }
 
 /**

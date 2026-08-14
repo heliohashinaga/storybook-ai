@@ -152,7 +152,7 @@ describe("MODEL_TIMEOUT_MS / MODEL_MAX_ATTEMPTS → provider wiring", () => {
     expect(illustrationOptions).toEqual([{ timeoutMs: 60000 }]);
   });
 
-  it("leaves adapter defaults untouched when the env knobs are unset", async () => {
+  it("honors the max-attempts default of 1 (no retry) when MODEL_MAX_ATTEMPTS is unset", async () => {
     setModels();
     const { createRealRuntime } = await load();
     const { seams, storyOptions, illustrationOptions } = spySeams();
@@ -161,10 +161,11 @@ describe("MODEL_TIMEOUT_MS / MODEL_MAX_ATTEMPTS → provider wiring", () => {
     await runtime.plannerProvider.generateStory(input);
     await runtime.illustrate("a scene");
 
-    // The production runtime passes empty options so each adapter falls back to
-    // its own documented default (text 60 s, image 120 s, SDK maxRetries 2).
+    // `defaultMaxAttempts()` defaults to 1 ⇒ the story provider gets a single
+    // attempt (`maxRetries: 0`); the runtime does NOT inject a timeout so the
+    // illustration adapter keeps its own 120 s default (empty options here).
+    expect(storyOptions).toEqual([{ maxRetries: 0 }]);
     expect(illustrationOptions).toEqual([{}]);
-    expect(storyOptions).toEqual([{}]);
   });
 
   it("does not inject maxRetries for illustration (retries are set-level)", async () => {

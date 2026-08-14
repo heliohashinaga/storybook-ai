@@ -10,9 +10,9 @@ describe("retry policy", () => {
     vi.unstubAllEnvs();
   });
 
-  it("defaultMaxAttempts returns 2 when unset", () => {
+  it("defaultMaxAttempts returns 1 (no retry) when unset", () => {
     delete process.env.MODEL_MAX_ATTEMPTS;
-    expect(defaultMaxAttempts()).toBe(2);
+    expect(defaultMaxAttempts()).toBe(1);
   });
 
   it("defaultMaxAttempts reads a valid env override", () => {
@@ -20,9 +20,9 @@ describe("retry policy", () => {
     expect(defaultMaxAttempts()).toBe(3);
   });
 
-  it("defaultMaxAttempts falls back to 2 for invalid env", () => {
+  it("defaultMaxAttempts falls back to 1 for invalid env", () => {
     process.env.MODEL_MAX_ATTEMPTS = "not-a-number";
-    expect(defaultMaxAttempts()).toBe(2);
+    expect(defaultMaxAttempts()).toBe(1);
   });
 
   it("runWithRetry returns the value on first success", async () => {

@@ -4,6 +4,7 @@ import { InMemoryRateLimiter, generateSalt, type RateLimiter } from "../../../li
 import { createOpenCodeIllustration } from "./create-opencode-illustration";
 import { createFixedDevIllustration, createFixedDevProvider } from "./fixed-dev-provider";
 import { createOpenCodeStoryProvider } from "./opencode-story-generation-provider";
+import { defaultMaxAttempts } from "./agents/retry";
 import {
   createOpenRouterIllustration,
   createOpenRouterStoryProvider,
@@ -107,19 +108,18 @@ function readOptionalInt(source: string | undefined, min: number): number | unde
 
 /**
  * Per-model-request provider options from `MODEL_TIMEOUT_MS` and
- * `MODEL_MAX_ATTEMPTS` (spec 006 / commit 5864dae). Values are injected **only
- * when explicitly set** so an unset env keeps each adapter's own documented
- * default (text 60 s, image 120 s; SDK `maxRetries` 2). Parsing mirrors
- * `agents/retry.ts`, and `maxRetries` is derived from the total attempt count
- * (`MODEL_MAX_ATTEMPTS` total attempts ⇒ `total - 1` retries after the first),
- * which is what the OpenRouter/OpenCode SDKs accept.
+ * `MODEL_MAX_ATTEMPTS` (spec 006 / commit 5864dae). `maxRetries` is derived
+ * from {@link defaultMaxAttempts} (total attempts ⇒ `attempts - 1` retries so
+ * the OpenRouter/OpenCode SDKs retry after the first call) and is **always**
+ * applied so the knob's default of 1 (no retry) is honored even when the env
+ * var is unset. `timeoutMs` is injected only when explicitly set, keeping each
+ * adapter's own documented default when absent (text 60 s, image 120 s).
  */
 function modelProviderOptions(): StoryProviderOptions {
   const timeoutMs = readOptionalInt(process.env.MODEL_TIMEOUT_MS, 1000);
-  const maxAttempts = readOptionalInt(process.env.MODEL_MAX_ATTEMPTS, 1);
   const options: StoryProviderOptions = {};
   if (timeoutMs !== undefined) options.timeoutMs = timeoutMs;
-  if (maxAttempts !== undefined) options.maxRetries = maxAttempts - 1;
+  options.maxRetries = defaultMaxAttempts() - 1;
   return options;
 }
 
