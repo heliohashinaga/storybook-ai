@@ -1,58 +1,49 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useLocaleContext } from "../../../i18n/locale-provider";
-import { localeCatalog } from "../../../lib/story-catalog";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
-import type { Locale } from "../../story-request/client/story-preferences-schema";
+import { LangToggle } from "./lang-toggle";
 
 /**
- * Top navigation bar: brand mark + tagline, language toggle and theme toggle.
+ * Top bar (blossom-design §7.1): home brand mark + language + theme.
  *
- * Everything is anonymous and in-memory only — the language picker drives the
- * single-locale experience (ADR 0003 / T056) and nothing is persisted. All copy
- * comes from the next-intl catalogs (no hardcoded strings).
+ * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
+ * - Left: a home button (primary, BookOpenText mark + display name + tagline);
+ *   on a single-page anonymous app it scrolls to the top / focuses the story
+ *   request rather than navigating to a different route.
+ * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
+ *
+ * All state is in-memory only: language and theme pickers drive `useLocaleContext`
+ * / `useColorScheme` and nothing is persisted. Strings come from next-intl.
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
-  const { locale, setLocale } = useLocaleContext();
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background">
-      <div className="mx-auto flex max-w-4xl items-center justify-between gap-md p-md">
-        <div className="flex items-center gap-sm">
-          <OpenBookIcon aria-hidden="true" className="h-8 w-8 text-primary" />
-          <div className="flex flex-col items-start gap-0">
-            <p className="font-display text-title leading-title text-text">{t("name")}</p>
-            <p className="text-caption text-text-subtle leading-caption">{t("tagline")}</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-sm">
-          <label className="sr-only" htmlFor="top-nav-language">
-            {t("languageLabel")}
-          </label>
-          <select
-            id="top-nav-language"
-            className="rounded-xl border border-border bg-card px-sm py-xs text-caption text-text focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            aria-label={locale === "pt-BR" ? t("portuguese") : t("english")}
-            value={locale}
-            onChange={(event) => setLocale(event.target.value as Locale)}
-          >
-            {localeCatalog.map((entry) => (
-              <option key={entry.value} value={entry.value}>
-                {entry.value === "pt-BR" ? t("portuguese") : t("english")}
-              </option>
-            ))}
-          </select>
-          <ThemeToggle />
-        </div>
+    <header className="max-w-5xl grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-5">
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className="flex items-center gap-3 text-left"
+      >
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
+          <BookOpenText className="size-6" aria-hidden="true" />
+        </span>
+        <span className="flex flex-col items-start">
+          <span className="font-display text-lg leading-title font-bold">{t("name")}</span>
+          <span className="text-xs leading-caption text-text-subtle">{t("tagline")}</span>
+        </span>
+      </button>
+      <div className="flex items-center gap-3">
+        <LangToggle />
+        <ThemeToggle />
       </div>
     </header>
   );
 }
 
 /** Inline open-book brand mark (presentation only — no identifiers). */
-function OpenBookIcon({ className }: { className?: string }) {
+function BookOpenText({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -65,6 +56,7 @@ function OpenBookIcon({ className }: { className?: string }) {
     >
       <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
       <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+      <path d="M12 7v14" />
     </svg>
   );
 }

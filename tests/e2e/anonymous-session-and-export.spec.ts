@@ -153,8 +153,9 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   await page.goto("/");
 
   // Switch the UI language to English (ADR 0003 / T056): the story language
-  // drives the whole UI, so the form re-renders in English.
-  await page.getByLabel("Idioma").selectOption("en");
+  // drives the whole UI, so the form re-renders in English. Scoped to the form
+  // because the header LangToggle is a segmented button group, not a select.
+  await page.locator("form").getByLabel("Idioma").selectOption("en");
   const first = waitForStoryResponse(page);
   await page.getByLabel("Child's age").fill("3"); // derives to the 2-4 band in-browser
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
