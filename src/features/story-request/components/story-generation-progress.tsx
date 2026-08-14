@@ -69,9 +69,12 @@ export function StoryGenerationProgress({
       <Progress label={message} busy>
         {message}
       </Progress>
-      <p className="text-caption text-text-subtle leading-caption">
-        {isTimeout ? t("stillWorkingHint") : t("activeHint")}
-      </p>
+      {/* The timeout cue is already a complete patience message; showing the
+          separate "still working" hint on top of it would duplicate the wait
+          copy. Only show a hint during active stages. */}
+      {isTimeout ? null : (
+        <p className="text-caption text-text-subtle leading-caption">{t("activeHint")}</p>
+      )}
     </div>
   );
 }

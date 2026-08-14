@@ -28,7 +28,6 @@
       "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
       "providerFailure": "Não foi possível criar sua história no momento.",
       "retry": "Tentar novamente",
-      "stillWorkingHint": "A criação pode levar até alguns minutos. Fique de olho no progresso.",
       "activeHint": "Podemos criar histórias curtas, médias ou longas."
     },
     "error": {

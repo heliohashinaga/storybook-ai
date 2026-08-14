@@ -44,6 +44,15 @@ describe("story generation progress — localized states", () => {
     expect(screen.getByRole("progressbar")).toHaveAttribute("aria-busy", "true");
   });
 
+  it("does not repeat a second waiting message alongside the timeout cue", async () => {
+    renderProgress({ phase: "generating", elapsedSeconds: TIMEOUT_CUE_AT_SECONDS + 1 });
+
+    // The timeout cue is already a complete patience message — the redundant
+    // "still working" hint must not render on top of it (no duplicated wait copy).
+    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
+    expect(screen.queryByText(/pode levar até alguns minutos/i)).toBeNull();
+  });
+
   it("shows the safety-retry state with an indeterminate active progress bar", async () => {
     renderProgress({ phase: "safety-retry", elapsedSeconds: 3 });
 
