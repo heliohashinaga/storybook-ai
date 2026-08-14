@@ -85,8 +85,8 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
       className="flex flex-col gap-lg"
     >
       <header className="flex flex-col gap-xs">
-        <h1 className="font-title text-title">{t("title")}</h1>
-        <p className="text-title">{story.title}</p>
+        <h1 className="font-display text-display leading-display">{t("title")}</h1>
+        <p className="font-display text-title leading-title">{story.title}</p>
       </header>
 
       <SceneView scene={current} />
@@ -100,34 +100,39 @@ export function StoryReader({ story }: { story: GeneratedStory }) {
         />
       )}
 
-      <div className="flex items-center justify-between gap-md">
-        <div className="flex flex-col items-start gap-xs">
-          <p aria-live="polite" className="text-body">
-            {t("sceneCount", { current: currentIndex + 1, total })}
-          </p>
-          <SceneProgress
-            current={currentIndex + 1}
-            total={total}
-            label={t("sceneCount", { current: currentIndex + 1, total })}
-          />
+      <nav
+        aria-label={t("navigationLabel")}
+        className="flex flex-col gap-md rounded-2xl border border-border bg-card p-md"
+      >
+        <div className="flex items-center justify-between gap-md">
+          <div className="flex flex-col items-start gap-xs">
+            <p aria-live="polite" className="text-body">
+              {t("sceneCount", { current: currentIndex + 1, total })}
+            </p>
+            <SceneProgress
+              current={currentIndex + 1}
+              total={total}
+              label={t("sceneCount", { current: currentIndex + 1, total })}
+            />
+          </div>
+          <div className="flex gap-sm">
+            <Button
+              variant="secondary"
+              onClick={() => goTo(currentIndex - 1)}
+              disabled={currentIndex === 0}
+            >
+              {t("previous")}
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => goTo(currentIndex + 1)}
+              disabled={currentIndex === total - 1}
+            >
+              {t("next")}
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-sm">
-          <Button
-            variant="secondary"
-            onClick={() => goTo(currentIndex - 1)}
-            disabled={currentIndex === 0}
-          >
-            {t("previous")}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => goTo(currentIndex + 1)}
-            disabled={currentIndex === total - 1}
-          >
-            {t("next")}
-          </Button>
-        </div>
-      </div>
+      </nav>
     </section>
   );
 }

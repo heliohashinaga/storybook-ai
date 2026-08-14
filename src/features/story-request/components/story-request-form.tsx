@@ -4,10 +4,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
-import { ChoiceCard } from "../../../components/ui/choice-card";
 import { Select } from "../../../components/ui/select";
 import { useLocaleContext } from "../../../i18n/locale-provider";
-import { localeCatalog, themeCatalog } from "../../../lib/story-catalog";
+import { localeCatalog } from "../../../lib/story-catalog";
+import { ThemeSelector } from "./theme-selector";
 import { deriveAgeBand, type AgeBand } from "../client/age-band";
 import {
   MAX_SCENES,
@@ -116,7 +116,14 @@ export function StoryRequestForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate aria-busy={submitting || undefined}>
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      aria-busy={submitting || undefined}
+      className="flex flex-col gap-lg"
+    >
+      <ThemeSelector value={theme} onSelect={setTheme} disabled={disabled} />
+
       <div className="flex flex-col gap-xs">
         <label htmlFor="story-request-age" className="text-body font-title">
           {t("form.age.label")}
@@ -128,7 +135,7 @@ export function StoryRequestForm({
           min="2"
           max="9"
           inputMode="numeric"
-          className="w-full rounded-md border border-disabled bg-surface px-md py-sm text-body text-text shadow-sm disabled:bg-disabled disabled:text-text-subtle"
+          className="w-full rounded-xl border border-input bg-card px-md py-sm text-body text-text shadow-soft disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-subtle"
           value={age}
           disabled={disabled}
           placeholder={t("form.age.placeholder")}
@@ -164,26 +171,6 @@ export function StoryRequestForm({
         ))}
       </Select>
 
-      <fieldset
-        disabled={disabled}
-        aria-label={t("form.theme.label")}
-        className="flex flex-col gap-sm"
-      >
-        <legend className="text-caption text-text-subtle">{t("form.theme.label")}</legend>
-        <div className="flex flex-wrap gap-md">
-          {themeCatalog.map((entry) => (
-            <ChoiceCard
-              key={entry.value}
-              label={t(`catalog.theme.${entry.value}`)}
-              description={t(`catalog.themeDescription.${entry.value}`)}
-              selected={theme === entry.value}
-              disabled={disabled}
-              onSelect={() => setTheme(entry.value as Theme)}
-            />
-          ))}
-        </div>
-      </fieldset>
-
       <fieldset disabled={disabled} className="flex flex-col gap-xs">
         <legend className="text-body font-title">{t("form.scenes.label")}</legend>
         <div role="radiogroup" aria-label={t("form.scenes.label")} className="flex gap-sm">
@@ -215,7 +202,8 @@ export function StoryRequestForm({
         </div>
       ) : null}
 
-      <Button type="submit" loading={submitting}>
+      <Button type="submit" size="lg" loading={submitting}>
+        <span aria-hidden="true">✨</span>
         {submitting ? t("form.submitting") : t("form.submit")}
       </Button>
     </form>

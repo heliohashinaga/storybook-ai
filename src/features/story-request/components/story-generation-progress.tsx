@@ -65,8 +65,13 @@ export function StoryGenerationProgress({
             : t("generating");
 
   return (
-    <Progress label={message} busy>
-      {message}
-    </Progress>
+    <div className="flex flex-col gap-sm rounded-2xl border border-border bg-card p-lg shadow-soft">
+      <Progress label={message} busy>
+        {message}
+      </Progress>
+      <p className="text-caption text-text-subtle leading-caption">
+        {isTimeout ? t("stillWorkingHint") : t("activeHint")}
+      </p>
+    </div>
   );
 }

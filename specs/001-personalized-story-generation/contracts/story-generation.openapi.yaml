@@ -213,7 +213,7 @@ components:
       enum: [pt-BR, en]
     Theme:
       type: string
-      enum: [courage, friendship, kindness]
+      enum: [courage, friendship, kindness, curiosity, perseverance, empathy]
     GenerationError:
       type: object
       additionalProperties: false

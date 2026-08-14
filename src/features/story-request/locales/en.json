@@ -27,7 +27,9 @@
       "timeout": "This is taking longer than expected. Thanks for your patience — your story is still being created.",
       "safetyRetry": "We're reviewing once more to make sure everything is safe. Almost there!",
       "providerFailure": "We couldn't create your story right now.",
-      "retry": "Try again"
+      "retry": "Try again",
+      "stillWorkingHint": "Creating a story can take a few minutes. Watch the progress.",
+      "activeHint": "We can create short, medium, or long stories."
     },
     "error": {
       "invalidInput": "Invalid input. Please check the fields and try again.",
@@ -52,7 +54,8 @@
       "stopReading": "Stop reading",
       "reading": "Reading the scene",
       "exportSuccess": "PDF downloaded",
-      "retryExport": "Try again"
+      "retryExport": "Try again",
+      "navigationLabel": "Scene navigation"
     },
     "storySwitcher": {
       "label": "Your stories",
@@ -63,13 +66,26 @@
       "theme": {
         "courage": "Courage",
         "friendship": "Friendship",
-        "kindness": "Kindness"
+        "kindness": "Kindness",
+        "curiosity": "Curiosity",
+        "perseverance": "Perseverance",
+        "empathy": "Empathy"
       },
       "themeDescription": {
         "courage": "Overcoming fear and doing the right thing.",
         "friendship": "Kindness, sharing, and being a good friend.",
-        "kindness": "Caring for others and lending a hand."
+        "kindness": "Caring for others and lending a hand.",
+        "curiosity": "Asking questions and discovering the unknown.",
+        "perseverance": "Trying again and never giving up.",
+        "empathy": "Understanding how others feel."
       }
+    },
+    "brand": {
+      "name": "Bright Stories",
+      "tagline": "Anonymous, gentle stories for young readers",
+      "languageLabel": "Language",
+      "portuguese": "Português",
+      "english": "English"
     }
   },
   "theme": {

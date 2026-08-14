@@ -83,18 +83,34 @@ async function mapWithConcurrency<T, R>(
 }
 
 /** Deterministic, localized, age-safe alt text (never a direct identifier). */
+const THEME_LABEL_EN: Record<JobContext["theme"], string> = {
+  courage: "courage",
+  friendship: "friendship",
+  kindness: "kindness",
+  curiosity: "curiosity",
+  perseverance: "perseverance",
+  empathy: "empathy",
+};
+
+const THEME_LABEL_PT: Record<JobContext["theme"], string> = {
+  courage: "coragem",
+  friendship: "amizade",
+  kindness: "bondade",
+  curiosity: "curiosidade",
+  perseverance: "persistência",
+  empathy: "empatia",
+};
+
+/** Deterministic, localized, age-safe alt text (never a direct identifier). */
 export function altTextFor(
   locale: JobContext["locale"],
   theme: JobContext["theme"],
   ordinal: number
 ): string {
   if (locale === "en") {
-    const themeEn =
-      theme === "courage" ? "courage" : theme === "friendship" ? "friendship" : "kindness";
-    return `Scene ${ordinal} of a story about ${themeEn}.`;
+    return `Scene ${ordinal} of a story about ${THEME_LABEL_EN[theme]}.`;
   }
-  const themePt = theme === "courage" ? "coragem" : theme === "friendship" ? "amizade" : "bondade";
-  return `Ilustração da cena ${ordinal} de uma história sobre ${themePt}.`;
+  return `Ilustração da cena ${ordinal} de uma história sobre ${THEME_LABEL_PT[theme]}.`;
 }
 
 /**

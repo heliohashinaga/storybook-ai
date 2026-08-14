@@ -14,23 +14,56 @@
   --max-width-md: var(--container-md);
 }
 
-/* Design tokens — single source of truth, consumed by the Tailwind theme. */
+/*
+ * Design tokens — single source of truth, consumed by the Tailwind theme.
+ *
+ * Palette and identity ported from the `story-blossom-room` prototype:
+ * warm cream/coral/terracotta with a fresh teal accent, in oklch, for both
+ * light and dark modes (AA ≥ 4.5:1 for body text). See
+ * `specs/007-adopt-blossom-design/contracts/design-system.md`.
+ *
+ * Taxonomy: the new namespace uses the prototype terms (`primary`, `secondary`,
+ * `muted`, `accent`=teal, `destructive`). Legacy aliases (`surface`, `text`,
+ * `text-subtle`, `focus`, `danger`, `disabled`) are kept pointing at the same
+ * semantic values so existing primitives keep working while they are migrated
+ * in US6/T048.
+ */
 :root {
   /* Color (semantic) */
-  --color-background: #faf8f5;
-  --color-surface: #ffffff;
-  --color-text: #1f2328;
-  --color-text-subtle: #57606a;
-  --color-accent: #5b21b6;
-  --color-accent-hover: #4c1d95;
-  --color-focus: #2563eb;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --color-disabled: #e5e7eb;
+  --color-background: oklch(0.977 0.014 84);
+  --color-foreground: oklch(0.27 0.04 45);
+  --color-card: oklch(0.995 0.006 84);
+  --color-card-foreground: oklch(0.27 0.04 45);
+  --color-popover: oklch(0.995 0.006 84);
+  --color-popover-foreground: oklch(0.27 0.04 45);
+  --color-primary: oklch(0.58 0.17 32);
+  --color-primary-foreground: oklch(0.99 0.008 84);
+  --color-secondary: oklch(0.94 0.03 80);
+  --color-secondary-foreground: oklch(0.33 0.05 45);
+  --color-muted: oklch(0.945 0.022 82);
+  --color-muted-foreground: oklch(0.46 0.035 55);
+  --color-accent: oklch(0.72 0.12 175);
+  --color-accent-foreground: oklch(0.22 0.04 180);
+  --color-destructive: oklch(0.55 0.2 27);
+  --color-destructive-foreground: oklch(0.99 0.005 84);
+  --color-border: oklch(0.89 0.025 78);
+  --color-input: oklch(0.89 0.025 78);
+  --color-ring: oklch(0.58 0.17 32);
+
+  /* Legacy aliases (kept for migration; see header note). */
+  --color-surface: var(--color-card);
+  --color-text: var(--color-foreground);
+  --color-text-subtle: var(--color-muted-foreground);
+  --color-accent-hover: oklch(0.79 0.1 175);
+  --color-focus: var(--color-ring);
+  --color-success: oklch(0.5 0.15 152);
+  --color-warning: oklch(0.6 0.17 70);
+  --color-danger: var(--color-destructive);
+  --color-disabled: oklch(0.93 0.02 82);
   color-scheme: light;
 
   /* Typography */
+  --font-display: "Baloo 2", "Nunito", ui-rounded, system-ui, sans-serif;
   --font-sans: "Nunito", "Segoe UI", system-ui, sans-serif;
   --text-display: 2rem;
   --text-title: 1.25rem;
@@ -55,14 +88,22 @@
   /* Layout (container widths) */
   --container-md: 28rem;
 
-  /* Radius */
-  --radius-sm: 0.25rem;
-  --radius: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
+  /* Radius (derived from --radius, see design-system.md §4) */
+  --radius: 1.25rem;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
   --radius-full: 9999px;
 
-  /* Shadow */
+  /* Shadow (design-system.md §5) */
+  --shadow-soft: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
+  --shadow-lift: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
+
+  /* Legacy shadows retained during migration. */
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
   --shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   --shadow-lg: 0 8px 24px rgb(0 0 0 / 0.12);
@@ -82,58 +123,122 @@
  */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-background: #16131c;
-    --color-surface: #221d2b;
-    --color-text: #f3f1f6;
-    --color-text-subtle: #cfc8dc;
-    --color-accent: #a78bfa;
-    --color-accent-hover: #c4b5fd;
-    --color-focus: #93c5fd;
-    --color-success: #4ade80;
-    --color-warning: #fbbf24;
-    --color-danger: #f87171;
-    --color-disabled: #3a3544;
+    --color-background: oklch(0.21 0.022 55);
+    --color-foreground: oklch(0.95 0.015 84);
+    --color-card: oklch(0.26 0.026 55);
+    --color-card-foreground: oklch(0.95 0.015 84);
+    --color-popover: oklch(0.26 0.026 55);
+    --color-popover-foreground: oklch(0.95 0.015 84);
+    --color-primary: oklch(0.76 0.14 45);
+    --color-primary-foreground: oklch(0.21 0.03 45);
+    --color-secondary: oklch(0.32 0.03 55);
+    --color-secondary-foreground: oklch(0.95 0.015 84);
+    --color-muted: oklch(0.31 0.026 55);
+    --color-muted-foreground: oklch(0.79 0.025 80);
+    --color-accent: oklch(0.78 0.11 175);
+    --color-accent-foreground: oklch(0.2 0.03 180);
+    --color-destructive: oklch(0.7 0.18 25);
+    --color-destructive-foreground: oklch(0.16 0.02 45);
+    --color-border: oklch(0.38 0.03 55);
+    --color-input: oklch(0.38 0.03 55);
+    --color-ring: oklch(0.76 0.14 45);
+
+    /* Legacy aliases (dark). */
+    --color-surface: var(--color-card);
+    --color-text: var(--color-foreground);
+    --color-text-subtle: var(--color-muted-foreground);
+    --color-accent-hover: oklch(0.85 0.1 175);
+    --color-focus: var(--color-ring);
+    --color-success: oklch(0.72 0.15 152);
+    --color-warning: oklch(0.8 0.14 70);
+    --color-danger: var(--color-destructive);
+    --color-disabled: oklch(0.34 0.03 55);
     color-scheme: dark;
+
+    --shadow-soft: 0 2px 10px -4px oklch(0 0 0 / 0.5);
+    --shadow-lift: 0 18px 40px -18px oklch(0 0 0 / 0.6);
   }
 }
 
 /* Manual override to dark (used when the user chooses dark in-session). */
 :root.dark {
-  --color-background: #16131c;
-  --color-surface: #221d2b;
-  --color-text: #f3f1f6;
-  --color-text-subtle: #cfc8dc;
-  --color-accent: #a78bfa;
-  --color-accent-hover: #c4b5fd;
-  --color-focus: #93c5fd;
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-danger: #f87171;
-  --color-disabled: #3a3544;
+  --color-background: oklch(0.21 0.022 55);
+  --color-foreground: oklch(0.95 0.015 84);
+  --color-card: oklch(0.26 0.026 55);
+  --color-card-foreground: oklch(0.95 0.015 84);
+  --color-popover: oklch(0.26 0.026 55);
+  --color-popover-foreground: oklch(0.95 0.015 84);
+  --color-primary: oklch(0.76 0.14 45);
+  --color-primary-foreground: oklch(0.21 0.03 45);
+  --color-secondary: oklch(0.32 0.03 55);
+  --color-secondary-foreground: oklch(0.95 0.015 84);
+  --color-muted: oklch(0.31 0.026 55);
+  --color-muted-foreground: oklch(0.79 0.025 80);
+  --color-accent: oklch(0.78 0.11 175);
+  --color-accent-foreground: oklch(0.2 0.03 180);
+  --color-destructive: oklch(0.7 0.18 25);
+  --color-destructive-foreground: oklch(0.16 0.02 45);
+  --color-border: oklch(0.38 0.03 55);
+  --color-input: oklch(0.38 0.03 55);
+  --color-ring: oklch(0.76 0.14 45);
+
+  --color-surface: var(--color-card);
+  --color-text: var(--color-foreground);
+  --color-text-subtle: var(--color-muted-foreground);
+  --color-accent-hover: oklch(0.85 0.1 175);
+  --color-focus: var(--color-ring);
+  --color-success: oklch(0.72 0.15 152);
+  --color-warning: oklch(0.8 0.14 70);
+  --color-danger: var(--color-destructive);
+  --color-disabled: oklch(0.34 0.03 55);
   color-scheme: dark;
+
+  --shadow-soft: 0 2px 10px -4px oklch(0 0 0 / 0.5);
+  --shadow-lift: 0 18px 40px -18px oklch(0 0 0 / 0.6);
 }
 
 /* Manual override to light (used when the user chooses light even on a dark system). */
 :root.light {
-  --color-background: #faf8f5;
-  --color-surface: #ffffff;
-  --color-text: #1f2328;
-  --color-text-subtle: #57606a;
-  --color-accent: #5b21b6;
-  --color-accent-hover: #4c1d95;
-  --color-focus: #2563eb;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --color-disabled: #e5e7eb;
+  --color-background: oklch(0.977 0.014 84);
+  --color-foreground: oklch(0.27 0.04 45);
+  --color-card: oklch(0.995 0.006 84);
+  --color-card-foreground: oklch(0.27 0.04 45);
+  --color-popover: oklch(0.995 0.006 84);
+  --color-popover-foreground: oklch(0.27 0.04 45);
+  --color-primary: oklch(0.58 0.17 32);
+  --color-primary-foreground: oklch(0.99 0.008 84);
+  --color-secondary: oklch(0.94 0.03 80);
+  --color-secondary-foreground: oklch(0.33 0.05 45);
+  --color-muted: oklch(0.945 0.022 82);
+  --color-muted-foreground: oklch(0.46 0.035 55);
+  --color-accent: oklch(0.72 0.12 175);
+  --color-accent-foreground: oklch(0.22 0.04 180);
+  --color-destructive: oklch(0.55 0.2 27);
+  --color-destructive-foreground: oklch(0.99 0.005 84);
+  --color-border: oklch(0.89 0.025 78);
+  --color-input: oklch(0.89 0.025 78);
+  --color-ring: oklch(0.58 0.17 32);
+
+  --color-surface: var(--color-card);
+  --color-text: var(--color-foreground);
+  --color-text-subtle: var(--color-muted-foreground);
+  --color-accent-hover: oklch(0.79 0.1 175);
+  --color-focus: var(--color-ring);
+  --color-success: oklch(0.5 0.15 152);
+  --color-warning: oklch(0.6 0.17 70);
+  --color-danger: var(--color-destructive);
+  --color-disabled: oklch(0.93 0.02 82);
   color-scheme: light;
+
+  --shadow-soft: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
+  --shadow-lift: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
 }
 
 @layer base {
   *,
   ::before,
   ::after {
-    border-color: var(--color-disabled);
+    border-color: var(--color-border);
   }
 
   html {
@@ -149,8 +254,14 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
   :focus-visible {
-    outline: 2px solid var(--color-focus);
+    outline: 3px solid var(--color-ring);
     outline-offset: 2px;
   }
 

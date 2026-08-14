@@ -51,9 +51,13 @@ describe("planner agent", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("purposeFor is theme-aligned and identifier-free", () => {
+  it("purposeFor is theme-aligned for all six themes and identifier-free", () => {
     expect(purposeFor(ctx({ theme: "courage" }), 2)).toBe("scene-2-bravery");
     expect(purposeFor(ctx({ theme: "kindness" }), 1)).toBe("scene-1-kindness");
+    expect(purposeFor(ctx({ theme: "friendship" }), 1)).toBe("scene-1-friendship");
+    expect(purposeFor(ctx({ theme: "curiosity" }), 3)).toBe("scene-3-wonder");
+    expect(purposeFor(ctx({ theme: "perseverance" }), 2)).toBe("scene-2-persistence");
+    expect(purposeFor(ctx({ theme: "empathy" }), 1)).toBe("scene-1-compassion");
   });
 
   it("providerInputFor only exposes anonymous fields", () => {

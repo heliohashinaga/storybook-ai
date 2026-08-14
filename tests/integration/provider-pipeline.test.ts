@@ -120,6 +120,9 @@ describe("provider pipeline — structured narrative", () => {
       { theme: "courage", expected: "coragem" },
       { theme: "friendship", expected: "amizade" },
       { theme: "kindness", expected: "bondade" },
+      { theme: "curiosity", expected: "curiosidade" },
+      { theme: "perseverance", expected: "persistência" },
+      { theme: "empathy", expected: "empatia" },
     ] as const;
     for (const { theme, expected } of pt) {
       const result = await generateStory({
@@ -139,6 +142,9 @@ describe("provider pipeline — structured narrative", () => {
       { theme: "courage", expected: "courage" },
       { theme: "friendship", expected: "friendship" },
       { theme: "kindness", expected: "kindness" },
+      { theme: "curiosity", expected: "curiosity" },
+      { theme: "perseverance", expected: "perseverance" },
+      { theme: "empathy", expected: "empathy" },
     ] as const;
     for (const { theme, expected } of en) {
       const result = await generateStory({

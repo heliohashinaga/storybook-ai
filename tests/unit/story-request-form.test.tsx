@@ -51,13 +51,17 @@ describe("StoryRequestForm — anonymous by design", () => {
 });
 
 describe("StoryRequestForm — theme and language choices", () => {
-  it("offers exactly the three positive-value themes as visual cards", () => {
+  it("offers exactly the six positive-value themes as visual emoji cards", () => {
     renderForm();
-    // The three positive-value themes render as ChoiceCard buttons localized to
-    // pt-BR (default): Coragem, Amizade, Bondade.
+    // The six positive-value themes render as ChoiceCard buttons localized to
+    // pt-BR (default): Coragem, Amizade, Bondade, Curiosidade, Persistência,
+    // Empatia — each with an emoji icon.
     expect(screen.getByRole("button", { name: /coragem/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /amizade/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /bondade/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /curiosidade/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /persistência/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /empatia/i })).toBeInTheDocument();
     // The locale field remains a select with both locale options.
     expect(screen.getAllByRole("option").length).toBe(2); // pt-BR + en
   });

@@ -23,7 +23,7 @@ export function SceneView({ scene }: { scene: GeneratedScene }) {
       <img
         src={scene.illustrationDataUri}
         alt={scene.altText}
-        className="aspect-square w-full rounded-md object-cover"
+        className="aspect-square w-full rounded-2xl object-cover"
       />
       <h2 id={`scene-heading-${scene.ordinal}`} tabIndex={-1} className="font-title text-body">
         {scene.title}

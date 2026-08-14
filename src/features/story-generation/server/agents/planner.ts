@@ -31,11 +31,19 @@ export function providerInputFor(ctx: JobContext): ProviderStoryInput {
   };
 }
 
+/** Maps each supported anonymous theme to a stable planning movement. */
+const THEME_MOVEMENT: Record<JobContext["theme"], string> = {
+  courage: "bravery",
+  friendship: "friendship",
+  kindness: "kindness",
+  curiosity: "wonder",
+  perseverance: "persistence",
+  empathy: "compassion",
+};
+
 /** Derives a stable, theme-aligned purpose hint for a scene (no identifiers). */
 export function purposeFor(ctx: JobContext, index: number): string {
-  const movement =
-    ctx.theme === "courage" ? "bravery" : ctx.theme === "friendship" ? "friendship" : "kindness";
-  return `scene-${index}-${movement}`;
+  return `scene-${index}-${THEME_MOVEMENT[ctx.theme]}`;
 }
 
 /**

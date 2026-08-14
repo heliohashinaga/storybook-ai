@@ -27,7 +27,9 @@
       "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
       "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
       "providerFailure": "Não foi possível criar sua história no momento.",
-      "retry": "Tentar novamente"
+      "retry": "Tentar novamente",
+      "stillWorkingHint": "A criação pode levar até alguns minutos. Fique de olho no progresso.",
+      "activeHint": "Podemos criar histórias curtas, médias ou longas."
     },
     "error": {
       "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
@@ -52,7 +54,8 @@
       "stopReading": "Parar leitura",
       "reading": "Lendo a cena",
       "exportSuccess": "PDF baixado",
-      "retryExport": "Tentar novamente"
+      "retryExport": "Tentar novamente",
+      "navigationLabel": "Navegação de cenas"
     },
     "storySwitcher": {
       "label": "Suas histórias",
@@ -63,13 +66,26 @@
       "theme": {
         "courage": "Coragem",
         "friendship": "Amizade",
-        "kindness": "Bondade"
+        "kindness": "Bondade",
+        "curiosity": "Curiosidade",
+        "perseverance": "Persistência",
+        "empathy": "Empatia"
       },
       "themeDescription": {
         "courage": "Enfrentar o medo e fazer a coisa certa.",
         "friendship": "Gentileza, partilha e ser um bom amigo.",
-        "kindness": "Cuidar dos outros e ajudar."
+        "kindness": "Cuidar dos outros e ajudar.",
+        "curiosity": "Fazer perguntas e descobrir o desconhecido.",
+        "perseverance": "Tentar de novo e não desistir nunca.",
+        "empathy": "Entender como os outros se sentem."
       }
+    },
+    "brand": {
+      "name": "Histórias Brilhantes",
+      "tagline": "Histórias anônimas e gentis para pequenos leitores",
+      "languageLabel": "Idioma",
+      "portuguese": "Português",
+      "english": "English"
     }
   },
   "theme": {

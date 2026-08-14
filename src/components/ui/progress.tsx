@@ -38,9 +38,9 @@ export const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progr
       className={`flex flex-col gap-xs ${className ?? ""}`}
       {...rest}
     >
-      <div role="presentation" className="h-sm overflow-hidden rounded-full bg-disabled">
+      <div role="presentation" className="h-sm overflow-hidden rounded-full bg-secondary">
         <div
-          className={`h-full rounded-full bg-accent transition-[width] duration-base ${
+          className={`h-full rounded-full bg-primary transition-all duration-slow ${
             determinate ? "" : "w-1/2 animate-pulse"
           }`}
           style={determinate ? { width: `${percent}%` } : undefined}

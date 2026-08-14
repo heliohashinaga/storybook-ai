@@ -8,10 +8,10 @@ interface AlertProps {
 }
 
 const styles: Record<AlertVariant, string> = {
-  info: "border-focus/40 bg-surface text-text",
-  success: "border-success/40 bg-surface text-text",
-  warning: "border-warning/40 bg-surface text-text",
-  danger: "border-danger/40 bg-surface text-danger",
+  info: "border-focus/40 bg-card text-text",
+  success: "border-success/50 bg-card text-text",
+  warning: "border-warning/50 bg-card text-text",
+  danger: "border-danger/50 bg-card text-danger",
 };
 
 const roles: Record<AlertVariant, "alert" | "status"> = {
@@ -32,7 +32,7 @@ export function Alert({ children, variant = "info" }: AlertProps) {
     <div
       role={role}
       aria-live={role === "alert" ? "assertive" : "polite"}
-      className={`rounded-md border p-md text-body ${styles[variant]}`}
+      className={`rounded-2xl border bg-card p-md text-body shadow-soft ${styles[variant]}`}
     >
       {children}
     </div>
