@@ -48,7 +48,9 @@ Cache-Control: no-store
 ## 2. Contrato de identidade visual (tokens semânticos)
 
 Todas as primitivas/features referenciam **tokens semânticos**, nunca hex/valores arbitrários em
-componentes.
+componentes. **Valores concretos (oklch, fontes, raios, sombras, foco, uso por tela)**: ver o estudo
+dedicado em `contracts/design-system.md` — este documento é o **registro** (nomes/papéis); o
+`design-system.md` é a **autoridade de valores/uso**. Consulte-o antes de definir qualquer token.
 
 | Token (CSS var) | Registro | Consumidores |
 |-----------------|----------|--------------|

@@ -69,6 +69,8 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 - [ ] T021 [P] [US4] Atualizar `tests/unit/story-generation/agents/planner.test.ts` — `purposeFor` cobre os 6 themes
 - [ ] T022 [P] [US4] Atualizar `tests/contract/story-generation.openapi.test.ts` / `tests/contract/generate-story.privacy.test.ts` — payload continua anônimo (só `ageBand/locale/theme/sceneCount`) e aceita os 3 novos temas; adicionar caso de `invalidInput` para tema fora dos 6
 - [ ] T023 [P] [US4] Atualizar `tests/unit/provider-fixtures.test.ts` para os novos temas fake
+- [ ] T024 [P] [US4] Atualizar `story-generation.openapi.yaml` (enum `theme` 3→6, incl. `curiosity`/`perseverance`/`empathy`) para manter o contrato externo em sincronia — em `specs/002-generate-more-scenes/contracts/story-generation.openapi.yaml`
+- [ ] T025 [P] [US4] Atualizar `tests/unit/opencode-story-generation-provider.test.ts` / `tests/unit/openrouter-story-generation-provider.test.ts` — confirmar que os adapters reais encaminham o campo `theme` para os 6 valores, alinhando a SC-007 também aos provedores reais (não só ao dev-fake)
 
 **Independent test**: selecionar cada um dos 6 temas no formulário (fake) e gerar — retorna história coerente com o tema; payload apenas `ageBand/locale/theme/sceneCount`; tema fora dos 6 → 400 `invalidInput`.
 
@@ -78,13 +80,12 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 `spec.md` US1 (FR-004, parte FR-003). Form acolhedor: cards de tema com emoji, idade, duração, CTA primário.
 
-- [ ] T024 [P] [US4] Atualizar `tests/unit/opencode-story-generation-provider.test.ts` / `tests/unit/openrouter-story-generation-provider.test.ts` — confirmar que os adapters reais encaminham o campo `theme` para os 6 valores, alinhando a SC-007 também aos provedores reais (não só ao dev-fake)
-- [ ] T025 [P] [US1] Renderizar a seleção de tema como cards grandes com emoji+descrição no formulário — `src/features/story-request/components/story-request-form.tsx` (consome `themeCatalog` da US4 e `ChoiceCard` restilizado)
-- [ ] T026 [US1] Ajustar o layout/ordem do formulário (tema → idade → duração (cenas 3-5) → botão primário "Criar história" com ícone) em `src/features/story-request/components/story-request-form.tsx` usando tokens/fontes novas
-- [ ] T027 [US1] Manter validações Zod de `story-preferences-schema.ts` e acessibilidade (foco visível, teclado, `aria-pressed` nos cards) no formulário reestilizado — `src/features/story-request/components/story-request-form.tsx`
-- [ ] T028 [US1] Atualizar `tests/unit/story-request-form.test.tsx` — renderiza envio com nova identidade/emoji e mantém flags de privacidade (payload sem identificador)
-- [ ] T029 [P] [US1] Atualizar stories em `.stories.tsx` do formulário (default/loading/error/edge) ao novo visual — `src/features/story-request/components/story-request-form.stories.tsx`
-- [ ] T030 [US1] Atualizar spec E2E do formulário (pt-BR + EN, fake) e linha de base visual em `playwright.config.ts`/`tests/e2e/**`
+- [ ] T026 [P] [US1] Renderizar a seleção de tema como cards grandes com emoji+descrição no formulário — `src/features/story-request/components/story-request-form.tsx` (consome `themeCatalog` da US4 e `ChoiceCard` restilizado)
+- [ ] T027 [US1] Ajustar o layout/ordem do formulário (tema → idade → duração (cenas 3-5) → botão primário "Criar história" com ícone) em `src/features/story-request/components/story-request-form.tsx` usando tokens/fontes novas
+- [ ] T028 [US1] Manter validações Zod de `story-preferences-schema.ts` e acessibilidade (foco visível, teclado, `aria-pressed` nos cards) no formulário reestilizado — `src/features/story-request/components/story-request-form.tsx`
+- [ ] T029 [US1] Atualizar `tests/unit/story-request-form.test.tsx` — renderiza envio com nova identidade/emoji e mantém flags de privacidade (payload sem identificador)
+- [ ] T030 [P] [US1] Atualizar stories em `.stories.tsx` do formulário (default/loading/error/edge) ao novo visual — `src/features/story-request/components/story-request-form.stories.tsx`
+- [ ] T031 [US1] Atualizar spec E2E do formulário (pt-BR + EN, fake) e linha de base visual em `playwright.config.ts`/`tests/e2e/**`
 
 **Independent test**: abrir o formulário (pt-BR) e confirmar visual novo, tema em cards com emoji, validação e envio anônimo; foco teclado AA.
 
@@ -94,11 +95,11 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 `spec.md` US2 (FR-005). Estágios nomeados + barra + bloqueio de envio + `aria-busy`/`aria-live`.
 
-- [ ] T031 [P] [US2] Reestilizar os estágios nomeados ("Escrevendo sua história…" → "Ilustrando as cenas…" → "Verificando a segurança…") + barra de progresso ao estilo protótipo em `src/features/story-request/components/story-generation-progress.tsx` (usa `Progress` restilizado)
-- [ ] T032 [US2] Garantir aviso de "envio bloqueado durante a criação" e desabilitação dos controles de envio em `src/features/story-request/components/story-request-app.tsx`; manter `aria-busy="true"`/`aria-live`
-- [ ] T033 [US2] Localizar as novas strings de estágios via catálogos next-intl (`pt-BR.json`/`en.json`)
-- [ ] T034 [US2] Atualizar `tests/unit/story-generation-progress.test.tsx` — estágios em sequência, progresso e labels acessíveis
-- [ ] T035 [US2] Atualizar `tests/unit/story-request-app.test.tsx` — blocagem de envio durante geração, sem enviar identificador
+- [ ] T032 [P] [US2] Reestilizar os estágios nomeados ("Escrevendo sua história…" → "Ilustrando as cenas…" → "Verificando a segurança…") + barra de progresso ao estilo protótipo em `src/features/story-request/components/story-generation-progress.tsx` (usa `Progress` restilizado)
+- [ ] T033 [US2] Garantir aviso de "envio bloqueado durante a criação" e desabilitação dos controles de envio em `src/features/story-request/components/story-request-app.tsx`; manter `aria-busy="true"`/`aria-live`
+- [ ] T034 [US2] Localizar as novas strings de estágios via catálogos next-intl (`pt-BR.json`/`en.json`)
+- [ ] T035 [US2] Atualizar `tests/unit/story-generation-progress.test.tsx` — estágios em sequência, progresso e labels acessíveis
+- [ ] T036 [US2] Atualizar `tests/unit/story-request-app.test.tsx` — blocagem de envio durante geração, sem enviar identificador
 
 **Independent test**: submeter com provider fake — estágios aparecem em sequência com barra, `aria-busy`/`aria-live` presentes, nenhum controle de envio habilitado, nada inseguro logado.
 
@@ -108,13 +109,13 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 `spec.md` US3 (FR-006). Cena destacada, progresso por cenas, Anterior/Próxima, leitura em voz alta, PDF no rodapé.
 
-- [ ] T036 [P] [US3] Reestilizar a leitura de cena única (título, texto, destaque de ilustração/placeholder) e o indicador de progresso por cenas em `src/features/story-reader/components/` (scene-view + scene-progress)
-- [ ] T037 [P] [US3] Reestilizar os botões Anterior/Próxima (com desabilitar correto nas bordas) em `src/features/story-reader/components/`
-- [ ] T038 [P] [US3] Reestilizar o controle de leitura em voz alta (play/stop, `aria-pressed`) em `src/features/story-read-aloud/components/narration-control.tsx`
-- [ ] T039 [P] [US3] Reestilizar a ação "Baixar como PDF" no rodapé em `src/features/story-export/components/export-story-button.tsx`, mantendo o **lazy-import** (`@react-pdf/renderer`) intacto
-- [ ] T040 [US3] Atualizar `tests/unit/story-reader.test.tsx` e `tests/unit/use-read-aloud.test.tsx` — navegação, estado play/stop acessível, cenas
-- [ ] T041 [US3] Atualizar `tests/unit/export-story-button.test.tsx` — PDF só no clique, com lazy-import e estados localizados
-- [ ] T042 [US3] Atualizar stories do leitor (`.stories.tsx`) e linha de base visual/E2E do leitor
+- [ ] T037 [P] [US3] Reestilizar a leitura de cena única (título, texto, destaque de ilustração/placeholder) e o indicador de progresso por cenas em `src/features/story-reader/components/` (scene-view + scene-progress)
+- [ ] T038 [P] [US3] Reestilizar os botões Anterior/Próxima (com desabilitar correto nas bordas) em `src/features/story-reader/components/`
+- [ ] T039 [P] [US3] Reestilizar o controle de leitura em voz alta (play/stop, `aria-pressed`) em `src/features/story-read-aloud/components/narration-control.tsx`
+- [ ] T040 [P] [US3] Reestilizar a ação "Baixar como PDF" no rodapé em `src/features/story-export/components/export-story-button.tsx`, mantendo o **lazy-import** (`@react-pdf/renderer`) intacto
+- [ ] T041 [US3] Atualizar `tests/unit/story-reader.test.tsx` e `tests/unit/use-read-aloud.test.tsx` — navegação, estado play/stop acessível, cenas
+- [ ] T042 [US3] Atualizar `tests/unit/export-story-button.test.tsx` — PDF só no clique, com lazy-import e estados localizados
+- [ ] T043 [US3] Atualizar stories do leitor (`.stories.tsx`) e linha de base visual/E2E do leitor
 
 **Independent test**: percorrer cenas com Anterior/Próxima (bordas desabilitam), ativar/parar leitura com `aria-pressed`, baixar PDF via lazy, tudo na nova identidade.
 
@@ -124,9 +125,9 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 `spec.md` US5 (FR-007). Dark em formulário, geração e leitor + alternância manual sem persistência.
 
-- [ ] T043 [P] [US5] Reestilizar a alternância de tema visual (claro/escuro) em `src/features/theme/components/theme-toggle.tsx`, mantendo precedência do sistema na primeira carga e **sem persistência**
-- [ ] T044 [P] [US5] Assegurar que formulário, geração e leitor herdam a paleta escura dos tokens (Phase 2) sem flash/regeneração; ajustar componentes específicos se necessário
-- [ ] T045 [US5] Atualizar `tests/unit/use-color-scheme.test.tsx` — escolha manual na sessão precede o sistema, nada persistido
+- [ ] T044 [P] [US5] Reestilizar a alternância de tema visual (claro/escuro) em `src/features/theme/components/theme-toggle.tsx`, mantendo precedência do sistema na primeira carga e **sem persistência**
+- [ ] T045 [P] [US5] Assegurar que formulário, geração e leitor herdam a paleta escura dos tokens (Phase 2) sem flash/regeneração; ajustar componentes específicos se necessário
+- [ ] T046 [US5] Atualizar `tests/unit/use-color-scheme.test.tsx` — escolha manual na sessão precede o sistema, nada persistido
 
 **Independent test**: alternar para escuro nas 3 telas — muda a paleta escura do protótipo mantendo AA; a escolha não persiste entre recargas.
 
@@ -136,11 +137,11 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 `spec.md` US6 (polonia de padrões; FR-003/010). Topo com marca + idioma/tema, sem duplicação, Storybook==app.
 
-- [ ] T046 [P] [US6] Adicionar barra do topo com marca (`BookOpenText` + nome + tagline) + alternância de idioma em `src/app/layout.tsx` / shell da página, na linguagem do protótipo
-- [ ] T047 [P] [US6] Consolidar o seletor de tema em cards (emoji) como padrão reutilizável e remover duplicação entre formulário e stories (guard no `ChoiceCard`/`themeCatalog`)
-- [ ] T048 [US6] Revisar que todas as strings visíveis vêm dos catálogos next-intl (nenhum hardcoded) e que nenhum código morto/duplicado permanece — checagem em `src/features/*` e `src/components/ui/*`
-- [ ] T049 [US6] Atualizar stories (default/edge/error) + checagem de que o **Storybook == app** (behavior e visual) — `pnpm storybook:test` verde após a centralização
-- [ ] T050 [US6] Atualizar `tests/integration/anonymous-session.test.tsx` / `tests/integration/privacy-boundary.test.tsx` — a jornada completa nova não introduz identificador
+- [ ] T047 [P] [US6] Adicionar barra do topo com marca (`BookOpenText` + nome + tagline) + alternância de idioma em `src/app/layout.tsx` / shell da página, na linguagem do protótipo
+- [ ] T048 [P] [US6] Consolidar o seletor de tema em cards (emoji) como padrão reutilizável e remover duplicação entre formulário e stories (guard no `ChoiceCard`/`themeCatalog`)
+- [ ] T049 [US6] Revisar que todas as strings visíveis vêm dos catálogos next-intl (nenhum hardcoded) e que nenhum código morto/duplicado permanece — checagem em `src/features/*` e `src/components/ui/*`
+- [ ] T050 [US6] Atualizar stories (default/edge/error) + checagem de que o **Storybook == app** (behavior e visual) — `pnpm storybook:test` verde após a centralização
+- [ ] T051 [US6] Atualizar `tests/integration/anonymous-session.test.tsx` / `tests/integration/privacy-boundary.test.tsx` — a jornada completa nova não introduz identificador
 
 **Independent test**: as 6 telas/stories cobrem default/edge/error com a nova identidade; nenhum hardcoded em pt-BR/en; Storybook coincide com o app.
 
@@ -148,29 +149,29 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 
 ## Phase 9 — Polonia & cross-cutting (review final)
 
-- [ ] T051 **Review**: revisar `contracts/design-tokens-and-themes.md` e `contracts/design-system.md` — atualizar o trecho `story-generation.openapi.yaml` do enum `theme` (3→6) se ainda não atualizado na US4; confirmar que os valores/tokens do design-system.md foram registrados em `globals.css`/`tailwind.config.ts`
-- [ ] T052 **Gates**: `pnpm lint` (0 warnings), `pnpm format:check` (sem drift), `pnpm typecheck` (sem `any` novo) e `pnpm format` em qualquer arquivo novo/editado — **após a última edição**
-- [ ] T053 **Test**: `pnpm test` (unit/contrato/pipeline) e `pnpm test:coverage:check` (≥80% total; ≥90% safety/validation/orchestration)
-- [ ] T054 **Storybook/a11y**: `pnpm storybook:test` (default/loading/error/edge + a11y AA) — comportamento coincide com o app
-- [ ] T055 **E2E/visual/perf**: `pnpm test:e2e` (pt-BR + EN, fake), `pnpm test:visual` (base aprovada da nova paleta), `pnpm test:performance` (≤250 KiB JS inicial; export PDF lazy; navegação ≤100 ms p75)
-- [ ] T056 **DoD**: 6 temas no catálogo (SC-007), nenhum identificador em payload/log/catálogo/fixtures (SC-004), tokens com AA (SC-002), identidade em 100% das telas (SC-001), gates verdes (SC-005/SC-006)
-- [ ] T057 Commit: `:lipstick: feat(story-generation): adopt story-blossom-room design system + 6 themes` (gitmoji + Conventional Commits)
+- [ ] T052 **Review**: revisar `contracts/design-tokens-and-themes.md` e `contracts/design-system.md` — confirmar que o enum `theme` do `story-generation.openapi.yaml` ficou 3→6 (feito na US4, T024) e que os valores/tokens do design-system.md foram registrados em `globals.css`/`tailwind.config.ts`
+- [ ] T053 **Gates**: `pnpm lint` (0 warnings), `pnpm format:check` (sem drift), `pnpm typecheck` (sem `any` novo) e `pnpm format` em qualquer arquivo novo/editado — **após a última edição**
+- [ ] T054 **Test**: `pnpm test` (unit/contrato/pipeline) e `pnpm test:coverage:check` (≥80% total; ≥90% safety/validation/orchestration)
+- [ ] T055 **Storybook/a11y**: `pnpm storybook:test` (default/loading/error/edge + a11y AA) — comportamento coincide com o app
+- [ ] T056 **E2E/visual/perf**: `pnpm test:e2e` (pt-BR + EN, fake), `pnpm test:visual` (base aprovada da nova paleta), `pnpm test:performance` (≤250 KiB JS inicial; export PDF lazy; navegação ≤100 ms p75)
+- [ ] T057 **DoD**: 6 temas no catálogo (SC-007), nenhum identificador em payload/log/catálogo/fixtures (SC-004), tokens com AA (SC-002), identidade em 100% das telas (SC-001), gates verdes (SC-005/SC-006)
+- [ ] T058 Commit: `:lipstick: feat(story-generation): adopt story-blossom-room design system + 6 themes` (gitmoji + Conventional Commits)
 
 ---
 
 ## Implementação estratégica
 
-**MVP (US1 primeiro)**: entregar tokens+fontes+primitivas (Phase 2) e formulário novo (US1) com 6 temas (US4, incluindo T024 dos provedores reais) já no primeiro incremento — cobre US1 (P1) + US4 (P1) = formulário + tema expandido. Em seguida US2 (geração) fecha o fluxo de criação completo.
+**MVP (US1 primeiro)**: entregar tokens+fontes+primitivas (Phase 2) e formulário novo (US1) com 6 temas (US4, incluindo T024 do openapi + T025 dos provedores reais) já no primeiro incremento — cobre US1 (P1) + US4 (P1) = formulário + tema expandido. Em seguida US2 (geração) fecha o fluxo de criação completo.
 
 **Entrega incremental (pares test-first)**: cada fase é um incremento independente e testável:
 - Fase 2 + US4 → Foundation visual + temas (paralelizáveis entre arquivos distintos).
 - US1 → US2 → leitor (US3) → escuro (US5) → padrões (US6).
 
-**Paralelismo**: T003-T005, T008-T011 (arquivos distintos na Phase 2); T013-T024/US4 (inclui T024, teste dos provedores reais); T036-T039/US3.
+**Paralelismo**: T003-T005, T008-T011 (arquivos distintos na Phase 2); T013-T025/US4 (inclui T024 do openapi e T025 dos provedores reais); T037-T043/US3.
 
 ## Notas
 
-- Nenhum teste chama AI real — fakes + fixtures da US4 (T018) suprem fakes/visual/e2e; T024 garante, também, o encaminhamento do `theme` nos adapters reais (opencode/openrouter) para SC-007.
-- Mapeamento de tokens `accent`→`primary` (paleta): decisão de implementação — ver `contracts/design-system.md` §2 nota e US6 (T047/T048).
+- Nenhum teste chama AI real — fakes + fixtures da US4 (T018) suprem fakes/visual/e2e; T025 garante, também, o encaminhamento do `theme` nos adapters reais (opencode/openrouter) para SC-007.
+- Mapeamento de tokens `accent`→`primary` (paleta): decisão de implementação — ver `contracts/design-system.md` §2 nota e US6 (T048/T049).
 - A nova paleta é a **nova linha de base** da regressão visual (churn de cor esperado e aprovado, não como diff indesejado).
 - `tasks.md` foi gerado por `/speckit.tasks`; seguir `checklists/requirements.md`, `contracts/design-tokens-and-themes.md` e `contracts/design-system.md`.
