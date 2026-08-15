@@ -231,15 +231,10 @@ describe("scene progress — variable total (US3)", () => {
 });
 
 describe("scene view — standalone illustration header", () => {
-  it("renders a scene's full-bleed illustration with the theme badge", async () => {
-    render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
-        <SceneView scene={story.scenes[1] ?? scene(1, "fallback")} theme={story.theme} />
-      </NextIntlClientProvider>
-    );
+  it("renders a scene's full-bleed illustration", async () => {
+    render(<SceneView scene={story.scenes[1] ?? scene(1, "fallback")} />);
 
     expect(screen.getByRole("img")).toHaveAttribute("alt", "Ilustração da cena 2 em aquarela.");
     expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/webp;base64,cena2");
-    expect(screen.getByText("Coragem")).toBeInTheDocument();
   });
 });

@@ -97,7 +97,7 @@ export function StoryReader({
         onKeyDown={handleKeyDown}
         className="overflow-hidden rounded-4xl border border-border bg-card shadow-lift"
       >
-        <SceneView scene={current} theme={story.theme} />
+        <SceneView scene={current} />
 
         <div className="p-6 sm:p-8">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md">
