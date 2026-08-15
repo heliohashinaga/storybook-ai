@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "../../src/i18n/config";
@@ -236,5 +236,135 @@ describe("scene view — standalone illustration header", () => {
 
     expect(screen.getByRole("img")).toHaveAttribute("alt", "Ilustração da cena 2 em aquarela.");
     expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/webp;base64,cena2");
+  });
+});
+
+describe("story reader — US4 show more / show less (accessible body collapse)", () => {
+  const longBody =
+    "Era uma vez uma estrelinha muito curiosa que queria conhecer o mar. " +
+    "Ela brilhou forte e desceu até a areia, onde conheceu uma conchinha. " +
+    "Juntas enfrentaram a tempestade e descobriram que amizade vence tudo. ".repeat(8);
+
+  // jsdom does no layout: stub scrollHeight/clientHeight so the overflow
+  // measurement is deterministic (200 > 100 = overflow, 100 == 100 = fits).
+  const originalScrollHeight = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "scrollHeight"
+  );
+  const originalClientHeight = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "clientHeight"
+  );
+
+  function stubLayout(overflows: boolean, isDesktop: boolean) {
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => (overflows ? 200 : 100),
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 100,
+    });
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: isDesktop,
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  function restoreLayout() {
+    if (originalScrollHeight) {
+      Object.defineProperty(HTMLElement.prototype, "scrollHeight", originalScrollHeight);
+    }
+    if (originalClientHeight) {
+      Object.defineProperty(HTMLElement.prototype, "clientHeight", originalClientHeight);
+    }
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  afterEach(() => {
+    restoreLayout();
+  });
+
+  function renderReaderWith(body: string) {
+    const longStory: GeneratedStory = {
+      ...story,
+      scenes: [scene(1, body)],
+    };
+    return render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+        <StoryReader story={longStory} />
+      </NextIntlClientProvider>
+    );
+  }
+
+  // Desktop (matchMedia >= 640px) with a body long enough to overflow 6 lines:
+  // the reader clamps to ~6 lines and renders an accessible "Mostrar mais"
+  // button (aria-expanded=false).
+  it("clamps a long body on desktop and shows the show-more button (collapsed)", async () => {
+    stubLayout(true, true);
+    renderReaderWith(longBody);
+
+    const button = await screen.findByRole("button", { name: /mostrar mais/i });
+    expect(button).toHaveAttribute("aria-expanded", "false");
+  });
+
+  // Activating the toggle expands the full body and switches the label +
+  // aria-expanded state.
+  it("expands the body and switches to 'Mostrar menos' (aria-expanded=true)", async () => {
+    const user = userEvent.setup();
+    stubLayout(true, true);
+    renderReaderWith(longBody);
+
+    const showMore = await screen.findByRole("button", { name: /mostrar mais/i });
+    await user.click(showMore);
+
+    const showLess = await screen.findByRole("button", { name: /mostrar menos/i });
+    expect(showLess).toHaveAttribute("aria-expanded", "true");
+  });
+
+  // Short text: no overflow -> no clamp, no button (no useless control).
+  it("renders no show-more button for a short body", async () => {
+    stubLayout(false, true);
+    renderReaderWith("Era uma vez uma estrelinha.");
+
+    expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /mostrar mais|mostrar menos/i })
+      ).not.toBeInTheDocument()
+    );
+  });
+
+  // Mobile (<640px): the body is never clamped, so no button even for long text.
+  it("does not clamp or show the button on mobile", async () => {
+    stubLayout(true, false);
+    renderReaderWith(longBody);
+
+    // body is fully rendered on mobile
+    expect(screen.getByText(new RegExp(longBody.slice(0, 40)))).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /mostrar mais|mostrar menos/i })
+      ).not.toBeInTheDocument()
+    );
   });
 });

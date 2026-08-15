@@ -18,13 +18,14 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Purpose**: Preparar o contexto da refatoração e proteger o baseline.
 
-- [ ] T001 Confirmar que a branch `008-refactor-provider-core` está ativa e limpa (scaffold commitado),
+- [x] T001 Confirmar que a branch `008-refactor-provider-core` está ativa e limpa (scaffold commitado),
   com `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`). A criação da branch já foi
   feita a partir de `007-adopt-blossom-design`; verificação serve como baseline.
-- [ ] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
+- [x] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
   `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o
-  resultado **e um snapshot das fixtures dos adapters** (referência de commit/árvore limpa) para
-  comparar fixtures de entrada/saída após a refatoração (SC-002).
+  resultado (74 arquivos de teste, 501 testes verdes) **e um snapshot das fixtures dos adapters**
+  (referência de commit/árvore limpa) para comparar fixtures de entrada/saída após a refatoração
+  (SC-002).
 - [ ] T003 Verificar que `.specify/feature.json` aponta para `specs/008-refactor-provider-core` (já
   atualizado pelo `create-new-feature.sh`); anotar para restaurar `007` ao final (T035).
 
@@ -137,24 +138,24 @@ a11y (foco, `aria-expanded`, `prefers-reduced-motion`, contraste AA); `pnpm test
 
 ### Tests for User Story 4 ⚠️ (test-first)
 
-- [ ] T029 [P] [US4] **Teste primeiro** — criar teste de componente (e/ou story de `story-reader`)
+- [x] T029 [P] [US4] **Teste primeiro** — criar teste de componente (e/ou story de `story-reader`)
 falhando para o estado **expandido** (`aria-expanded="true"`, corpo sem clamp, rótulo "Mostrar
 menos"). Confirmar que falha antes de implementar.
-- [ ] T030 [P] [US4] **Teste primeiro** — criar teste/story falhando para o estado **sem overflow**
+- [x] T030 [P] [US4] **Teste primeiro** — criar teste/story falhando para o estado **sem overflow**
 (sem botão quando o corpo cabe em ~6 linhas) e **mobile** (corpo integral, sem clamp). Confirmar falha.
 
 ### Implementation for User Story 4
 
-- [ ] T031 [US4] Implementar no reader (`src/features/story-reader/components/story-reader.tsx`)
+- [x] T031 [US4] Implementar no reader (`src/features/story-reader/components/story-reader.tsx`)
 um estado de "mostrar mais"; aplicar `line-clamp-6` no corpo **somente no breakpoint desktop** e
 renderizar o botão somente quando `scrollHeight > clientHeight` (resize-aware).
-- [ ] T032 [US4] Adicionar o botão acessível "Mostrar mais / Mostrar menos" com `aria-expanded`,
+- [x] T032 [US4] Adicionar o botão acessível "Mostrar mais / Mostrar menos" com `aria-expanded`,
 `aria-controls` e id no parágrafo do corpo; garantir foco visível e `prefers-reduced-motion`;
 **re-set do estado expandido ao trocar de cena** (nova cena nasce colapsada).
-- [ ] T033 [US4] Atualizar os stories de `story-reader.stories.tsx` para cobrir default/expandido/
+- [x] T033 [US4] Atualizar os stories de `story-reader.stories.tsx` para cobrir default/expandido/
 sem-overflow e validar acessibilidade (contraste AA, teclado), incluindo mudança de cena com
 expansão.
-- [ ] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
+- [x] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
 árvore suja; ajustar se a borda do `aria-live`/foco de navegação for afetada.
 - [ ] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
 conforme convenção do workflow) e finalizar `reviews.md`. **Tarefa final do recurso** (após US4).

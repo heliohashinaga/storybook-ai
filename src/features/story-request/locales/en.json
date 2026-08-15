@@ -60,7 +60,11 @@
       "reading": "Reading the scene",
       "exportSuccess": "PDF downloaded",
       "retryExport": "Try again",
-      "navigationLabel": "Scene navigation"
+      "showMore": "Show more",
+      "showLess": "Show less",
+      "navigationLabel": "Scene navigation",
+      "showMore": "Show more",
+      "showLess": "Show less"
     },
     "storySwitcher": {
       "label": "Your stories",

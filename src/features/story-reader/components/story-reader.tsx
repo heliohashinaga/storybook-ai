@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
 import type { GeneratedStory } from "../../story-generation/server/schemas";
@@ -45,6 +45,51 @@ export function StoryReader({
   const regionRef = useRef<HTMLElement>(null);
   const isFirstRender = useRef(true);
 
+  // US4 — show more / show less: the scene body is clamped to ~6 lines on
+  // desktop (sm+); a toggle button appears only when the body really overflows
+  // (Q2=B). Mobile renders the full body. `expanded` resets per scene.
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+  const bodyId = useId();
+  const [bodyExpanded, setBodyExpanded] = useState(false);
+  const [bodyCanExpand, setBodyCanExpand] = useState(false);
+  const desktopQuery = "(min-width: 640px)";
+
+  // Reset the toggle when the scene changes (a new scene starts collapsed).
+  // `goTo` is the single path for navigation (buttons + arrow keys), so the
+  // reset lives there — avoids set-state-in-effect and ref-during-render lint
+  // rules while keeping the first render of the new scene collapsed.
+
+  // Measure real overflow on desktop: the clamp class (`sm:line-clamp-6`) is
+  // applied whenever collapsed, so clientHeight is the clamped height and
+  // scrollHeight the full content height; overflow means the toggle shows.
+  // Re-measure on resize and breakpoint change so width changes re-evaluate.
+  // The initial measure is deferred (rAF) so no setState runs synchronously
+  // in the effect body; while expanded the toggle stays visible, so the
+  // measurement is skipped and the last overflow result is kept.
+  useEffect(() => {
+    const media = window.matchMedia(desktopQuery);
+    const measure = () => {
+      const body = bodyRef.current;
+      const isDesktop = media.matches;
+      if (!body || !isDesktop) {
+        setBodyCanExpand(false);
+        return;
+      }
+      // While expanded the clamp is removed; keep the last overflow result so
+      // the "Mostrar menos" toggle stays visible (re-measure only collapsed).
+      if (bodyExpanded) return;
+      setBodyCanExpand(body.scrollHeight > body.clientHeight);
+    };
+    const rafId = requestAnimationFrame(measure);
+    media.addEventListener("change", measure);
+    window.addEventListener("resize", measure);
+    return () => {
+      cancelAnimationFrame(rafId);
+      media.removeEventListener("change", measure);
+      window.removeEventListener("resize", measure);
+    };
+  }, [currentIndex, bodyExpanded, desktopQuery]);
+
   const total = scenes.length;
   const current = scenes[currentIndex];
 
@@ -61,6 +106,8 @@ export function StoryReader({
   function goTo(index: number) {
     // Stop any in-progress narration (AI or system) before moving on.
     readAloud.stop();
+    // A new scene starts collapsed (US4 show-more).
+    setBodyExpanded(false);
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
@@ -122,7 +169,27 @@ export function StoryReader({
             {current.title}
           </h1>
 
-          <p className="mt-md text-body leading-relaxed text-foreground/90">{current.body}</p>
+          <p
+            ref={bodyRef}
+            id={bodyId}
+            className={`mt-md text-body leading-relaxed text-foreground/90 ${
+              bodyExpanded ? "" : "sm:line-clamp-6"
+            }`}
+          >
+            {current.body}
+          </p>
+
+          {(bodyCanExpand || bodyExpanded) && (
+            <button
+              type="button"
+              aria-expanded={bodyExpanded}
+              aria-controls={bodyId}
+              onClick={() => setBodyExpanded((value) => !value)}
+              className="mt-sm rounded-2xl px-xs py-xs text-sm font-bold text-primary transition-colors hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              {bodyExpanded ? t("showLess") : t("showMore")}
+            </button>
+          )}
 
           <nav
             aria-label={t("navigationLabel")}
