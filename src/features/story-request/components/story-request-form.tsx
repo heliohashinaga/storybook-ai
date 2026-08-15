@@ -72,6 +72,11 @@ export function StoryRequestForm({
   const [age, setAge] = useState<number>(initialAge);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [sceneCount, setSceneCount] = useState<number>(defaultSceneCount);
+  // Story locale is chosen independently of the page/UI locale: alternating the
+  // header LangToggle switches the UI only, while this selector drives the
+  // language the story's scenes are generated in. Defaults to the current UI
+  // locale but stays a local, user-editable choice.
+  const [locale, setLocale] = useState<Locale>(appLocale);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
   const [ageError, setAgeError] = useState<string | null>(null);
   // T056/T055: when the app routes a failed request back to the freshly
@@ -108,7 +113,7 @@ export function StoryRequestForm({
     const result = await onSubmit(
       {
         ageBand: deriveAgeBand(numericAge),
-        locale: appLocale,
+        locale,
         theme,
         sceneCount,
       },
@@ -132,6 +137,43 @@ export function StoryRequestForm({
       className="flex flex-col gap-lg"
     >
       <ThemeSelector value={theme} onSelect={setTheme} disabled={disabled} />
+
+      {/* Story language — chosen independently of the page/UI LangToggle so
+          the scenes are generated in this language. */}
+      <fieldset
+        disabled={disabled}
+        aria-labelledby="story-request-locale-label"
+        className="rounded-3xl border border-border bg-card p-5 shadow-soft"
+      >
+        <legend className="sr-only">{t("form.locale.label")}</legend>
+        <div id="story-request-locale-label" className="font-display text-lg font-bold">
+          {t("form.locale.label")}
+        </div>
+        <div
+          role="group"
+          aria-label={t("form.locale.label")}
+          className="mt-3 grid grid-cols-2 gap-3"
+        >
+          {(["pt-BR", "en"] as const).map((option) => {
+            const on = locale === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setLocale(option)}
+                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-secondary text-text hover:bg-secondary"
+                }`}
+              >
+                {option === "pt-BR" ? t("brand.portuguese") : t("brand.english")}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       {/* Age — blossom-style range slider (exact age stays in memory only). */}
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">

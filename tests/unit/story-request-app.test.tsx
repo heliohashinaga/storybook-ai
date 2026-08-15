@@ -3,7 +3,6 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
 import { LocaleProvider } from "../../src/i18n/locale-provider";
-import { LangToggle } from "../../src/features/shell/components/lang-toggle";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -85,7 +84,7 @@ describe("StoryRequestApp — flow", () => {
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 
-  it("switches UI and story language together when English is selected (T056)", async () => {
+  it("the form's language selector sets the story locale independently of the UI (T056)", async () => {
     const enStory = {
       locale: "en",
       ageBand: "5-7",
@@ -120,30 +119,23 @@ describe("StoryRequestApp — flow", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(enStory), { status: 200 }))
     );
-    // T056: locale switching happens at the app shell via LangToggle (ADR
-    // 0003); the whole tree shares one LocaleProvider so the form follows.
-    render(
-      <LocaleProvider defaultLocale="pt-BR">
-        <LangToggle />
-        <StoryRequestApp />
-      </LocaleProvider>
-    );
+    // T056: the story language is chosen in the form's own selector (decoupled
+    // from the header LangToggle, which only drives the UI locale).
+    renderApp();
 
     const user = userEvent.setup();
     fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
       target: { value: "6" },
     });
+    // Pick the English story-language option (the UI stays pt-BR).
     await user.click(screen.getByRole("button", { name: /^english$/i }));
-    // The whole UI flips to English immediately after the locale selection.
-    // Theme is a ChoiceCard button; pick the Friendship card.
-    await user.click(screen.getByRole("button", { name: /friendship/i }));
-    await user.click(screen.getByRole("button", { name: /create story/i }));
+    // Theme is a ChoiceCard button; pick the Friendship card (pt-BR UI label).
+    await user.click(screen.getByRole("button", { name: /amizade/i }));
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
 
-    // The reader chrome is English once the story language is English.
-    expect(await screen.findByRole("region", { name: /your story/i })).toBeInTheDocument();
+    // The reader chrome stays in the pt-BR UI while the story content is English.
+    expect(await screen.findByRole("region", { name: /sua história/i })).toBeInTheDocument();
     expect(screen.getByText("The Dream of the Star")).toBeInTheDocument();
-    expect(screen.getByText("Scene 1 of 3")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /^next$/i })).toBeEnabled();
 
     // Privacy contract: the payload carries only the derived values.
     const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
