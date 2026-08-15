@@ -43,8 +43,8 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
   // ---- Opens on the first scene: previous disabled, next enabled --------
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   await expect(page.getByText(/Era uma vez uma estrelinha/)).toBeVisible();
-  const previous = page.getByRole("button", { name: /Cena anterior/i });
-  const next = page.getByRole("button", { name: /Próxima cena/i });
+  const previous = page.getByRole("button", { name: /^Anterior$/i });
+  const next = page.getByRole("button", { name: /^Próxima$/i });
   await expect(previous).toBeDisabled();
   await expect(next).toBeEnabled();
   await expect(page.locator('img[src^="data:image/webp;base64,"]')).toHaveCount(1);

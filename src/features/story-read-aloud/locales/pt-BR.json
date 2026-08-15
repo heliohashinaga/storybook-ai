@@ -1,14 +1,14 @@
 {
   "story": {
     "narration": {
-      "idle": "Ouvir esta cena",
+      "idle": "Ouvir",
       "reading": "Lendo a cena com voz de IA",
       "stopping": "Parando a leitura…",
       "stop": "Parar leitura",
       "error": "Não foi possível reproduzir o áudio. Tente novamente.",
       "unavailable": "A narração por voz de IA está indisponível no momento. A cena continua legível.",
       "retry": "Tentar novamente",
-      "busy": "Obtendo o áudio da narração…",
+      "busy": "Obtendo o áudio…",
       "control": "Controle de narração"
     }
   }

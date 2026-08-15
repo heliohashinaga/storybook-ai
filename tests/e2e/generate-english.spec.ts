@@ -107,7 +107,7 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   // The reader chrome is English because the selected story language drives
   // the whole UI (ADR 0003 / T056): region, buttons and counter are localized.
   const reader = page.getByRole("region", { name: "Your story" });
-  const nextButton = page.getByRole("button", { name: "Next scene" });
+  const nextButton = page.getByRole("button", { name: "Next" });
   let fullStoryText = "";
 
   for (let i = 0; i < body.scenes.length; i += 1) {

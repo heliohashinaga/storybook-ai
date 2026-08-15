@@ -48,6 +48,7 @@ describe("i18n message catalog", () => {
   it("exposes the baseline form and progress strings", () => {
     const story = ptBR.story as Record<string, Record<string, unknown>>;
     expect(story.form?.submit).toBe("Criar história");
-    expect(story.progress?.generating).toBeTypeOf("string");
+    expect(story.progress?.stageWriting).toBeTypeOf("string");
+    expect(story.progress?.stageIllustrating).toBeTypeOf("string");
   });
 });

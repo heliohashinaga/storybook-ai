@@ -5,7 +5,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "../../src/i18n/config";
 import {
   StoryGenerationProgress,
-  TIMEOUT_CUE_AT_SECONDS,
   getGenerationStage,
   stageProgressPercent,
 } from "../../src/features/story-request/components/story-generation-progress";
@@ -55,9 +54,9 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
 
   it("shows the adaptive title for each stage and a lock notice", () => {
     renderProgress({ phase: "generating", elapsedSeconds: 0 });
-    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
+    // The adaptive title matches the current step text (blossom §7.3).
+    expect(screen.getAllByText(/escrevendo sua história/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/bloqueada|bloqueio/i)).toBeInTheDocument();
-    expect(screen.getByText(/três etapas/i)).toBeInTheDocument();
   });
 
   it("progressbar exposes an accessible name and the current stage as its value", () => {
@@ -79,17 +78,9 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
 });
 
 describe("story generation progress — timeout & failure", () => {
-  it("replaces the title with the timeout message and does NOT duplicate the waiting hint", () => {
-    renderProgress({ phase: "generating", elapsedSeconds: TIMEOUT_CUE_AT_SECONDS });
-    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
-    // the step hint is suppressed on timeout to avoid duplicating the wait message
-    expect(screen.queryByText(/três etapas/i)).toBeNull();
-  });
-
-  it("renders the explicit timeout phase and a lock notice", () => {
+  it("replaces the title with the timeout message on the explicit timeout phase", () => {
     renderProgress({ phase: "timeout", elapsedSeconds: 999 });
     expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
-    expect(screen.queryByText(/três etapas/i)).toBeNull();
   });
 
   it("shows a provider-failure alert with a retry action", async () => {

@@ -46,11 +46,11 @@ export function stageProgressPercent(stage: number): number {
 
 const STAGES = ["stageWriting", "stageIllustrating", "stageReviewing"] as const;
 
-/** Resolve the adaptive title for a given stage index. */
+/** Resolve the adaptive title for a given stage index (matches the step text). */
 function stageMessage(t: (key: string) => string, stage: 0 | 1 | 2): string {
-  if (stage === 0) return t("generating");
-  if (stage === 1) return t("illustrating");
-  return t("reviewing");
+  if (stage === 0) return t("stageWriting");
+  if (stage === 1) return t("stageIllustrating");
+  return t("stageReviewing");
 }
 
 /** Loader2 spinner path (lucide-style) — decorative, no icon library needed. */
@@ -119,7 +119,6 @@ export function StoryGenerationProgress({
         </div>
 
         <h2 className="mt-5 text-2xl font-bold">{message}</h2>
-        {isTimeout ? null : <p className="mt-1 text-sm text-muted-foreground">{t("hint")}</p>}
 
         <div
           role="progressbar"
@@ -137,7 +136,7 @@ export function StoryGenerationProgress({
           />
         </div>
 
-        <ol className="mt-4 flex items-center justify-center gap-3">
+        <ol className="mt-4 flex flex-col items-start gap-3">
           {STAGES.map((stageKey, index) => {
             const isDone = index < stage;
             const isCurrent = index === stage;
@@ -149,8 +148,9 @@ export function StoryGenerationProgress({
                 className="flex items-center gap-2"
               >
                 <span
+                  aria-hidden="true"
                   className={[
-                    "flex size-7 items-center justify-center rounded-full text-xs font-bold",
+                    "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
                     isDone
                       ? "bg-accent text-accent-foreground"
                       : isCurrent
@@ -159,6 +159,14 @@ export function StoryGenerationProgress({
                   ].join(" ")}
                 >
                   {isDone ? "✓" : index + 1}
+                </span>
+                <span
+                  className={[
+                    "font-display text-sm",
+                    isCurrent ? "font-bold text-text" : "text-muted-foreground",
+                  ].join(" ")}
+                >
+                  {t(stageKey)}
                 </span>
               </li>
             );

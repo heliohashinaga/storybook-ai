@@ -102,8 +102,8 @@ test.describe("performance budgets (T060)", () => {
 
     // Scene navigation sampled across the 3 available scenes (still within
     // bounds, so navigating never disables), for a p75 value.
-    const next = page.getByRole("button", { name: /Próxima cena/i });
-    const prev = page.getByRole("button", { name: /Cena anterior/i });
+    const next = page.getByRole("button", { name: /^Próxima$/i });
+    const prev = page.getByRole("button", { name: /^Anterior$/i });
     const samples: number[] = [];
     // 1 -> 2 -> 3 -> 2 -> 1 -> 2 (four forward transitions, all in-bounds)
     const transitions = [

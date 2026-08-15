@@ -31,7 +31,7 @@ interface RootLayoutProps {
 // Defaults to pt-BR (the app's default locale); the in-form language switch
 // keeps the title static and anonymous.
 export const metadata: Metadata = {
-  title: "Crie histórias anônimas para seu filho",
+  title: "Storybook AI",
   description: "Gere histórias infantis personalizadas de forma anônima e efêmera.",
 };
 

@@ -64,7 +64,7 @@ export const FiveScenes: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Cena 1 de 5")).toBeVisible();
-    await userEvent.click(canvas.getByRole("button", { name: /próxima cena/i }));
+    await userEvent.click(canvas.getByRole("button", { name: /próxima/i }));
     await expect(canvas.getByText("Cena 2 de 5")).toBeVisible();
   },
 };
@@ -83,11 +83,11 @@ export const LastSceneBound: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     for (let i = 0; i < 4; i += 1) {
-      await userEvent.click(canvas.getByRole("button", { name: /próxima cena/i }));
+      await userEvent.click(canvas.getByRole("button", { name: /próxima/i }));
     }
     await expect(canvas.getByText("Cena 5 de 5")).toBeVisible();
     // The final scene disables forward navigation (self-locking bound).
-    await expect(canvas.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    await expect(canvas.getByRole("button", { name: /próxima/i })).toBeDisabled();
   },
 };
 
@@ -145,7 +145,7 @@ export const ReadAloud: Story = {
         new Response(null, { status: 204, statusText: "No Content" })
       ) as Promise<Response>;
 
-    const button = within(canvasElement).getByRole("button", { name: /ouvir esta cena/i });
+    const button = within(canvasElement).getByRole("button", { name: /^ouvir$/i });
     await expect(button).toBeVisible();
     await expect(button).toHaveAttribute("aria-pressed", "false");
 
@@ -158,9 +158,7 @@ export const ReadAloud: Story = {
 
     // Toggling again stops narration (single control returns to "listen").
     await userEvent.click(within(canvasElement).getByRole("button", { name: /parar leitura/i }));
-    await expect(
-      within(canvasElement).getByRole("button", { name: /ouvir esta cena/i })
-    ).toBeVisible();
+    await expect(within(canvasElement).getByRole("button", { name: /^ouvir$/i })).toBeVisible();
     await expect(button).toHaveAttribute("aria-pressed", "false");
 
     // Restore the real fetch for the a11y pass and other stories.

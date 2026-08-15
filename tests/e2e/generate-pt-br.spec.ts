@@ -106,7 +106,7 @@ test("default pt-BR journey sends only ageBand/locale/theme and renders a safe s
   // the previous/next buttons; every scene is reached and asserted in order.
   const imgs = page.locator('img[src^="data:image/webp;base64,"]');
   const reader = page.locator('section[aria-label="Sua história"]');
-  const nextButton = page.getByRole("button", { name: /Próxima cena/i });
+  const nextButton = page.getByRole("button", { name: /^Próxima$/i });
 
   for (let i = 0; i < body.scenes.length; i += 1) {
     const scene = body.scenes[i]!;

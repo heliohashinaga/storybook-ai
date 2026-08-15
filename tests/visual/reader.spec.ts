@@ -29,14 +29,14 @@ test("reader scenes render consistently across all three positions", async ({ pa
   await expect(reader).toHaveScreenshot("reader-scene-1.png");
 
   // Scene 2.
-  await page.getByRole("button", { name: /próxima cena/i }).click();
+  await page.getByRole("button", { name: /^Próxima$/i }).click();
   await expect(page.getByText("Cena 2 de 3")).toBeVisible();
   await expect(reader).toHaveScreenshot("reader-scene-2.png");
 
   // Scene 3 — final position, "next" disabled.
-  await page.getByRole("button", { name: /próxima cena/i }).click();
+  await page.getByRole("button", { name: /^Próxima$/i }).click();
   await expect(page.getByText("Cena 3 de 3")).toBeVisible();
-  await expect(page.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
   await expect(reader).toHaveScreenshot("reader-scene-3.png");
 });
 
@@ -66,19 +66,19 @@ test("a five-scene story renders consistently across every position", async ({ p
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   await expect(reader).toHaveScreenshot("five-scene-1.png");
 
-  const next = page.getByRole("button", { name: /próxima cena/i });
+  const next = page.getByRole("button", { name: /^Próxima$/i });
 
   // Scenes 2-4 — middle positions.
   for (let sceneNo = 2; sceneNo <= 4; sceneNo += 1) {
     await next.click();
     await expect(page.getByText(`Cena ${sceneNo} de 5`)).toBeVisible();
-    await expect(page.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+    await expect(page.getByRole("button", { name: /^Próxima$/i })).toBeEnabled();
     await expect(reader).toHaveScreenshot(`five-scene-${sceneNo}.png`);
   }
 
   // Scene 5 — final position, "next" disabled (forward bound).
   await next.click();
   await expect(page.getByText("Cena 5 de 5")).toBeVisible();
-  await expect(page.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
   await expect(reader).toHaveScreenshot("five-scene-5.png");
 });

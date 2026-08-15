@@ -46,7 +46,7 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
 
   // Reader is up with the narration control (pt-BR idle label).
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
-  const listen = page.getByRole("button", { name: /Ouvir esta cena/i });
+  const listen = page.getByRole("button", { name: /^Ouvir$/i });
   await expect(listen).toBeVisible();
 
   // Keyboard-only trigger: focus the control and activate it with Enter.
@@ -63,9 +63,9 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
 
   // Navigate away: the in-flight narration is stopped (object URL revoked)
   // and the control is reachable again for the new scene (US1/US3).
-  await page.getByRole("button", { name: /Próxima cena/i }).click();
+  await page.getByRole("button", { name: /^Próxima$/i }).click();
   await expect(page.getByText("Cena 2 de 5")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Ouvir esta cena/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Ouvir$/i })).toBeVisible();
 });
 
 test("AI narration failure shows an accessible error and never falls back to Web Speech", async ({
@@ -110,7 +110,7 @@ test("AI narration failure shows an accessible error and never falls back to Web
   await responsePromise;
 
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
-  await page.getByRole("button", { name: /Ouvir esta cena/i }).click();
+  await page.getByRole("button", { name: /^Ouvir$/i }).click();
 
   // Accessible, localized error without a Web Speech retry. (The Next.js
   // route announcer also carries role=alert, so match the specific text.)
@@ -160,7 +160,7 @@ test("narration is on-demand with zero persistence (no prefetch, no storage)", a
   expect(storage.localStorageEntries).toBe(0);
 
   // On-demand: only a user gesture triggers narration.
-  await page.getByRole("button", { name: /Ouvir esta cena/i }).click();
+  await page.getByRole("button", { name: /^Ouvir$/i }).click();
   await expect.poll(() => narrateRequests).toBe(1);
 
   // Reload: the in-memory story (and any transient audio) is gone entirely.

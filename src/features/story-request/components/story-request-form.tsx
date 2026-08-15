@@ -51,6 +51,9 @@ interface StoryRequestFormProps {
    */
   onSubmit: (request: GenerateStoryRequest, age: number) => Promise<SubmitResult>;
   onSuccess?: () => void;
+  /** Localized retry `messageKey` (without the `story.error.` prefix) to seed
+   *  the submit error when the app remounts the idle form after a failure. */
+  initialError?: string;
 }
 
 export function StoryRequestForm({
@@ -59,6 +62,7 @@ export function StoryRequestForm({
   defaultAge,
   onSubmit,
   onSuccess,
+  initialError,
 }: StoryRequestFormProps) {
   const t = useTranslations("story");
   const { locale: appLocale } = useLocaleContext();
@@ -70,7 +74,12 @@ export function StoryRequestForm({
   const [sceneCount, setSceneCount] = useState<number>(defaultSceneCount);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
   const [ageError, setAgeError] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  // T056/T055: when the app routes a failed request back to the freshly
+  // mounted idle form (the form unmounts during the progress panel), seed the
+  // localized retry error from the app via this prop on mount.
+  const [submitError, setSubmitError] = useState<string | null>(() =>
+    initialError ? t(`error.${initialError}`) : null
+  );
 
   const submitting = status === "submitting";
   const disabled = submitting;

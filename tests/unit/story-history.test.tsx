@@ -53,7 +53,7 @@ function renderSwitcher(entries: StoryEntry[], activeId: string | null, onSelect
 describe("StoryHistory (T049)", () => {
   it("renders nothing when there are no stories", () => {
     renderSwitcher([], null);
-    expect(screen.queryByRole("group")).toBeNull();
+    expect(screen.queryByRole("complementary")).toBeNull();
   });
 
   it("renders the stories newest-first with the active one marked", () => {
@@ -65,7 +65,7 @@ describe("StoryHistory (T049)", () => {
       "story-2"
     );
 
-    const group = screen.getByRole("group", { name: /suas histórias/i });
+    const group = screen.getByRole("complementary", { name: /suas histórias/i });
     const buttons = within(group).getAllByRole("button");
     expect(buttons).toHaveLength(2);
     // Newest-first: storyA (story-2, active) is listed before storyB.

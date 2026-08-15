@@ -45,11 +45,10 @@ describe("StoryRequestForm — anonymous by design", () => {
     expect(screen.queryByText(/nome da criança/i)).not.toBeInTheDocument();
   });
 
-  it("collects age (range slider), language, scenes, and theme", () => {
+  it("collects age (range slider), scenes, and theme", () => {
     renderForm();
     expect(screen.getByRole("slider", { name: /idade da criança/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /cenas/i }).length).toBeGreaterThan(0);
-    expect(screen.getByLabelText(/idioma/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/tema da história/i)).toBeInTheDocument();
     expect(screen.queryAllByRole("textbox")).toHaveLength(0); // no free-text fields
   });
@@ -67,8 +66,6 @@ describe("StoryRequestForm — theme and language choices", () => {
     expect(screen.getByRole("button", { name: /curiosidade/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /persistência/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /empatia/i })).toBeInTheDocument();
-    // The locale field remains a select with both locale options.
-    expect(screen.getAllByRole("option").length).toBe(2); // pt-BR + en
   });
 
   it("offers scene counts as selectable cards with aria-pressed", () => {
@@ -96,7 +93,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     expect(JSON.stringify(payload)).not.toMatch(/name|"age":/i);
   });
 
-  it("sends the user-selected language, theme, and scene count", async () => {
+  it("sends the app locale, selected theme, and scene count (T056 single-locale)", async () => {
     const onSubmit = vi.fn(async (_request: GenerateStoryRequest): Promise<SubmitResult> => {
       void _request;
       return { ok: true };
@@ -104,14 +101,13 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     const user = userEvent.setup();
     renderForm({ onSubmit });
     fireEvent.change(ageSlider(), { target: { value: "9" } });
-    await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
     await user.click(screen.getByRole("button", { name: /5cenas/i }));
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0]?.[0]).toEqual({
       ageBand: "8-9",
-      locale: "en",
+      locale: "pt-BR",
       theme: "courage",
       sceneCount: 5,
     });

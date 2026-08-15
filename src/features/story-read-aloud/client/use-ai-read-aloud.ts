@@ -56,7 +56,7 @@ export function useAiReadAloud({
     text,
     locale,
     // Surface Web Speech start/stop on the accessible control so the label
-    // toggles "ouvir esta cena" → "parar leitura" and back (US4.2).
+    // toggles "Ouvir" → "Parar leitura" and back (US4.2).
     onStart: () => setStatus("speaking"),
     onEnd: () => setStatus((prev) => (prev === "speaking" ? "idle" : prev)),
   });

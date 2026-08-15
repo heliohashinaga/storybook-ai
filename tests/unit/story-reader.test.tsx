@@ -67,10 +67,10 @@ describe("story reader — first/middle/last bounds", () => {
     expect(screen.getByText("A estrelinha parte.")).toBeInTheDocument();
     expect(screen.getByText(/1 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
     for (let i = 0; i < 4; i += 1) {
-      await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+      await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     }
     expect(screen.getByText("Volta para casa feliz.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
     expect(screen.getByText(/5 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
   });
 
@@ -79,43 +79,43 @@ describe("story reader — first/middle/last bounds", () => {
 
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
     expect(screen.queryByText("A estrelinha subiu ao céu.")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeEnabled();
   });
 
   it("enables both directions on a middle scene", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     expect(screen.getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeEnabled();
   });
 
   it("disables forward navigation on the last scene", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeEnabled();
   });
 
   it("never navigates past the bounds when clicking the disabled edges", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    await user.click(screen.getByRole("button", { name: /^Anterior$/i }));
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
   });
 });
@@ -127,13 +127,13 @@ describe("story reader — previous/next navigation and progress", () => {
 
     expect(screen.getByText("Cena 1 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("Cena 3 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    await user.click(screen.getByRole("button", { name: /^Anterior$/i }));
     expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
   });
 
@@ -156,7 +156,7 @@ describe("story reader — focus management", () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     const heading = screen.getByRole("heading", { name: /título 2/i });
     await expect.poll(() => heading).toHaveFocus();
@@ -179,7 +179,7 @@ describe("story reader — localized alt text and scene rendering", () => {
     expect(img).toHaveAttribute("alt", "Ilustração da cena 1 em aquarela.");
     expect(img).toHaveAttribute("src", "data:image/webp;base64,cena1");
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     const nextArticle = screen.getByRole("article", { name: /cena 2/i });
     expect(within(nextArticle).getByRole("img")).toHaveAttribute(
@@ -230,20 +230,16 @@ describe("scene progress — variable total (US3)", () => {
   });
 });
 
-describe("scene view — standalone renderer", () => {
-  it("renders a single scene with its illustration, heading, and body", async () => {
+describe("scene view — standalone illustration header", () => {
+  it("renders a scene's full-bleed illustration with the theme badge", async () => {
     render(
       <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
-        <SceneView scene={story.scenes[1] ?? scene(1, "fallback")} />
+        <SceneView scene={story.scenes[1] ?? scene(1, "fallback")} theme={story.theme} />
       </NextIntlClientProvider>
     );
 
-    const article = screen.getByRole("article", { name: /cena 2/i });
-    expect(within(article).getByRole("heading", { name: /título 2/i })).toBeInTheDocument();
-    expect(within(article).getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
-    expect(within(article).getByRole("img")).toHaveAttribute(
-      "alt",
-      "Ilustração da cena 2 em aquarela."
-    );
+    expect(screen.getByRole("img")).toHaveAttribute("alt", "Ilustração da cena 2 em aquarela.");
+    expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/webp;base64,cena2");
+    expect(screen.getByText("Coragem")).toBeInTheDocument();
   });
 });

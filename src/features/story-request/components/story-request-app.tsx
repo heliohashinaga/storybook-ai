@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "../../../components/ui/button";
-import { ExportStoryButton } from "../../story-export/components/export-story-button";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryHistory } from "../../story-reader/components/story-history";
 import { StoryReader } from "../../story-reader/components/story-reader";
@@ -45,6 +44,10 @@ function StoryRequestFlow() {
     lastPreferences,
   } = useStorySession();
   const [elapsed, setElapsed] = useState(0);
+  // Localized retry `messageKey` kept across the form's unmount/remount while
+  // the request panel was showing, so the freshly-mounting idle form can
+  // display the failure (the form's own state is lost on unmount).
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const submitting = status === "submitting";
 
@@ -65,6 +68,7 @@ function StoryRequestFlow() {
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
+    setLastError(null);
     begin();
     const response = await fetch("/api/stories", {
       method: "POST",
@@ -84,7 +88,9 @@ function StoryRequestFlow() {
       return { ok: true };
     }
     fail(result.error);
-    return { ok: false, messageKey: result.error.messageKey.replace(/^story\.error\./, "") };
+    const key = result.error.messageKey.replace(/^story\.error\./, "");
+    setLastError(key);
+    return { ok: false, messageKey: key };
   }
 
   /** "Generate another": re-submits reusing the last age/locale/theme/count
@@ -105,25 +111,17 @@ function StoryRequestFlow() {
 
   if (story) {
     return (
-      <section className="flex flex-col gap-md">
-        <div className="mx-auto w-full max-w-md">
-          {stories.length > 1 ? (
-            <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
-          ) : null}
-          <StoryReader story={story} />
-          <div className="mt-6 flex flex-row items-center gap-sm">
-            <ExportStoryButton story={story} />
-            {lastPreferences ? (
-              <Button variant="secondary" onClick={generateAnother}>
-                {t("reader.generateAnother")}
-              </Button>
-            ) : null}
-            <Button variant="secondary" onClick={reset}>
-              {t("reader.newStory")}
+      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <StoryReader story={story} onNewStory={reset} />
+        <aside className="flex flex-col gap-sm">
+          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
+          {lastPreferences ? (
+            <Button variant="secondary" onClick={generateAnother}>
+              {t("reader.generateAnother")}
             </Button>
-          </div>
-        </div>
-      </section>
+          ) : null}
+        </aside>
+      </div>
     );
   }
 
@@ -140,6 +138,7 @@ function StoryRequestFlow() {
           onSubmit={handleSubmit}
           defaultAge={lastPreferences?.age}
           defaultSceneCount={lastPreferences?.sceneCount}
+          initialError={lastError ?? undefined}
         />
       </div>
     </section>

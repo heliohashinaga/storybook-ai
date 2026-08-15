@@ -31,7 +31,7 @@ export function SceneProgress({ current, total, label }: SceneProgressProps) {
             role="listitem"
             aria-current={active ? "step" : undefined}
             aria-label={t("sceneLabel", { ordinal: String(n) })}
-            className={`h-2 w-2 rounded-full ${active ? "bg-primary" : "bg-secondary"}`}
+            className={`h-2 rounded-full transition-all duration-base ${active ? "w-8 bg-primary" : "w-2 bg-border"}`}
           />
         );
       })}

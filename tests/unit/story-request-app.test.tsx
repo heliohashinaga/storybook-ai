@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
 import { LocaleProvider } from "../../src/i18n/locale-provider";
+import { LangToggle } from "../../src/features/shell/components/lang-toggle";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -49,7 +50,7 @@ describe("StoryRequestApp — flow", () => {
   it("starts on the request form and never shows a reader initially", () => {
     renderApp();
     expect(screen.getByText("Storybook AI")).toBeInTheDocument();
-    expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /sua história/i })).not.toBeInTheDocument();
   });
 
   it("sends only ageBand/locale/theme and shows the approved story on success", async () => {
@@ -60,7 +61,7 @@ describe("StoryRequestApp — flow", () => {
 
     await submitValidForm();
 
-    expect(await screen.findByText("Sua história")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /sua história/i })).toBeInTheDocument();
     expect(screen.getByText("A missão da estrelinha")).toBeInTheDocument();
     // The reader (T040) shows exactly one scene at a time; every scene is
     // reachable via the "next" button and carries a localized alt text.
@@ -72,11 +73,11 @@ describe("StoryRequestApp — flow", () => {
         screen.getByText(`Cena ${i + 1} de ${approvedStory.scenes.length}`)
       ).toBeInTheDocument();
       if (i < approvedStory.scenes.length - 1) {
-        await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+        await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
       }
     }
     // Forward bound: the last scene disables "next".
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/stories");
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body));
@@ -119,23 +120,30 @@ describe("StoryRequestApp — flow", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(enStory), { status: 200 }))
     );
-    renderApp();
+    // T056: locale switching happens at the app shell via LangToggle (ADR
+    // 0003); the whole tree shares one LocaleProvider so the form follows.
+    render(
+      <LocaleProvider defaultLocale="pt-BR">
+        <LangToggle />
+        <StoryRequestApp />
+      </LocaleProvider>
+    );
 
     const user = userEvent.setup();
     fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
       target: { value: "6" },
     });
-    await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
+    await user.click(screen.getByRole("button", { name: /^english$/i }));
     // The whole UI flips to English immediately after the locale selection.
     // Theme is a ChoiceCard button; pick the Friendship card.
     await user.click(screen.getByRole("button", { name: /friendship/i }));
     await user.click(screen.getByRole("button", { name: /create story/i }));
 
     // The reader chrome is English once the story language is English.
-    expect(await screen.findByText("Your story")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /your story/i })).toBeInTheDocument();
     expect(screen.getByText("The Dream of the Star")).toBeInTheDocument();
     expect(screen.getByText("Scene 1 of 3")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /next scene/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^next$/i })).toBeEnabled();
 
     // Privacy contract: the payload carries only the derived values.
     const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
@@ -243,7 +251,7 @@ describe("StoryRequestApp — flow", () => {
     await submitValidForm();
 
     expect(await screen.findByText(/muitas solicitações/i)).toBeInTheDocument();
-    expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /sua história/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).toBeNull();
     expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
   });
@@ -260,18 +268,16 @@ describe("StoryRequestApp — flow", () => {
 
     const bar = await screen.findByRole("progressbar");
     expect(bar).toHaveAttribute("aria-busy", "true");
-    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
-    // The request form stays mounted (fields disabled + button announced), so
-    // its localized retry error still renders on failure; the progress panel
-    // replaces the form heading while generating.
-    expect(screen.getByLabelText(/idade da criança/i)).toBeInTheDocument();
-    // The submit button shows its busy label and is disabled while loading.
-    expect(screen.getByRole("button", { name: /criando sua história/i })).toBeDisabled();
+    expect(screen.getAllByText(/escrevendo sua história/i).length).toBeGreaterThan(0);
+    // Blossom-style: the request form is unmounted while the story is being
+    // generated, so only the progress panel occupies the screen.
+    expect(screen.queryByLabelText(/idade da criança/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /criando sua história/i })).not.toBeInTheDocument();
 
     await act(async () => {
       resolveFetch(new Response(JSON.stringify(approvedStory), { status: 200 }));
     });
-    expect(await screen.findByText("Sua história")).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: /sua história/i })).toBeInTheDocument();
   });
 
   it("returns to the form after creating another story", async () => {
@@ -282,10 +288,10 @@ describe("StoryRequestApp — flow", () => {
     renderApp();
 
     await submitValidForm();
-    await screen.findByText("Sua história");
+    await screen.findByRole("region", { name: /sua história/i });
 
-    await userEvent.click(screen.getByRole("button", { name: /criar outra história/i }));
-    expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /nova história/i }));
+    expect(screen.queryByRole("region", { name: /sua história/i })).not.toBeInTheDocument();
     expect(screen.getByText("Storybook AI")).toBeInTheDocument();
   });
 });
