@@ -10,9 +10,11 @@
 
 ## Resumo
 
-Refatoração **preservadora de comportamento** (sem mudança funcional ou de UX) da camada de
-adapters de provider de geração de histórias (`src/features/story-generation/server/`). O objetivo é
-eliminar a duplicação de código verificada entre:
+Esta feature combina duas frentes:
+
+**(A) Refatoração preservadora de comportamento** da camada de adapters de provider de geração de
+histórias (`src/features/story-generation/server/`). O objetivo é eliminar a duplicação de código
+verificada entre:
 
 1. `openrouter-story-generation-provider.ts` (350 linhas) e `opencode-story-generation-provider.ts`
    (231 linhas) — que compartilham helpers **byte-idênticos**: schemas Zod
@@ -32,11 +34,17 @@ A refatoração preserva os contratos públicos existentes (`createOpenRouterSto
 **não altera** roteamento, env vars, prompts, limites de timeout/retry nem nenhum dado enviado a
 provedores. Nenhum novo identificador é introduzido; a fronteira `server-only` é mantida.
 
+**(B) Melhoria de UX no reader (US4):** adicionar um botão **"Mostrar mais / Mostrar menos"** no
+corpo da cena do reader quando o texto ultrapassa uma altura no **desktop** (card compacto via
+`line-clamp`), mantendo o **mobile com expansão completa**. Muda o comportamento visual do reader
+no desktop; não altera dados/providers nem a ordem do histórico (que já é decrescente via
+`sortByNewest`).
+
 ## User Scenarios & Testing *(obrigatório)*
 
-> NOTA: Como se trata de refatoração imperceptível ao usuário, os "user stories" abaixo são
-> reformulados como **objetivos de qualidade verificáveis** do código, em vez de jornadas de usuário
-> final. Cada um é independentemente testável e entrega valor mensurável de manutenção.
+> NOTA: A feature combina **objetivos de qualidade** (US1–US3, refatoração imperceptível) com uma
+> **user story funcional** (US4, melhoria de UX no reader). Cada uma é independentemente testável e
+> entrega valor mensurável.
 
 ### User Story 1 — Núcleo único de fornecedor de texto/moderação (Priority: P1)
 
@@ -125,6 +133,37 @@ real `STORIES_TEST_MODE=fake`.
 
 ---
 
+### User Story 4 — "Mostrar mais" acessível no corpo da cena (reader, Priority: P3) 👶 UX
+
+Adicionar um botão **"Mostrar mais / Mostrar menos"** no corpo da cena do reader quando o texto
+ultrapassa uma altura no **desktop**. Em **mobile** o corpo continua exibido integralmente
+(expande). O objetivo é manter o card com altura razoável/uniforme em telas grandes sem introduzir
+scroll interno (que é anti-padrão para conteúdo primário de leitura e exige acessório de a11y).
+
+**Why this priority**: É a única mudança de UX da feature e de menor impacto de negócio (não afeta
+geração/providers/dados). Por isso P3, depois do MVP de refatoração (US1/US2).
+
+**Independent Test**: teste de componente/storybook do reader cobre os estados default, expandido e
+"sem overflow" (sem botão). Acessibilidade validada (contraste AA, foco visível, teclado).
+
+**Acceptance Scenarios**:
+
+1. **Given** um corpo de cena com texto longo em **desktop**, **When** exibo o reader, **Then** o
+   corpo é limitado a ~6 linhas (`line-clamp-6`) e aparece um botão **"Mostrar mais"** acessível
+   (`aria-expanded="false"`).
+2. **Given** o botão "Mostrar mais" visível, **When** o usuário ativa, **Then** o texto é exibido
+   integralmente e o rótulo muda para **"Mostrar menos"** (`aria-expanded="true"`), com foco visível.
+3. **Given** um corpo de cena com texto **curto**, **When** exibo o reader, **Then** **não** há
+   clamp nem botão (sem "Mostrar mais" inútil).
+4. **Given** o reader em **mobile**, **When** exibo uma cena, **Then** o corpo é exibido por
+   completo (sem clamp), independente do tamanho do texto.
+5. **Given** o botão ativado, **When** navego por teclado, **Then** o botão recebe foco de teclado e
+   `prefers-reduced-motion` é respeitado (sem animação brusca).
+6. **Given** o fluxo de narração existente, **When** o corpo está colapsado, **Then** o "Mostrar
+   mais" não quebra o `aria-live`/foco já implementados no reader.
+
+---
+
 ### Edge Cases
 
 - **Prompt dessincronizado durante a extração**: como os dois `NARRATIVE_SYSTEM_PROMPT`/
@@ -142,6 +181,11 @@ real `STORIES_TEST_MODE=fake`.
   de `server-only` se fizer sentido) ou manter separado por fronteira.
 - **Nenhuma mudança de env/contrato**: não alterar `env.ts`, `provider-routing.ts` nem o
   `story-generation.openapi.yaml`; a refatoração não toca em APIs públicas.
+- **Botão "Mostrar mais" falso positivo**: deve aparecer **somente** quando há overflow real do
+  corpo em desktop (medir `scrollHeight > clientHeight` no breakpoint desktop); nunca surgir botão
+  inútil em texto curto (US4/SC-006).
+- **Mobile não deve clamar**: o clamp é restrito ao breakpoint desktop (`md:`+) para não degerar a
+  UX mobile (US4). A lógica de "mostrar quando overflow" deve ser reavaliada em resize.
 
 ## Requirements *(obrigatório)*
 
@@ -170,6 +214,11 @@ real `STORIES_TEST_MODE=fake`.
 - **FR-007**: Todos os arquivos criados/editados DEVMÃO passar por `pnpm lint` (0 warnings),
   `pnpm format:check` (sem drift) e `pnpm typecheck` (sem `any` novo em produção), re-executados
   APÓS a última edição.
+- **FR-008**: O corpo da cena do reader DEVE suportar um botão acessível **"Mostrar mais /
+  Mostrar menos"**; em **desktop** o corpo pode ser limitado a ~6 linhas (`line-clamp-6`) com o
+  botão aparecendo **somente quando há overflow real**; em **mobile** o corpo DEVE ser exibido por
+  completo. O botão DEVE ter `aria-expanded`/`aria-controls`, foco visível e respeitar
+  `prefers-reduced-motion`.
 
 ### Key Entities *(se o recurso envolver dados)*
 
@@ -198,11 +247,17 @@ real `STORIES_TEST_MODE=fake`.
   a imagem para `image-client.ts`) e `opencode-story-generation-provider.ts` de 231 para ~80–100 —
   verificado por `git diff --stat`/`wc -l` antes vs depois (registrado em T025), sem perda de
   cobertura.
+- **SC-006**: no reader, o botão "Mostrar mais" aparece em desktop somente quando o corpo excede ~6
+  linhas (sem botão em texto curto) e o mobile não é clampado — validado por storybook/teste do
+  componente e por inspeção visual.
 
 ## Assumptions
 
-- Refatoração **preservadora de comportamento**: nenhuma mudança intencional de funcionalidade,
-  prompt, timeout, retry, modelo de roteamento ou UX.
+- A refatoração (US1–US3) é **preservadora de comportamento**: nenhuma mudança intencional em
+  funcionalidade, prompt, timeout, retry, roteamento ou env. Ainda assim, a feature **inclui uma
+  mudança de UX** no reader (US4, "Mostrar mais") com scope claro e restrito a esse aspecto.
+- O **histórico já exibe em ordem decrescente** (`sortByNewest` em `story-history.tsx`); não é parte
+  deste recurso alterá-lo (apenas confirmado como baseline).
 - `generation-runtime.ts` é o único consumidor real dos seeds (confirmado por grep) e não muda seu
   roteamento por provider.
 - Tests nunca chamam IA real: apenas `STORIES_TEST_MODE=fake` com fixtures determinísticas.

@@ -10,7 +10,7 @@ Refatoração **preservadora de comportamento** da camada de adapters de geraç�
 elimina a duplicação verificada entre os adapters de provider e consolida o transporte de imagem,
 sem nenhuma mudança funcional, de env, de contrato ou de UX.
 
-Três objetivos:
+Três objetivos (US1-US3, refatoração) **mais uma user story de UX** (US4):
 
 1. **US1 (P1)** — extrair para `server/provider-core/` os helpers byte-idênticos partilhados por
    `openrouter-story-generation-provider.ts` e `opencode-story-generation-provider.ts`: schemas Zod,
@@ -21,13 +21,19 @@ Três objetivos:
    consolidar o encoding/guarda de WebP em `image-optimizer.ts` (que hoje está órfão).
 3. **US3 (P3)** — higiene do `generation-runtime.ts`, reuso de fixtures em `fixed-dev-provider.ts` e
    validação final dos gates na árvore suja + documentação.
+4. **US4 (P3, UX reader)** — "Mostrar mais / Mostrar menos" no corpo da cena: `line-clamp-6` no
+   desktop (Q1=A), botão somente com overflow real (Q2=B) e mobile com expansão completa.
 
 ## Decisões de clarificação
 
 - **Decisão-1**: Formato do trabalho é **Spec Kit** (usuario optou por "formato spec"); fluxo
   `specify → plan → tasks → implement`, com commits por unidade lógica e gates finais pós-edição.
 - **Decisão-2**: Escopo informado ao usuário foi o "plano completo 1–3" proposto na análise (itens 1,
-  2 e a higiene 3); o usuário validou seguir o formato spec, mantendo os três objetivos.
+  2 e a higiene 3) **acrescido da US4**: o usuário pediu para adicionar o "show more" do reader (e
+  confirmou a ordem de histórico) nesta mesma feature — combinando refatoração interna com uma
+  melhoria de UX de reader.
+- **Decisão-2b (UX "Mostrar mais")**: Q1=A (`line-clamp-6` no desktop); Q2=B (botão só quando há
+  overflow real, medido por `scrollHeight > clientHeight`); mobile sem clamp (expande).
 - **Decisão-3**: Os prompts duplicados (`NARRATIVE_SYSTEM_PROMPT`/`MODERATION_SYSTEM_PROMPT` e
   `narrativeUserPrompt`) são tratados como **baseline canônico**: a extração os move preservando o
   texto atual (diff vazio antes de consolidar); não se "melhora" prompt no mesmo commit. **Regra de
@@ -125,6 +131,14 @@ src/features/story-generation/server/
 ├── provider-routing.ts                       # NÃO MUDA
 ├── story-generation-provider.ts              # NÃO MUDA (ProviderError/base types mantidos como fonte de verdade)
 └── ... (generate-story.ts, safety-pipeline.ts, schemas.ts do orchestrador, agents/)
+```
+
+**US4 (reader UX)** — toca num arquivo do client (fora da camada server-only):
+
+```text
+src/features/story-reader/components/story-reader.tsx   # corpo da cena + botão "Mostrar mais"
+src/features/story-reader/components/story-reader.stories.tsx  # estados default/expandido/sem-overflow
+src/features/story-read-aloud/... (inalterado)          # narração preservada
 ```
 
 **Structure Decision**: Extração em um subpacote `provider-core/` coeso (não um arquivo único), pois

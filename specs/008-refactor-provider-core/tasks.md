@@ -6,11 +6,11 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Input**: Documentos de design de `/specs/008-refactor-provider-core/`
 
-**Prerequisites**: plan.md (obrigatório), spec.md (obrigatório; user stories US1-US3 refatoradas como objetivos de qualidade)
+**Prerequisites**: plan.md (obrigatório), spec.md (obrigatório; user stories US1-US4: US1-US3 como objetivos de qualidade + US4 UX funcional)
 
 **Tests**: Testes existentes são o baseline a manter verde; testes novos (se necessários) são escritos ANTES e confirmados a FALHAR.
 
-**Organization**: Tarefas agrupadas por user story (US1-US3), com a Fase 2 (Fundacional) bloqueando todas.
+**Organization**: Tarefas agrupadas por user story (US1-US4), com a Fase 2 (Fundacional) bloqueando US1-US3.
 
 ---
 
@@ -127,6 +127,40 @@ description: "Lista de tarefas para implementação do recurso"
 
 ---
 
+## Phase 6: User Story 4 — "Mostrar mais" acessível no corpo da cena (reader, Priority: P3) 👶 UX
+
+**Goal**: Adicionar o botão "Mostrar mais / Mostrar menos" no corpo da cena do reader, com
+`line-clamp-6` no **desktop** e expansão completa no **mobile**; o botão aparece **somente** quando
+há overflow real (decisões Q1=A, Q2=B).
+
+**Independent Test**: storybook de `story-reader` cobre os estados default/expandido/sem-overflow;
+a11y (foco, `aria-expanded`, `prefers-reduced-motion`, contraste AA); `pnpm test` verde.
+
+### Testes for User Story 4 ⚠️ (test-first)
+
+- [ ] T029 [P] [US4] **Teste primeiro** — criar teste de componente (e/ou story de `story-reader`)
+falhando para o estado **expandido** (`aria-expanded="true"`, corpo sem clamp, rótulo "Mostrar
+menos"). Confirmar que falha antes de implementar.
+- [ ] T030 [P] [US4] **Teste primeiro** — criar teste/story falhando para o estado **sem overflow**
+(sem botão quando o corpo cabe em ~6 linhas) e **mobile** (corpo integral, sem clamp). Confirmar falha.
+
+### Implementation for User Story 4
+
+- [ ] T031 [US4] Implementar no reader (`src/features/story-reader/components/story-reader.tsx`)
+um estado de "mostrar mais"; aplicar `line-clamp-6` no corpo **somente no breakpoint desktop** e
+renderizar o botão somente quando `scrollHeight > clientHeight` (resize-aware).
+- [ ] T032 [US4] Adicionar o botão acessível "Mostrar mais / Mostrar menos" com `aria-expanded`,
+`aria-controls` e id no parágrafo do corpo; garantir foco visível e `prefers-reduced-motion`.
+- [ ] T033 [US4] Atualizar os stories de `story-reader.stories.tsx` para cobrir default/expandido/
+sem-overflow e validar acessibilidade (contraste AA, teclado).
+- [ ] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
+árvore suja; ajustar se a borda do `aria-live`/foco de navegação for afetada.
+
+**Checkpoint**: US4 completo — corpo colapsável acessível no desktop, mobile expande, botão só com
+overflow.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies
@@ -136,12 +170,16 @@ description: "Lista de tarefas para implementação do recurso"
 - **US1 (Phase 3)**: depende da Phase 2 (núcleo).
 - **US2 (Phase 4)**: depende da Phase 2 (image-client). Pode rodar depois de US1 ou em paralelo (arquivos distintos), mas os dois adapters compartilham `openrouter-story-generation-provider.ts` — então US1 e US2 mexem no mesmo arquivo OpenRouter; **recomendado sequencial** para evitar conflito.
 - **US3 (Phase 5)**: depende de US1 + US2 completos.
+- **US4 (Phase 6)**: depende de US2/US3 (implementação do reader não depende do núcleo, mas é parte da
+  mesma feature); pode rodar em paralelo com US2/US3 ou após.
 
 ### User Story Dependencies
 
 - **US1 (P1)**: pode iniciar após a Fundacional; sem dependência de US2.
 - **US2 (P2)**: pode iniciar após a Fundacional; integra com US1 no arquivo OpenRouter (sequencial recomendado).
 - **US3 (P3)**: validação de fechamento; depende de US1 + US2.
+- **US4 (P3)**: UX no reader; independe de US1-US3 (mesma feature), pode rodar em paralelo; gates".
+  finais (T034) após a última edição.
 
 ### Within Each User Story
 
@@ -154,6 +192,8 @@ description: "Lista de tarefas para implementação do recurso"
 - T015/T016 (US1) — arquivos distintos, podem rodar em paralelo.
 - T021 (US2 build-story-pdf) — independente, pode rodar em paralelo com T019/T020.
 - T023/T025/T026 (US3) — podem rodar em paralelo, mas T025 é o meio-fio final.
+- T029/T030 (US4 testes) + T031/T032 (US4 impl) — arquivos no reader, independentes das de US1-US3;
+  podem rodar em paralelo com as demais (mesma feature).
 
 ---
 
@@ -166,6 +206,7 @@ description: "Lista de tarefas para implementação do recurso"
 3. Phase 3: US1 → VALIDAR (adapters verdes, thin shells).
 4. Fase 4: US2 → VALIDAR.
 5. Fase 5: US3 (gates finais + docs).
+6. Fase 6: US4 (reader "Mostrar mais") — pode ser paralela a US3; encerra a feature.
 
 ### Parallel Strategy (se 2 devs)
 
