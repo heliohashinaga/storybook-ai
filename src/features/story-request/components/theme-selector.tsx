@@ -25,13 +25,9 @@ export function ThemeSelector({ value, onSelect, disabled = false }: ThemeSelect
   const formT = useTranslations("story.form");
 
   return (
-    <fieldset
-      disabled={disabled}
-      aria-label={formT("theme.label")}
-      className="flex flex-col gap-sm"
-    >
+    <fieldset disabled={disabled} aria-label={formT("theme.label")} className="flex flex-col">
       <legend className="text-title font-title">{formT("theme.label")}</legend>
-      <div className="grid grid-cols-2 gap-md lg:grid-cols-3">
+      <div className="mt-3 grid grid-cols-2 gap-md lg:grid-cols-3">
         {themeCatalog.map((entry) => (
           <ChoiceCard
             key={entry.value}

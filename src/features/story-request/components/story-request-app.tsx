@@ -57,21 +57,10 @@ function StoryRequestFlow() {
   }, [submitting]);
 
   if (submitting) {
-    // Keep the request form mounted (internally disabled/announcing) so its
-    // localized retry error still renders on failure; the progress panel sits
-    // above it while the anonymous request is in flight.
-    return (
-      <section className="flex flex-col gap-md">
-        <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <div className="mx-auto w-full max-w-md">
-          <StoryRequestForm
-            onSubmit={handleSubmit}
-            defaultAge={lastPreferences?.age}
-            defaultSceneCount={lastPreferences?.sceneCount}
-          />
-        </div>
-      </section>
-    );
+    // Show only the loading panel (blossom-style) while the anonymous request
+    // is in flight. The form mounts fresh on success/fallback, so the localized
+    // retry error renders against the idle form instead.
+    return <StoryGenerationProgress elapsedSeconds={elapsed} />;
   }
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
@@ -122,7 +111,7 @@ function StoryRequestFlow() {
             <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
           ) : null}
           <StoryReader story={story} />
-          <div className="flex flex-row items-center gap-sm">
+          <div className="mt-6 flex flex-row items-center gap-sm">
             <ExportStoryButton story={story} />
             {lastPreferences ? (
               <Button variant="secondary" onClick={generateAnother}>

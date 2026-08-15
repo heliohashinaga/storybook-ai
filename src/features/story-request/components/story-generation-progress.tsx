@@ -110,7 +110,7 @@ export function StoryGenerationProgress({
       aria-live="polite"
       className="flex min-h-screen items-center justify-center p-4"
     >
-      <div className="w-full max-w-xl rounded-4xl border border-border bg-card p-8 text-center shadow-lift">
+      <div className="w-full max-w-3xl rounded-4xl border border-border bg-card p-8 text-center shadow-lift">
         <div
           aria-hidden="true"
           className="mx-auto flex size-24 items-center justify-center rounded-full bg-secondary"

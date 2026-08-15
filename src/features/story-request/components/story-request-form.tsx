@@ -165,9 +165,13 @@ export function StoryRequestForm({
       {/* Scenes — blossom-style selectable cards (3/4/5). */}
       <fieldset
         disabled={disabled}
+        aria-labelledby="story-request-scenes-label"
         className="rounded-3xl border border-border bg-card p-5 shadow-soft"
       >
-        <legend className="px-1 font-display text-lg font-bold">{t("form.scenes.label")}</legend>
+        <legend className="sr-only">{t("form.scenes.label")}</legend>
+        <div id="story-request-scenes-label" className="font-display text-lg font-bold">
+          {t("form.scenes.label")}
+        </div>
         <div className="mt-3 grid grid-cols-3 gap-3">
           {[MIN_SCENES, 4, MAX_SCENES].map((count) => {
             const on = sceneCount === count;
