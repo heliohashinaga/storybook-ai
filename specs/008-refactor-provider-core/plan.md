@@ -71,6 +71,11 @@ exceto se um re-export de constante pura for claramente seguro (avaliar em US2).
 
 *GATE: deve passar antes da Fase 0 de pesquisa. Re-checar após a Fase 1 de design.*
 
+> **Pós-design (Phase 1)**: re-avalido após data-model/contracts/quickstart. Nenhuma mudança de
+> arquitetura além do agrupamento `provider-core/`; contrato público congelado (documentado em
+> `contracts/provider-interface.md`). GATES: lint/format/typecheck/cobertura seguem definidos em
+> FR-007/SC-003/SC-004. **Status permanece PASS.**
+
 Avaliação contra `.specify/memory/constitution.md` v1.1.0:
 
 - **Code Quality**: refatoração reduz duplicação -> atende. Sem `any` novo (strict) -> atende.
@@ -89,7 +94,13 @@ Avaliação contra `.specify/memory/constitution.md` v1.1.0:
 specs/008-refactor-provider-core/
 ├── spec.md
 ├── plan.md
-└── tasks.md
+├── research.md
+├── data-model.md
+├── quickstart.md
+├── reviews.md
+├── checklists/requirements.md
+└── contracts/
+    └── provider-interface.md   # contrato público congelado (NÃO muda)
 ```
 
 ### Source Code (repository root)
