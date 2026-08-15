@@ -45,7 +45,7 @@ description: "Lista de tarefas para implementação do recurso"
 
 - [ ] T010 **Teste primeiro** — criar `tests/unit/provider-core/image-client.test.ts` que exercita o POST `/images` com `fetchImpl` fake: caso `b64_json`, caso `url`, caso sem `data`, caso `!response.ok`, caso timeout (abort). **Confirmar falha** antes de implementar.
 - [ ] T011 [US2] Criar `src/features/story-generation/server/provider-core/image-client.ts` com a função de transporte compartilhada `postImages(...) => { bytes, mediaType }` (corpo `{model, prompt, n:1, output_format:"webp", aspect_ratio:"1:1"}`), usando AbortController/timeout e re-utilizando o encoding/guarda de `image-optimizer.ts`.
-- [ ] T012 [US2] Confirmar/dif declarar `image-optimizer.ts`: integrá-lo ao `image-client.ts` (aplicar `optimizeImageBytes` / `DEFAULT_MAX_DATA_URI_LENGTH` / seam de encoder injetável) para que deixe de ser órfão. Se ficar provado redundante, consolidar e **remover código-morto** (nunca manter sem uso).
+- [ ] T012 [US2] Integrar `image-optimizer.ts` ao `image-client.ts`: o novo cliente DEVE chamar `optimizeImageBytes` / `defaultSharpEncoder` no caminho real de geração, aplicando `DEFAULT_MAX_DATA_URI_LENGTH` (guarda de 4 MiB) — conforme confirmado na pesquisa, hoje órfão e a guarda não roda em produção. Isso fecha o vão de tamanho de data-URI; não manter órfão.
 - [ ] T013 **Teste primeiro** — atualizar/criar `tests/unit/image-optimizer.test.ts` para refletir utilização real pelo `image-client.ts` (guarda de tamanho no caminho de geração). **Confirmar estado esperado**.
 
 **Checkpoint**: Núcleo creador + cliente de imagem extraídos e verdes isoladamente; ainda nada de produção chamando eles (troca nos user stories).

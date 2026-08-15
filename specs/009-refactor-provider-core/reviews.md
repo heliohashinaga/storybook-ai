@@ -13,8 +13,15 @@
 
 ## Confirmações pendentes durante a implementação
 
-- [ ] `image-optimizer.ts` órfão: integrar ao `image-client.ts` vs consolidar/remover (decisão na
-  revisão de US2).
+> **Atualização (2026-08-14)**: confirmado por grep que `image-optimizer.ts` é **órfão em
+> produção** — `optimizeImageBytes`/`DEFAULT_MAX_DATA_URI_LENGTH` nunca são chamados em nenhum
+> arquivo de `src/`. A guarda de data-URI (4 MiB) **não está aplicada no runtime real de geração**.
+> Integrar o `image-client.ts` ao `image-optimizer.ts` (US2) fecha essa lacuna — o encoding/resize
+> passa a rodar no caminho real, não só nos testes.
+
+- [x] `image-optimizer.ts` órfão em produção (confirmado): integrar ao `image-client.ts` usando
+  `optimizeImageBytes`/`defaultSharpEncoder` no caminho real, aplicando `DEFAULT_MAX_DATA_URI_LENGTH`
+  (decisão: integrar, pois a guarda é exigida e hoje não roda em produção).
 - [ ] `build-story-pdf.tsx` re-declara `WEBP_DATA_URI_PREFIX`: reutilizar via re-export seguro vs
   manter por fronteira (decisão na revisão de US2).
 - [ ] Restaurar `.specify/feature.json` para `007` ao final conforme workflow.

@@ -45,14 +45,18 @@ AbortController.
 **Diverge**: seam de encoding WebP (OpenRouter injeta `imageEncoder`; OpenCode tem encoder interno
 com fallback de sharp) e base URL.
 
-### C) `image-optimizer.ts` órfão
+### C) `image-optimizer.ts` órfão — e guarda de tamanho ausente em produção
 
 - `src/features/story-generation/server/image-optimizer.ts` define `optimizeImageBytes`,
   `defaultSharpEncoder` (resize + webp com lazy `sharp`), `WEBP_DATA_URI_PREFIX`,
   `DEFAULT_MAX_DATA_URI_LENGTH` (4 MiB), `DEFAULT_MAX_DIMENSION` (1024).
-- **Importado por nenhum arquivo em `src/`** (grep retornou apenas `image-optimizer.ts` e
-  `tests/unit/image-optimizer.test.ts`, além de um re-uso distinto de `WEBP_DATA_URI_PREFIX` no
-  `build-story-pdf.tsx` do cliente de export).
+- **Confirmado órfão em produção**: `optimizeImageBytes`/`DEFAULT_MAX_DATA_URI_LENGTH` não são
+  importados por NENHUM arquivo de `src/` (grep). Só o próprio módulo e `tests/unit/image-optimizer.test.ts`
+  o referenciam (além de um re-uso distinto de `WEBP_DATA_URI_PREFIX` no `build-story-pdf.tsx` do
+  cliente de export).
+- **Consequência**: a guarda de 4 MiB por data-URI é exercida apenas em teste, NÃO no runtime real de
+  geração. Os adapters de ilustração atuais retornam bytes sem limite aplicado. Integrar o
+  `image-client.ts` ao `image-optimizer.ts` no novo núcleo fecha essa lacuna.
 - Testado por `tests/unit/image-optimizer.test.ts`.
 
 ### D) Consumidor / roteamento
