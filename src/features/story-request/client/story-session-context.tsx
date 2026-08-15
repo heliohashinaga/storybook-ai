@@ -90,6 +90,11 @@ export interface StorySessionActions {
   accessStory: (id: string) => void;
   /** Returns to idle, clearing the whole history and prefs. */
   reset: () => void;
+  /**
+   * True when at least one approved story exists in the session. Used as the
+   * session gate: `/reader` without a session redirects to `/form` (Spec 009).
+   */
+  hasSession: () => boolean;
 }
 
 export type StorySession = StorySessionValue & StorySessionActions;
@@ -111,6 +116,7 @@ interface StorySessionContextValue extends StorySessionValue {
   fail: (failure: SafeError) => void;
   accessStory: (id: string) => void;
   reset: () => void;
+  hasSession: () => boolean;
 }
 
 const StorySessionContext = createContext<StorySessionContextValue | null>(null);
@@ -182,6 +188,7 @@ export function StorySessionProvider({ children }: { children: ReactNode }) {
       fail,
       accessStory,
       reset,
+      hasSession: () => state.stories.length > 0,
     }),
     [state, active, begin, succeed, fail, accessStory, reset]
   );

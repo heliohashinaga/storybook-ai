@@ -24,10 +24,10 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 
 **Purpose**: Estrutura de rotas — fundação para todas as stories (server-components de página)
 
-- [ ] T300 Criar server-component `src/app/page.tsx` que faça `redirect("/form")`
-- [ ] T301 Criar `src/app/form/page.tsx` montando `<StoryRequestApp isFake={...}/>` (sem prop `mode`)
-- [ ] T302 Criar `src/app/reader/page.tsx` montando `<StoryRequestApp isFake={...}/>` (sem prop `mode`)
-- [ ] T303 Sem rota dedicada `/export` (Decision №1 da spec §11): o export de
+- [x] T300 Criar server-component `src/app/page.tsx` que faça `redirect("/form")`
+- [x] T301 Criar `src/app/form/page.tsx` montando `<StoryRequestApp isFake={...}/>` (sem prop `mode`)
+- [x] T302 Criar `src/app/reader/page.tsx` montando `<StoryRequestApp isFake={...}/>` (sem prop `mode`)
+- [x] T303 Sem rota dedicada `/export` (Decision №1 da spec §11): o export de
       PDF permanece um botão inline no `/reader` (`ExportStoryButton`; PDF
       in-memory/lazy, `@react-pdf/renderer` lazy).
 
@@ -41,11 +41,11 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 
 **⚠️ CRITICAL**: nenhuma US de comportamento pode começar sem esta fase.
 
-- [ ] T304 Expor guarda de sessão em `src/features/story-request/client/story-session-context.tsx` (`hasSession()`, `storyCount`, `activeId`, `activeIndex`) sem serializar
-- [ ] T305 Derivar modo (`form`|`reader`) do path via `usePathname()` em `src/features/story-request/components/story-request-app.tsx`; `draftingNew`/`status` derivam da rota (fonte única)
-- [ ] T306 Mapear transição estado→rota (spec §6.2) com a **política push/replace (Clarifications 2026-08-15)**: `form→reader` usa `router.replace` (reader substitui form no histórico; um "voltar" do navegador sai do app); `router.push` reservado para alvos com "voltar" significativo (ex. troca de história no multistória) — em `src/features/story-request/client/`
-- [ ] T307 Substituir event bus em `src/features/shell/components/top-nav.tsx` por `router.push("/form")`; remover `src/lib/home-request-event.ts`
-- [ ] T308 Focus management ao navegar (**foco no `<h1>` da tela de destino — Clarifications Q4**) + `aria-current` no `top-nav` ativo em `src/features/shell/components/top-nav.tsx` e no client wrapper
+- [x] T304 Expor guarda de sessão em `src/features/story-request/client/story-session-context.tsx` (`hasSession()`, `storyCount`, `activeId`, `activeIndex`) sem serializar
+- [x] T305 Derivar modo (`form`|`reader`) do path via `usePathname()` em `src/features/story-request/components/story-request-app.tsx`; `draftingNew`/`status` derivam da rota (fonte única)
+- [x] T306 Mapear transição estado→rota (spec §6.2) com a **política push/replace (Clarifications 2026-08-15)**: `form→reader` usa `router.replace` (reader substitui form no histórico; um "voltar" do navegador sai do app); `router.push` reservado para alvos com "voltar" significativo (ex. troca de história no multistória) — em `src/features/story-request/client/`
+- [x] T307 Substituir event bus em `src/features/shell/components/top-nav.tsx` por `router.push("/form")`; remover `src/lib/home-request-event.ts`
+- [x] T308 Focus management ao navegar (**foco no `<h1>` da tela de destino — Clarifications Q4**) + `aria-current` no `top-nav` ativo em `src/features/shell/components/top-nav.tsx` e no client wrapper
 
 **Checkpoint**: rota é a única fonte de verdade; event bus removido; navegação real funcionando.
 
@@ -59,13 +59,13 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 
 ### Testes da US1
 
-- [ ] T311 [P] [US1] Unit: mapeamento estado→rota (guarda de transição) em `tests/unit/` — nenhum dado sensível em params. **Alvo concreto:** extrair função pura `deriveScreenFromPath(path)` (ou equivalente) — arquivo de destino sugerido `src/features/story-request/client/route-mapping.ts`, **flexível ao nome** — evitando depender de `usePathname` direto no teste (determinista)
+- [x] T311 [P] [US1] Unit: mapeamento estado→rota (guarda de transição) em `tests/unit/` — nenhum dado sensível em params. **Alvo concreto:** extrair função pura `deriveScreenFromPath(path)` (ou equivalente) — arquivo de destino sugerido `src/features/story-request/client/route-mapping.ts`, **flexível ao nome** — evitando depender de `usePathname` direto no teste (determinista)
 - [ ] T312 [P] [US1] Integration: `/`→`redirect("/form")` e `/reader` sem sessão⇒`redirect("/form")`; invariante de privacidade em URL **e logs** (fake provider); `form→reader` navega via `router.replace` (não `push`); `/form` volta limpo (sem aba de histórico); foco move ao `<h1>` do leitor — em `tests/integration/`; valida contra `contracts/frontend-routing.md`; **locale** (next-intl pt-BR|en) permanece no `LocaleProvider` acima das páginas (rota não a reset/altera) em `tests/integration/`
 
 ### Implementação da US1
 
-- [ ] T309 [US1] Guarda client p/ `redirect("/form")` (via `router.replace`) quando rota de sessão é alcançada sem sessão (reload/deep-link) em client wrapper
-- [ ] T310 [US1] Garantir que `/reader` ignora/rejeita `?story=` na URL (adiado, nunca implementado) — **teste-negativo**: seleção continua exclusiva via `StorySessionContext`; nenhuma seleção por URL em `src/features/story-reader/`
+- [x] T309 [US1] Guarda client p/ `redirect("/form")` (via `router.replace`) quando rota de sessão é alcançada sem sessão (reload/deep-link) em client wrapper
+- [x] T310 [US1] Garantir que `/reader` ignora/rejeita `?story=` na URL (adiado, nunca implementado) — **teste-negativo**: seleção continua exclusiva via `StorySessionContext`; nenhuma seleção por URL em `src/features/story-reader/`
 
 **Checkpoint**: US1 funciona como MVP — fluxo form→reader com volta real e redirect de sessão perdida.
 

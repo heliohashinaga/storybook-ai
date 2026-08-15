@@ -4,6 +4,7 @@ import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "../i18n/locale-provider";
 import { TopNav } from "../features/shell/components/top-nav";
+import { StorySessionProvider } from "../features/story-request/client/story-session-context";
 
 // Self-hosted identity fonts ported from story-blossom-room (design-system §3).
 // Baloo 2 (round display) for headings; Nunito (legible body) for copy. Weights
@@ -39,14 +40,21 @@ export const metadata: Metadata = {
  * Minimal root layout. The anonymous app defaults to `en`; the story
  * language selected in the form drives the whole UI through LocaleProvider
  * (ADR 0003 / T056). This shell is kept intentionally lightweight.
+ *
+ * `StorySessionProvider` lives here (not per-route) so the in-memory session
+ * persists across `/form` ↔ `/reader` navigation — client-side route changes
+ * keep the layout mounted, so the anonymous story history survives between
+ * screens (Spec 009). It is never serialized to durable storage.
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`${baloo.variable} ${nunito.variable}`}>
       <body>
         <LocaleProvider defaultLocale="en">
-          <TopNav />
-          <main>{children}</main>
+          <StorySessionProvider>
+            <TopNav />
+            <main>{children}</main>
+          </StorySessionProvider>
         </LocaleProvider>
       </body>
     </html>

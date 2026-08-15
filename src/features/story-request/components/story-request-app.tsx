@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { onHomeRequested } from "../../../lib/home-request-event";
+import { usePathname, useRouter } from "next/navigation";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryHistory } from "../../story-reader/components/story-history";
 import { StoryReader } from "../../story-reader/components/story-reader";
-import { StorySessionProvider, useStorySession } from "../client/story-session-context";
+import { useStorySession } from "../client/story-session-context";
+import { deriveScreenFromPath } from "../client/route-mapping";
 import { StoryGenerationProgress } from "./story-generation-progress";
 import {
   StoryRequestForm,
@@ -15,74 +16,37 @@ import {
 } from "./story-request-form";
 
 /**
- * Request → story container (T033). Hosts the anonymous request form and the
- * first approved-story state. Submits only `ageBand`/`locale`/`theme`/
- * `sceneCount`, parses the response through `story-response` (typed, sanitized),
- * and shows the approved 3–5 scene story locally in memory (never persisted).
+ * Request → story container (T033) generalized to route-aware screens (Spec 009).
+ * The anonymous app now has two navigable routes, `/form` and `/reader`; both
+ * mount this same client wrapper. The screen mode is derived from the URL path
+ * (`usePathname()` is the single source of truth; never a `mode` prop). The
+ * in-memory session lives in the root layout's `StorySessionProvider`, shared
+ * across routes. Only `ageBand`/`locale`/`theme`/`sceneCount` are ever submitted;
+ * the approved 3–5 scene story stays locally in memory (never persisted).
  */
 export function StoryRequestApp({ isFake = false }: { isFake?: boolean }) {
-  return (
-    <StorySessionProvider>
-      <StoryRequestFlow isFake={isFake} />
-    </StorySessionProvider>
-  );
+  const pathname = usePathname();
+  const mode = deriveScreenFromPath(pathname);
+  return mode === "reader" ? <ReaderScreen isFake={isFake} /> : <FormScreen isFake={isFake} />;
 }
 
-function StoryRequestFlow({ isFake }: { isFake: boolean }) {
+/** The `/form` screen: anonymous request form + inline generation progress. */
+function FormScreen({ isFake }: { isFake: boolean }) {
   const t = useTranslations("story");
-  const { status, story, stories, activeId, begin, succeed, fail, accessStory, lastPreferences } =
-    useStorySession();
-  const [elapsed, setElapsed] = useState(0);
-  // Localized retry `messageKey` kept across the form's unmount/remount while
-  // the request panel was showing, so the freshly-mounting idle form can
-  // display the failure (the form's own state is lost on unmount).
+  const router = useRouter();
+  const { status, begin, succeed, fail, lastPreferences } = useStorySession();
   const [lastError, setLastError] = useState<string | null>(null);
-  // "New story": show a fresh, unfilled form while preserving the
-  // in-session history, so the previous stories stay in the switcher and the
-  // next generated one is appended rather than replacing them.
-  const [draftingNew, setDraftingNew] = useState(false);
 
   const submitting = status === "submitting";
+  const [elapsed, setElapsed] = useState(0);
 
-  // While the anonymous request is in flight, tick the elapsed clock that
-  // drives the localized progress copy (writing → reviewing → timeout cue).
-  // Cleared once submission ends.
+  // Tick the elapsed clock that drives the localized progress copy while an
+  // anonymous request is in flight. Cleared once submission ends.
   useEffect(() => {
     if (!submitting) return;
     const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
     return () => clearInterval(id);
   }, [submitting]);
-
-  /** "New story": leave the reader and show an unfilled form, keeping
-   *  the prior stories in the session so they persist in the switcher. */
-  const startNewStory = useCallback(() => {
-    setDraftingNew(true);
-    setLastError(null);
-  }, []);
-
-  // The top-nav brand mark (a sibling in the route tree) sends a "home" event
-  // that should behave like "New story": return to the form while
-  // preserving the session's prior stories. `router.push("/")` alone cannot do
-  // this — on an already-mounted `/` it is a client-side no-op, so we subscribe
-  // once to the shared event here (startNewStory is stable via useCallback).
-  useEffect(() => onHomeRequested(startNewStory), [startNewStory]);
-
-  if (submitting) {
-    // Show only the loading panel (blossom-style) while the anonymous request
-    // is in flight. In fake mode the equal per-step duration is set to one
-    // `STORY_FAKE_STEP_DELAY_MS` slice (3 s with the default 3000), so the three
-    // stages are evenly spaced across the phase-delayed pipeline (each step ≈
-    // the same length on screen) instead of stalling on the final step. Real
-    // mode uses the default uniform `STEP_DURATION_SECONDS`. The form mounts
-    // fresh on success/fallback, so the localized retry error renders against
-    // the idle form instead.
-    return (
-      <StoryGenerationProgress
-        elapsedSeconds={elapsed}
-        stepDurationSeconds={isFake ? 3 : undefined}
-      />
-    );
-  }
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
@@ -96,34 +60,34 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
     const result = await parseStoryResponse(response);
     if (result.status === "success") {
       // Store anonymized prefs (exact age stays in memory only, never in the
-      // payload) for session reuse. A new draft is no longer pending once the
-      // story is generated, so the reader shows again with the appended list.
+      // payload) for session reuse, append the story, then move to the reader
+      // via `replace` so a single browser "back" leaves the app rather than
+      // returning to a stale `/form` (Spec 009 / Clarifications Q3).
       succeed(result.story, {
         age: age ?? 0,
         locale: request.locale,
         theme: request.theme,
         sceneCount: request.sceneCount,
       });
-      setDraftingNew(false);
+      router.replace("/reader");
       return { ok: true };
     }
     fail(result.error);
     const key = result.error.messageKey.replace(/^story\.error\./, "");
     setLastError(key);
-    // A failed fresh-draft submit returns to the form with the error; the
-    // reader stays hidden while planning a new story.
-    setDraftingNew(true);
     return { ok: false, messageKey: key };
   }
 
-  if (story && !draftingNew) {
+  // The generation progress panel is ephemeral; it renders inside `/form`
+  // without changing the route (no `/steps`), per Spec 009. On success/fallback
+  // the form mounts fresh, so the localized retry error shows against the idle
+  // form.
+  if (submitting) {
     return (
-      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <StoryReader story={story} onNewStory={startNewStory} />
-        <aside className="flex h-full flex-col gap-sm">
-          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
-        </aside>
-      </div>
+      <StoryGenerationProgress
+        elapsedSeconds={elapsed}
+        stepDurationSeconds={isFake ? 3 : undefined}
+      />
     );
   }
 
@@ -136,14 +100,57 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
         <p className="mx-auto mt-3 max-w-3xl text-muted-foreground">{t("form.subtitle")}</p>
       </div>
       <div className="mx-auto w-full max-w-md lg:max-w-2xl">
+        {/* `/form` is always a clean draft: a fresh, unfilled form, no history
+            tab. Session prefs are reused for default values, not drafts. */}
         <StoryRequestForm
-          key={draftingNew ? "fresh" : "reuse"}
+          key="fresh"
           onSubmit={handleSubmit}
-          defaultAge={draftingNew ? undefined : lastPreferences?.age}
-          defaultSceneCount={draftingNew ? undefined : lastPreferences?.sceneCount}
+          defaultAge={lastPreferences?.age}
+          defaultSceneCount={lastPreferences?.sceneCount}
           initialError={lastError ?? undefined}
         />
       </div>
     </section>
+  );
+}
+
+/** The `/reader` screen: the active story + in-session history switcher. */
+function ReaderScreen({ isFake: _isFake }: { isFake: boolean }) {
+  const router = useRouter();
+  const { story, stories, activeId, accessStory, hasSession } = useStorySession();
+
+  // Session gate: `/reader` without a session (deep-link / reload) redirects
+  // to the clean `/form`. Check after mount so the initial render has a stable
+  // snapshot of the in-memory session, then redirect once.
+  useEffect(() => {
+    if (!hasSession()) {
+      router.replace("/form");
+    }
+  }, [hasSession, router]);
+
+  // Spec 009 / Clarifications Q4: on `<h1>`/heading of the `/reader` screen
+  // gets focus when it mounts. `StoryReader` already moves focus to the story's
+  // main scene heading on first render, so no additional focus move is needed
+  // here beyond landing on the reader with that focus in place.
+
+  const onNewStory = useCallback(() => {
+    // "New story": go to the clean `/form` via the app's internal navigation
+    // (the browser history does not carry a stale `/form`; see Clarifications Q3).
+    router.replace("/form");
+  }, [router]);
+
+  if (!story) {
+    // No story (still hydrating / redirecting): render an empty live region so
+    // assistive tech is not left on a blank page during the gate.
+    return <section aria-live="polite" aria-busy="true" />;
+  }
+
+  return (
+    <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <StoryReader story={story} onNewStory={onNewStory} />
+      <aside className="flex h-full flex-col gap-sm">
+        <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
+      </aside>
+    </div>
   );
 }
