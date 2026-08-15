@@ -231,6 +231,39 @@ describe("StoryRequestApp — flow", () => {
     expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
   });
 
+  it("shows the loading panel when submitting again after the top-nav logo (T-regression)", async () => {
+    // First story resolves immediately so the reader appears.
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>();
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(approvedStory), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderApp();
+
+    await submitValidForm();
+    expect(await screen.findByRole("button", { name: /^Próxima$/i })).toBeInTheDocument();
+
+    // Return to the form via the top-nav logo.
+    act(() => requestHome());
+    expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
+
+    // Second submit: defer the response so the request stays in flight. The
+    // loading/progress panel must show, NOT jump straight to the reader.
+    let resolveFetch: (r: Response) => void = () => {};
+    fetchMock.mockImplementation(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = resolve;
+        })
+    );
+
+    await submitValidForm();
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+
+    await act(async () => {
+      resolveFetch(new Response(JSON.stringify(approvedStory), { status: 200 }));
+    });
+    expect(await screen.findByRole("button", { name: /^Próxima$/i })).toBeInTheDocument();
+  });
+
   it("renders the in-session story switcher and switches back to an earlier story (T051)", async () => {
     const second = {
       locale: "pt-BR",

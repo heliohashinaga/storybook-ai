@@ -8,9 +8,10 @@ import { sortByNewest } from "./story-switcher-utils";
  * Accessible story switcher sidebar (US3 / T049), blossom layout (spec 007).
  *
  * Renders the in-session stories as a labelled, thumbnail list (newest first).
- * Each row shows a miniature of the story's first scene, its title, and either
- * "Active" or the theme name. The active row carries `aria-pressed` and
- * `aria-current` for assistive tech. Buttons are native and individually
+ * Each row shows a miniature of the story's first scene, its title, and the
+ * theme name. The active card keeps a highlight (border/fill) and carries
+ * `aria-pressed`/`aria-current`, but its label stays the story's theme — it is
+ * not swapped for a generic "Active" label. Buttons are native and individually
  * focusable (full keyboard navigation, visible focus via the design system).
  */
 export function StoryHistory({
@@ -67,7 +68,7 @@ export function StoryHistory({
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-bold">{entry.story.title}</span>
                   <span className="block truncate text-xs text-text-subtle">
-                    {isActive ? t("active") : tc(`theme.${entry.story.theme}`)}
+                    {tc(`theme.${entry.story.theme}`)}
                   </span>
                 </span>
               </button>
