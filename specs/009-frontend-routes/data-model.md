@@ -13,11 +13,10 @@ Cada rota codifica unicamente a etapa do fluxo de UI. Não há dado de conteúdo
 | `path`    | string     | `/form`     | não (URL)    | não       |
 | `screen`  | enum       | `form`/`reader`/`export` | não (in-memory) | não |
 
-### Query param opcional (não persistido)
-- `?story=<i>` — **índice** de conta da sessão (`0 ≤ i < storyCount()`).
-  Usado só para sugerir a seleção no multihistória; **sempre revalidado** contra a
-  lista em memória; fora de faixa ⇒ ignorado (cai na conta ativa). Nunca
-  armazenado, nunca decodifica conteúdo.
+> **Sem query param de seleção.** A seleção da conta ativa no multihistória é
+> feita inteiramente via `StorySessionContext` (UI interna). O `?story=<i>` foi
+> **adiado / fora do escopo** desta spec (decisão `/speckit.clarify`, 2026-08-15)
+> — `/reader` não recebe índice pela URL nesta entrega.
 
 ## 2. Estado de Sessão (in-memory, não alterado)
 
@@ -35,13 +34,14 @@ serializar):
 
 ## 3. Invariantes
 
-1. `path` + `?story=` (índice) são os únicos dados em URL; nunca `story`, idade,
-   `ageBand`, `locale`, UUID ou identificador.
+1. `path` (tipo de tela) é o único dado em URL; nunca `story`, idade,
+   `ageBand`, `locale`, UUID ou identificador — e **nenhum** query de seleção
+   (`?story=` adiado/fora de escopo).
 2. Sem cookies/localStorage/indexDB/cache — nenhuma entidade desta spec é durável.
 3. `POST /api/stories` continua único entry point de servidor.
-4. Validação do `?story=` no client: se `i`, se `i ≥ storyCount` ⇒ ignora.
 
-> **Nota — `?story=` é seleção, não etapa de geração.** O índice não tem relação
-> com as etapas de progresso (`writing`→`illustrating`→`reviewing`), que são
-> data-driven por tempo e não tocam a URL. A tela de progresso de geração
-> continua efêmera dentro de `/form` e **não possui rota/param próprios**.
+> **Nota — sem rota por história.** Como nada persiste (invariante 2), uma rota
+> que enderece uma história específica (`/story/{id}` ou por query) seria
+> **inválida por design**: exigiria persistência ou embutir conteúdo na URL, o
+> que viola o anonimato do AGENTS.md. A seleção multistória permanece só via
+> memória (`StorySessionContext`), sem representação na URL.
