@@ -4,9 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
-import { Select } from "../../../components/ui/select";
 import { useLocaleContext } from "../../../i18n/locale-provider";
-import { localeCatalog } from "../../../lib/story-catalog";
 import { ThemeSelector } from "./theme-selector";
 import { deriveAgeBand, type AgeBand } from "../client/age-band";
 import {
@@ -63,12 +61,11 @@ export function StoryRequestForm({
   onSuccess,
 }: StoryRequestFormProps) {
   const t = useTranslations("story");
-  const { locale: appLocale, setLocale: setAppLocale } = useLocaleContext();
+  const { locale: appLocale } = useLocaleContext();
   const ageInputRef = useRef<HTMLInputElement>(null);
   const submitErrorRef = useRef<HTMLDivElement>(null);
   const initialAge = defaultAge ?? 5;
   const [age, setAge] = useState<number>(initialAge);
-  const [locale, setLocale] = useState<Locale>(appLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [sceneCount, setSceneCount] = useState<number>(defaultSceneCount);
   const [status, setStatus] = useState<StoryRequestStatus>("idle");
@@ -102,7 +99,7 @@ export function StoryRequestForm({
     const result = await onSubmit(
       {
         ageBand: deriveAgeBand(numericAge),
-        locale,
+        locale: appLocale,
         theme,
         sceneCount,
       },
@@ -165,24 +162,6 @@ export function StoryRequestForm({
         ) : null}
       </div>
 
-      <Select
-        label={t("form.locale.label")}
-        value={locale}
-        disabled={disabled}
-        onChange={(event) => {
-          const next = event.target.value as Locale;
-          setLocale(next);
-          // The story language drives the whole UI (ADR 0003 / T056).
-          setAppLocale(next);
-        }}
-      >
-        {localeCatalog.map((entry) => (
-          <option key={entry.value} value={entry.value}>
-            {entry.label}
-          </option>
-        ))}
-      </Select>
-
       {/* Scenes — blossom-style selectable cards (3/4/5). */}
       <fieldset
         disabled={disabled}
@@ -227,10 +206,32 @@ export function StoryRequestForm({
         </div>
       ) : null}
 
-      <Button type="submit" size="lg" loading={submitting}>
-        <span aria-hidden="true">✨</span>
+      <Button type="submit" size="lg" loading={submitting} className="w-full !rounded-3xl">
+        <SparklesIcon className="size-5" />
         {submitting ? t("form.submitting") : t("form.submit")}
       </Button>
     </form>
+  );
+}
+
+/** Inline Sparkles icon (lucide-style) — the blossom core icon for story creation. */
+function SparklesIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 3l1.9 5.7a2 2 0 0 0 1.2 1.2L20.8 12l-5.7 1.9a2 2 0 0 0-1.2 1.2L12 20.8l-1.9-5.7a2 2 0 0 0-1.2-1.2L3.2 12l5.7-1.9a2 2 0 0 0 1.2-1.2z" />
+      <path d="M5 3v4" />
+      <path d="M19 17v4" />
+      <path d="M3 5h4" />
+      <path d="M17 19h4" />
+    </svg>
   );
 }
