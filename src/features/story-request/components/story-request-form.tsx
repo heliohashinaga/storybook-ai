@@ -25,7 +25,6 @@ import {
  * request payload never contains an exact age or any child identifier — the
  * form has no name field at all.
  */
-
 export interface GenerateStoryRequest {
   ageBand: AgeBand;
   locale: Locale;
@@ -37,11 +36,14 @@ export type SubmitResult = { ok: true } | { ok: false; messageKey: string };
 
 export type StoryRequestStatus = "idle" | "submitting" | "success";
 
+const MIN_AGE = 2;
+const MAX_AGE = 9;
+
 interface StoryRequestFormProps {
   defaultTheme?: Theme;
   /** Reuse the last in-session scene count (defaults to 3). */
   defaultSceneCount?: number;
-  /** Reuse the last in-session age so the field isn't blank after 'nova
+  /** Reuse the last in-session age so the slider isn't reset after 'nova
    *  história' (generate-another uses lastPreferences directly). */
   defaultAge?: number;
   /**
@@ -64,7 +66,8 @@ export function StoryRequestForm({
   const { locale: appLocale, setLocale: setAppLocale } = useLocaleContext();
   const ageInputRef = useRef<HTMLInputElement>(null);
   const submitErrorRef = useRef<HTMLDivElement>(null);
-  const [age, setAge] = useState(defaultAge ? String(defaultAge) : "");
+  const initialAge = defaultAge ?? 5;
+  const [age, setAge] = useState<number>(initialAge);
   const [locale, setLocale] = useState<Locale>(appLocale);
   const [theme, setTheme] = useState<Theme>(defaultTheme);
   const [sceneCount, setSceneCount] = useState<number>(defaultSceneCount);
@@ -86,7 +89,7 @@ export function StoryRequestForm({
     if (submitting) return;
 
     const numericAge = Number(age);
-    if (!Number.isInteger(numericAge) || numericAge < 2 || numericAge > 9) {
+    if (!Number.isInteger(numericAge) || numericAge < MIN_AGE || numericAge > MAX_AGE) {
       setAgeError(t("form.age.errorRange"));
       ageInputRef.current?.focus();
       return;
@@ -124,28 +127,37 @@ export function StoryRequestForm({
     >
       <ThemeSelector value={theme} onSelect={setTheme} disabled={disabled} />
 
-      <div className="flex flex-col gap-xs">
-        <label htmlFor="story-request-age" className="text-body font-title">
+      {/* Age — blossom-style range slider (exact age stays in memory only). */}
+      <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
+        <label htmlFor="story-request-age" className="font-display text-lg font-bold">
           {t("form.age.label")}
         </label>
-        <input
-          id="story-request-age"
-          ref={ageInputRef}
-          type="number"
-          min="2"
-          max="9"
-          inputMode="numeric"
-          className="w-full rounded-xl border border-input bg-card px-md py-sm text-body text-text shadow-soft disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-subtle"
-          value={age}
-          disabled={disabled}
-          placeholder={t("form.age.placeholder")}
-          aria-invalid={ageError ? true : undefined}
-          aria-describedby={ageError ? "story-request-age-error" : undefined}
-          onChange={(event) => {
-            setAge(event.target.value);
-            if (ageError) setAgeError(null);
-          }}
-        />
+        <div className="mt-3 flex items-center gap-4">
+          <input
+            id="story-request-age"
+            ref={ageInputRef}
+            type="range"
+            min={MIN_AGE}
+            max={MAX_AGE}
+            step={1}
+            value={age}
+            disabled={disabled}
+            aria-label={t("form.age.label")}
+            aria-describedby={ageError ? "story-request-age-error" : "story-request-age-hint"}
+            aria-invalid={ageError ? true : undefined}
+            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
+            onChange={(event) => {
+              setAge(Number(event.target.value));
+              if (ageError) setAgeError(null);
+            }}
+          />
+          <span className="min-w-16 shrink-0 rounded-xl bg-secondary px-3 py-1 text-center font-bold text-secondary-foreground">
+            {age} {t("form.age.years")}
+          </span>
+        </div>
+        <p id="story-request-age-hint" className="mt-3 text-sm text-muted-foreground">
+          {t("form.age.hint")}
+        </p>
         {ageError ? (
           <span id="story-request-age-error" role="alert" className="text-caption text-danger">
             {ageError}
@@ -171,24 +183,37 @@ export function StoryRequestForm({
         ))}
       </Select>
 
-      <fieldset disabled={disabled} className="flex flex-col gap-xs">
-        <legend className="text-body font-title">{t("form.scenes.label")}</legend>
-        <div role="radiogroup" aria-label={t("form.scenes.label")} className="flex gap-sm">
-          {[MIN_SCENES, 4, MAX_SCENES].map((count) => (
-            <label key={count} className="flex items-center gap-xs text-body">
-              <input
-                type="radio"
-                name="story-request-scene-count"
-                value={count}
-                checked={sceneCount === count}
-                onChange={() => setSceneCount(count)}
-              />
-              <span>
-                {count} {t("form.scenes.scene-unit")}
-              </span>
-            </label>
-          ))}
+      {/* Scenes — blossom-style selectable cards (3/4/5). */}
+      <fieldset
+        disabled={disabled}
+        className="rounded-3xl border border-border bg-card p-5 shadow-soft"
+      >
+        <legend className="px-1 font-display text-lg font-bold">{t("form.scenes.label")}</legend>
+        <div className="mt-3 grid grid-cols-3 gap-3">
+          {[MIN_SCENES, 4, MAX_SCENES].map((count) => {
+            const on = sceneCount === count;
+            return (
+              <button
+                key={count}
+                type="button"
+                onClick={() => setSceneCount(count)}
+                aria-pressed={on}
+                aria-describedby="story-request-scenes-hint"
+                className={`min-h-14 rounded-2xl border-2 font-display text-lg font-bold transition-all hover:-translate-y-0.5 ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground shadow-lift"
+                    : "border-border bg-background text-text hover:border-primary/50"
+                }`}
+              >
+                {count}
+                <span className="ml-1 text-sm font-bold">{t("form.scenes.scene-unit")}</span>
+              </button>
+            );
+          })}
         </div>
+        <p id="story-request-scenes-hint" className="mt-3 text-sm text-muted-foreground">
+          {t("form.scenes.hint")}
+        </p>
       </fieldset>
 
       {submitError ? (

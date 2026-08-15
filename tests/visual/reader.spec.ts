@@ -54,7 +54,7 @@ test("a five-scene story renders consistently across every position", async ({ p
 
   // Deterministic form: age 6 -> band 5-7, default pt-BR/courage, 5 scenes.
   await page.getByLabel(/idade da criança/i).fill("6");
-  await page.getByRole("radio", { name: /5 cenas/i }).check();
+  await page.getByRole("button", { name: /5cenas/i }).click();
   await page.getByRole("button", { name: /criar história/i }).click();
 
   const reader = page.getByRole("region", { name: /sua história/i });

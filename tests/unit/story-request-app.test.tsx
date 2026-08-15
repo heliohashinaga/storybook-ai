@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, afterEach } from "vitest";
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
 import { LocaleProvider } from "../../src/i18n/locale-provider";
@@ -35,7 +35,9 @@ function renderApp() {
 
 async function submitValidForm() {
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText(/idade da criança/i), "6");
+  fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+    target: { value: "6" },
+  });
   await user.click(screen.getByRole("button", { name: /criar história/i }));
 }
 
@@ -46,7 +48,7 @@ afterEach(() => {
 describe("StoryRequestApp — flow", () => {
   it("starts on the request form and never shows a reader initially", () => {
     renderApp();
-    expect(screen.getByText("Crie uma história personalizada")).toBeInTheDocument();
+    expect(screen.getByText("Storybook AI")).toBeInTheDocument();
     expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
   });
 
@@ -120,7 +122,9 @@ describe("StoryRequestApp — flow", () => {
     renderApp();
 
     const user = userEvent.setup();
-    await user.type(screen.getByLabelText(/idade da criança/i), "6");
+    fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+      target: { value: "6" },
+    });
     await user.selectOptions(screen.getByLabelText(/idioma/i), "en");
     // The whole UI flips to English immediately after the locale selection.
     // Theme is a ChoiceCard button; pick the Friendship card.
@@ -282,6 +286,6 @@ describe("StoryRequestApp — flow", () => {
 
     await userEvent.click(screen.getByRole("button", { name: /criar outra história/i }));
     expect(screen.queryByText("Sua história")).not.toBeInTheDocument();
-    expect(screen.getByText("Crie uma história personalizada")).toBeInTheDocument();
+    expect(screen.getByText("Storybook AI")).toBeInTheDocument();
   });
 });

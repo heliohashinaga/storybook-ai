@@ -1,11 +1,14 @@
 {
   "story": {
     "form": {
-      "title": "Create a personalized story",
+      "title": "Storybook AI",
+      "subtitle": "Pick a theme, set an age, and get a one-of-a-kind story.",
       "age": {
         "label": "Child's age",
         "placeholder": "Enter the age (2 to 9)",
-        "errorRange": "Please enter an age between 2 and 9."
+        "errorRange": "Please enter an age between 2 and 9.",
+        "hint": "Adjust the age to personalize the story's tone.",
+        "years": "years old"
       },
       "locale": {
         "label": "Language"
@@ -14,8 +17,9 @@
         "label": "Story theme"
       },
       "scenes": {
-        "label": "How many scenes?",
-        "scene-unit": "scenes"
+        "label": "Number of scenes",
+        "scene-unit": "scenes",
+        "hint": "Choose how many illustrated scenes the story will have."
       },
       "submit": "Create story",
       "submitting": "Creating your story…"
@@ -84,8 +88,8 @@
       }
     },
     "brand": {
-      "name": "Bright Stories",
-      "tagline": "Anonymous, gentle stories for young readers",
+      "name": "Storybook AI",
+      "tagline": "Illustrated stories",
       "languageLabel": "Language",
       "portuguese": "Português",
       "english": "English"

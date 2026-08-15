@@ -136,7 +136,14 @@ function StoryRequestFlow() {
 
   return (
     <section className="flex flex-col gap-md">
-      <h1 className="font-title text-title">{t("form.title")}</h1>
+      <div className="text-center">
+        <h1 className="font-title text-title text-4xl font-extrabold tracking-tight sm:text-5xl">
+          {t("form.title")}
+        </h1>
+        <p className="mx-auto mt-3 max-w-xl text-pretty text-muted-foreground">
+          {t("form.subtitle")}
+        </p>
+      </div>
       <StoryRequestForm
         onSubmit={handleSubmit}
         defaultAge={lastPreferences?.age}

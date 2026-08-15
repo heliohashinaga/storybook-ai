@@ -36,7 +36,7 @@ async function fillAndSubmit(page: Page): Promise<void> {
 test.describe("application accessibility (T059)", () => {
   test("landing form has no WCAG A/AA violations", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /uma história/i }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: /storybook ai/i }).first()).toBeVisible();
     await expectNoViolations(page);
   });
 

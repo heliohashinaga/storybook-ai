@@ -1,11 +1,14 @@
 {
   "story": {
     "form": {
-      "title": "Crie uma história personalizada",
+      "title": "Storybook AI",
+      "subtitle": "Escolha um tema, diga a idade e receba uma história única.",
       "age": {
         "label": "Idade da criança",
         "placeholder": "Digite a idade (2 a 9)",
-        "errorRange": "Informe uma idade entre 2 e 9 anos."
+        "errorRange": "Informe uma idade entre 2 e 9 anos.",
+        "hint": "Ajuste a idade para personalizar o tom da história.",
+        "years": "anos"
       },
       "locale": {
         "label": "Idioma"
@@ -14,8 +17,9 @@
         "label": "Tema da história"
       },
       "scenes": {
-        "label": "Quantas cenas?",
-        "scene-unit": "cenas"
+        "label": "Quantidade de cenas",
+        "scene-unit": "cenas",
+        "hint": "Escolha quantas cenas ilustradas a história terá."
       },
       "submit": "Criar história",
       "submitting": "Criando sua história…"
@@ -84,8 +88,8 @@
       }
     },
     "brand": {
-      "name": "Histórias Brilhantes",
-      "tagline": "Histórias anônimas e gentis para pequenos leitores",
+      "name": "Storybook AI",
+      "tagline": "Histórias ilustradas",
       "languageLabel": "Idioma",
       "portuguese": "Português",
       "english": "English"

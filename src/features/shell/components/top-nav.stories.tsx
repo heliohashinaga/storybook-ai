@@ -30,7 +30,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/histórias brilhantes/i)).toBeInTheDocument();
+    await expect(canvas.getByText(/storybook ai/i)).toBeInTheDocument();
     await expect(canvas.getByRole("group", { name: /idioma|language/i })).toBeInTheDocument();
   },
 };
@@ -39,6 +39,6 @@ export const English: Story = {
   decorators: [withLocalizedI18n("en")],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByText(/bright stories/i)).toBeInTheDocument();
+    await expect(canvas.getByText(/storybook ai/i)).toBeInTheDocument();
   },
 };

@@ -140,7 +140,7 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   await expect(page.getByRole("button", { name: /Criar história/i })).toBeVisible();
   await expect(page.getByText("Cena 1 de 3")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Gerar outra história/i })).toHaveCount(0);
-  await expect(page.getByLabel(/Idade da criança/i)).toHaveValue("");
+  await expect(page.getByLabel(/Idade da criança/i)).toHaveValue("5");
 
   // ---- URL carries no age / theme / story data ---------------------------
   expect(page.url()).toBe(new URL("/", page.url()).toString());

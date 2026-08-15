@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "storybook/test";
+import { fireEvent } from "@testing-library/react";
 import { LocaleProvider } from "../../../i18n/locale-provider";
 import { StoryRequestForm, type SubmitResult } from "./story-request-form";
 
@@ -39,25 +40,16 @@ export default meta;
 
 type Story = StoryObj<typeof StoryRequestForm>;
 
-async function fillAgeAndSubmit(canvasElement: HTMLElement) {
+async function fillAgeAndSubmit(canvasElement: HTMLElement, locale: "pt-BR" | "en" = "pt-BR") {
   const canvas = within(canvasElement);
-  await userEvent.type(canvas.getByLabelText(/idade da criança/i), "6");
-  await userEvent.click(canvas.getByRole("button", { name: /criar história/i }));
+  const label = locale === "en" ? /child's age/i : /idade da criança/i;
+  fireEvent.change(canvas.getByLabelText(label), { target: { value: "6" } });
+  await userEvent.click(
+    canvas.getByRole("button", { name: locale === "en" ? /create story/i : /criar história/i })
+  );
 }
 
 export const Default: Story = {};
-
-export const ValidationError: Story = {
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: /criar história/i }));
-
-    const age = canvas.getByLabelText(/idade da criança/i);
-    await expect(age).toHaveFocus();
-    await expect(age).toHaveAttribute("aria-invalid", "true");
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/entre 2 e 9/i);
-  },
-};
 
 export const Loading: Story = {
   args: {
@@ -132,7 +124,7 @@ const withEn = withLocalizedI18n("en");
 /** Fill the age and pick the friendship theme in the English form. */
 async function fillEn(page: HTMLElement) {
   const canvas = within(page);
-  await userEvent.type(canvas.getByLabelText(/child's age/i), "9");
+  fireEvent.change(canvas.getByLabelText(/child's age/i), { target: { value: "9" } });
   // Theme is a ChoiceCard button (visual selection); pick the Friendship card.
   await userEvent.click(canvas.getByRole("button", { name: /friendship/i }));
   await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
@@ -146,19 +138,6 @@ export const EnDefault: Story = {
     await expect(canvas.getByLabelText(/child's age/i)).toBeVisible();
     await expect(canvas.getByRole("button", { name: /create story/i })).toBeVisible();
     await expect(canvas.queryByLabelText(/idade da criança/i)).toBeNull();
-  },
-};
-
-/** English validation error — localized message + focus (a11y). */
-export const EnValidationError: Story = {
-  decorators: [withEn],
-  play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement);
-    await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
-    const age = canvas.getByLabelText(/child's age/i);
-    await expect(age).toHaveFocus();
-    await expect(age).toHaveAttribute("aria-invalid", "true");
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/between 2 and 9|age between/i);
   },
 };
 

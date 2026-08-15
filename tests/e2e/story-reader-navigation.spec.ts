@@ -11,7 +11,7 @@ async function fillAndSubmit(page: Page) {
   await page.getByRole("button", { name: /^Coragem/i }).click();
   // Select the longest journey (5 scenes, MAX_SCENES) so the e2e exercises a
   // multi-scene story with a middle span, not just the MVP default of three.
-  await page.getByRole("radio", { name: /5 cenas/i }).check();
+  await page.getByRole("button", { name: /5cenas/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();
 }
 
@@ -98,7 +98,7 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
 
   // ---- Privacy: nothing is persisted across sessions -----------------------
   await page.reload();
-  await expect(page.getByText("Crie uma história personalizada")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /storybook ai/i })).toBeVisible();
   await expect(page.getByText("Sua história")).toHaveCount(0);
   await expect(page.locator('img[src^="data:image/webp;base64,"]')).toHaveCount(0);
 });
