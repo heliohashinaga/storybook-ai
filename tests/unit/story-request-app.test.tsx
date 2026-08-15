@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StoryRequestApp } from "../../src/features/story-request/components/story-request-app";
 import { LocaleProvider } from "../../src/i18n/locale-provider";
+import { requestHome } from "../../src/lib/home-request-event";
 
 const webpDataUri = "data:image/webp;base64,QUJDRA";
 
@@ -185,6 +186,23 @@ describe("StoryRequestApp — flow", () => {
       theme: "courage",
       sceneCount: 3,
     });
+  });
+
+  it("top-nav home request returns from the reader to the form (logo → home)", async () => {
+    const fetchMock = vi.fn<(input: string, init?: RequestInit) => Promise<Response>>();
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(approvedStory), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    renderApp();
+
+    await submitValidForm();
+    expect(await screen.findByRole("button", { name: /^Próxima$/i })).toBeInTheDocument();
+
+    // Simulate a top-nav brand-mark click: a bare router.push("/") would be a
+    // client-side no-op on the already-mounted `/`, so the logo emits the shared
+    // "home" event. The app must leave the reader for the form.
+    act(() => requestHome());
+
+    expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
   });
 
   it("renders the in-session story switcher and switches back to an earlier story (T051)", async () => {

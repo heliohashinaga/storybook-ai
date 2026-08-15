@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { onHomeRequested } from "../../../lib/home-request-event";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryHistory } from "../../story-reader/components/story-history";
 import { StoryReader } from "../../story-reader/components/story-reader";
@@ -43,6 +44,7 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
 
   const submitting = status === "submitting";
 
+  // The top-nav brand mark (a sibling in the route tree) sends a "home" signal
   // While the anonymous request is in flight, tick the elapsed clock that
   // drives the localized progress copy (writing → reviewing → timeout cue).
   useEffect(() => {
@@ -50,6 +52,20 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
     const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
     return () => clearInterval(id);
   }, [submitting]);
+
+  /** "Nova história": leave the reader and show an unfilled form, keeping
+   *  the prior stories in the session so they persist in the switcher. */
+  const startNewStory = useCallback(() => {
+    setDraftingNew(true);
+    setLastError(null);
+  }, []);
+
+  // The top-nav brand mark (a sibling in the route tree) sends a "home" event
+  // that should behave like "Nova história": return to the form while
+  // preserving the session's prior stories. `router.push("/")` alone cannot do
+  // this — on an already-mounted `/` it is a client-side no-op, so we subscribe
+  // once to the shared event here (startNewStory is stable via useCallback).
+  useEffect(() => onHomeRequested(startNewStory), [startNewStory]);
 
   if (submitting) {
     // Show only the loading panel (blossom-style) while the anonymous request
@@ -99,13 +115,6 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
     setDraftingNew(true);
     return { ok: false, messageKey: key };
   }
-
-  /** "Nova história": leave the reader and show an unfilled form, keeping the
-   *  prior stories in the session so they persist in the switcher. */
-  const startNewStory = () => {
-    setDraftingNew(true);
-    setLastError(null);
-  };
 
   if (story && !draftingNew) {
     return (

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { requestHome } from "../../../lib/home-request-event";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { LangToggle } from "./lang-toggle";
 
@@ -10,7 +11,11 @@ import { LangToggle } from "./lang-toggle";
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
  * - Left: a home button (primary, BookOpenText mark + display name + tagline)
- *   that navigates to the root route — market-standard "logo → home".
+ *   that navigates to the root route — market-standard "logo → home". It also
+ *   emits `requestHome()` so the feature (`StoryRequestApp`) resets to the
+ *   story form even when the app is already mounted on `/` (a bare
+ *   `router.push("/")` would be a client-side no-op and keep the reader on
+ *   screen).
  *   (The header is not sticky, so no scroll-to-top is needed: landing on `/`
  *   already renders from the top.)
  * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
@@ -26,7 +31,10 @@ export function TopNav() {
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
       <button
         type="button"
-        onClick={() => router.push("/")}
+        onClick={() => {
+          requestHome();
+          router.push("/");
+        }}
         className="flex items-center gap-3 text-left"
       >
         <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
