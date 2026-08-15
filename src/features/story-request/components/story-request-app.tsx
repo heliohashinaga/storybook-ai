@@ -146,7 +146,7 @@ function StoryRequestFlow() {
         </h1>
         <p className="mx-auto mt-3 max-w-3xl text-muted-foreground">{t("form.subtitle")}</p>
       </div>
-      <div className="mx-auto w-full max-w-md">
+      <div className="mx-auto w-full max-w-md lg:max-w-2xl">
         <StoryRequestForm
           onSubmit={handleSubmit}
           defaultAge={lastPreferences?.age}

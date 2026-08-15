@@ -31,7 +31,7 @@ export function ThemeSelector({ value, onSelect, disabled = false }: ThemeSelect
       className="flex flex-col gap-sm"
     >
       <legend className="text-title font-title">{formT("theme.label")}</legend>
-      <div className="grid grid-cols-2 gap-md">
+      <div className="grid grid-cols-2 gap-md lg:grid-cols-3">
         {themeCatalog.map((entry) => (
           <ChoiceCard
             key={entry.value}
