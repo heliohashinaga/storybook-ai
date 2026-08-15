@@ -42,7 +42,7 @@ type Story = StoryObj<typeof StoryRequestForm>;
 
 async function fillAgeAndSubmit(canvasElement: HTMLElement, locale: "pt-BR" | "en" = "pt-BR") {
   const canvas = within(canvasElement);
-  const label = locale === "en" ? /child's age/i : /idade da criança/i;
+  const label = locale === "en" ? /age/i : /idade/i;
   fireEvent.change(canvas.getByLabelText(label), { target: { value: "6" } });
   await userEvent.click(
     canvas.getByRole("button", { name: locale === "en" ? /create story/i : /criar história/i })
@@ -124,7 +124,7 @@ const withEn = withLocalizedI18n("en");
 /** Fill the age and pick the friendship theme in the English form. */
 async function fillEn(page: HTMLElement) {
   const canvas = within(page);
-  fireEvent.change(canvas.getByLabelText(/child's age/i), { target: { value: "9" } });
+  fireEvent.change(canvas.getByLabelText(/age/i), { target: { value: "9" } });
   // Theme is a ChoiceCard button (visual selection); pick the Friendship card.
   await userEvent.click(canvas.getByRole("button", { name: /friendship/i }));
   await userEvent.click(canvas.getByRole("button", { name: /create story/i }));
@@ -135,9 +135,9 @@ export const EnDefault: Story = {
   decorators: [withEn],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByLabelText(/child's age/i)).toBeVisible();
+    await expect(canvas.getByLabelText(/age/i)).toBeVisible();
     await expect(canvas.getByRole("button", { name: /create story/i })).toBeVisible();
-    await expect(canvas.queryByLabelText(/idade da criança/i)).toBeNull();
+    await expect(canvas.queryByLabelText(/idade/i)).toBeNull();
   },
 };
 

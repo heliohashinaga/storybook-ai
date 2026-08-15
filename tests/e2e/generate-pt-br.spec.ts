@@ -42,7 +42,7 @@ async function fillAndSubmit(page: Page): Promise<void> {
   // The only age input derives a band in-browser and is never transmitted.
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
-  await page.getByLabel(/Idade da criança/i).fill("6");
+  await page.getByLabel(/Idade/i).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();

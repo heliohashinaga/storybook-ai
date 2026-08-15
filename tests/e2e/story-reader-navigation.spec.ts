@@ -6,7 +6,7 @@ import { expect, test, type Page } from "@playwright/test";
  * server was started with `STORIES_TEST_MODE=fake` (deterministic provider).
  */
 async function fillAndSubmit(page: Page) {
-  await page.getByLabel(/Idade da criança/i).fill("6");
+  await page.getByLabel(/Idade/i).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   // Select the longest journey (5 scenes, MAX_SCENES) so the e2e exercises a

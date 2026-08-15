@@ -86,7 +86,7 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
   // ---- First story: theme "courage" --------------------------------------
-  await page.getByLabel(/Idade da criança/i).fill("6");
+  await page.getByLabel(/Idade/i).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   const first = waitForStoryResponse(page);
@@ -140,7 +140,7 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   await expect(page.getByRole("button", { name: /Criar história/i })).toBeVisible();
   await expect(page.getByText("Cena 1 de 3")).toHaveCount(0);
   await expect(page.getByRole("button", { name: /Gerar outra história/i })).toHaveCount(0);
-  await expect(page.getByLabel(/Idade da criança/i)).toHaveValue("5");
+  await expect(page.getByLabel(/Idade/i)).toHaveValue("5");
 
   // ---- URL carries no age / theme / story data ---------------------------
   expect(page.url()).toBe(new URL("/", page.url()).toString());
@@ -157,7 +157,7 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   // because the header LangToggle is a segmented button group, not a select.
   await page.locator("form").getByLabel("Idioma").selectOption("en");
   const first = waitForStoryResponse(page);
-  await page.getByLabel("Child's age").fill("3"); // derives to the 2-4 band in-browser
+  await page.getByLabel("Age").fill("3"); // derives to the 2-4 band in-browser
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Friendship/i }).click();
   await page.getByRole("button", { name: "Create story" }).click();

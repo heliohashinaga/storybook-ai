@@ -26,7 +26,7 @@ function renderForm(
 }
 
 function ageSlider() {
-  return screen.getByRole("slider", { name: /idade da criança/i });
+  return screen.getByRole("slider", { name: /idade/i });
 }
 
 async function fillValidAgeAndSubmit(age = "6") {
@@ -47,7 +47,7 @@ describe("StoryRequestForm — anonymous by design", () => {
 
   it("collects age (range slider), scenes, and theme", () => {
     renderForm();
-    expect(screen.getByRole("slider", { name: /idade da criança/i })).toBeInTheDocument();
+    expect(screen.getByRole("slider", { name: /idade/i })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /cenas/i }).length).toBeGreaterThan(0);
     expect(screen.getByLabelText(/tema da história/i)).toBeInTheDocument();
     expect(screen.queryAllByRole("textbox")).toHaveLength(0); // no free-text fields

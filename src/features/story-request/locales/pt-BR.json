@@ -4,7 +4,7 @@
       "title": "Storybook AI",
       "subtitle": "Escolha um tema, diga a idade e receba uma história única.",
       "age": {
-        "label": "Idade da criança",
+        "label": "Idade",
         "placeholder": "Digite a idade (2 a 9)",
         "errorRange": "Informe uma idade entre 2 e 9 anos.",
         "hint": "Ajuste a idade para personalizar o tom da história.",

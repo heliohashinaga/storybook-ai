@@ -40,7 +40,7 @@ async function fillAndSubmitEnglish(page: Page): Promise<void> {
   // No name / direct-identifier field exists on the form (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
-  await page.getByLabel(/Idade da criança|Child's age/i).fill("9");
+  await page.getByLabel(/Idade|Age/i).fill("9");
   await page
     .locator("form")
     .getByLabel(/Idioma|Language/i)

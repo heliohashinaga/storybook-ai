@@ -138,43 +138,6 @@ export function StoryRequestForm({
     >
       <ThemeSelector value={theme} onSelect={setTheme} disabled={disabled} />
 
-      {/* Story language — chosen independently of the page/UI LangToggle so
-          the scenes are generated in this language. */}
-      <fieldset
-        disabled={disabled}
-        aria-labelledby="story-request-locale-label"
-        className="rounded-3xl border border-border bg-card p-5 shadow-soft"
-      >
-        <legend className="sr-only">{t("form.locale.label")}</legend>
-        <div id="story-request-locale-label" className="font-display text-lg font-bold">
-          {t("form.locale.label")}
-        </div>
-        <div
-          role="group"
-          aria-label={t("form.locale.label")}
-          className="mt-3 grid grid-cols-2 gap-3"
-        >
-          {(["pt-BR", "en"] as const).map((option) => {
-            const on = locale === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={on}
-                onClick={() => setLocale(option)}
-                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors ${
-                  on
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-secondary text-text hover:bg-secondary"
-                }`}
-              >
-                {option === "pt-BR" ? t("brand.portuguese") : t("brand.english")}
-              </button>
-            );
-          })}
-        </div>
-      </fieldset>
-
       {/* Age — blossom-style range slider (exact age stays in memory only). */}
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <label htmlFor="story-request-age" className="font-display text-lg font-bold">
@@ -212,6 +175,43 @@ export function StoryRequestForm({
           </span>
         ) : null}
       </div>
+
+      {/* Story language — chosen independently of the page/UI LangToggle so
+          the scenes are generated in this language. */}
+      <fieldset
+        disabled={disabled}
+        aria-labelledby="story-request-locale-label"
+        className="rounded-3xl border border-border bg-card p-5 shadow-soft"
+      >
+        <legend className="sr-only">{t("form.locale.label")}</legend>
+        <div id="story-request-locale-label" className="font-display text-lg font-bold">
+          {t("form.locale.label")}
+        </div>
+        <div
+          role="group"
+          aria-label={t("form.locale.label")}
+          className="mt-3 grid grid-cols-2 gap-3"
+        >
+          {(["pt-BR", "en"] as const).map((option) => {
+            const on = locale === option;
+            return (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setLocale(option)}
+                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors ${
+                  on
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-secondary text-text hover:bg-secondary"
+                }`}
+              >
+                {option === "pt-BR" ? t("brand.portuguese") : t("brand.english")}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
 
       {/* Scenes — blossom-style selectable cards (3/4/5). */}
       <fieldset

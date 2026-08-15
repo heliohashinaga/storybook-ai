@@ -35,7 +35,7 @@ function renderApp() {
 
 async function submitValidForm() {
   const user = userEvent.setup();
-  fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+  fireEvent.change(screen.getByRole("slider", { name: /idade/i }), {
     target: { value: "6" },
   });
   await user.click(screen.getByRole("button", { name: /criar história/i }));
@@ -124,7 +124,7 @@ describe("StoryRequestApp — flow", () => {
     renderApp();
 
     const user = userEvent.setup();
-    fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+    fireEvent.change(screen.getByRole("slider", { name: /idade/i }), {
       target: { value: "6" },
     });
     // Pick the English story-language option (the UI stays pt-BR).
@@ -171,7 +171,7 @@ describe("StoryRequestApp — flow", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
     );
-    fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+    fireEvent.change(screen.getByRole("slider", { name: /idade/i }), {
       target: { value: "6" },
     });
     await user.click(screen.getByRole("button", { name: /criar história/i }));
@@ -272,7 +272,7 @@ describe("StoryRequestApp — flow", () => {
     expect(screen.getAllByText(/escrevendo sua história/i).length).toBeGreaterThan(0);
     // Blossom-style: the request form is unmounted while the story is being
     // generated, so only the progress panel occupies the screen.
-    expect(screen.queryByLabelText(/idade da criança/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/idade/i)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /criando sua história/i })).not.toBeInTheDocument();
 
     await act(async () => {
