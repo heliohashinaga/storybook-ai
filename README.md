@@ -11,8 +11,8 @@ with illustrations.
 ## Overview
 
 - 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
-- 🎭 **Themes**: courage, friendship, kindness.
-- 🌎 **Languages**: `pt-BR` (default) and `en`.
+- 🎭 **Themes**: courage, friendship, kindness, etc.
+- 🌎 **Languages**: `en` and `pt-BR`.
 - 📖 **Scenes** `3–5` with generated illustrations.
 - 🔊 **Read-aloud** of the current scene.
 - 📄 **PDF export**.
@@ -20,7 +20,7 @@ with illustrations.
 
 ## How story generation works
 
-You pick an age range, a language, and a theme (courage, friendship, kindness).
+You pick an age range, a language, and a theme (courage, friendship, kindness, curiosity, perseverance, empathy).
 The app writes a story with 3–5 scenes — text plus illustrations made for that
 age range — all in a single step. From there you can flip between scenes, listen
 to each one read aloud, export it as a PDF, or change to dark mode.

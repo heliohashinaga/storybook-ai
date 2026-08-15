@@ -42,7 +42,7 @@ names in the scripts section below and `specs/001-personalized-story-generation/
 Run these from the repo root. All are real scripts in `package.json`:
 
 ```bash
-pnpm dev             # dev server, http://localhost:3000 (pt-BR default)
+pnpm dev             # dev server, http://localhost:3000 (en default)
 pnpm start            # production server (after pnpm build)
 pnpm lint            # no warnings allowed
 pnpm format:check    # prettier, no drift
