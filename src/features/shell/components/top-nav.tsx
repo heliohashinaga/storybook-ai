@@ -35,9 +35,10 @@ export function TopNav() {
           requestHome();
           router.push("/");
         }}
-        className="flex items-center gap-3 text-left"
+        aria-label={t("home")}
+        className="flex items-center gap-3 rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
-        <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
+        <span className="flex size-11 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft">
           <BookOpenText className="size-6" aria-hidden="true" />
         </span>
         <span className="flex flex-col items-start">

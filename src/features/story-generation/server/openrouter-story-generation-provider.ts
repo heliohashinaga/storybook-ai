@@ -144,7 +144,7 @@ async function defaultImageEncoder(bytes: Buffer): Promise<Buffer> {
  * Generates via OpenRouter's `/images` endpoint through the shared
  * `provider-core` image client.
  */
-const IMAGE_TIMEOUT_MS = 120_000; // geração de imagem é lenta; evita Image generation timed out
+const IMAGE_TIMEOUT_MS = 120_000; // image generation is slow; avoids an image generation timeout
 
 export function createOpenRouterIllustration(
   deps: OpenRouterDeps = { timeoutMs: IMAGE_TIMEOUT_MS }

@@ -37,7 +37,7 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
   // the request panel was showing, so the freshly-mounting idle form can
   // display the failure (the form's own state is lost on unmount).
   const [lastError, setLastError] = useState<string | null>(null);
-  // "Nova história": show a fresh, unfilled form while preserving the
+  // "New story": show a fresh, unfilled form while preserving the
   // in-session history, so the previous stories stay in the switcher and the
   // next generated one is appended rather than replacing them.
   const [draftingNew, setDraftingNew] = useState(false);
@@ -53,7 +53,7 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
     return () => clearInterval(id);
   }, [submitting]);
 
-  /** "Nova história": leave the reader and show an unfilled form, keeping
+  /** "New story": leave the reader and show an unfilled form, keeping
    *  the prior stories in the session so they persist in the switcher. */
   const startNewStory = useCallback(() => {
     setDraftingNew(true);
@@ -61,7 +61,7 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
   }, []);
 
   // The top-nav brand mark (a sibling in the route tree) sends a "home" event
-  // that should behave like "Nova história": return to the form while
+  // that should behave like "New story": return to the form while
   // preserving the session's prior stories. `router.push("/")` alone cannot do
   // this — on an already-mounted `/` it is a client-side no-op, so we subscribe
   // once to the shared event here (startNewStory is stable via useCallback).

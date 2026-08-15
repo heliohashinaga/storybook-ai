@@ -173,8 +173,8 @@ export const ReadAloud: Story = {
     });
 
     // AI narration is server-controlled; answer 204 (disabled) so the toggle
-    // delegates to the Web Speech fallback and the label flips to "Parar
-    // leitura" (US4.2). Without this the Storybook dev server returns 404 and
+    // delegates to the Web Speech fallback and the label flips to "Stop
+    // reading" (US4.2). Without this the Storybook dev server returns 404 and
     // the path lands on the accessible error state instead.
     const originalFetch = window.fetch;
     window.fetch = () =>

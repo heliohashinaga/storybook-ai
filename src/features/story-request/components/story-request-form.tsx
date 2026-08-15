@@ -41,8 +41,8 @@ interface StoryRequestFormProps {
   defaultTheme?: Theme;
   /** Reuse the last in-session scene count (defaults to 3). */
   defaultSceneCount?: number;
-  /** Reuse the last in-session age so the slider isn't reset after 'nova
-   *  história' (generate-another uses lastPreferences directly). */
+  /** Reuse the last in-session age so the slider isn't reset after 'new
+   *  story' (generate-another uses lastPreferences directly). */
   defaultAge?: number;
   /**
    * Invoked with the anonymized request (ageBand/locale/theme/sceneCount — the
