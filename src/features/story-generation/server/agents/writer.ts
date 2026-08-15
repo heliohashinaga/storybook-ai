@@ -5,6 +5,21 @@ import { providerInputFor } from "./planner";
 import type { ProviderError, StoryGenerationProvider } from "../story-generation-provider";
 
 /**
+ * Strips a leading "Scene N —" / "Cena N —" prefix from a scene title so the
+ * reader shows a clean name ("The Dream", not "Scene 1 — The Dream"). Providers
+ * (the fake + some LLM outputs) may prefix the ordinal; the progress row/label
+ * already conveys the position, so the title should not repeat it. Never strips
+ * a matched prefix that isn't actually one (only "Scene"/"Cena" + a number +
+ * separator, case-insensitive).
+ */
+export function stripSceneTitlePrefix(title: string): string {
+  return title
+    .trim()
+    .replace(/^(?:Scene|Cena)\s+\d{1,2}\s*[—\-:.]\s*/i, "")
+    .trim();
+}
+
+/**
  * Writer agent (specs/006-multi-agent-story-generation).
  *
  * Given the Planner's `Outline`, the Writer generates the localized narrative
@@ -83,7 +98,7 @@ export async function writeStory(
 
   const scenes: WrittenScene[] = candidate.scenes.map((scene, index) => ({
     ordinal: index + 1,
-    title: typeof scene.title === "string" ? scene.title : "",
+    title: typeof scene.title === "string" ? stripSceneTitlePrefix(scene.title) : "",
     body: typeof scene.body === "string" ? scene.body : "",
     illustrationPrompt:
       typeof scene.illustrationPrompt === "string" ? scene.illustrationPrompt : "",
