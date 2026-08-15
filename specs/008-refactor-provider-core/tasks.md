@@ -18,9 +18,15 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Purpose**: Preparar o contexto da refatoração e proteger o baseline.
 
-- [ ] T001 Verificar estado da árvore em `007-adopt-blossom-design` (commits fechados), criar branch `008-refactor-provider-core` e confirmar `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`).
-- [ ] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o resultado para comparar após a refatoração.
-- [ ] T003 Atualizar `.specify/feature.json` para apontar para `specs/008-refactor-provider-core` durante o desenvolvimento (e anotar para restaurar `007` ao final, se o workflow exigir).
+- [ ] T001 Confirmar que a branch `008-refactor-provider-core` está ativa e limpa (scaffold commitado),
+  com `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`). A criação da branch já foi
+  feita a partir de `007-adopt-blossom-design`; verificação serve como baseline.
+- [ ] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
+  `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o
+  resultado **e um snapshot das fixtures dos adapters** (referência de commit/árvore limpa) para
+  comparar fixtures de entrada/saída após a refatoração (SC-002).
+- [ ] T003 Verificar que `.specify/feature.json` aponta para `specs/008-refactor-provider-core` (já
+  atualizado pelo `create-new-feature.sh`); anotar para restaurar `007` ao final (T027).
 
 **Checkpoint**: Árvore vaiária verde no baseline; branch 008 criado; a refatoração começa em terreno conhecido.
 
@@ -46,7 +52,10 @@ description: "Lista de tarefas para implementação do recurso"
 - [ ] T010 **Teste primeiro** — criar `tests/unit/provider-core/image-client.test.ts` que exercita o POST `/images` com `fetchImpl` fake: caso `b64_json`, caso `url`, caso sem `data`, caso `!response.ok`, caso timeout (abort). **Confirmar falha** antes de implementar.
 - [ ] T011 [US2] Criar `src/features/story-generation/server/provider-core/image-client.ts` com a função de transporte compartilhada `postImages(...) => { bytes, mediaType }` (corpo `{model, prompt, n:1, output_format:"webp", aspect_ratio:"1:1"}`), usando AbortController/timeout e re-utilizando o encoding/guarda de `image-optimizer.ts`.
 - [ ] T012 [US2] Integrar `image-optimizer.ts` ao `image-client.ts`: o novo cliente DEVE chamar `optimizeImageBytes` / `defaultSharpEncoder` no caminho real de geração, aplicando `DEFAULT_MAX_DATA_URI_LENGTH` (guarda de 4 MiB) — conforme confirmado na pesquisa, hoje órfão e a guarda não roda em produção. Isso fecha o vão de tamanho de data-URI; não manter órfão.
-- [ ] T013 **Teste primeiro** — atualizar/criar `tests/unit/image-optimizer.test.ts` para refletir utilização real pelo `image-client.ts` (guarda de tamanho no caminho de geração). **Confirmar estado esperado**.
+- [ ] T013 **Teste primeiro** — escrever/ajustar `tests/unit/image-optimizer.test.ts` (e, se
+  necessário, novo teste do `image-client.ts`) para cobrir a guarda de tamanho e o reuso pelo
+  caminho real de geração. **Um teste que falha primeiro** é escrito antes da implementação e
+  confirmado a falhar (constitution).
 
 **Checkpoint**: Núcleo creador + cliente de imagem extraídos e verdes isoladamente; ainda nada de produção chamando eles (troca nos user stories).
 
@@ -60,7 +69,9 @@ description: "Lista de tarefas para implementação do recurso"
 
 ### Tests for User Story 1 ⚠️
 
-- [ ] T014 [US1] Garantir que os testes existentes dos dois adapters cobrem o caminho de moderação (regen de cenário inseguro) e erro; adicionar apenas gaps pontuais se detectados (antes da implementação, falhando primeiro) em `tests/unit/*story-generation-provider.test.ts`.
+- [ ] T014 [US1] Garantir que os testes existentes dos dois adapters cobrem o caminho de moderação
+  (regen de cenário inseguro) e erro. Se for detectado um gap, escrever um teste que falha primeiro em
+  `tests/unit/*story-generation-provider.test.ts` antes da implementação (constitution).
 
 ### Implementation for User Story 1
 
@@ -98,8 +109,17 @@ description: "Lista de tarefas para implementação do recurso"
 
 - [ ] T023 [P] [US3] Confirmar `src/features/story-generation/server/generation-runtime.ts`: atualizar apenas imports/seams se algum caminho de import dos adapters mudou; roteamento por provider (texto/moderação/imagem) permanece idêntico.
 - [ ] T024 [US3] Revisar `src/features/story-generation/server/fixed-dev-provider.ts` (287 linhas): consolidar fixtures determinísticas com as usadas nos testes/pipeline (sem re-declarar estruturas repetidas), só se isso não alterar comportamento fake.
-- [ ] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`, `pnpm build` — e registrar resultado (sem stale).
+- [ ] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`,
+  `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`,
+  `pnpm build` — registrar resultado (sem stale). **Anexar a verificação de SC-005**: `wc -l`/`git diff
+  --stat` dos dois adapters (antes vs depois) e checagem de cobertura pós-remoção.
 - [ ] T026 [P] [US3] Atualizar documentação: se algum contrato mudou, ajustar `docs/adr/`/`story-generation.openapi.yaml` (esperado: N.A.); registrar a decisão de extração do núcleo em `docs/adr/` (ADR novo) e em `specs/008-refactor-provider-core/reviews.md`.
+
+**Novo (remediação)**:
+
+- [ ] T028 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a refatoração não
+  introduziu identificador direto novo nos payloads/fakes, mantendo a fronteira `server-only` e
+  `POST /api/stories` como única entrada (FR-006). Registrar resultado em `reviews.md`.
 - [ ] T027 [US3] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou conforme convenção do workflow) e atualizar/revisar `reviews.md`.
 
 **Checkpoint**: Recurso completo — duplicação eliminada, gates verdes na árvore suja, docs sincronizadas.

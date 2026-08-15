@@ -133,9 +133,10 @@ real `STORIES_TEST_MODE=fake`.
 - **Divergência de seam de imagem**: OpenRouter injeta `imageEncoder` (via `toWebPBuffer`) enquanto
   OpenCode usa encoding interno com fallback de sharp. O núcleo deve aceitar um seam de encoder
   injetável, preservando ambos os comportamentos atuais.
-- **Código órfão**: `image-optimizer.ts` não é importado em `src/`. Confirmar se é consumido em
-  testes/camadas de teste; se não, ou passa a ser usado pelo novo cliente núcleo, ou é consolidado e
-  removido — nunca mantido morto.
+- **Código órfão**: confirmado em `research.md` que `image-optimizer.ts` é órfão em produção
+  (`optimizeImageBytes`/`DEFAULT_MAX_DATA_URI_LENGTH` nunca importados em `src/`). **Decisão
+  fechada**: integrar ao `image-client.ts` — o novo cliente DEVE aplicá-lo no caminho real de
+  geração (a guarda de 4 MiB hoje não roda em produção). Não manter órfão nem remover a guarda.
 - **Front `build-story-pdf.tsx`** re-declara `WEBP_DATA_URI_PREFIX`; verificar se pode importar a
   constante do núcleo (sem puxar código server-only para o client pdf — avaliar re-export seguro fora
   de `server-only` se fizer sentido) ou manter separado por fronteira.
@@ -158,9 +159,10 @@ real `STORIES_TEST_MODE=fake`.
 - **FR-003**: O transporte `/images` DEVE ser extraído em um cliente núcleo de ilustração usado
   por `createOpenRouterIllustration` e `createOpenCodeIllustration`, com seam de encoder WebP
   injetável.
-- **FR-004**: `image-optimizer.ts` DEVE ser consolidado: ou consumido pelo cliente núcleo de
-  imagem (aplicando `DEFAULT_MAX_DATA_URI_LENGTH`), ou, se redundante, removido/consolidado sem
-  código-morto.
+- **FR-004**: `image-optimizer.ts` DEVE ser integrado ao cliente núcleo de imagem
+  (`image-client.ts`), que DEVE aplicar `optimizeImageBytes`/`defaultSharpEncoder` e a guarda
+  `DEFAULT_MAX_DATA_URI_LENGTH` no caminho real de geração — fechando a lacuna atual em que a guarda
+  só roda em testes (órfão).
 - **FR-005**: Nenhum contrato público (interface `StoryGenerationProvider`, `generate-story`,
   `provider-routing`, env vars, prompts, timeouts, retries) DEVE mudar.
 - **FR-006**: Nenhum identificador direto novo DEVE ser adicionado; a fronteira `server-only` DEVE
@@ -174,8 +176,9 @@ real `STORIES_TEST_MODE=fake`.
 - **ProviderCore (contêiner de módulos)**: conjunto de módulos `server-only` sob
   `provider-core/` contendo schemas, prompts únicos, parse de chat, moderação e mapeamento de erro —
   sem estado, sem dados persistentes.
-- **ImageImagesClient (cliente de transporte)**: função pura `(req) => { bytes, mediaType }` que
-  faz POST em `{baseUrl}/images`, com AbortController/timeout e parsing de `b64_json`/`url`.
+- **ImageClient (cliente de transporte)**: função pura `postImages(req) => { bytes, mediaType }`
+  que faz POST em `{baseUrl}/images`, com AbortController/timeout, parsing de `b64_json`/`url` e — via
+  `image-optimizer` — encoding WebP + guarda de tamanho.
 - **ProviderAdapter (openrouter/opencode)**: thin shell que injeta deps específicas no núcleo —
   já existe, apenas passa a reutilizar o núcleo.
 
@@ -186,14 +189,15 @@ real `STORIES_TEST_MODE=fake`.
 - **SC-001**: Zero definição duplicada remanescente dos helpers listados em FR-001 (verificável
   por `grep` no diff — cada símbolo definido uma única vez em `provider-core/`).
 - **SC-002**: `pnpm test` verde na árvore suja (não-deployed), com todas as fixtures de
-  entrada/saída inalteradas entre antes e depois.
+  entrada/saída inalteradas entre antes e depois (baseline registrado em T002 para comparação).
 - **SC-003**: `pnpm lint`, `pnpm format:check` e `pnpm typecheck` passam na árvore suja APÓS a
   última edição (sem resultado stale).
 - **SC-004**: `pnpm test:coverage:check` mantém os gate atual: ≥80% geral e ≥90% em
   validação/safety/orquestração.
-- **SC-005**: `openrouter-story-generation-provider.ts` reduz de ~350 linhas para um thin shell de
-  ~80–100 linhas (removendo imagem para o cliente núcleo) e `opencode-story-generation-provider.ts`
-  de ~231 para ~80–100, sem perda de cobertura.
+- **SC-005**: `openrouter-story-generation-provider.ts` reduz de 350 para ~80–100 linhas (removendo
+  a imagem para `image-client.ts`) e `opencode-story-generation-provider.ts` de 231 para ~80–100 —
+  verificado por `git diff --stat`/`wc -l` antes vs depois (registrado em T025), sem perda de
+  cobertura.
 
 ## Assumptions
 

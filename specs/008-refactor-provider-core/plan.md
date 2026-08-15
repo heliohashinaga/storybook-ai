@@ -28,9 +28,12 @@ Três objetivos:
   `specify → plan → tasks → implement`, com commits por unidade lógica e gates finais pós-edição.
 - **Decisão-2**: Escopo informado ao usuário foi o "plano completo 1–3" proposto na análise (itens 1,
   2 e a higiene 3); o usuário validou seguir o formato spec, mantendo os três objetivos.
-- **Decisão-3**: Os prompts duplicados (`NARRATIVE_SYSTEM_PROMPT`/`MODERATION_SYSTEM_PROMPT`) são
-  tratados como **baseline canônico**: a extração os move preservando o texto atual (diff vazio
-  antes de consolidar); não se "melhora" prompt no mesmo commit.
+- **Decisão-3**: Os prompts duplicados (`NARRATIVE_SYSTEM_PROMPT`/`MODERATION_SYSTEM_PROMPT` e
+  `narrativeUserPrompt`) são tratados como **baseline canônico**: a extração os move preservando o
+  texto atual (diff vazio antes de consolidar); não se "melhora" prompt no mesmo commit. **Regra de
+  conflito (A10)**: se, ao extrair, um prompt diferir entre os dois adapters, registrar o drift no
+  `reviews.md`, conservar a versão efetivamente em uso em runtime e NÃO mesclar automaticamente —
+  decisão explícita separada.
 - **Decisão-4**: Interface pública (`StoryGenerationProvider`, `provider-routing`, `env.ts`,
   `generate-story`, OpenAPI) **não muda**. Nenhum novo identificador/front; fronteira `server-only`
   mantida.
