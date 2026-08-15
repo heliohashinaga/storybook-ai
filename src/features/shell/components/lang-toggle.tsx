@@ -16,9 +16,13 @@ export function LangToggle() {
   const t = useTranslations("story.brand");
   const { locale, setLocale } = useLocaleContext();
 
-  const options: Array<{ value: Locale; label: string }> = [
-    { value: "en", label: t("english") },
-    { value: "pt-BR", label: t("portuguese") },
+  const options: Array<{
+    value: Locale;
+    label: string;
+    ariaLabel: string;
+  }> = [
+    { value: "en", label: t("enShort"), ariaLabel: t("english") },
+    { value: "pt-BR", label: t("ptShort"), ariaLabel: t("portuguese") },
   ];
 
   return (
@@ -34,6 +38,8 @@ export function LangToggle() {
             key={option.value}
             type="button"
             aria-pressed={active}
+            aria-label={option.ariaLabel}
+            title={option.ariaLabel}
             onClick={() => {
               if (!active) setLocale(option.value);
             }}

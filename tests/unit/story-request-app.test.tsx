@@ -128,7 +128,7 @@ describe("StoryRequestApp — flow", () => {
       target: { value: "6" },
     });
     // Pick the English story-language option (the UI stays pt-BR).
-    await user.click(screen.getByRole("button", { name: /^english$/i }));
+    await user.click(screen.getByRole("button", { name: /^inglês$/i }));
     // Theme is a ChoiceCard button; pick the Friendship card (pt-BR UI label).
     await user.click(screen.getByRole("button", { name: /amizade/i }));
     await user.click(screen.getByRole("button", { name: /criar história/i }));

@@ -206,7 +206,7 @@ export function StoryRequestForm({
                     : "border-border bg-secondary text-text hover:bg-secondary"
                 }`}
               >
-                {option === "pt-BR" ? t("brand.portuguese") : t("brand.english")}
+                {option === "pt-BR" ? t("brand.ptLabel") : t("brand.enLabel")}
               </button>
             );
           })}

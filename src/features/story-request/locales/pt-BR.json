@@ -93,8 +93,12 @@
       "name": "Storybook AI",
       "tagline": "Histórias ilustradas",
       "languageLabel": "Idioma",
-      "portuguese": "Português",
-      "english": "English"
+      "portuguese": "Português (Brasil)",
+      "english": "English",
+      "ptLabel": "Português (Brasil)",
+      "enLabel": "Inglês",
+      "ptShort": "BR",
+      "enShort": "EN"
     }
   },
   "theme": {
