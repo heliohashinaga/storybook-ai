@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Button } from "../../../components/ui/button";
 import { parseStoryResponse } from "../../story-reader/client/story-response";
 import { StoryHistory } from "../../story-reader/components/story-history";
 import { StoryReader } from "../../story-reader/components/story-reader";
 import { StorySessionProvider, useStorySession } from "../client/story-session-context";
-import { deriveAgeBand } from "../client/age-band";
 import { StoryGenerationProgress } from "./story-generation-progress";
 import {
   StoryRequestForm,
@@ -31,23 +29,17 @@ export function StoryRequestApp() {
 
 function StoryRequestFlow() {
   const t = useTranslations("story");
-  const {
-    status,
-    story,
-    stories,
-    activeId,
-    begin,
-    succeed,
-    fail,
-    reset,
-    accessStory,
-    lastPreferences,
-  } = useStorySession();
+  const { status, story, stories, activeId, begin, succeed, fail, accessStory, lastPreferences } =
+    useStorySession();
   const [elapsed, setElapsed] = useState(0);
   // Localized retry `messageKey` kept across the form's unmount/remount while
   // the request panel was showing, so the freshly-mounting idle form can
   // display the failure (the form's own state is lost on unmount).
   const [lastError, setLastError] = useState<string | null>(null);
+  // "Nova história": show a fresh, unfilled form while preserving the
+  // in-session history, so the previous stories stay in the switcher and the
+  // next generated one is appended rather than replacing them.
+  const [draftingNew, setDraftingNew] = useState(false);
 
   const submitting = status === "submitting";
 
@@ -78,48 +70,39 @@ function StoryRequestFlow() {
     const result = await parseStoryResponse(response);
     if (result.status === "success") {
       // Store anonymized prefs (exact age stays in memory only, never in the
-      // payload) for "generate another" reuse (T050).
+      // payload) for session reuse. A new draft is no longer pending once the
+      // story is generated, so the reader shows again with the appended list.
       succeed(result.story, {
         age: age ?? 0,
         locale: request.locale,
         theme: request.theme,
         sceneCount: request.sceneCount,
       });
+      setDraftingNew(false);
       return { ok: true };
     }
     fail(result.error);
     const key = result.error.messageKey.replace(/^story\.error\./, "");
     setLastError(key);
+    // A failed fresh-draft submit returns to the form with the error; the
+    // reader stays hidden while planning a new story.
+    setDraftingNew(true);
     return { ok: false, messageKey: key };
   }
 
-  /** "Generate another": re-submits reusing the last age/locale/theme/count
-   *  (T050). Appends a new story via succeed(); never replaces earlier ones. */
-  const generateAnother = () => {
-    if (!lastPreferences) return;
-    const prefs = lastPreferences;
-    void handleSubmit(
-      {
-        ageBand: deriveAgeBand(prefs.age),
-        locale: prefs.locale,
-        theme: prefs.theme,
-        sceneCount: prefs.sceneCount,
-      },
-      prefs.age
-    );
+  /** "Nova história": leave the reader and show an unfilled form, keeping the
+   *  prior stories in the session so they persist in the switcher. */
+  const startNewStory = () => {
+    setDraftingNew(true);
+    setLastError(null);
   };
 
-  if (story) {
+  if (story && !draftingNew) {
     return (
       <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_16rem]">
-        <StoryReader story={story} onNewStory={reset} />
+        <StoryReader story={story} onNewStory={startNewStory} />
         <aside className="flex flex-col gap-sm">
           <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
-          {lastPreferences ? (
-            <Button variant="secondary" onClick={generateAnother}>
-              {t("reader.generateAnother")}
-            </Button>
-          ) : null}
         </aside>
       </div>
     );
@@ -135,9 +118,10 @@ function StoryRequestFlow() {
       </div>
       <div className="mx-auto w-full max-w-md lg:max-w-2xl">
         <StoryRequestForm
+          key={draftingNew ? "fresh" : "reuse"}
           onSubmit={handleSubmit}
-          defaultAge={lastPreferences?.age}
-          defaultSceneCount={lastPreferences?.sceneCount}
+          defaultAge={draftingNew ? undefined : lastPreferences?.age}
+          defaultSceneCount={draftingNew ? undefined : lastPreferences?.sceneCount}
           initialError={lastError ?? undefined}
         />
       </div>

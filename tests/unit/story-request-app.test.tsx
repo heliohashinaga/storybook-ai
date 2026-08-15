@@ -168,16 +168,23 @@ describe("StoryRequestApp — flow", () => {
     await submitValidForm();
 
     expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
-    // The in-memory age/locale/theme are reused: the "generate another"
-    // button appears only once we have stored preferences.
+    // Nova história: leave the reader for an unfilled form (no auto-generate).
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /nova história/i }));
+    expect(screen.queryByRole("region", { name: /sua história/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
+
+    // Submitting the fresh form appends a second story instead of replacing.
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
     );
-    const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+    fireEvent.change(screen.getByRole("slider", { name: /idade da criança/i }), {
+      target: { value: "6" },
+    });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
 
-    // The new story becomes active and the payload reused age/locale/theme.
+    // The appended story becomes active and the first stays in the switcher.
     expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
     const secondBody = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
     expect(secondBody).toEqual({
@@ -205,13 +212,15 @@ describe("StoryRequestApp — flow", () => {
     await submitValidForm();
     expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
 
-    // Append a second story so the session holds multiple switchable entries.
+    // Append a second story so the session holds multiple switchable entries:
+    // "Nova história" opens an empty form; submitting it generates the next.
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
     );
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: /gerar outra história/i }));
+    await user.click(screen.getByRole("button", { name: /nova história/i }));
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
     expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
 
     // The accessible switcher groups the stories and marks the active one.
@@ -280,7 +289,15 @@ describe("StoryRequestApp — flow", () => {
     expect(await screen.findByRole("region", { name: /sua história/i })).toBeInTheDocument();
   });
 
-  it("returns to the form after creating another story", async () => {
+  it("Nova história keeps the previous story in the session list and appends a new one", async () => {
+    const second = {
+      locale: "pt-BR",
+      ageBand: "5-7",
+      theme: "courage",
+      safetyDecision: "approved",
+      title: "O segredo da floresta",
+      scenes: [scene(1), scene(2), scene(3)],
+    };
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
@@ -289,9 +306,25 @@ describe("StoryRequestApp — flow", () => {
 
     await submitValidForm();
     await screen.findByRole("region", { name: /sua história/i });
+    expect(screen.getByText("A missão da estrelinha")).toBeInTheDocument();
 
+    // New story: the reader stays mounted, the previous story stays in the
+    // Nova história leaves the reader for an empty form; submitting it then
+    // appends a second story instead of wiping the prior one.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(second), { status: 200 }))
+    );
     await userEvent.click(screen.getByRole("button", { name: /nova história/i }));
-    expect(screen.queryByRole("region", { name: /sua história/i })).not.toBeInTheDocument();
-    expect(screen.getByText("Storybook AI")).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    // The first story is still listed (not wiped) and the new one is active.
+    expect(screen.getByRole("button", { name: /A missão da estrelinha/ })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /O segredo da floresta \(História ativa\)/i })
+    ).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: /sua história/i })).toBeInTheDocument();
   });
 });
