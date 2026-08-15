@@ -63,11 +63,13 @@ function StoryRequestFlow() {
     return (
       <section className="flex flex-col gap-md">
         <StoryGenerationProgress elapsedSeconds={elapsed} />
-        <StoryRequestForm
-          onSubmit={handleSubmit}
-          defaultAge={lastPreferences?.age}
-          defaultSceneCount={lastPreferences?.sceneCount}
-        />
+        <div className="mx-auto w-full max-w-md">
+          <StoryRequestForm
+            onSubmit={handleSubmit}
+            defaultAge={lastPreferences?.age}
+            defaultSceneCount={lastPreferences?.sceneCount}
+          />
+        </div>
       </section>
     );
   }
@@ -115,20 +117,22 @@ function StoryRequestFlow() {
   if (story) {
     return (
       <section className="flex flex-col gap-md">
-        {stories.length > 1 ? (
-          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
-        ) : null}
-        <StoryReader story={story} />
-        <div className="flex flex-row items-center gap-sm">
-          <ExportStoryButton story={story} />
-          {lastPreferences ? (
-            <Button variant="secondary" onClick={generateAnother}>
-              {t("reader.generateAnother")}
-            </Button>
+        <div className="mx-auto w-full max-w-md">
+          {stories.length > 1 ? (
+            <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
           ) : null}
-          <Button variant="secondary" onClick={reset}>
-            {t("reader.newStory")}
-          </Button>
+          <StoryReader story={story} />
+          <div className="flex flex-row items-center gap-sm">
+            <ExportStoryButton story={story} />
+            {lastPreferences ? (
+              <Button variant="secondary" onClick={generateAnother}>
+                {t("reader.generateAnother")}
+              </Button>
+            ) : null}
+            <Button variant="secondary" onClick={reset}>
+              {t("reader.newStory")}
+            </Button>
+          </div>
         </div>
       </section>
     );
@@ -137,16 +141,18 @@ function StoryRequestFlow() {
   return (
     <section className="flex flex-col gap-md">
       <div className="text-center">
-        <h1 className="font-title text-title text-4xl font-extrabold tracking-tight sm:text-5xl">
+        <h1 className="font-title mx-auto w-full max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
           {t("form.title")}
         </h1>
         <p className="mx-auto mt-3 max-w-3xl text-muted-foreground">{t("form.subtitle")}</p>
       </div>
-      <StoryRequestForm
-        onSubmit={handleSubmit}
-        defaultAge={lastPreferences?.age}
-        defaultSceneCount={lastPreferences?.sceneCount}
-      />
+      <div className="mx-auto w-full max-w-md">
+        <StoryRequestForm
+          onSubmit={handleSubmit}
+          defaultAge={lastPreferences?.age}
+          defaultSceneCount={lastPreferences?.sceneCount}
+        />
+      </div>
     </section>
   );
 }
