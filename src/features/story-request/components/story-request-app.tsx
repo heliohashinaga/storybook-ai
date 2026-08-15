@@ -44,9 +44,9 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
 
   const submitting = status === "submitting";
 
-  // The top-nav brand mark (a sibling in the route tree) sends a "home" signal
   // While the anonymous request is in flight, tick the elapsed clock that
   // drives the localized progress copy (writing → reviewing → timeout cue).
+  // Cleared once submission ends.
   useEffect(() => {
     if (!submitting) return;
     const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);

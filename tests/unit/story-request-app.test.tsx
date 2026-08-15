@@ -85,6 +85,32 @@ describe("StoryRequestApp — flow", () => {
     expect(JSON.stringify(body)).not.toMatch(/"name"/i);
   });
 
+  it("shows the loading panel while the story request is in flight", async () => {
+    // Defer resolving fetch so the request stays pending long enough for the
+    // loading/progress panel to render before a story arrives.
+    let resolveFetch: (r: Response) => void = () => {};
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveFetch = resolve;
+        })
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderApp();
+
+    await submitValidForm();
+
+    // While the request is pending, the progress panel (with a progressbar role)
+    // is shown, not the scene reader.
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+
+    // Resolve with the approved story; the reader replaces the loading panel.
+    await act(async () => {
+      resolveFetch(new Response(JSON.stringify(approvedStory), { status: 200 }));
+    });
+    expect(await screen.findByRole("button", { name: /^Próxima$/i })).toBeInTheDocument();
+  });
+
   it("the form's language selector sets the story locale independently of the UI (T056)", async () => {
     const enStory = {
       locale: "en",
