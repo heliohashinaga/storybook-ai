@@ -53,15 +53,17 @@ function StoryRequestFlow({ isFake }: { isFake: boolean }) {
 
   if (submitting) {
     // Show only the loading panel (blossom-style) while the anonymous request
-    // is in flight. In fake mode the step thresholds accelerate so the three
-    // stages complete quickly for visual review (B). The form mounts fresh on
-    // success/fallback, so the localized retry error renders against the idle
-    // form instead.
+    // is in flight. In fake mode the equal per-step duration is set to one
+    // `STORY_FAKE_STEP_DELAY_MS` slice (3 s with the default 3000), so the three
+    // stages are evenly spaced across the phase-delayed pipeline (each step ≈
+    // the same length on screen) instead of stalling on the final step. Real
+    // mode uses the default uniform `STEP_DURATION_SECONDS`. The form mounts
+    // fresh on success/fallback, so the localized retry error renders against
+    // the idle form instead.
     return (
       <StoryGenerationProgress
         elapsedSeconds={elapsed}
-        illustratingAtSeconds={isFake ? 2 : undefined}
-        reviewingAtSeconds={isFake ? 5 : undefined}
+        stepDurationSeconds={isFake ? 3 : undefined}
       />
     );
   }

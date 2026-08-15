@@ -193,7 +193,7 @@ describe("createOpenRouterTtsProvider (T008)", () => {
 });
 
 describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
-  it("uses the env TTS_MODEL when no model is injected", async () => {
+  it("uses the env READER_MODEL when no model is injected", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "sk-env");
     vi.stubEnv("OPENCODE_GO_API_KEY", "sk-opencode-env");
     vi.stubEnv("PLANNER_MODEL", "opencode-go/env/text-model");
@@ -201,7 +201,6 @@ describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
     vi.stubEnv("MODERATOR_MODEL", "openrouter/env/moderation-model");
     vi.stubEnv("ILLUSTRATOR_MODEL", "openrouter/env/image-model");
     vi.stubEnv("READER_MODEL", "openrouter/env/reader-model");
-    vi.stubEnv("TTS_MODEL", "env/tts-model");
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
 
     const { fetchImpl, calls } = createFakeFetch(() => audioCompletion(BASE64_AUDIO));
@@ -211,7 +210,7 @@ describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
     expect(result.format).toBe("audio/mpeg");
 
     const chat = calls.find((c) => c.url.endsWith("/chat/completions"));
-    expect(chat!.body).toMatchObject({ model: "env/tts-model" });
+    expect(chat!.body).toMatchObject({ model: "openrouter/env/reader-model" });
     expect(headerOf(chat!, "authorization")).toBe("Bearer sk-env");
 
     vi.unstubAllEnvs();

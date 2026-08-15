@@ -63,13 +63,6 @@ const envSchema = z
       .optional()
       .transform((v) => (v === undefined ? false : v === "true")),
     /**
-     * Server-only TTS model identifier (cost-vs-naturalness profile configurable
-     * per environment, spec 004 FR-011/Q2-C). Reference: Kokoro 82M via
-     * OpenRouter, billed per character. Optional so narration can be left fully
-     * disabled (Web Speech) without any provider credentials.
-     */
-    TTS_MODEL: z.string().min(1).optional(),
-    /**
      * Optional per-model-request timeout (ms), attempt-count, and pipeline
      * budget knobs (spec 006 / commit 5864dae). Read by the per-agent provider
      * construction (`generation-runtime.ts`) and the per-model-request retry
@@ -129,7 +122,6 @@ const KNOWN_KEYS = [
   "READER_MODEL",
   "STORIES_TEST_MODE",
   "AI_NARRATION_ENABLED",
-  "TTS_MODEL",
   // pipeline & per-model-request timeout/retry (in ms / count)
   "MODEL_TIMEOUT_MS",
   "MODEL_MAX_ATTEMPTS",

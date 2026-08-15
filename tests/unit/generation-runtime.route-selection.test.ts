@@ -107,7 +107,6 @@ describe("createRealRuntime capability routing (route-selection)", () => {
       "ILLUSTRATOR_MODEL",
       "READER_MODEL",
       "AI_NARRATION_ENABLED",
-      "TTS_MODEL",
     ] as const) {
       delete process.env[key];
     }

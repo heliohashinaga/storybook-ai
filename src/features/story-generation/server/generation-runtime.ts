@@ -2,7 +2,11 @@ import "server-only";
 import { getEnv } from "../../../lib/env";
 import { InMemoryRateLimiter, generateSalt, type RateLimiter } from "../../../lib/rate-limit";
 import { createOpenCodeIllustration } from "./create-opencode-illustration";
-import { createFixedDevIllustration, createFixedDevProvider } from "./fixed-dev-provider";
+import {
+  createFakePhasedDelay,
+  createFixedDevIllustration,
+  createFixedDevProvider,
+} from "./fixed-dev-provider";
 import { createOpenCodeStoryProvider } from "./opencode-story-generation-provider";
 import { defaultMaxAttempts } from "./agents/retry";
 import {
@@ -205,8 +209,9 @@ export function createRealRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): Gene
   const rateLimitMax = Number(process.env.STORY_RATE_LIMIT_MAX_REQUESTS ?? 10);
   const rateLimitWindowMs = Number(process.env.STORY_RATE_LIMIT_WINDOW_MS ?? 60_000);
 
-  const fakeProvider = createFixedDevProvider();
-  const fakeIllustration = createFixedDevIllustration();
+  const fakeDelay = createFakePhasedDelay();
+  const fakeProvider = createFixedDevProvider(fakeDelay);
+  const fakeIllustration = createFixedDevIllustration(fakeDelay);
 
   // Lazy provider getters: built once on first access, so construction is
   // side-effect free (no getEnv() until an agent actually runs).

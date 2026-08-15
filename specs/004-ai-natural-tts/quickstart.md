@@ -16,7 +16,7 @@
 | Variável | Default | Uso |
 |----------|---------|-----|
 | `AI_NARRATION_ENABLED` | `false` | Liga o caminho TTS de IA. `false` ⇒ usa a voz de sistema (Web Speech) no navegador (seguro). |
-| `TTS_MODEL` | Kokoro-class (OpenRouter por hora) | Modelo de voz; perfil custo-vs-naturalidade (Q2-C). |
+| `READER_MODEL` | `openrouter/<voz>` (ex. Kokoro 82M) | Modelo de voz do narrador; perfil custo-vs-naturalidade (Q2-C). Obrigatório (spec 006) e com prefixo de provedor. |
 
 ---
 
@@ -55,7 +55,7 @@
 
 - **Em CI**: `tests/unit/naturalness-preference.test.ts` compara de forma **determinística** a qualificação A/B entre um áudio de IA (blob fake rotulado) e a voz de sistema; assere que o caminho IA é selecionado quando habilitado (proxy — sem medição com participantes).
 - **Pós-lançamento (NÃO medido por este teste)**: estudo com participantes mede se a preferência por IA atinge ≥80%. Esse critério é documentado aqui como métrica pós-lançamento; não há chamada a TTS real em nenhum teste.
-- **Perfil custo-vs-naturalidade**: `TTS_MODEL` resolve o modelo (custo-eficiente vs premium) por ambiente (Q2-C/SC-007); validado por `tests/unit/tts-model-resolution.test.ts`.
+- **Perfil custo-vs-naturalidade**: `READER_MODEL` resolve o modelo de voz (custo-eficiente vs premium) por ambiente (Q2-C/SC-007); validado por `tests/unit/tts-model-resolution.test.ts`.
 
 ### Cenário 6 — Acessibilidade (WCAG A/AA) e reduced-motion
 

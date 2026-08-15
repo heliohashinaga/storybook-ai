@@ -22,7 +22,6 @@ const valid: ServerEnv = {
   ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
   READER_MODEL: "openrouter/qwen/qwen3.7-flash",
   AI_NARRATION_ENABLED: true,
-  TTS_MODEL: "kokoro-82m",
 };
 
 /**
@@ -42,7 +41,6 @@ describe("env server validation", () => {
       delete process.env[key];
     }
     delete process.env.AI_NARRATION_ENABLED;
-    delete process.env.TTS_MODEL;
     delete process.env.MODEL_TIMEOUT_MS;
     delete process.env.MODEL_MAX_ATTEMPTS;
     delete process.env.PIPELINE_TIMEOUT_MS;
@@ -53,7 +51,6 @@ describe("env server validation", () => {
     const result = parseEnv({
       ...validEnv,
       AI_NARRATION_ENABLED: "true",
-      TTS_MODEL: "kokoro-82m",
     });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -174,7 +171,6 @@ describe("env server validation", () => {
       process.env[key] = value;
     }
     process.env.AI_NARRATION_ENABLED = "true";
-    process.env.TTS_MODEL = "kokoro-82m";
     expect(getEnv()).toEqual(valid);
   });
 
@@ -205,16 +201,9 @@ describe("env server validation", () => {
     expect(result.success).toBe(false);
   });
 
-  it("parses an optional TTS_MODEL", async () => {
+  it("rejects a removed legacy TTS_MODEL variable (reader is configured via READER_MODEL)", async () => {
     const { parseEnv } = await loadEnv();
-    const enabled = parseEnv({ ...validEnv, TTS_MODEL: "kokoro-82m" });
-    expect(enabled.success).toBe(true);
-    if (enabled.success) expect(enabled.data.TTS_MODEL).toBe("kokoro-82m");
-  });
-
-  it("rejects an empty TTS_MODEL", async () => {
-    const { parseEnv } = await loadEnv();
-    const result = parseEnv({ ...validEnv, TTS_MODEL: "" });
+    const result = parseEnv({ ...validEnv, TTS_MODEL: "kokoro-82m" });
     expect(result.success).toBe(false);
   });
 
@@ -223,7 +212,6 @@ describe("env server validation", () => {
     for (const [key, value] of Object.entries(validEnv)) {
       process.env[key] = value;
     }
-    process.env.TTS_MODEL = "kokoro-82m";
     process.env.AI_NARRATION_ENABLED = "true";
     expect(getEnv()).toEqual({
       ...valid,

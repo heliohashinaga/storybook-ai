@@ -94,8 +94,8 @@ O roteamento dual não pode quebrar o contrato anônimo: **cada provedor recebe 
 
 ### Key Entities *(include if feature involves data)*
 
-- **Capability** (mapeamento de capacidade→provedor derivado da config): texto/moderação/imagem podem ser servidos por `opencode-go` **ou** `openrouter`, determinados pelo prefixo do respectivo `*_MODEL` (sem vínculo fixo capacidade→provedor); [speech→TTS_MODEL]. Modelado no `data-model.md` como `Capability` + `RoutedConfig` (resultado não persistido da resolução por capacidade).
-- **EnvConfig (servidor)**: `OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`, `STORIES_TEST_MODE` — lidas/validadas via `getEnv()` (Zod). Sem chaves no cliente.
+- **Capability** (mapeamento de capacidade→provedor derivado da config): texto/moderação/imagem podem ser servidos por `opencode-go` **ou** `openrouter`, determinados pelo prefixo do respectivo `*_MODEL` (sem vínculo fixo capacidade→provedor); [speech→READER_MODEL]. Modelado no `data-model.md` como `Capability` + `RoutedConfig` (resultado não persistido da resolução por capacidade).
+- **EnvConfig (servidor)**: `OPENROUTER_API_KEY`, `OPENCODE_GO_API_KEY`, `TEXT_MODEL`, `IMAGE_MODEL`, `MODERATION_MODEL`, `READER_MODEL`, `STORIES_TEST_MODE` — lidas/validadas via `getEnv()` (Zod). Sem chaves no cliente.
 - **RoutedConfig** *(resultado de roteamento para diagnóstico/teste)*: para cada capacidade, o provedor+modelo+`apiKeyEnv` resolvido — modelado em `data-model.md` (`opencode-go`/`openrouter`; sem `defaultProvider`). *(antes referido como "ProviderRoutingResult"; canônica agora é `RoutedConfig`.)*
 - **Sem novas entidades de dados persistentes** — as histórias e ilustrações seguem o contrato atual; apenas o mecanismo de roteamento muda.
 

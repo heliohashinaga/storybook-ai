@@ -22,13 +22,24 @@ function renderProgress(props: {
 }
 
 describe("getGenerationStage — pure deterministic mapping", () => {
-  it("maps elapsed seconds to three stages", () => {
+  it("maps elapsed seconds to three equally-spaced stages", () => {
     expect(getGenerationStage(0)).toBe(0);
     expect(getGenerationStage(7)).toBe(0);
     expect(getGenerationStage(8)).toBe(1);
     expect(getGenerationStage(15)).toBe(1);
     expect(getGenerationStage(16)).toBe(2);
     expect(getGenerationStage(60)).toBe(2);
+  });
+
+  it("clamps to the final (last) stage once past the pipeline", () => {
+    expect(getGenerationStage(1000)).toBe(2);
+  });
+
+  it("re-derives equal boundaries from the per-step duration", () => {
+    // With a 2.5 s step, stages start at 0 s / 2.5 s / 5 s (three steps).
+    expect(getGenerationStage(1, 2.5)).toBe(0);
+    expect(getGenerationStage(2.5, 2.5)).toBe(1);
+    expect(getGenerationStage(5, 2.5)).toBe(2);
   });
 });
 
@@ -74,6 +85,14 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
       expect(barPercent(1)).toBe(33);
       expect(barPercent(2)).toBe(66);
       expect(barPercent(2, true)).toBe(100);
+    });
+
+    it("generalises over any number of steps (adding a step just widens the count)", () => {
+      // Four pipeline steps → 0%, 25%, 50%, 75%.
+      expect(barPercent(0, 4)).toBe(0);
+      expect(barPercent(1, 4)).toBe(25);
+      expect(barPercent(2, 4)).toBe(50);
+      expect(barPercent(3, 4)).toBe(75);
     });
   });
 });

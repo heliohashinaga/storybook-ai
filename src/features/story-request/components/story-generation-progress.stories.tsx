@@ -2,11 +2,14 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "storybook/test";
 import { LocaleProvider } from "../../../i18n/locale-provider";
 import {
-  ILLUSTRATING_AT_SECONDS,
-  REVIEWING_AT_SECONDS,
+  MAX_STAGE,
+  STEP_DURATION_SECONDS,
   TIMEOUT_CUE_AT_SECONDS,
   StoryGenerationProgress,
 } from "./story-generation-progress";
+
+/** Start of the last pipeline step (a uniform STEP_DURATION_SECONDS per step). */
+const LAST_STAGE_AT_SECONDS = MAX_STAGE * STEP_DURATION_SECONDS;
 
 const withI18n = (StoryComponent: () => React.JSX.Element) => (
   <LocaleProvider defaultLocale="pt-BR">
@@ -32,12 +35,12 @@ export const Writing: Story = {
 
 /** Stage 1 — illustrating (67% bar, badge 1 done). */
 export const Illustrating: Story = {
-  args: { phase: "generating", elapsedSeconds: ILLUSTRATING_AT_SECONDS },
+  args: { phase: "generating", elapsedSeconds: STEP_DURATION_SECONDS },
 };
 
-/** Stage 2 — safety review (100% bar, badges 1–2 done). */
+/** Stage 2 — safety review (bar at 66%, badges 1–2 done; bar fills on completion). */
 export const Reviewing: Story = {
-  args: { phase: "generating", elapsedSeconds: REVIEWING_AT_SECONDS },
+  args: { phase: "generating", elapsedSeconds: LAST_STAGE_AT_SECONDS },
 };
 
 /** Patient timeout cue — no duplicated waiting hint, lock notice stays. */
@@ -47,7 +50,7 @@ export const Timeout: Story = {
 
 /** Safety re-review after a blocked generation. */
 export const SafetyRetry: Story = {
-  args: { phase: "safety-retry", elapsedSeconds: REVIEWING_AT_SECONDS },
+  args: { phase: "safety-retry", elapsedSeconds: LAST_STAGE_AT_SECONDS },
 };
 
 /** Provider failure — error alert with a retry action. */

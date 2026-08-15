@@ -9,18 +9,46 @@ import type {
  * Optional artificial latency so the story-request loading/progress screen is
  * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
  *
- * Controlled by `STORY_FAKE_DELAY_MS` (default 5000ms per fake call). The story
- * fetch is one call plus the scene illustrations; a per-call delay of ~5000ms
- * makes the overall fake generation last ~10s so the loading screen still
- * advances through its elapsed-based stages (writing→illustrating→reviewing)
- * and shows steps completing, without feeling slow. Disabled under tests
- * (`NODE_ENV=test`, set by Vitest) so the unit suite stays fast/deterministic.
+ * Controlled by `STORY_FAKE_STEP_DELAY_MS` (default 3000ms). The fake load is
+ * applied **once per pipeline phase** (write → illustrate → review), not per
+ * provider call, so each UI step lasts roughly the same time and the progress
+ * bar advances evenly instead of stalling on the final (clamped) step. The
+ * overall fake generation lasts ≈ 3 × `STORY_FAKE_STEP_DELAY_MS`. Disabled under
+ * tests (`NODE_ENV=test`, set by Vitest) so the unit suite stays
+ * fast/deterministic.
  */
 function fakeModeDelay(): Promise<void> {
   if (process.env.NODE_ENV === "test") return Promise.resolve();
-  const ms = Number(process.env.STORY_FAKE_DELAY_MS ?? "5000");
+  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "3000");
   if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Guarantees a phase pays `STORY_FAKE_STEP_DELAY_MS` exactly once across a run,
+ * no matter how many provider calls the phase triggers (e.g. Planner **and**
+ * Writer both call `generateStory`, and each scene calls the illustrator).
+ * This redistributes the fake load evenly across the pipeline phases so the
+ * loading screen advances uniformly. Safe under tests (no-ops).
+ *
+ * The underlying wait is injectable (defaults to the env-driven `fakeModeDelay`)
+ * and receives the phase, so tests can count payments per phase without sleeping.
+ */
+export type FakeLoadPhase = "write" | "illustrate" | "review";
+
+export function createFakePhasedDelay(
+  delayFn: (phase: FakeLoadPhase) => Promise<void> = fakeModeDelay
+): {
+  wait(phase: FakeLoadPhase): Promise<void>;
+} {
+  const paid = new Set<FakeLoadPhase>();
+  return {
+    async wait(phase: FakeLoadPhase): Promise<void> {
+      if (paid.has(phase)) return;
+      paid.add(phase);
+      await delayFn(phase);
+    },
+  };
 }
 
 /**
@@ -284,26 +312,35 @@ function buildStory(
   return { title, scenes };
 }
 
-export function createFixedDevProvider(): StoryGenerationProvider {
+export function createFixedDevProvider(
+  delay: ReturnType<typeof createFakePhasedDelay> = createFakePhasedDelay()
+): StoryGenerationProvider {
   return {
     async generateStory(input: ProviderStoryInput) {
-      await fakeModeDelay();
+      // Writes pay the fake load once (covers Planner + Writer calls).
+      await delay.wait("write");
       return input.locale === "en"
         ? enStory(input.sceneCount, input.theme)
         : ptBRStory(input.sceneCount, input.theme);
     },
     async moderateText(text: string) {
+      // The safety review is its own phase: one uniform slice of fake load.
+      await delay.wait("review");
       return safeOrUnsafe(text);
     },
     async moderateImage(prompt: string) {
+      // Text and image moderation share the single review slice.
       return safeOrUnsafe(prompt);
     },
   };
 }
 
-export function createFixedDevIllustration() {
+export function createFixedDevIllustration(
+  delay: ReturnType<typeof createFakePhasedDelay> = createFakePhasedDelay()
+) {
   return async () => {
-    await fakeModeDelay();
+    // The whole illustration set pays the fake load once, not once per scene.
+    await delay.wait("illustrate");
     return { dataUri: FIXED_ILLUSTRATION_DATA_URI };
   };
 }

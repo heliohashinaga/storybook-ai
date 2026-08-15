@@ -60,14 +60,23 @@ different provider/model with the fitting capability.
 | `TEXT_MODEL`       | story narrative generation (text, req)   | `opencode-go/qwen/qwen3.7-flash` |
 | `MODERATION_MODEL` | safety moderation (text + image prompts) | `opencode-go/qwen/qwen3.7-flash` |
 | `IMAGE_MODEL`      | illustration generation (WebP, req)      | `openrouter/qwen/qwen3.7-flash`  |
-| `TTS_MODEL`        | narration voice (AI TTS, optional)       | `openrouter/qwen/qwen3.7-flash`  |
+| `READER_MODEL`     | AI narration voice (TTS, req)            | `openrouter/qwen/qwen3.7-flash`  |
 
 #### ⚙️ Mode
 
-| Variable               | Default | Purpose                                                  |
-| ---------------------- | ------- | -------------------------------------------------------- |
-| `STORIES_TEST_MODE`    | unset   | `fake` → deterministic offline dev provider, no AI calls |
-| `AI_NARRATION_ENABLED` | `false` | enable the AI neural voice (requires `TTS_MODEL`)        |
+| Variable                   | Default | Purpose                                                  |
+| -------------------------- | ------- | -------------------------------------------------------- |
+| `STORIES_TEST_MODE`        | unset   | `fake` → deterministic offline dev provider, no AI calls |
+| `STORY_FAKE_STEP_DELAY_MS` | `3000`  | per-step fake latency in `fake` mode (0 = fastest)       |
+| `AI_NARRATION_ENABLED`     | `false` | enable the AI neural voice (uses `READER_MODEL`)         |
+
+#### ⏱️ Timeouts & retries (all optional)
+
+| Variable              | Default  | Purpose                                      |
+| --------------------- | -------- | -------------------------------------------- |
+| `MODEL_TIMEOUT_MS`    | `60000`  | per single model/provider call timeout (ms)  |
+| `MODEL_MAX_ATTEMPTS`  | `1`      | total attempts per model call (1 = no retry) |
+| `PIPELINE_TIMEOUT_MS` | `120000` | end-to-end story generation budget (ms)      |
 
 #### ⏱️ Rate limiting (anonymous, per IP)
 

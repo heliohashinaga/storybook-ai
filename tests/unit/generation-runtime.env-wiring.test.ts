@@ -35,7 +35,6 @@ const baseModels = {
   ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3_image",
   READER_MODEL: "openrouter/hexgrad/kokoro-82m",
   AI_NARRATION_ENABLED: "false",
-  TTS_MODEL: "openrouter/hexgrad/kokoro-82m",
 };
 
 function setModels(overrides: Partial<typeof baseModels> = {}) {
