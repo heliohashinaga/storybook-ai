@@ -64,7 +64,7 @@ vi.mock("@react-pdf/renderer", () => {
 });
 
 describe("buildStoryPdf — browser-only export (T042)", () => {
-  it("composes the title, every scene body, and the 3 illustrations", async () => {
+  it("composes a cover page plus one page per scene (never splits a scene)", async () => {
     const download = vi.fn();
     const toBlob = vi.fn(async () => new Blob(["pdf"], { type: "application/pdf" }));
 
@@ -73,7 +73,16 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     expect(mockState.pdf).toHaveBeenCalledTimes(1);
     const joined = JSON.stringify(mockState.tree);
 
+    // Option A layout: a cover page (title + scene-1 art) then one A4 page per
+    // scene, so a scene's illustration and text are never split across pages.
+    const pageCount = joined.split('"type":"Page"').length - 1;
+    expect(pageCount).toBe(1 + story.scenes.length);
+
     expect(joined).toContain("A missão da estrelinha");
+    // Each scene page carries its own title heading.
+    expect(joined).toContain("Cena 1");
+    expect(joined).toContain("Cena 2");
+    expect(joined).toContain("Cena 3");
     expect(joined).toContain("Era uma vez uma estrelinha");
     // The scene altText is NOT rendered in the PDF (it is a11y metadata only,
     // the illustration itself carries no visible alt caption).
@@ -81,12 +90,13 @@ describe("buildStoryPdf — browser-only export (T042)", () => {
     expect(joined).toContain("Ela decidiu brilhar");
     expect(joined).toContain("E o mar a abraçou");
     // Illustrations are converted to PNG before embedding so the PDF renders
-    // them (`@react-pdf/renderer` does not reliably embed WebP).
+    // them (`@react-pdf/renderer` does not reliably embed WebP). The scene-1
+    // art doubles as the cover art, so its PNG appears on the cover and its
+    // own scene page.
     const pngCount = joined.split(PNG).length - 1;
-    expect(pngCount).toBe(3);
+    expect(pngCount).toBe(1 + story.scenes.length);
     expect(joined).not.toContain("data:image/webp;base64,");
   });
-
   it("downloads a PDF under a slug filename and makes no network call", async () => {
     const download = vi.fn();
     const toBlob = vi.fn(async () => new Blob(["pdf"], { type: "application/pdf" }));

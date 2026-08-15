@@ -7,8 +7,11 @@ import type { GeneratedStory } from "../../story-generation/server/schemas";
  *
  * Composes a printable PDF from the in-memory story. `@react-pdf/renderer` is
  * lazy-imported here so it never lands in the initial bundle (<250 KiB gzip
- * budget, per AGENTS.md). One server document is built per story: a title,
- * one page per scene, each with its scene body and illustration.
+ * budget, per AGENTS.md). The document is laid out as **one page per scene**:
+ * a cover page with the story title, then a fresh A4 page for each scene with
+ * its illustration and body. This guarantees a scene's image and text never
+ * split across pages (a single overflowing `<Page>` would get cut mid-scene by
+ * the renderer, which is what broke the 3-scene PDF).
  *
  * The module is browser-only: the PDF is rendered and downloaded client-side;
  * nothing is sent over the network or persisted. The PDF-builder, downloader,
@@ -62,6 +65,33 @@ function sceneLabel(locale: string): string {
   return locale === "en" ? "Scene" : "Cena";
 }
 
+/** Shared document styles (one page per scene, no mid-scene page break). */
+const styles = {
+  cover: {
+    padding: 32,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
+    textAlign: "center" as const,
+  },
+  coverArt: {
+    maxWidth: "100%",
+    maxHeight: 300,
+    marginBottom: 20,
+    objectFit: "contain" as const,
+  },
+  coverTitle: { fontSize: 28, fontWeight: "bold" as const },
+  scene: { padding: 32 },
+  sceneTitle: { fontSize: 20, fontWeight: "bold" as const, marginBottom: 8 },
+  illustration: {
+    maxWidth: "100%",
+    maxHeight: 320,
+    marginBottom: 12,
+    objectFit: "contain" as const,
+  },
+  sceneMeta: { fontSize: 11, color: "#666" },
+  sceneBody: { fontSize: 14, marginTop: 12 },
+};
+
 const defaultDeps: StoryPdfDeps = {
   async toBlob(pdfResult) {
     // pdfResult is the object returned by @react-pdf/renderer's pdf(document),
@@ -85,32 +115,35 @@ export async function buildStoryPdf(
 
   const node = (
     <Document>
-      <Page size="A4" style={{ padding: 32 }}>
+      {/* Cover: the scene-1 illustration as cover art under the story title. */}
+      <Page size="A4" style={styles.cover}>
         <View>
-          <Text style={{ fontSize: 24, marginBottom: 24 }}>{story.title}</Text>
-          {story.scenes.map((scene, index) => (
-            <View key={scene.ordinal} style={{ marginBottom: 20 }}>
-              {illustrations[index] ? (
-                // `@react-pdf/renderer` does not accept an `alt` prop on `Image`.
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <Image
-                  src={illustrations[index]}
-                  style={{
-                    maxWidth: "100%",
-                    maxHeight: 160,
-                    marginBottom: 8,
-                    objectFit: "contain",
-                  }}
-                />
-              ) : null}
-              <Text style={{ fontSize: 11, color: "#666" }}>
-                {sceneLabel(story.locale)} {scene.ordinal} of {story.scenes.length}
-              </Text>
-              <Text style={{ fontSize: 14, marginTop: 8 }}>{scene.body}</Text>
-            </View>
-          ))}
+          {illustrations[0] ? (
+            // `@react-pdf/renderer` does not accept an `alt` prop on `Image`.
+            // eslint-disable-next-line jsx-a11y/alt-text
+            <Image src={illustrations[0]} style={styles.coverArt} />
+          ) : null}
+          <Text style={styles.coverTitle}>{story.title}</Text>
         </View>
       </Page>
+
+      {/* One page per scene so an illustration + text are never split. */}
+      {story.scenes.map((scene, index) => (
+        <Page key={scene.ordinal} size="A4" style={styles.scene}>
+          <View>
+            <Text style={styles.sceneTitle}>{scene.title}</Text>
+            <Text style={styles.sceneMeta}>
+              {sceneLabel(story.locale)} {scene.ordinal} of {story.scenes.length}
+            </Text>
+            {illustrations[index] ? (
+              // `@react-pdf/renderer` does not accept an `alt` prop on `Image`.
+              // eslint-disable-next-line jsx-a11y/alt-text
+              <Image src={illustrations[index]} style={styles.illustration} />
+            ) : null}
+            <Text style={styles.sceneBody}>{scene.body}</Text>
+          </View>
+        </Page>
+      ))}
     </Document>
   );
 
