@@ -6,6 +6,21 @@ import type {
 } from "./story-generation-provider";
 
 /**
+ * Optional artificial latency so the story-request loading/progress screen is
+ * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
+ *
+ * Controlled by `STORY_FAKE_DELAY_MS` (default 1200ms). Disabled under tests
+ * (Vitest sets `NODE_ENV=test`) so the unit suite stays fast and deterministic
+ * — the delay never affects `pnpm test` or CI.
+ */
+function fakeModeDelay(): Promise<void> {
+  if (process.env.NODE_ENV === "test") return Promise.resolve();
+  const ms = Number(process.env.STORY_FAKE_DELAY_MS ?? "1200");
+  if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
  * Deterministic development provider (T036).
  *
  * Used only when the server is explicitly started with `STORIES_TEST_MODE=fake`
@@ -269,6 +284,7 @@ function buildStory(
 export function createFixedDevProvider(): StoryGenerationProvider {
   return {
     async generateStory(input: ProviderStoryInput) {
+      await fakeModeDelay();
       return input.locale === "en"
         ? enStory(input.sceneCount, input.theme)
         : ptBRStory(input.sceneCount, input.theme);
@@ -283,5 +299,8 @@ export function createFixedDevProvider(): StoryGenerationProvider {
 }
 
 export function createFixedDevIllustration() {
-  return async () => ({ dataUri: FIXED_ILLUSTRATION_DATA_URI });
+  return async () => {
+    await fakeModeDelay();
+    return { dataUri: FIXED_ILLUSTRATION_DATA_URI };
+  };
 }
