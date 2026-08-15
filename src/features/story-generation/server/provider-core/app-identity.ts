@@ -6,7 +6,7 @@ import "server-only";
  * rankings. These are APP identity only — never a direct identifier of the
  * child, so the anonymous-by-design invariant is preserved.
  */
-export const APP_NAME = "Storybook AI";
+export const APP_NAME = "storybook-ai";
 
 /** Optional public URL of the deployed app (used as the OpenRouter `HTTP-Referer`). */
 export const APP_URL =

@@ -61,7 +61,7 @@ describe("provider-core image-client postImages", () => {
     );
     await postImages({ ...baseReq, fetchImpl });
     const headers = new Headers(calls[0]!.init.headers);
-    expect(headers.get("x-title")).toBe("Storybook AI");
+    expect(headers.get("x-title")).toBe("storybook-ai");
     expect(headers.get("http-referer")).toContain("https://");
   });
 
