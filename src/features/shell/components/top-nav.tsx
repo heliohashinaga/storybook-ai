@@ -20,7 +20,7 @@ export function TopNav() {
   const t = useTranslations("story.brand");
 
   return (
-    <header className="max-w-5xl grid grid-cols-[1fr_auto] items-center gap-3 px-4 py-5">
+    <header className="mx-auto grid max-w-5xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5">
       <button
         type="button"
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
