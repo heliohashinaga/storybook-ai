@@ -99,9 +99,9 @@ function StoryRequestFlow() {
 
   if (story && !draftingNew) {
     return (
-      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_16rem]">
+      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_18rem]">
         <StoryReader story={story} onNewStory={startNewStory} />
-        <aside className="flex flex-col gap-sm">
+        <aside className="flex h-full flex-col gap-sm">
           <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
         </aside>
       </div>

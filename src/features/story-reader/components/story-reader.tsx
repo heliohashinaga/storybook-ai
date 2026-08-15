@@ -138,12 +138,14 @@ export function StoryReader({
             </Button>
 
             {readAloud.supported && (
-              <NarrationControl
-                status={readAloud.status}
-                mode={readAloud.mode}
-                errorMessage={readAloud.errorMessage}
-                onToggle={readAloud.toggle}
-              />
+              <div className="sm:w-full">
+                <NarrationControl
+                  status={readAloud.status}
+                  mode={readAloud.mode}
+                  errorMessage={readAloud.errorMessage}
+                  onToggle={readAloud.toggle}
+                />
+              </div>
             )}
 
             <Button

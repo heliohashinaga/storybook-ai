@@ -31,10 +31,12 @@ export function StoryHistory({
   return (
     <aside
       aria-label={t("label")}
-      className="rounded-4xl border border-border bg-card p-md shadow-soft"
+      className="flex h-full w-full flex-col rounded-4xl border border-border bg-card p-md shadow-soft"
     >
       <h2 className="px-xs font-display text-title font-bold">{t("label")}</h2>
-      <p className="mb-sm px-xs text-caption text-text-subtle">{tr("sessionOnly")}</p>
+      <p className="mb-sm mt-1 px-xs text-caption leading-snug text-text-subtle">
+        {tr("sessionOnly")}
+      </p>
       <ul className="space-y-xs">
         {sortByNewest(storyEntries).map((entry) => {
           const isActive = entry.id === activeId;
