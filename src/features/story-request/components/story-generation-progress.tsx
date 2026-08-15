@@ -20,10 +20,6 @@ export const ILLUSTRATING_AT_SECONDS = 8;
 export const REVIEWING_AT_SECONDS = 16;
 export const TIMEOUT_CUE_AT_SECONDS = 30;
 
-/** When the continuous bar reaches 100% (kept above REVIEWING so the final
- * step can light up *before* the bar completes — decouples bar↔step). */
-export const BAR_COMPLETES_AT_SECONDS = 20;
-
 export type StoryGenerationProgressPhase =
   "generating" | "timeout" | "safety-retry" | "provider-failure";
 
@@ -51,11 +47,13 @@ export function getGenerationStage(
   return 0;
 }
 
-/** Continuous bar width (%): ramps 0→100 smoothly up to `BAR_COMPLETES_AT_SECONDS`,
- * so a step can activate before the bar is full (decouples bar↔step). */
-export function barPercent(elapsedSeconds: number, completesAt = BAR_COMPLETES_AT_SECONDS): number {
-  if (completesAt <= 0) return 100;
-  return Math.min(100, Math.max(0, (elapsedSeconds / completesAt) * 100));
+/** Bar width is tied to the current step: Step 1 = 0%, Step 2 = 33%,
+ * Step 3 = 66%, and 100% once concluded. The `done` flag raises the bar to
+ * 100% when generation finishes, so the final step is reached at 66% (not at
+ * the bar's end) and only the completion fills it. */
+export function barPercent(stage: 0 | 1 | 2, done = false): number {
+  if (done) return 100;
+  return Math.floor((stage / 3) * 100);
 }
 
 const STAGES = ["stageWriting", "stageIllustrating", "stageReviewing"] as const;
@@ -117,7 +115,7 @@ export function StoryGenerationProgress({
       ? t("timeout")
       : stageMessage(t, stage);
 
-  const percent = barPercent(elapsedSeconds);
+  const percent = barPercent(stage);
 
   return (
     <section

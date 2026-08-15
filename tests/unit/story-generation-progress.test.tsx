@@ -68,17 +68,12 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
     expect(bar).toHaveAttribute("aria-valuenow", "1");
   });
 
-  describe("barPercent — §7.3 continuous bar width (decoupled from steps)", () => {
-    it("starts at 0 and ramps smoothly toward 100", () => {
+  describe("barPercent — §7.3 bar width tied to the current step", () => {
+    it("shows Step1=0%, Step2=33%, Step3=66%, and 100% when done", () => {
       expect(barPercent(0)).toBe(0);
-      expect(barPercent(10)).toBe(50);
-      expect(barPercent(16)).toBe(80); // step 3 lights before full
-    });
-
-    it("caps at 100 and clamps negatives", () => {
-      expect(barPercent(20)).toBe(100);
-      expect(barPercent(999)).toBe(100);
-      expect(barPercent(-5)).toBe(0);
+      expect(barPercent(1)).toBe(33);
+      expect(barPercent(2)).toBe(66);
+      expect(barPercent(2, true)).toBe(100);
     });
   });
 });
