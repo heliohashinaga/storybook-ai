@@ -1,13 +1,13 @@
 # Spec 009 — Frontend Routes (Roteamento da Interface Sem Persistência)
 
-Status: Draft
 Área: Frontend / Arquitetura de Navegação
-Escopo: Introduzir rotas de interface (`/`, `/form`, `/reader`, `/export`) que
+Escopo: Introduzir rotas de interface (`/`, `/form`, `/reader`) que
 modelem **somente a máquina de estados da UI**, sem jamais transportar a
 história, a idade exata ou qualquer identificador na URL. Produz um botão
 "voltar"/navegação de URL reais, remove o hack de event bus
 (`requestHome`/`onHomeRequested`) e mantém intactos os invariantes de
-anonimato e "no persistence".
+anonimato e "no persistence". O export de PDF permanece um botão inline no
+leitor (`/reader`) — **sem rota/`/export` dedicada** (ver Decision №1 em §11).
 
 ---
 
@@ -15,8 +15,12 @@ anonimato e "no persistence".
 
 ### Session 2026-08-15
 
-- Q: A rota `/export` deve fazer parte desta spec, ser adiada ou descartada? → A: Incluir `/export` nesta spec (rota dedicada, PDF lazy/in-memory).
+- Q: A rota `/export` deve fazer parte desta spec, ser adiada ou descartada? → A: **Descartar como rota dedicada.** O export permanece um botão inline no `/reader` (PDF lazy/in-memory). Ver **Decision №1** em §11 para a justificativa.
 - Q: O query param `?story=<i>` deve entrar no escopo desta spec, ser adiado ou descartado? → A: Adiar `?story=<i>` para uma futura spec; seleção só via UI interna do multistória.
+- Q: A tela de "loading"/progresso de geração deve ser tratada como o estado `submitting`? → A: **Sim.** O "loading" **é** o `submitting` — permanece uma rota `/form` (URL não muda durante `POST /api/stories`); a navegação para `/reader` ocorre **somente quando a história fica pronta** (sem rota `/steps`).
+- Q: Ao voltar/ícone do app, o `/form` deve exibir histórico de histórias já criadas? → A: **Não.** O `/form` volta sempre **limpo** (rascunho sem preenchimento) — **não** exibe aba de histórico; a aba de histórico e a navegação entre histórias ficam **apenas no `/reader`**.
+- Q: Qual política `push` vs `replace` usar na transição `form→reader`? → A: **`replace`** na transição `form→reader` (`/reader` substitui o `/form` no histórico, e "voltar" do navegador vai para a página anterior, fora do app); `push` reservado onde houver destino "voltar" significativo (troca de história no multistória). Voltar ao `/form` limpo é via navegação interna da app.
+- Q: Para onde mover o foco ao navegar para `/reader`? → A: **Heading principal (`<h1>`)** da tela de destino (`/reader`) ao montar.
 
 ---
 
@@ -82,7 +86,7 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
   semântica de fluxo, sem sacrificar o anonimato.
 
 ### 3.2 Objetivos de engenharia
-- **OBJ-1** — Criar rotas de interface: `/form`, `/reader` e `/export`.
+- **OBJ-1** — Criar rotas de interface: `/form` e `/reader`.
 - **OBJ-2** — Remover o event bus `requestHome`/`onHomeRequested` e usar
   `router.push` reais para a navegação entre telas.
 - **OBJ-3** — Garantir que a máquina de estados "form/reader" seja transcrita 1:1
@@ -97,9 +101,8 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 ## 4. Escopo
 
 ### Inclui
-- Rotas `/form`, `/reader` e `/export` (server-components de página). `/`
-  redireciona para `/form` (rotina), mantendo compatibilidade com deep-links
-  velhos.
+- Rotas `/form` e `/reader` (server-components de página). `/` redireciona
+  para `/form` (rotina), mantendo compatibilidade com deep-links velhos.
 - Refatoração de `StoryRequestApp`/`StorySessionContext` para derivar o modo de
   tela (`form` vs `reader`) da rota atual, em vez de um booleano ad-hoc.
 - `top-nav` navega por `router.push` real; remoção do event bus.
@@ -110,8 +113,10 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 - Rotas que embarquem histórias ou ids persistentes (impossível por design).
 - Persistência entre reloads (exceto a resolução graciosa).
 - Mudanças no `POST /api/stories`, `story-generation/*` ou no OpenAPI.
-- Rota de exportação por URL (`/export`) é **incluída** nesta spec; o PDF
-  permanece gerado in-memory e lazy-loaded (`@react-pdf/renderer` lazy).
+- Rota dedicada `/export`: **fora de escopo** — o export de PDF permanece um
+  botão inline no `/reader`, gerado in-memory e lazy-loaded
+  (`@react-pdf/renderer` lazy). Não há novo estado navegável para ele (ver
+  **Decision №1** em §11).
 
 > **Nota — a tela de progresso de geração NÃO é uma rota.** O componente
 > `StoryGenerationProgress` (a tela de steps "writing → illustrating → safety
@@ -142,8 +147,16 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 |-----------|------------------------|----------------|--------------------------|
 | `/`       | redireciona → `/form`  | não            | `redirect("/form")`      |
 | `/form`   | drafting               | não            | —                        |
-| `/reader` | story (leitura)        | sim            | `redirect("/form")`      |
-| `/export` | exportação (PDF)     | sim            | `redirect("/form")`      |
+| `/reader` | story (leitura + export PDF inline) | sim       | `redirect("/form")`      |
+
+> **Decision №1 (sem `/export`):** o export de PDF é um **efeito colateral do
+> leitor**, não um espaço navegável. O `ExportStoryButton` já vive embutido no
+> `/reader` (spec 003, US4) e gera/downloada o PDF 100% client-side, sem pedir
+> estado próprio. Uma rota `/export` exigiria sessão, duplicaria a máquina de
+> estados do reader e adicionaria mais um `redirect("/form")` a testar para
+> entregar exatamente o mesmo botão. A rota representaria uma **ação atômica
+> (clicou → baixou)**, não um lugar no fluxo — o que contraria o princípio da
+> spec (rotas = onde o usuário está). Portanto, o export permanece inline.
 
 **Nota — seleção multistória.** A conta ativa é selecionada inteiramente via
 `StorySessionContext` em memória (`activeId`/`activeIndex`, 0-based), sem
@@ -160,14 +173,16 @@ rota `/reader` não recebe índice pela URL nesta entrega.
 src/app/page.tsx         → redirect("/form")
 src/app/form/page.tsx    → <StoryRequestApp isFake={...}/>
 src/app/reader/page.tsx  → <StoryRequestApp isFake={...}/>
-src/app/export/page.tsx  → <ExportFlow isFake={...}/> (PDF lazy/in-memory)
 ```
+
+> Não há `src/app/export/page.tsx`. O `ExportStoryButton` permanece no client
+> wrapper do `/reader` (PDF lazy/in-memory) — Decision №1 (§11).
 
 **Fonte única de verdade = a rota.** `StoryRequestApp` **não recebe prop `mode`**;
 ele deriva o modo (`form`|`reader`) do **path atual via `usePathname()`** (`/form`
 → formulário; `/reader` → leitor). As duas páginas `page.tsx` montam o mesmo
 client wrapper, apenas com `isFake` (não há `mode="form"`/`mode="reader"`). As
-rotas `form`/`reader`/`export` são **server-components**; a verificação de sessão
+as rotas `form`/`reader` são **server-components**; a verificação de sessão
 acontece no **client wrapper** tão logo o contexto hidrate.
 
 Como `StoryRequestApp` hoje gerencia o estado inteiro em memória, o design mínimo
@@ -179,9 +194,12 @@ de refatoração:
   wrapper** tão logo o contexto hidrate.
 - **Roteamento derivado de rota:** `usePathname()` é a única fonte do modo
 tela; `draftingNew` e `status` **derivam** dela, nunca a duplicam (ver §6.2).
-  Transições são feitas com `router.push`. Se `router.push` ocorre *antes* do
-  estado estar pronto (ex. durante `submitting`), o leitor renderiza um estado de
-  carregamento/`aria-busy` e então mostra a história.
+  Transições seguem a **política push/replace (Clarifications — §6.2)**: a rota
+  `form→reader` usa `router.replace`; `router.push` fica reservado para alvos
+  com "voltar" significativo (troca de história no multistória). Se a navegação
+  para `/reader` ocorre *antes* do estado estar pronto (ex. durante `submitting`),
+  o leitor renderiza um estado de carregamento/`aria-busy` e então mostra a
+  história — mas por padrão o `submitting` permanece em `/form` (Q1).
 
 ### 6.2 Transição de estado → rota (mapeamento)
 | Estado (hoje) | Fonte real (path) | Rota | Deriva de |
@@ -197,8 +215,14 @@ tela; `draftingNew` e `status` **derivam** dela, nunca a duplicam (ver §6.2).
 > `aria-busy` (ver §4). `usePathname()` em `/reader` com sessão ⇒ modo reader;
 > em `/form` ⇒ modo form.
 
-Há sempre **um** caminho canônico para cada estado. `router.replace` é preferido
-para dar "voltar" um passo apenas; `push` para abrir nova tela.
+Há sempre **um** caminho canônico para cada estado. **Política de histórico
+(push/replace) — ver Clarifications:** a transição `form→reader` usa
+**`router.replace`** (o `/reader` substitui o `/form` no histórico; um único
+"voltar" do navegador sai do app, indo para a página anterior — não repassa
+pelo `/form` transitório). `router.push` é reservado onde existe destino
+"voltar" significativo dentro do app, ex. a troca de história ativa na seleção
+multistória. O caminho para "voltar ao `/form` limpo" é a **navegação interna
+da app** (ícone do app / navegação explícita), não o histórico do navegador.
 
 ### 6.3 Session gate (client-side)
 Um pequeno componente guardião dentro do client wrapper:
@@ -213,15 +237,27 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 
 ## 7. Requisitos de Interface de Usuário
 
-- **A11y** (mantendo a barra do AGENTS.md): ao navegar entre telas, preservar o
-  foco (focus management no novo viewport), `aria-current` ativo no top-nav e
-  `aria-live`/`aria-busy` para estados assíncronos (submitting, load do leitor).
-- **Voltar real:** o botão/gesto do navegador retorna do leitor ao formulário.
+- **A11y** (mantendo a barra do AGENTS.md): ao navegar entre telas, mover o foco
+  para o **heading principal (`<h1>`)** da tela de destino ao montar (form →
+  reader), `aria-current` ativo no top-nav e `aria-live`/`aria-busy` para estados
+  assíncronos (`submitting`, load do leitor). **Novo foco (Clarifications):** o
+  foco vai ao `<h1>` do `/reader` na transição `form→reader`.
+- **Voltar real:** o botão/gesto do navegador volta à tela anterior (fora do
+  app, devido ao `replace` na transição `form→reader` — ver Clarifications). O
+  caminho intencional para o formulário é a **navegação interna** (ícone do app /
+  nav explícita), que leva ao `/form` **limpo** (rascunho sem preenchimento).
+- **`/form` sempre limpo (Clarifications):** ao voltar/ícone do app, o `/form`
+  **não** exibe aba de histórico; começa como rascunho vazio. A aba de histórico
+  e a navegação entre histórias já criadas ficam **apenas no `/reader`**.
+- **`/reader` = leitura + histórico/multistória (Clarifications):** é possível
+  **navegar entre as histórias já criadas** dentro do `/reader`, via UI interna
+  do `StorySessionContext` (sem `?story=` na URL). A história ainda não existe
+  na sessão => botão "Criar história" dispara `submitting`.
 - **Sem regressão de idioma:** a `locale` ativa (`pt-BR`/`en`) permanece no
   `LocaleProvider`, um nível acima das páginas; rotas novas não a alteram.
-- **Performance budget:** rotas novas não incham o bundle inicial (reader/export
-  continuam lazy). Manter ≤250 KiB gzip de rota inicial; `@react-pdf/renderer`
-  continua `lazy-import` apenas no export.
+- **Performance budget:** rotas novas não incham o bundle inicial (reader / export
+  do PDF continuam lazy). Manter ≤250 KiB gzip de rota inicial; `@react-pdf/renderer`
+  continua `lazy-import` apenas no export entre o leitor e o download.
 
 ---
 
@@ -229,24 +265,37 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 
 1. **Unitários (vitest):**
    - Mapeamento estado→rota (guarda de transição) — nenhum dado sensível em
-     params.
+     params; **política `replace` na transição `form→reader`** (Clarifications):
+     após `replace`, o histórico do navegador não possui mais `/form` como
+     entrada anterior ao `/reader`.
    - Seleção multistória não aceita `?story=` na URL (adiado); seleção só via
      `StorySessionContext`.
 2. **Integração (rota + invariantes):**
    - `/reader` sem sessão ⇒ `redirect("/form")`.
    - `/` ⇒ `redirect("/form")`.
+   - `form→reader` navega via `router.replace` (e não `push`) — "voltar" do
+     navegador sai do app (não retorna ao `/form` transitório).
+   - `/form` após voltar/ícone do app exibe rascunho **limpo** (sem aba de
+     histórico) (Clarifications).
+   - Foco move ao `<h1>` do `/reader` ao navegar (Clarifications).
    - Nenhum `story`/`age`/id no `request.url` **nem nos logs** observáveis por
      fake provider (invariante cobre URL **e** logs — constituição II, §AGENTS:
      "nada sensível em logs").
 
 
 3. **E2E (Playwright):**
-   - pt-BR e EN: form → reader usa `router.push`; `history.back()` volta ao form.
+   - pt-BR e EN: form → reader usa **`router.replace`**; por ser `replace`, um
+     único `history.back()` sai do app (não retorna ao `/form` transitório) — a
+     volta ao `/form` **limpo** é via navegação interna (ícone do app) (Clarifications).
    - Deep-link direto a `/reader` (sem sessão) aterrissa em `/form`.
    - Fluxo completo com fake provider mantém URL **e logs** limpos de dados.
    - Durante `POST /api/stories`, a URL **permanece `/form`** — a tela de
-     progresso de geração é renderizada full-screen sem mudar a rota, e não
-     existe rota `/steps` (ver §4).
+     progresso de geração (`submitting` = "loading") é renderizada full-screen
+     sem mudar a rota, e não existe rota `/steps` (ver §4 e Clarifications).
+   - `/form` ao voltar/ícone do app exibe rascunho **limpo**, sem aba de
+     histórico (Clarifications).
+   - `/reader`: navegar entre as histórias já criadas via multistória interno
+     (sem `?story=` na URL); foco move ao `<h1>` do leitor (Clarifications).
    - `aria-busy` presente durante `submitting` e `aria-current` no top-nav da
      rota ativa (a11y do roteamento).
 4. **Storybook:** stories default/loading/error/edge para as novas páginas.
@@ -255,22 +304,31 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 
 ## 9. Critérios de Aceite / Definition of Done
 
-- [ ] Rotas `/form` e `/reader` funcionais; `/` redireciona a `/form`.
-- [ ] `top-nav` navega por `router.push`; event bus removido.
-- [ ] `redirect("/form")` para `/reader` sem sessão; testes cobrindo.
-- [ ] Nenhuma história/idade/identificador em URL/params/**logs** (invariante em
-      testes — ver §8).
-- [ ] A **tela de progresso de geração** (`StoryGenerationProgress`) não tem rota
-      própria; permanece renderizada dentro de `/form` durante `submitting`, e a
-      URL não muda enquanto `POST /api/stories` roda (não existe `/steps`).
-- [ ] `pnpm lint` 0 warnings; `format:check` limpo; `typecheck` green.
-- [ ] Cobertura ≥80% geral; ≥90% safety/validation/orchestration.
-- [ ] E2E pt-BR + EN verdes; scripts `lint`/`format:check`/`typecheck` re-executados
-      após o último edit.
-- [ ] Budgets de performance respeitados (rota inicial ≤250 KiB gzip).
-- [ ] A11y bar atendida (foco, `aria-current`, `aria-live`/`aria-busy`).
-- [ ] `/export` incluído: PDF continua in-memory e lazy-loaded (budget 250 KiB
-      mantido; `@react-pdf/renderer` lazy no export).
+> **Fonte única de rastreio de aceite:** os itens de aceite granulares são
+> verificados e marcados nas checklists `checklists/requirements.md` (funcional,
+> privacidade, sessão, a11y, performance, qualidade, fora-de-escopo) e
+> `checklists/ux.md` (a11y & usabilidade). Esta seção é o resumo normativo
+> (Definition of Done) e **não** mantém uma lista de checkbox duplicada — a
+> marcação `[X]` acontece somente nas checklists, evitando fonte dupla/`drift`.
+
+DoD desta entrega (esta seção não deve duplicar as checklists acima — mantê-las
+sincronizadas é suficiente):
+
+- **Rotas:** `/form` e `/reader` funcionais; `/` redireciona a `/form`;
+  `top-nav` navega por `router.push`; event bus removido; `redirect("/form")`
+  para `/reader` sem sessão.
+- **Privacidade:** nenhuma história/idade/identificador em URL/params/**logs**
+  (invariante em testes — ver §8); a tela de progresso de geração
+  (`StoryGenerationProgress`) não tem rota própria — permanece renderizada
+  dentro de `/form` durante `submitting`; URL não muda enquanto
+  `POST /api/stories` roda (não existe `/steps`).
+- **Qualidade:** `pnpm lint` 0 warnings; `format:check` limpo; `typecheck` green
+  (re-executados após o último edit); cobertura ≥80% geral / ≥90%
+  safety/validation/orchestration; E2E pt-BR + EN verdes; budgets respeitados
+  (rota inicial ≤250 KiB gzip); a11y bar atendida (foco, `aria-current`,
+  `aria-live`/`aria-busy`); export de PDF permanece in-memory e lazy-loaded
+  dentro do `/reader` (sem rota `/export` dedicada; `@react-pdf/renderer` lazy
+  apenas no export inline).
 
 ---
 
@@ -281,8 +339,8 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 | Recarregar `/reader` sem sessão | tela morta / erro | redirect gracioso a `/form` |
 | Vazar história no URL | **viola privacidade** | nunca codificar conteúdo; testes de invariante |
 | Regressão de foco/a11y | UX ruim | gestão de foco no novo viewport + storybook |
-| Bundle inchado | viola budget | lazy-load reader/export |
-| Voltar "duplo" (form→reader→form) | navegação estranha | `replace` onde apropriado (só para redundância) |
+| Bundle inchado | viola budget | lazy-load reader + export do PDF (inline) |
+| Voltar "duplo" (form→reader→form) | navegação estranha | `replace` na transição `form→reader` — o `/reader` substitui o `/form` no histórico; um "voltar" do navegador **sai do app** e não repassa pelo `/form` transitório (Clarifications Q3) |
 
 ---
 
@@ -294,11 +352,22 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
   spec; seleção multistória segue só via UI interna do `StorySessionContext`
   nesta entrega.
 - URLs "canônicas/compativeis" com ids externos — rejeitadas por design.
+- **Decision №1 — Rota `/export` descartada.** O export de PDF permanece um
+  botão inline no `/reader` (PDF gerado/downloadado 100% client-side, sem
+  estado navegável próprio). Reabrível no futuro se surgir um fluxo de
+  "conclusão pós-geração" que justifique uma tela dedicada — hoje não existe.
 
 ---
 
 ## 12. Referências
 
 - `AGENTS.md` (invariantes de privacidade, budgets, barra de acessibilidade)
+
+> **Item de governança em aberto (constitucional):** a constituição v1.1.0 ainda
+> traz `TODO(PERF_BUDGETS)`/`TODO(COVERAGE_THRESHOLD)`/`TODO(CI_GATES)`/
+> `TODO(TECH_STACK)`/`TODO(TOOLING)` — os valores numéricos (250 KiB, ≥80%/≥90%)
+> estão ratificados no `AGENTS.md`, não na constituição. Ver nota de governance no
+> `plan.md` §Gates. A resolução exige **emenda constitucional separada** (processo
+> governado por humanos), fora do escopo do spec-kit; não bloqueia esta entrega.
 - `specs/003-melhorias-de-ux/` (UX e multihistória atual)
 - ADRs relevantes em `docs/adr/`

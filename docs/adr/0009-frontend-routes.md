@@ -27,14 +27,18 @@ Consequências da ausência de rotas de interface:
 ## Decisão
 
 1. **Rotas de frontend modelam SOMENTE a máquina de estados da UI** — os destinos estáveis
-   `form`, `reader` e (opcionalmente) `export`. Proposta de modelo:
+   `form` e `reader`. Proposta de modelo:
 
-   | Rota      | Estado de UI    | Requer sessão? | Sem sessão                     |
-   | --------- | --------------- | -------------- | ------------------------------ |
-   | `/`       | → `/form`       | não            | `redirect("/form")`            |
-   | `/form`   | drafting        | não            | —                              |
-   | `/reader` | story (leitura) | sim            | `redirect("/form")`            |
-   | `/export` | exportação      | sim            | `redirect("/form")` (opcional) |
+   | Rota      | Estado de UI                        | Requer sessão? | Sem sessão          |
+   | --------- | ----------------------------------- | -------------- | ------------------- |
+   | `/`       | → `/form`                           | não            | `redirect("/form")` |
+   | `/form`   | drafting                            | não            | —                   |
+   | `/reader` | story (leitura + export PDF inline) | sim            | `redirect("/form")` |
+
+   > **Sem rota `/export`** (spec 009, Decision №1): o export de PDF é um efeito
+   > colateral do leitor, não um espaço navegável. O `ExportStoryButton` já vive
+   > embutido no `/reader`; uma rota dedicada exigiria sessão, duplicaria a máquina
+   > de estados do reader e adicionaria outro `redirect` para entregar o mesmo botão.
 
 2. **A rota NUNCA transporta conteúdo sensível.** Nenhuma história, idade exata, `ageBand`,
    `locale` derivado, UUID ou identificador em path/query/hash/params. No máximo:

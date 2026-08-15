@@ -7,7 +7,8 @@
 ## Fase 0 — Fundação das rotas (T300–T303)
 - `src/app/page.tsx` → `redirect("/form")`.
 - `src/app/form/page.tsx`, `src/app/reader/page.tsx` (server-components).
-- (opcional) `src/app/export/page.tsx`.
+  - **Sem rota `/export`** (Decision №1 da spec §11): o export de PDF
+    permanece inline no `/reader`, via `ExportStoryButton`.
 
 ## Fase 1 — Estado → rota (T304–T306)
 - `StorySessionContext` expõe `hasSession()`, `storyCount`, `activeIndex`.

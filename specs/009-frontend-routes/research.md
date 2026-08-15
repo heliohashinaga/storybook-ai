@@ -18,7 +18,7 @@ acesso a rotas que exigem sessão.
 ## Conclusões por assunto
 
 ### a) Rota vs estado efêmero
-- Estados que **não carregam dados sensíveis** (form/reader/export) são rotáveis.
+- Estados que **não carregam dados sensíveis** (form/reader) são rotáveis.
 - Um **query param opcional** de seleção (ex. `?story=<i>`) é aceitável desde que seja
   só um índice de sessão e **sempre revalidado** contra a lista em memória; fora de
   faixa ⇒ ignorado. Nunca persistido.
@@ -35,17 +35,27 @@ acesso a rotas que exigem sessão.
   é uma navegação real, e o event bus pode ser **removido**.
 
 ### d) Botão "voltar" do navegador
-- Rotas filhas (`/form`↔`/reader`) dão histórico semântico ao History API:
-  `voltar` retorna do leitor ao formulário. Em SPA de rota única, `voltar` sai do site.
+- Rotas filhas (`/form`↔`/reader`) dão histórico semântico ao History API.
+- **Política push/replace (Clarifications 2026-08-15, spec §6.2/§7/§8):** a transição
+  `form→reader` usa **`router.replace`** — o `/reader` substitui o `/form` no
+  histórico, então um único "voltar" do navegador **sai do app** (vai à página
+  anterior) e não repassa pelo `/form` transitório. `router.push` é reservado onde
+  existe destino "voltar" significativo dentro do app (ex. troca de história no
+  multistória). O caminho para "voltar ao `/form` limpo" é a **navegação interna**
+  (ícone do app / top-nav), não o histórico do navegador.
 
 ### e) Acessibilidade ao navegar
 - Transições entre telas exigem **gestão de foco** no novo viewport, `aria-current`
   no top-nav ativo, e `aria-live`/`aria-busy` para estados assíncronos (submitting,
   load do leitor). Isto já é bar imposto pelo AGENTS.md; rotas não relaxam a barra.
+- **Alvo de foco (Clarifications 2026-08-15, spec §7):** ao navegar `form→reader`,
+  o foco move para o **heading principal (`<h1>`)** da tela de destino (`/reader`)
+  ao montar — padrão de foco correto para SPA.
 
 ### f) Performance
-- Rotas novas não devem inchar o bundle inicial. Leitor/export continuam **lazy**;
-  `@react-pdf/renderer` permanece `lazy-import` só no export. Budget de rota inicial
+- Rotas novas não devem inchar o bundle inicial. Leitor/export do PDF continuam `lazy`;
+  `@react-pdf/renderer` permanece `lazy-import` só no export (inline no `/reader`). Budget
+de rota inicial
   ≤250 KiB gzip.
 
 ## Contraintes dominantes (não-negociáveis)
@@ -63,4 +73,6 @@ acesso a rotas que exigem sessão.
 
 ## Decisões adiadas (não são alvo)
 - Persistência real entre reloads (viola o anonimato) — **não** alvo.
-- Rota `/export` dedicada — opcional, possivelmente uma spec 010.
+- **Rota `/export` dedicada — descartada** (Decision №1 da spec §11): o export
+  permanece um botão inline no `/reader`; não é um estado navegável próprio.
+  Reabrível só se surgir um fluxo de "conclusão pós-geração" que justifique tela.

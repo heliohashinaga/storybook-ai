@@ -3,6 +3,11 @@
 Roteamento é principalmente UX. Esta checklist garante que migrar para rotas não
 introduz regressões de acessibilidade ou usabilidade.
 
+> **Fonte única de rastreio de a11y/UX:** os itens abaixo são a fonte de verdade
+> para a barra de acessibilidade/usabilidade desta entrega. O §9 (DoD) da spec.md
+> os resume sináticamente e **não** os duplica como checkbox — marque `[X]` aqui
+> apenas, evitando fonte dupla/`drift`.
+
 ## Navegação & Foco
 - [ ] Ao navegar `/form` → `/reader` e volta, o **foco** move-se para o novo
       viewport (título ou container) de forma idempotente.

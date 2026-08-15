@@ -2,12 +2,18 @@
 
 Aceite de cada requisito desta spec. Marque conforme for satisfeito.
 
+> **Fonte única de rastreio:** esta checklist é a fonte de verdade para aceite; o
+> checklist §9 (Defition of Done) da spec.md espelha estes itens e **não** deve ser
+> mantido como segunda fonte (evitar drift). Atualize ambos apenas juntos.
+
 ## Funcional
 - [ ] Rota `/` redireciona para `/form`.
 - [ ] Rota `/form` renderiza o formulário de nova história (estado `drafting`).
-- [ ] Rota `/reader` renderiza o leitor da história ativa (estado `story`).
-- [ ] Rota `/export` renderiza a exportação in-memory/lazy (`@react-pdf/renderer`
-      lazy; fora do bundle inicial).
+- [ ] Rota `/reader` renderiza o leitor da história ativa (estado `story`),
+      incluindo o export de PDF inline (`ExportStoryButton`, PDF in-memory/lazy).
+- [ ] **Sem rota `/export`** como destino navegável (Decision №1 da spec §11): o
+      export de PDF permanece um botão no `/reader` (`@react-pdf/renderer` lazy;
+      fora do bundle inicial).
 - [ ] Multihistória: seleção da conta ativa só via `StorySessionContext` (UI
       interna); rota `/reader` **não** aceita `?story=` nesta entrega (adiado,
       spec §11).
@@ -28,7 +34,7 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
       fake provider) não contêm dados sensíveis.
 
 ## Sessão / Deep-link
-- [ ] `/reader` (ou `/export`) sem sessão ⇒ `redirect("/form")`.
+- [ ] `/reader` sem sessão ⇒ `redirect("/form")`.
 - [ ] Reload em rota que exige sessão resolve graciosamente para `/form` (sem
       tela morta, sem erro exposto).
 
@@ -43,8 +49,8 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
 
 ## Performance
 - [ ] Rota inicial ≤250 KiB gzip.
-- [ ] Leitor/export lazy; `@react-pdf/renderer` `lazy-import` apenas no export
-      (não no bundle inicial).
+- [ ] Leitor + export do PDF inline lazy; `@react-pdf/renderer` `lazy-import`
+      apenas no export (não no bundle inicial).
 
 ## Qualidade
 - [ ] `pnpm lint` 0 warnings (pós-último edit).
@@ -58,6 +64,8 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
 ## Fora de escopo (não implementar)
 - [ ] NÃO: persistência de história entre reloads (viola o anonimato).
 - [ ] NÃO: URLs canônicas com ids externos.
+- [ ] NÃO: rota dedicada `/export` (export permanece inline no `/reader`,
+      Decision №1 da spec §11).
 - [ ] NÃO: mudanças em `POST /api/stories`, `story-generation/*` ou OpenAPI.
 - [ ] NÃO: rota própria para a tela de progresso de geração (`/steps`) — é
       estado efêmero renderizado dentro de `/form` durante `submitting`.

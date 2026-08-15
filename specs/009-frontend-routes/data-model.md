@@ -11,7 +11,11 @@ Cada rota codifica unicamente a etapa do fluxo de UI. Não há dado de conteúdo
 | Campo     | Tipo       | Exemplo     | Persistente? | Sensível? |
 |-----------|------------|-------------|--------------|-----------|
 | `path`    | string     | `/form`     | não (URL)    | não       |
-| `screen`  | enum       | `form`/`reader`/`export` | não (in-memory) | não |
+| `screen`  | enum       | `form`/`reader` | não (in-memory) | não |
+
+> **Sem rota `/export`.** O export de PDF é um efeito colateral do leitor, não
+> um estado de tela próprio — permanece um botão inline no `/reader` (Decision
+> №1 da spec §11). Só há dois modos de tela navegáveis: `form` e `reader`.
 
 > **Sem query param de seleção.** A seleção da conta ativa no multihistória é
 > feita inteiramente via `StorySessionContext` (UI interna). O `?story=<i>` foi

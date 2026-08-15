@@ -19,7 +19,8 @@ invariantes que **não** podem ser quebrados.
 1. **Estrutura de rotas**
    - `src/app/page.tsx` → `redirect("/form")`.
    - `src/app/form/page.tsx`, `src/app/reader/page.tsx` (server-components).
-   - (opcional) `src/app/export/page.tsx`.
+   - **Sem rota `/export`** (Decision №1 da spec §11): export de PDF segue
+     inline no `/reader`.
 
 2. **Estado → rota**
    - `StorySessionContext` expõe `hasSession()`, `storyCount`, `activeIndex`.
@@ -28,6 +29,12 @@ invariantes que **não** podem ser quebrados.
 3. **Navegação real**
    - `top-nav` usa `router.push("/form")`; remover event bus
      (`requestHome`/`onHomeRequested` + `home-request-event.ts`).
+   - **Política push/replace (Clarifications):** `form→reader` usa
+     `router.replace` — o `/reader` substitui o `/form` no histórico; um único
+     "voltar" do navegador sai do app (não repassa pelo form transitório).
+     `router.push` só onde há "voltar" significativo (multistória).
+   - O caminho para "voltar ao `/form` limpo" é a navegação interna (ícone do
+     app / top-nav), não o histórico do navegador.
 
 4. **Session gate**
    - Guarda client p/ `redirect("/form")` quando faltar sessão (reload/deep-link).
@@ -56,5 +63,8 @@ pnpm build           # precisa passar
 ```
 
 ## Também verificar
-- Budgets: rota inicial ≤250 KiB gzip (`@react-pdf/renderer` lazy no export).
-- A11y: foco no novo viewport, `aria-current` no top-nav, `aria-live`/`aria-busy`.
+- Budgets: rota inicial ≤250 KiB gzip (`@react-pdf/renderer` lazy no export
+  inline do `/reader`).
+- A11y: foco no **`<h1>`** do viewport de destino ao navegar (`form→reader`),
+  `aria-current` no top-nav, `aria-live`/`aria-busy`. `/form` volta limpo (sem aba
+  de histórico); história/navegação multistória apenas no `/reader`.

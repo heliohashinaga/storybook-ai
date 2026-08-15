@@ -10,12 +10,13 @@
   (`StorySessionContext`); nada em cookies/localStorage/indexDB/cache.
 - Barreira servidor ↔ cliente via `server-only`; `POST /api/stories` é o único
   entry point de servidor.
-- **Decisão de roteamento (ADR 0009):** rotas (`form`/`reader`/`export`) modelam
+- **Decisão de roteamento (ADR 0009):** rotas (`form`/`reader`) modelam
   **somente a máquina de estados da UI**; nunca transporte de conteúdo.
 
 **Desconhecidos/NEEDS CLARIFICATION:** nenhum — ambos os pontos de escopo
-(`/export` e `?story=`) foram decididos em `/speckit.clarify` (2026-08-15) e
-alinhados na spec §11/§Clarifications.
+(`/export` descartado como rota — Decision №1 spec §11; `?story=` adiado) foram
+decididos em `/speckit.clarify` (2026-08-15) e alinhados na spec
+§11/§Clarifications.
 
 ## Constitution Check
 
@@ -35,11 +36,17 @@ Derivado de `.specify/memory/constitution.md` (v1.1.0):
 E2E pt-BR+EN; Storybook; budgets; cobertura (≥80% geral; ≥90%
 safety/validation/orchestration). **Violações não justificadas: nenhuma.
 
+> **Governance (constituição v1.1.0):** os valores numéricos acima (250 KiB, ≥80%/
+> ≥90%) estão **ratificados no AGENTS.md**, mas não na constituição — que ainda
+> traz `TODO(PERF_BUDGETS)`/`TODO(COVERAGE_THRESHOLD)`/`TODO(CI_GATES)`/`TODO(TECH_STACK)`/
+> `TODO(TOOLING)`. Isto não bloqueia esta feature (AGENTS.md + gates governam), mas é
+> um item de governança em aberto a ser fechado em emenda constitucional separada.
+
 ## Objetivo
-Introduzir rotas de interface (`/`, `/form`, `/reader`, `/export`) que
+Introduzir rotas de interface (`/`, `/form`, `/reader`) que
 modelem a **máquina de estados da UI**, removendo o event bus e dando "voltar"/
 navegação de URL reais, **sem** jamais transportar história/idade/identificador
-no URL.
+no URL. O export de PDF permanece inline no `/reader` (sem rota `export`).
 
 ## Princípios de implementação
 1. Rotas = **estado de tela**, nunca conteúdo. Nenhum dado sensível em path/query/
@@ -57,7 +64,8 @@ no URL.
   Ambos montam **o mesmo client wrapper** `<StoryRequestApp isFake={...}/>` —
   **sem prop `mode`**.
 - `src/app/page.tsx` passa a `redirect("/form")`.
-- **`src/app/export/page.tsx`** — rota dedicada, PDF in-memory/lazy.
+- **Sem rota `/export`** (Decision №1 da spec §11): o export de PDF continua
+  inline no `/reader` (PDF in-memory/lazy).
 
 ### Fase 1 — Refatoração de estado → rota
 - **Fonte única = rota.** `StoryRequestApp` deriva o modo (`form`|`reader`) do
@@ -68,8 +76,11 @@ no URL.
 
 ### Fase 2 — Navegação real
 - `top-nav`: substituir event bus (`requestHome`/`onHomeRequested`) por
-  `router.push("/form")` real.
-- Mapear transições de estado → `router.push`/`replace`.
+  `router.push("/form")` real (navegação interna para o form limpo).
+- Mapear transições de estado → **política push/replace (Clarifications):**
+  `form→reader` usa **`router.replace`** (reader substitui form no histórico;
+  "voltar" do navegador sai do app); `router.push` reservado para alvos com
+  "voltar" significativo (ex. troca de história no multistória).
 
 ### Fase 3 — Session gate
 - Guarda client p/ `redirect("/form")` (via `router.replace`) quando rota exige
@@ -80,8 +91,10 @@ no URL.
 ### Fase 4 — Testes e qualidade
 - Unitários/integração/E2E (pt-BR + EN) para navegação e estado perdido.
 - Storybook default/loading/error/edge p/ novas páginas.
-- Invariante de privacidade cobre URL **e logs**; a11y cobre `aria-busy` e
-  `aria-current` no roteamento.
+- Invariante de privacidade cobre URL **e logs**; a11y cobre `aria-busy`,
+  `aria-current` e **foco no `<h1>` do leitor** ao navegar (Clarifications).
+- `/form` volta **limpo** (sem aba de histórico); história/histórico/navegação
+  multistória **apenas no `/reader`** (Clarifications).
 - Budgets, a11y, `lint`/`format:check`/`typecheck` pós-último edit.
 
 ## Critérios de saída (rever spec §9)
@@ -100,6 +113,8 @@ no URL.
 - **research.md** — viabilidade e contraintes de rotas sem persistência (resolvido).
 - **data-model.md** — modelo de rota como estado de UI; `?story=` adiado.
 - **quickstart.md** — guia de validação end-to-end da feature.
-- **contracts/** — **não aplica**: a feature é de frontend; `POST /api/stories`
-  permanece inalterado (único contrato externo, já coberto por
-  `specs/001/contracts/story-generation.openapi.yaml`).
+- **contracts/** — `contracts/frontend-routing.md`: contrato comportamental da
+  máquina de estados de rota (estado→rota, política push/replace, session gate,
+  invariantes de privacidade e a11y do roteamento). A API de servidor é
+  inalterada — `POST /api/stories` continua coberto por
+  `specs/001/contracts/story-generation.openapi.yaml`.
