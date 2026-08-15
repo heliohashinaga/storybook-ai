@@ -4,7 +4,7 @@ description: "Lista de tarefas para implementação do recurso"
 
 # Tasks: Núcleo Comum dos Adapters de Provider
 
-**Input**: Documentos de design de `/specs/009-refactor-provider-core/`
+**Input**: Documentos de design de `/specs/008-refactor-provider-core/`
 
 **Prerequisites**: plan.md (obrigatório), spec.md (obrigatório; user stories US1-US3 refatoradas como objetivos de qualidade)
 
@@ -18,9 +18,9 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Purpose**: Preparar o contexto da refatoração e proteger o baseline.
 
-- [ ] T001 Verificar estado da árvore em `007-adopt-blossom-design` (commits fechados), criar branch `009-refactor-provider-core` e confirmar `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`).
+- [ ] T001 Verificar estado da árvore em `007-adopt-blossom-design` (commits fechados), criar branch `008-refactor-provider-core` e confirmar `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`).
 - [ ] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o resultado para comparar após a refatoração.
-- [ ] T003 Atualizar `.specify/feature.json` para apontar para `specs/009-refactor-provider-core` durante o desenvolvimento (e anotar para restaurar `007` ao final, se o workflow exigir).
+- [ ] T003 Atualizar `.specify/feature.json` para apontar para `specs/008-refactor-provider-core` durante o desenvolvimento (e anotar para restaurar `007` ao final, se o workflow exigir).
 
 **Checkpoint**: Árvore vaiária verde no baseline; branch 008 criado; a refatoração começa em terreno conhecido.
 
@@ -99,7 +99,7 @@ description: "Lista de tarefas para implementação do recurso"
 - [ ] T023 [P] [US3] Confirmar `src/features/story-generation/server/generation-runtime.ts`: atualizar apenas imports/seams se algum caminho de import dos adapters mudou; roteamento por provider (texto/moderação/imagem) permanece idêntico.
 - [ ] T024 [US3] Revisar `src/features/story-generation/server/fixed-dev-provider.ts` (287 linhas): consolidar fixtures determinísticas com as usadas nos testes/pipeline (sem re-declarar estruturas repetidas), só se isso não alterar comportamento fake.
 - [ ] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`, `pnpm build` — e registrar resultado (sem stale).
-- [ ] T026 [P] [US3] Atualizar documentação: se algum contrato mudou, ajustar `docs/adr/`/`story-generation.openapi.yaml` (esperado: N.A.); registrar a decisão de extração do núcleo em `docs/adr/` (ADR novo) e em `specs/009-refactor-provider-core/reviews.md`.
+- [ ] T026 [P] [US3] Atualizar documentação: se algum contrato mudou, ajustar `docs/adr/`/`story-generation.openapi.yaml` (esperado: N.A.); registrar a decisão de extração do núcleo em `docs/adr/` (ADR novo) e em `specs/008-refactor-provider-core/reviews.md`.
 - [ ] T027 [US3] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou conforme convenção do workflow) e atualizar/revisar `reviews.md`.
 
 **Checkpoint**: Recurso completo — duplicação eliminada, gates verdes na árvore suja, docs sincronizadas.

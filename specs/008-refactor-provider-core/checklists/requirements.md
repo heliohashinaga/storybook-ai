@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to implementation
 **Created**: 2026-08-14
-**Feature**: [spec.md](specs/009-refactor-provider-core/spec.md)
+**Feature**: [spec.md](specs/008-refactor-provider-core/spec.md)
 
 ## Content Quality
 

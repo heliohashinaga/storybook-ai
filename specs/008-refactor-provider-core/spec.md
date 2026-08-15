@@ -1,6 +1,6 @@
 # Especificação de Recurso: Núcleo Comum dos Adapters de Provider
 
-**Feature Branch**: `009-refactor-provider-core`
+**Feature Branch**: `008-refactor-provider-core`
 
 **Created**: 2026-08-14
 
@@ -120,7 +120,7 @@ real `STORIES_TEST_MODE=fake`.
 2. **Given** a árvore de trabalho com as alterações finais, **When** rodo os gates
    (lint/format/typecheck/coverage), **Then** todos passam na árvore suja — resultado
    pós-última-edição, não stale.
-3. **Given** o feature completo, **When** atualizo `specs/009-refactor-provider-core/` e o
+3. **Given** o feature completo, **When** atualizo `specs/008-refactor-provider-core/` e o
    `docs/adr/` se um contrato mudar, **Then** a documentação reflete o novo núcleo.
 
 ---
@@ -204,5 +204,5 @@ real `STORIES_TEST_MODE=fake`.
 - Tests nunca chamam IA real: apenas `STORIES_TEST_MODE=fake` com fixtures determinísticas.
 - Os prompts duplicados atuais são considerados **o baseline canônico**; a extração os move sem
   editar conteúdo.
-- `.specify/feature.json` deve apontar para `specs/009-refactor-provider-core` durante o
+- `.specify/feature.json` deve apontar para `specs/008-refactor-provider-core` durante o
   desenvolvimento, e restaurar 007 no fim, se a convenção o exigir (confirmar com o workflow).

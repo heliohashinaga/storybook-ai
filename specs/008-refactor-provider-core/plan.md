@@ -1,8 +1,8 @@
 # Plano de Implementação: Núcleo Comum dos Adapters de Provider
 
-**Branch**: `009-refactor-provider-core` | **Date**: 2026-08-14 | **Spec**: [spec.md](./spec.md)
+**Branch**: `008-refactor-provider-core` | **Date**: 2026-08-14 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Especificação de recurso de `/specs/009-refactor-provider-core/spec.md`
+**Input**: Especificação de recurso de `/specs/008-refactor-provider-core/spec.md`
 
 ## Summary
 
@@ -83,7 +83,7 @@ Avaliação contra `.specify/memory/constitution.md` v1.1.0:
 ### Documentation (this feature)
 
 ```text
-specs/009-refactor-provider-core/
+specs/008-refactor-provider-core/
 ├── spec.md
 ├── plan.md
 └── tasks.md
