@@ -58,8 +58,18 @@ export function NarrationControl({
   const buttonLabel = t(labelKey);
 
   return (
-    <span aria-busy={active || undefined} role="group" aria-label={t("control")}>
-      <Button variant="secondary" aria-pressed={active} onClick={onToggle}>
+    <span
+      aria-busy={active || undefined}
+      role="group"
+      aria-label={t("control")}
+      className="flex w-full flex-col"
+    >
+      <Button
+        variant="secondary"
+        aria-pressed={active}
+        onClick={onToggle}
+        className="w-full rounded-2xl! bg-secondary! text-secondary-foreground! font-bold! hover:brightness-95!"
+      >
         {active ? <PauseIcon className="size-5" /> : <Volume2Icon className="size-5" />}
         {buttonLabel}
       </Button>
