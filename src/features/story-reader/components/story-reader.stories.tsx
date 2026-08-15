@@ -232,7 +232,7 @@ export const ShowMoreExpanded: Story = {
     await expect(toggleExpanded).toHaveAttribute("aria-expanded", "true");
     // Collapsing again restores the compact label.
     await userEvent.click(toggleExpanded);
-    await expect(canvas.findByRole("button", { name: /mostrar mais/i })).toBeVisible();
+    await expect(await canvas.findByRole("button", { name: /mostrar mais/i })).toBeVisible();
   },
 };
 
