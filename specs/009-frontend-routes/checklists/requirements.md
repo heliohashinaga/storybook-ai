@@ -6,15 +6,16 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
 - [ ] Rota `/` redireciona para `/form`.
 - [ ] Rota `/form` renderiza o formulário de nova história (estado `drafting`).
 - [ ] Rota `/reader` renderiza o leitor da história ativa (estado `story`).
-- [ ] (Opcional) Rota `/export` para a exportação in-memory/lazy.
-- [ ] Multihistória: `/reader` pode aceitar `?story=<i>` (índice de sessão),
-      sempre revalidado contra a lista em memória; fora de faixa ⇒ ignorado.
+- [ ] Rota `/export` renderiza a exportação in-memory/lazy (`@react-pdf/renderer`
+      lazy; fora do bundle inicial).
+- [ ] Multihistória: seleção da conta ativa só via `StorySessionContext` (UI
+      interna); rota `/reader` **não** aceita `?story=` nesta entrega (adiado,
+      spec §11).
 - [ ] `top-nav` navega por `router.push("/form")`; event bus
       (`requestHome`/`onHomeRequested` + `home-request-event.ts`) removido.
 - [ ] **Fonte única = rota:** modo tela (`form`|`reader`) derivado do path via
       `usePathname()`; `StoryRequestApp` **não** recebe prop `mode`;
       `draftingNew`/`status` derivam do path e nunca o duplicam (spec §6.2).
-- [ ] `?story=<i>` é gerado **apenas** quando há >1 história na sessão.
 
 ## Privacidade / Anonimato (não-negociável)
 - [ ] Nenhuma história, idade exata, `ageBand`, `locale` derivado, UUID ou

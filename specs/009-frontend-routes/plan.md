@@ -1,7 +1,42 @@
 # Plan — Spec 009 Frontend Routes
 
+## Technical Context
+
+**Stack/architecture (reinfo do AGENTS.md e specs anteriores):**
+- Next.js 16 (App Router) + React 19, TypeScript strict, Tailwind v4
+  (design tokens), next-intl (`pt-BR`|`en`), Zod, Vitest + Playwright + Storybook
+  test-runner. `@react-pdf/renderer` lazy no export.
+- Anônimo por design: nenhum identificador; sessão apenas em memória React
+  (`StorySessionContext`); nada em cookies/localStorage/indexDB/cache.
+- Barreira servidor ↔ cliente via `server-only`; `POST /api/stories` é o único
+  entry point de servidor.
+- **Decisão de roteamento (ADR 0009):** rotas (`form`/`reader`/`export`) modelam
+  **somente a máquina de estados da UI**; nunca transporte de conteúdo.
+
+**Desconhecidos/NEEDS CLARIFICATION:** nenhum — ambos os pontos de escopo
+(`/export` e `?story=`) foram decididos em `/speckit.clarify` (2026-08-15) e
+alinhados na spec §11/§Clarifications.
+
+## Constitution Check
+
+Derivado de `.specify/memory/constitution.md` (v1.1.0):
+
+- **I. Code Quality:** rotas novas seguem tokens/dead-code; modos derivados de
+  `usePathname()` (fonte única); sem `any`; lint/format limpos — atendido.
+- **II. Testing Standards:** test-first por tarefa (T300+ têm "test a escrever");
+  tiers unit/integração/E2E + Storybook; determinístico — **atendido** (ver
+  tasks.md e checklists).
+- **III. UX Consistency:** a11y (foco, `aria-current`, `aria-busy`), tokens,
+  stories default/edge/error, comportamento idêntico app↔Storybook — atendido.
+- **IV. Performance:** rota inicial ≤250 KiB gzip; `@react-pdf/renderer` lazy;
+  leitor/export lazy — atendido (budget de 250 KiB definido no AGENTS.md e spec).
+
+**Gates:** lint (0 warnings), format:check, typecheck pós-último edit; tests;
+E2E pt-BR+EN; Storybook; budgets; cobertura (≥80% geral; ≥90%
+safety/validation/orchestration). **Violações não justificadas: nenhuma.
+
 ## Objetivo
-Introduzir rotas de interface (`/`, `/form`, `/reader`, `/export` opcional) que
+Introduzir rotas de interface (`/`, `/form`, `/reader`, `/export`) que
 modelem a **máquina de estados da UI**, removendo o event bus e dando "voltar"/
 navegação de URL reais, **sem** jamais transportar história/idade/identificador
 no URL.
@@ -22,7 +57,7 @@ no URL.
   Ambos montam **o mesmo client wrapper** `<StoryRequestApp isFake={...}/>` —
   **sem prop `mode`**.
 - `src/app/page.tsx` passa a `redirect("/form")`.
-- (Opcional) `src/app/export/page.tsx`.
+- **`src/app/export/page.tsx`** — rota dedicada, PDF in-memory/lazy.
 
 ### Fase 1 — Refatoração de estado → rota
 - **Fonte única = rota.** `StoryRequestApp` deriva o modo (`form`|`reader`) do
@@ -36,11 +71,11 @@ no URL.
   `router.push("/form")` real.
 - Mapear transições de estado → `router.push`/`replace`.
 
-### Fase 3 — Session gate + opcional ?story=
+### Fase 3 — Session gate
 - Guarda client p/ `redirect("/form")` (via `router.replace`) quando rota exige
   sessão sem ela.
-- (Opcional) `?story=<i>` apenas como seleção em memória, sempre revalidado;
-  trigger: link gerado só quando >1 história na sessão. Com 1 história, omitido.
+- Seleção multistória segue só via `StorySessionContext`; `?story=` adiado (fora
+  do escopo — spec §11).
 
 ### Fase 4 — Testes e qualidade
 - Unitários/integração/E2E (pt-BR + EN) para navegação e estado perdido.
@@ -60,3 +95,11 @@ no URL.
 - Vazar conteúdo na URL (invariante em testes).
 - Reload `/reader` sem sessão (redirect gracioso).
 - Regressão a11y/bundle (foco + lazy-load).
+
+## Artefatos de design (Phase 0/1)
+- **research.md** — viabilidade e contraintes de rotas sem persistência (resolvido).
+- **data-model.md** — modelo de rota como estado de UI; `?story=` adiado.
+- **quickstart.md** — guia de validação end-to-end da feature.
+- **contracts/** — **não aplica**: a feature é de frontend; `POST /api/stories`
+  permanece inalterado (único contrato externo, já coberto por
+  `specs/001/contracts/story-generation.openapi.yaml`).

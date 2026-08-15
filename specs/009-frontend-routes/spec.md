@@ -11,6 +11,15 @@ anonimato e "no persistence".
 
 ---
 
+## Clarifications
+
+### Session 2026-08-15
+
+- Q: A rota `/export` deve fazer parte desta spec, ser adiada ou descartada? → A: Incluir `/export` nesta spec (rota dedicada, PDF lazy/in-memory).
+- Q: O query param `?story=<i>` deve entrar no escopo desta spec, ser adiado ou descartado? → A: Adiar `?story=<i>` para uma futura spec; seleção só via UI interna do multistória.
+
+---
+
 ## 1. Contexto e Problema
 
 O aplicativo (`storybook-ai`) é hoje uma **SPA de rota única**: `src/app/`
@@ -73,8 +82,7 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
   semântica de fluxo, sem sacrificar o anonimato.
 
 ### 3.2 Objetivos de engenharia
-- **OBJ-1** — Criar rotas de interface: `/form` e `/reader` (e opcionalmente
-  `/export`).
+- **OBJ-1** — Criar rotas de interface: `/form`, `/reader` e `/export`.
 - **OBJ-2** — Remover o event bus `requestHome`/`onHomeRequested` e usar
   `router.push` reais para a navegação entre telas.
 - **OBJ-3** — Garantir que a máquina de estados "form/reader" seja transcrita 1:1
@@ -89,8 +97,9 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 ## 4. Escopo
 
 ### Inclui
-- Rotas `/form` e `/reader` (server-components de página). `/` redireciona para
-  `/form` (rotina), mantendo compatibilidade com deep-links velhos.
+- Rotas `/form`, `/reader` e `/export` (server-components de página). `/`
+  redireciona para `/form` (rotina), mantendo compatibilidade com deep-links
+  velhos.
 - Refatoração de `StoryRequestApp`/`StorySessionContext` para derivar o modo de
   tela (`form` vs `reader`) da rota atual, em vez de um booleano ad-hoc.
 - `top-nav` navega por `router.push` real; remoção do event bus.
@@ -101,8 +110,8 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 - Rotas que embarquem histórias ou ids persistentes (impossível por design).
 - Persistência entre reloads (exceto a resolução graciosa).
 - Mudanças no `POST /api/stories`, `story-generation/*` ou no OpenAPI.
-- Rota de exportação por URL (`/export`) é **opcional** nesta spec; o PDF
-  permanece gerado no leitor (in-memory).
+- Rota de exportação por URL (`/export`) é **incluída** nesta spec; o PDF
+  permanece gerado in-memory e lazy-loaded (`@react-pdf/renderer` lazy).
 
 > **Nota — a tela de progresso de geração NÃO é uma rota.** O componente
 > `StoryGenerationProgress` (a tela de steps "writing → illustrating → safety
@@ -134,15 +143,13 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 | `/`       | redireciona → `/form`  | não            | `redirect("/form")`      |
 | `/form`   | drafting               | não            | —                        |
 | `/reader` | story (leitura)        | sim            | `redirect("/form")`      |
-| `/export` | (opcional) exportação  | sim            | `redirect("/form")`      |
+| `/export` | exportação (PDF)     | sim            | `redirect("/form")`      |
 
-**Nota:** o multihistória atual seleciona a conta ativa por **`activeId`** (id
-de história) em memória, e a sessão expõe também `activeIndex` (índice
-0-based) para tela/logica. O query `?story=<i>` usa o **índice** (`activeIndex`),
-sempre revalidado contra `storyCount`; fora de faixa ⇒ ignorado. O trigger
-(`?story=` presente) é definido: o histórico/multistória gera o link com o
-índice **apenas** quando há >1 história na sessão; com 1 história o link é
-omitido.
+**Nota — seleção multistória.** A conta ativa é selecionada inteiramente via
+`StorySessionContext` em memória (`activeId`/`activeIndex`, 0-based), sem
+query param. O `?story=<i>` de seleção por índice foi **adiado** (fora do escopo
+desta spec — ver §11). A seleção ocorre só pela UI interna do multistória; a
+rota `/reader` não recebe índice pela URL nesta entrega.
 
 ---
 
@@ -153,7 +160,7 @@ omitido.
 src/app/page.tsx         → redirect("/form")
 src/app/form/page.tsx    → <StoryRequestApp isFake={...}/>
 src/app/reader/page.tsx  → <StoryRequestApp isFake={...}/>
-src/app/export/page.tsx  → (opcional)
+src/app/export/page.tsx  → <ExportFlow isFake={...}/> (PDF lazy/in-memory)
 ```
 
 **Fonte única de verdade = a rota.** `StoryRequestApp` **não recebe prop `mode`**;
@@ -223,7 +230,8 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 1. **Unitários (vitest):**
    - Mapeamento estado→rota (guarda de transição) — nenhum dado sensível em
      params.
-   - Validation de `?story=<i>` fora de faixa ⇒ ignorado.
+   - Seleção multistória não aceita `?story=` na URL (adiado); seleção só via
+     `StorySessionContext`.
 2. **Integração (rota + invariantes):**
    - `/reader` sem sessão ⇒ `redirect("/form")`.
    - `/` ⇒ `redirect("/form")`.
@@ -261,7 +269,8 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
       após o último edit.
 - [ ] Budgets de performance respeitados (rota inicial ≤250 KiB gzip).
 - [ ] A11y bar atendida (foco, `aria-current`, `aria-live`/`aria-busy`).
-- [ ] Se `/export` incluído: PDF continua in-memory e lazy-loaded.
+- [ ] `/export` incluído: PDF continua in-memory e lazy-loaded (budget 250 KiB
+      mantido; `@react-pdf/renderer` lazy no export).
 
 ---
 
@@ -281,7 +290,9 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 
 - **Persistência real entre reloads** (história sobreviver ao refresh) — **não**
   é alvo desta spec (violaria o anonimato). Adiada indefinidamente.
-- Rota de exportação `/export` — opcional, pode ficar para uma spec 010.
+- **Query `?story=<i>` (seleção por índice na URL)** — adiado para uma futura
+  spec; seleção multistória segue só via UI interna do `StorySessionContext`
+  nesta entrega.
 - URLs "canônicas/compativeis" com ids externos — rejeitadas por design.
 
 ---
