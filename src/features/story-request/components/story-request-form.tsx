@@ -192,7 +192,7 @@ export function StoryRequestForm({
           aria-label={t("form.locale.label")}
           className="mt-3 grid grid-cols-2 gap-3"
         >
-          {(["pt-BR", "en"] as const).map((option) => {
+          {(["en", "pt-BR"] as const).map((option) => {
             const on = locale === option;
             return (
               <button
