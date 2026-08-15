@@ -1,4 +1,5 @@
 import "server-only";
+export { APP_NAME, OPENROUTER_APP_HEADERS } from "./app-identity";
 export { parseChatJson } from "./chat-json";
 export { isWebP, postImages, toWebPDataUri } from "./image-client";
 export type { PostImagesRequest, RawImage, WebPEncoder } from "./image-client";

@@ -1,5 +1,6 @@
 import "server-only";
 import { ProviderError } from "../story-generation-provider";
+import { OPENROUTER_APP_HEADERS } from "./app-identity";
 import {
   DEFAULT_MAX_DATA_URI_LENGTH,
   WEBP_DATA_URI_PREFIX,
@@ -48,6 +49,7 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
+        ...OPENROUTER_APP_HEADERS,
       },
       body: JSON.stringify({
         model: imageModel,

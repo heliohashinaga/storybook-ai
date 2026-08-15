@@ -55,6 +55,16 @@ describe("provider-core image-client postImages", () => {
     expect(result).toMatchObject({ bytes: expect.any(Uint8Array) });
   });
 
+  it("sends the OpenRouter app identity headers (X-Title / HTTP-Referer)", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() =>
+      jsonResponse({ data: [{ b64_json: WEBP_B64, media_type: "image/webp" }] })
+    );
+    await postImages({ ...baseReq, fetchImpl });
+    const headers = new Headers(calls[0]!.init.headers);
+    expect(headers.get("x-title")).toBe("Storybook AI");
+    expect(headers.get("http-referer")).toContain("https://");
+  });
+
   it("fetches bytes from url when b64_json is absent", async () => {
     const { fetchImpl, calls } = createFakeFetch(({ url }) => {
       if (url.includes("/images")) {

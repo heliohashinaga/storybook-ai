@@ -17,6 +17,7 @@ import {
   storyCandidateSchema,
   toProviderError,
   toWebPDataUri,
+  OPENROUTER_APP_HEADERS,
 } from "./provider-core";
 import { moderate } from "./provider-core/moderation";
 
@@ -82,6 +83,7 @@ function buildChatClient(deps: OpenRouterDeps) {
   return new OpenAI({
     apiKey,
     baseURL: baseUrl,
+    defaultHeaders: OPENROUTER_APP_HEADERS,
     timeout: timeoutMs,
     maxRetries,
     fetch: fetchImpl,
