@@ -6,7 +6,7 @@ import { getMessages } from "../../src/i18n/config";
 import {
   StoryGenerationProgress,
   getGenerationStage,
-  stageProgressPercent,
+  barPercent,
 } from "../../src/features/story-request/components/story-generation-progress";
 
 function renderProgress(props: {
@@ -68,11 +68,17 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
     expect(bar).toHaveAttribute("aria-valuenow", "1");
   });
 
-  describe("stageProgressPercent — §7.3 bar width formula", () => {
-    it("maps each stage to its progressive width", () => {
-      expect(Math.round(stageProgressPercent(0))).toBe(33);
-      expect(Math.round(stageProgressPercent(1))).toBe(67);
-      expect(Math.round(stageProgressPercent(2))).toBe(100);
+  describe("barPercent — §7.3 continuous bar width (decoupled from steps)", () => {
+    it("starts at 0 and ramps smoothly toward 100", () => {
+      expect(barPercent(0)).toBe(0);
+      expect(barPercent(10)).toBe(50);
+      expect(barPercent(16)).toBe(80); // step 3 lights before full
+    });
+
+    it("caps at 100 and clamps negatives", () => {
+      expect(barPercent(20)).toBe(100);
+      expect(barPercent(999)).toBe(100);
+      expect(barPercent(-5)).toBe(0);
     });
   });
 });

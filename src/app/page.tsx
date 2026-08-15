@@ -6,9 +6,10 @@ import { StoryRequestApp } from "../features/story-request/components/story-requ
  * client `StoryRequestApp`; this stays a server component by default.
  */
 export default function HomePage() {
+  const isFake = process.env.STORIES_TEST_MODE === "fake";
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-md px-4 pb-16 pt-6 sm:px-6 lg:px-12">
-      <StoryRequestApp />
+      <StoryRequestApp isFake={isFake} />
     </div>
   );
 }

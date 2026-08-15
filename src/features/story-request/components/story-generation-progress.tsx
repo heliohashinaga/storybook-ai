@@ -20,6 +20,10 @@ export const ILLUSTRATING_AT_SECONDS = 8;
 export const REVIEWING_AT_SECONDS = 16;
 export const TIMEOUT_CUE_AT_SECONDS = 30;
 
+/** When the continuous bar reaches 100% (kept above REVIEWING so the final
+ * step can light up *before* the bar completes — decouples bar↔step). */
+export const BAR_COMPLETES_AT_SECONDS = 20;
+
 export type StoryGenerationProgressPhase =
   "generating" | "timeout" | "safety-retry" | "provider-failure";
 
@@ -30,18 +34,28 @@ export interface StoryGenerationProgressProps {
   elapsedSeconds?: number;
   /** Retry action for the provider-failure state (rendered only when set). */
   onRetry?: () => void;
+  /** Override start-of-illustrating threshold (default `ILLUSTRATING_AT_SECONDS`). */
+  illustratingAtSeconds?: number;
+  /** Override start-of-reviewing threshold (default `REVIEWING_AT_SECONDS`). */
+  reviewingAtSeconds?: number;
 }
 
 /** Pure stage mapping: elapsed seconds → stage index (0 writing, 1 illustrating, 2 reviewing). */
-export function getGenerationStage(elapsedSeconds: number): 0 | 1 | 2 {
-  if (elapsedSeconds >= REVIEWING_AT_SECONDS) return 2;
-  if (elapsedSeconds >= ILLUSTRATING_AT_SECONDS) return 1;
+export function getGenerationStage(
+  elapsedSeconds: number,
+  illustratingAt = ILLUSTRATING_AT_SECONDS,
+  reviewingAt = REVIEWING_AT_SECONDS
+): 0 | 1 | 2 {
+  if (elapsedSeconds >= reviewingAt) return 2;
+  if (elapsedSeconds >= illustratingAt) return 1;
   return 0;
 }
 
-/** §7.3 bar width formula for a given stage index. */
-export function stageProgressPercent(stage: number): number {
-  return ((stage + 1) / 3) * 100;
+/** Continuous bar width (%): ramps 0→100 smoothly up to `BAR_COMPLETES_AT_SECONDS`,
+ * so a step can activate before the bar is full (decouples bar↔step). */
+export function barPercent(elapsedSeconds: number, completesAt = BAR_COMPLETES_AT_SECONDS): number {
+  if (completesAt <= 0) return 100;
+  return Math.min(100, Math.max(0, (elapsedSeconds / completesAt) * 100));
 }
 
 const STAGES = ["stageWriting", "stageIllustrating", "stageReviewing"] as const;
@@ -75,6 +89,8 @@ export function StoryGenerationProgress({
   phase = "generating",
   elapsedSeconds = 0,
   onRetry,
+  illustratingAtSeconds = ILLUSTRATING_AT_SECONDS,
+  reviewingAtSeconds = REVIEWING_AT_SECONDS,
 }: StoryGenerationProgressProps) {
   const t = useTranslations("story.progress");
 
@@ -93,7 +109,7 @@ export function StoryGenerationProgress({
 
   const isTimeout = phase === "timeout" || elapsedSeconds >= TIMEOUT_CUE_AT_SECONDS;
   const isSafetyRetry = phase === "safety-retry";
-  const stage = getGenerationStage(elapsedSeconds);
+  const stage = getGenerationStage(elapsedSeconds, illustratingAtSeconds, reviewingAtSeconds);
 
   const message = isSafetyRetry
     ? t("safetyRetry")
@@ -101,7 +117,7 @@ export function StoryGenerationProgress({
       ? t("timeout")
       : stageMessage(t, stage);
 
-  const percent = stageProgressPercent(stage);
+  const percent = barPercent(elapsedSeconds);
 
   return (
     <section

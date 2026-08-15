@@ -19,15 +19,15 @@ import {
  * `sceneCount`, parses the response through `story-response` (typed, sanitized),
  * and shows the approved 3–5 scene story locally in memory (never persisted).
  */
-export function StoryRequestApp() {
+export function StoryRequestApp({ isFake = false }: { isFake?: boolean }) {
   return (
     <StorySessionProvider>
-      <StoryRequestFlow />
+      <StoryRequestFlow isFake={isFake} />
     </StorySessionProvider>
   );
 }
 
-function StoryRequestFlow() {
+function StoryRequestFlow({ isFake }: { isFake: boolean }) {
   const t = useTranslations("story");
   const { status, story, stories, activeId, begin, succeed, fail, accessStory, lastPreferences } =
     useStorySession();
@@ -53,9 +53,17 @@ function StoryRequestFlow() {
 
   if (submitting) {
     // Show only the loading panel (blossom-style) while the anonymous request
-    // is in flight. The form mounts fresh on success/fallback, so the localized
-    // retry error renders against the idle form instead.
-    return <StoryGenerationProgress elapsedSeconds={elapsed} />;
+    // is in flight. In fake mode the step thresholds accelerate so the three
+    // stages complete quickly for visual review (B). The form mounts fresh on
+    // success/fallback, so the localized retry error renders against the idle
+    // form instead.
+    return (
+      <StoryGenerationProgress
+        elapsedSeconds={elapsed}
+        illustratingAtSeconds={isFake ? 2 : undefined}
+        reviewingAtSeconds={isFake ? 5 : undefined}
+      />
+    );
   }
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
