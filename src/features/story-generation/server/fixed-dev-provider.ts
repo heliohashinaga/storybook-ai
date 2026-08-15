@@ -9,16 +9,16 @@ import type {
  * Optional artificial latency so the story-request loading/progress screen is
  * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
  *
- * Controlled by `STORY_FAKE_DELAY_MS` (default 9000ms per fake call). The story
- * fetch is one call plus the scene illustrations; a per-call delay of ~9000ms
- * makes the overall fake generation last ~18s so the loading screen advances
- * through its elapsed-based stages (writing→illustrating→reviewing) and each
- * step is seen completing. Disabled under tests (`NODE_ENV=test`, set by Vitest)
- * so the unit suite stays fast and deterministic.
+ * Controlled by `STORY_FAKE_DELAY_MS` (default 5000ms per fake call). The story
+ * fetch is one call plus the scene illustrations; a per-call delay of ~5000ms
+ * makes the overall fake generation last ~10s so the loading screen still
+ * advances through its elapsed-based stages (writing→illustrating→reviewing)
+ * and shows steps completing, without feeling slow. Disabled under tests
+ * (`NODE_ENV=test`, set by Vitest) so the unit suite stays fast/deterministic.
  */
 function fakeModeDelay(): Promise<void> {
   if (process.env.NODE_ENV === "test") return Promise.resolve();
-  const ms = Number(process.env.STORY_FAKE_DELAY_MS ?? "9000");
+  const ms = Number(process.env.STORY_FAKE_DELAY_MS ?? "5000");
   if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
