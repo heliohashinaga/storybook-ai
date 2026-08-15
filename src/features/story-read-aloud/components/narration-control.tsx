@@ -60,7 +60,7 @@ export function NarrationControl({
   return (
     <span aria-busy={active || undefined} role="group" aria-label={t("control")}>
       <Button variant="secondary" aria-pressed={active} onClick={onToggle}>
-        <Volume2Icon className="size-5" />
+        {active ? <PauseIcon className="size-5" /> : <Volume2Icon className="size-5" />}
         {buttonLabel}
       </Button>
       <span aria-live="polite" className="sr-only">
@@ -72,6 +72,22 @@ export function NarrationControl({
         </span>
       ) : null}
     </span>
+  );
+}
+
+/** Inline Pause icon shown while narration is playing (lucide-style). */
+function PauseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
   );
 }
 
