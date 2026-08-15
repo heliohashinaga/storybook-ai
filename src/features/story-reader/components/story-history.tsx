@@ -34,10 +34,8 @@ export function StoryHistory({
       className="flex h-full w-full flex-col rounded-4xl border border-border bg-card p-md shadow-soft"
     >
       <h2 className="px-xs font-display text-title font-bold">{t("label")}</h2>
-      <p className="mb-sm mt-1 px-xs text-caption leading-snug text-text-subtle">
-        {tr("sessionOnly")}
-      </p>
-      <ul className="space-y-xs">
+      <p className="mb-3 px-xs text-caption leading-snug text-text-subtle">{tr("sessionOnly")}</p>
+      <ul className="space-y-2">
         {sortByNewest(storyEntries).map((entry) => {
           const isActive = entry.id === activeId;
           const thumbnail = entry.story.scenes[0];
@@ -51,7 +49,7 @@ export function StoryHistory({
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
                 aria-label={ariaLabel}
-                className={`flex w-full items-center gap-sm rounded-2xl border-2 p-2 text-left transition-colors ${
+                className={`flex w-full items-center gap-3 rounded-2xl border-2 p-2 text-left transition-colors ${
                   isActive
                     ? "border-primary bg-secondary"
                     : "border-transparent hover:bg-secondary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"

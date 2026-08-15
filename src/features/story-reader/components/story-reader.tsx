@@ -133,7 +133,7 @@ export function StoryReader({
               onClick={() => goTo(currentIndex - 1)}
               disabled={currentIndex === 0}
             >
-              <ChevronLeftIcon className="size-4" />
+              <ChevronLeftIcon className="size-5" />
               {t("previous")}
             </Button>
 
@@ -154,7 +154,7 @@ export function StoryReader({
               disabled={currentIndex === total - 1}
             >
               {t("next")}
-              <ChevronRightIcon className="size-4" />
+              <ChevronRightIcon className="size-5" />
             </Button>
           </nav>
         </div>
