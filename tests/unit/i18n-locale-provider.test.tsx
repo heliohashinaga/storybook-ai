@@ -39,7 +39,7 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
   it("defaults to pt-BR messages and exposes the locale", () => {
     renderProbe();
     expect(screen.getByTestId("subtitle")).toHaveTextContent(
-      "Escolha um tema, diga a idade e receba uma história única."
+      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
     );
     expect(screen.getByTestId("locale")).toHaveTextContent("pt-BR");
   });
@@ -49,7 +49,7 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     renderProbe();
     await user.click(screen.getByRole("button", { name: "to-en" }));
     expect(screen.getByTestId("subtitle")).toHaveTextContent(
-      "Pick a theme, set an age, and get a one-of-a-kind story."
+      "Make bedtime a little more magical with a story that is only theirs — to read together."
     );
     expect(screen.getByTestId("locale")).toHaveTextContent("en");
     // The page language follows the experience language (a11y).
@@ -62,7 +62,7 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     await user.click(screen.getByRole("button", { name: "to-en" }));
     await user.click(screen.getByRole("button", { name: "to-pt" }));
     expect(screen.getByTestId("subtitle")).toHaveTextContent(
-      "Escolha um tema, diga a idade e receba uma história única."
+      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
     );
     expect(document.documentElement.lang).toBe("pt-BR");
   });
@@ -71,7 +71,7 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     renderProbe("fr" as never);
     expect(screen.getByTestId("locale")).toHaveTextContent("pt-BR");
     expect(screen.getByTestId("subtitle")).toHaveTextContent(
-      "Escolha um tema, diga a idade e receba uma história única."
+      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
     );
   });
 });
