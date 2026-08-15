@@ -108,20 +108,23 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Independent Test**: execução do pipeline completo com a árvore suja (não-deployed) em `STORIES_TEST_MODE=fake`.
 
-- [ ] T023 [P] [US3] Confirmar `src/features/story-generation/server/generation-runtime.ts`: atualizar apenas imports/seams se algum caminho de import dos adapters mudou; roteamento por provider (texto/moderação/imagem) permanece idêntico.
-- [ ] T024 [US3] Revisar `src/features/story-generation/server/fixed-dev-provider.ts` (287 linhas): consolidar fixtures determinísticas com as usadas nos testes/pipeline (sem re-declarar estruturas repetidas), só se isso não alterar comportamento fake.
-- [ ] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`,
+- [x] T023 [P] [US3] Confirmar `src/features/story-generation/server/generation-runtime.ts`: atualizar apenas imports/seams se algum caminho de import dos adapters mudou; roteamento por provider (texto/moderação/imagem) permanece idêntico.
+- [x] T024 [US3] Revisar `src/features/story-generation/server/fixed-dev-provider.ts` (287 linhas): consolidar fixtures determinísticas com as usadas nos testes/pipeline (sem re-declarar estruturas repetidas), só se isso não alterar comportamento fake.
+- [x] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`,
   `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`,
   `pnpm build` — registrar resultado (sem stale). **Anexar a verificação de SC-005**: `wc -l`/`git diff
   --stat` dos dois adapters (antes vs depois) e checagem de cobertura pós-remoção.
-- [ ] T026 [P] [US3] Atualizar documentação de contrato, se algo mudou (esperado: N.A. —
+  **Resultado**: todos os gates passam na árvore suja (lint 0 avisos; format:check limpo; typecheck ok;
+  test 535 verdes; coverage Lines 92.58%/Statements 91.27%/Branches 82.92%/Functions 91.11%; build ok).
+  **SC-005**: openrouter 350→168; opencode 231→120; create-opencode-illustration 125→60.
+- [x] T026 [P] [US3] Atualizar documentação de contrato, se algo mudou (esperado: N.A. —
   `story-generation.openapi.yaml` mantido). Registro do ADR novo da extração fica em T028.
-- [ ] T027 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a
+- [x] T027 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a
   refatoração não introduziu identificador direto novo nos payloads/fakes, mantendo a fronteira
   `server-only` e `POST /api/stories` como única entrada (FR-006). Registrar resultado em
   `reviews.md`.
-- [ ] T028 [P] [US3] Atualizar `docs/adr/` e `specs/008-refactor-provider-core/reviews.md` com a
-decisão de extração do núcleo (ADR novo).
+- [x] T028 [P] [US3] Atualizar `docs/adr/` e `specs/008-refactor-provider-core/reviews.md` com a
+decisão de extração do núcleo (ADR novo). `docs/adr/0008-provider-core-extraction.md` criado.
 
 **Checkpoint**: Recurso completo — duplicação eliminada, gates verdes na árvore suja, docs sincronizadas.
 
@@ -157,7 +160,7 @@ sem-overflow e validar acessibilidade (contraste AA, teclado), incluindo mudanç
 expansão.
 - [x] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
 árvore suja; ajustar se a borda do `aria-live`/foco de navegação for afetada.
-- [ ] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
+- [x] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
 conforme convenção do workflow) e finalizar `reviews.md`. **Tarefa final do recurso** (após US4).
 
 **Checkpoint**: US4 completo — corpo colapsável acessível no desktop, mobile expande, botão só com
