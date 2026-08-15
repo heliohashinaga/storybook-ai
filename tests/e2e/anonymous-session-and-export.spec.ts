@@ -1,17 +1,22 @@
 import { test, expect, type Page } from "@playwright/test";
+import { switchToPortuguese } from "./helpers";
 
 /**
- * Anonymous multi-story session journey (US3, T046).
+ * Anonymous multi-story session journey (US3, T046) on the new frontend routes.
  *
- * Drives the real `POST /api/stories` route (deterministic dev provider — never
- * a live AI service) to verify the anonymous, in-memory session contract:
- *   1. "Gerar outra história" (generate another) appends a NEW story instead of
- *      replacing the current one, and reuses the browser-bound age band,
- *      language and last theme without re-asking (T050).
- *   2. There is no story-count cap: repeated generations keep working.
- *   3. A full page reload restores nothing — no exact age, preferences, or
+ * Spec 009 changed the flow: the reader's "Nova história" button navigates to
+ * the clean `/form` (internal navigation, Clarifications Q2/Q3) instead of
+ * regenerating inline. This spec drives the REAL `POST /api/stories` route
+ * (deterministic dev provider — never a live AI service) to verify the
+ * anonymous, in-memory session contract on the routed app:
+ *   1. A successful generation navigates to `/reader` (`replace`).
+ *   2. "Nova história" returns to the clean `/form`; the next generation
+ *      APPENDS a new story instead of replacing the current one, reusing the
+ *      session's age band / language / theme defaults (T050).
+ *   3. There is no story-count cap: repeated generations keep working.
+ *   4. A full page reload restores nothing — no exact age, preferences, or
  *      prior stories (quickstart "Anonymous session behavior" item 4).
- *   4. No-persistence audit: browser storage, cookies and the URL contain no
+ *   5. No-persistence audit: browser storage, cookies and the URL contain no
  *      direct identifier, exact age, preferences, or story content.
  *
  * Mirrors the route-handling convention from `generate-pt-br.spec.ts`: the
@@ -80,19 +85,22 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
 }) => {
   const payloads = await captureStoryCalls(page);
 
-  await page.goto("/");
+  await page.goto("/form");
+  await switchToPortuguese(page);
 
   // No name / direct-identifier field exists on the form (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
   // ---- First story: theme "courage" --------------------------------------
-  await page.getByLabel(/Idade/i).fill("6");
+  await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   const first = waitForStoryResponse(page);
   await page.getByRole("button", { name: /Criar história/i }).click();
   const firstResponse = await first;
 
+  // Spec 009: successful generation lands on /reader.
+  await expect(page).toHaveURL(/\/reader$/);
   await expect(page.getByLabel("Sua história")).toBeVisible();
   await expect(page.getByText("Cena 1 de 3")).toBeVisible();
   expect(payloads).toHaveLength(1);
@@ -100,16 +108,23 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   expect(firstResponse.status()).toBe(200);
   expect(firstResponse.headers()["cache-control"]).toContain("no-store");
 
-  // ---- "Gerar outra história" appends, reusing prefs (no re-ask) ----------
-  const generateAnother = page.getByRole("button", { name: /Gerar outra história/i });
-  await expect(generateAnother).toBeVisible();
+  // ---- "Nova história" returns to the clean /form; next story appends ------
+  const newStory = page.getByRole("button", { name: /Nova história/i });
+  await expect(newStory).toBeVisible();
 
   const responses = [firstResponse];
   for (let i = 0; i < 3; i++) {
     const response = waitForStoryResponse(page);
-    await generateAnother.click();
+    // Internal navigation to the clean /form (Clarifications Q3).
+    await newStory.click();
+    await expect(page).toHaveURL(/\/form$/);
+    await expect(page.getByRole("button", { name: /Criar história/i })).toBeVisible();
+    // The form reuses the session's defaults (age 6 → band 5-7, courage) and
+    // the UI is still pt-BR, so generating again appends without re-asking.
+    await page.getByRole("button", { name: /Criar história/i }).click();
     responses.push(await response);
-    // A fresh generation request went out with the reused prefs, no re-ask.
+    // Lands back on /reader with the appended story.
+    await expect(page).toHaveURL(/\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
   }
 
@@ -136,45 +151,52 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   expect(storageAudit.cookie).not.toMatch(/name|child|story|age=|pref/i);
 
   // ---- Full page reload restores nothing (clear-on-reload) ---------------
+  // After reload the in-memory session (and the UI locale) is gone: the app
+  // defaults to English again, so use locale-agnostic selectors here.
   await page.reload();
-  await expect(page.getByRole("button", { name: /Criar história/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Criar história|Create story/i })).toBeVisible();
   await expect(page.getByText("Cena 1 de 3")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Gerar outra história/i })).toHaveCount(0);
-  await expect(page.getByLabel(/Idade/i)).toHaveValue("5");
+  await expect(page.getByRole("slider", { name: /Idade|Age/i })).toHaveValue("5");
 
   // ---- URL carries no age / theme / story data ---------------------------
-  expect(page.url()).toBe(new URL("/", page.url()).toString());
+  expect(page.url()).toBe(new URL("/form", page.url()).toString());
   expect(page.url()).not.toMatch(/age|theme|courage|story|pref/i);
 });
 
 test("no direct identifier is ever sent in an English multi-story session", async ({ page }) => {
   const payloads = await captureStoryCalls(page);
 
-  await page.goto("/");
+  // The app defaults to English; the form's EN story locale is pre-selected.
+  await page.goto("/form");
 
-  // Switch the UI language to English (ADR 0003 / T056): the story language
-  // drives the whole UI, so the form re-renders in English. Scoped to the form
-  // because the header LangToggle is a segmented button group, not a select.
-  await page.locator("form").getByLabel("Idioma").selectOption("en");
+  // No name / direct-identifier field exists on the form (privacy invariant).
+  await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
+
   const first = waitForStoryResponse(page);
-  await page.getByLabel("Age").fill("3"); // derives to the 2-4 band in-browser
+  await page.getByRole("slider", { name: "Age" }).fill("3"); // derives to the 2-4 band in-browser
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Friendship/i }).click();
   await page.getByRole("button", { name: "Create story" }).click();
   const firstResponse = await first;
 
+  // Spec 009: lands on /reader with the EN reader.
+  await expect(page).toHaveURL(/\/reader$/);
   await expect(page.getByLabel("Your story")).toBeVisible();
   await expect(page.getByText(/Scene 1 of 3/i)).toBeVisible();
   expect(firstResponse.status()).toBe(200);
   expect(firstResponse.headers()["cache-control"]).toContain("no-store");
 
-  // Generate another in English, reusing prefs.
-  const generateAnother = page.getByRole("button", { name: "Generate another" });
-  await expect(generateAnother).toBeVisible();
+  // "Nova história" (EN: "New story") returns to the clean /form; a second
+  // generation appends an English story reusing prefs.
+  const newStory = page.getByRole("button", { name: "New story" });
+  await expect(newStory).toBeVisible();
   const second = waitForStoryResponse(page);
-  await generateAnother.click();
+  await newStory.click();
+  await expect(page).toHaveURL(/\/form$/);
+  await page.getByRole("button", { name: "Create story" }).click();
   const secondResponse = await second;
 
+  await expect(page).toHaveURL(/\/reader$/);
   await expect(page.getByText(/Scene 1 of 3/i)).toBeVisible();
   expect(secondResponse.status()).toBe(200);
 

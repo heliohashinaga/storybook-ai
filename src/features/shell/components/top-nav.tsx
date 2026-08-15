@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { LangToggle } from "./lang-toggle";
@@ -24,6 +24,10 @@ import { LangToggle } from "./lang-toggle";
 export function TopNav() {
   const t = useTranslations("story.brand");
   const router = useRouter();
+  // Single nav destination: the clean `/form` (home). Mark it current when the
+  // active route is `/form` (Spec 009 / a11y: `aria-current` on the active nav).
+  const pathname = usePathname();
+  const onHome = pathname === "/form";
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
@@ -31,6 +35,7 @@ export function TopNav() {
         type="button"
         onClick={() => router.push("/form")}
         aria-label={t("home")}
+        aria-current={onHome ? "page" : undefined}
         className="flex items-center gap-3 rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span className="flex size-11 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft">

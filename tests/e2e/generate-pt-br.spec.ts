@@ -1,11 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 import type { GeneratedStory } from "../../src/features/story-generation/server/schemas";
+import { switchToPortuguese } from "./helpers";
 
 /**
  * Default `pt-BR` generation journey (US1, T023).
  *
- * Drives the anonymous form with age 6 + courage (pt-BR is the default locale)
- * and lets the REAL `POST /api/stories` route handle it. The server binds the
+ * Drives the anonymous form with age 6 + courage (the UI is switched to pt-BR
+ * explicitly, since the app defaults to English) and lets the REAL
+ * `POST /api/stories` route handle it. The server binds the
  * deterministic development provider (a fixed fake — never a live AI service),
  * so the whole server path (Zod `.strict()` re-validation, rate limit,
  * safety pipeline, illustration generation) actually runs. Playwright only:
@@ -34,15 +36,16 @@ interface RequestPayload {
   [key: string]: unknown;
 }
 
-/** Fills the form with age 6 + courage, leaving the default pt-BR locale. */
+/** Fills the form with age 6 + courage after switching the UI to pt-BR. */
 async function fillAndSubmit(page: Page): Promise<void> {
-  await page.goto("/");
+  await page.goto("/form");
+  await switchToPortuguese(page);
 
   // No name / direct-identifier field exists on the form (privacy invariant).
   // The only age input derives a band in-browser and is never transmitted.
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
-  await page.getByLabel(/Idade/i).fill("6");
+  await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();
@@ -102,10 +105,14 @@ test("default pt-BR journey sends only ageBand/locale/theme and renders a safe s
   expect(body.scenes).toHaveLength(3);
 
   // ---- Reader view assertions --------------------------------------------
-  // The reader (T040) shows exactly one scene at a time and navigates with
-  // the previous/next buttons; every scene is reached and asserted in order.
-  const imgs = page.locator('img[src^="data:image/webp;base64,"]');
+  // Spec 009: a successful generation navigates to `/reader` (replace), and
+  // the reader (T040) shows exactly one scene at a time, navigating with
+  // previous/next buttons; every scene is reached and asserted in order.
+  await expect(page).toHaveURL(/\/reader$/);
   const reader = page.locator('section[aria-label="Sua história"]');
+  // The scene image lives inside the reader region; the in-session history
+  // sidebar also shows a webp thumbnail, so scope the count to the reader.
+  const imgs = reader.locator('img[src^="data:image/webp;base64,"]');
   const nextButton = page.getByRole("button", { name: /^Próxima$/i });
 
   for (let i = 0; i < body.scenes.length; i += 1) {

@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { switchToPortuguese } from "./helpers";
 
 /**
  * AI narration journey (spec 004, US1-US3): on-demand AI voice, accessible
@@ -8,10 +9,13 @@ import { expect, test, type Page } from "@playwright/test";
  * `STORIES_TEST_MODE=fake` (deterministic offline provider) and
  * `AI_NARRATION_ENABLED=true` so `/api/narrate` answers with transient audio
  * bytes from the fixed TTS provider — never a live TTS service. Every test
- * blocks non-local hosts so no real provider is ever reached.
+ * blocks non-local hosts so no real provider is ever reached. The pt-BR
+ * journeys switch the UI to pt-BR explicitly (the app defaults to English).
  */
 async function fillAndSubmit(page: Page) {
-  await page.getByLabel(/Idade/i).fill("6");
+  await page.goto("/form");
+  await switchToPortuguese(page);
+  await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   // Select the longest journey (5 scenes, MAX_SCENES) so the e2e exercises a
@@ -40,10 +44,11 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
   const responsePromise = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
   );
-  await page.goto("/");
   await fillAndSubmit(page);
   await responsePromise;
 
+  // Spec 009: successful generation lands on /reader.
+  await expect(page).toHaveURL(/\/reader$/);
   // Reader is up with the narration control (pt-BR idle label).
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   const listen = page.getByRole("button", { name: /^Ouvir$/i });
@@ -105,10 +110,10 @@ test("AI narration failure shows an accessible error and never falls back to Web
   const responsePromise = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
   );
-  await page.goto("/");
   await fillAndSubmit(page);
   await responsePromise;
 
+  await expect(page).toHaveURL(/\/reader$/);
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   await page.getByRole("button", { name: /^Ouvir$/i }).click();
 
@@ -142,10 +147,10 @@ test("narration is on-demand with zero persistence (no prefetch, no storage)", a
   const responsePromise = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
   );
-  await page.goto("/");
   await fillAndSubmit(page);
   await responsePromise;
 
+  await expect(page).toHaveURL(/\/reader$/);
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
 
   // US3: nothing hit /narrate before the user asked to listen (no prefetch).

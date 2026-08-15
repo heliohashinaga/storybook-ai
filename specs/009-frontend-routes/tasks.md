@@ -60,7 +60,7 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 ### Testes da US1
 
 - [x] T311 [P] [US1] Unit: mapeamento estado→rota (guarda de transição) em `tests/unit/` — nenhum dado sensível em params. **Alvo concreto:** extrair função pura `deriveScreenFromPath(path)` (ou equivalente) — arquivo de destino sugerido `src/features/story-request/client/route-mapping.ts`, **flexível ao nome** — evitando depender de `usePathname` direto no teste (determinista)
-- [ ] T312 [P] [US1] Integration: `/`→`redirect("/form")` e `/reader` sem sessão⇒`redirect("/form")`; invariante de privacidade em URL **e logs** (fake provider); `form→reader` navega via `router.replace` (não `push`); `/form` volta limpo (sem aba de histórico); foco move ao `<h1>` do leitor — em `tests/integration/`; valida contra `contracts/frontend-routing.md`; **locale** (next-intl pt-BR|en) permanece no `LocaleProvider` acima das páginas (rota não a reset/altera) em `tests/integration/`
+- [x] T312 [P] [US1] Integration: `/`→`redirect("/form")` e `/reader` sem sessão⇒`redirect("/form")`; invariante de privacidade em URL **e logs** (fake provider); `form→reader` navega via `router.replace` (não `push`); `/form` volta limpo (sem aba de histórico); foco move ao `<h1>` do leitor — em `tests/integration/`; valida contra `contracts/frontend-routing.md`; **locale** (next-intl pt-BR|en) permanece no `LocaleProvider` acima das páginas (rota não a reset/altera) em `tests/integration/`
 
 ### Implementação da US1
 
@@ -79,7 +79,7 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 
 ### Testes da US2
 
-- [ ] T313 [P] [US2] E2E: form→reader usa **`router.replace`** (um único `history.back()` **volta ao site/anterior, não repassa pelo `/form`**); voltar ao `/form` limpo via navegação interna (ícone do app) — `/form` sem aba de histórico; deep-link `/reader` sem sessão aterrissa em `/form`; URL **e logs** limpos; `aria-busy` em submitting e `aria-current` na rota ativa; **foco move ao `<h1>` do leitor ao navegar** (form→reader) e ao heading do form via nav interna; **navegação entre histórias já criadas dentro do `/reader`** (multistória via context, sem `?story=`); **durante `POST /api/stories` a URL permanece `/form`** (progresso full-screen = `submitting`, sem rota `/steps`) — em `tests/e2e/`. **Locale** (next-intl pt-BR|en): navegar `/form`↔`/reader` não altera nem reseta a `locale` ativa (permanece no `LocaleProvider` acima das páginas)
+- [x] T313 [P] [US2] E2E: form→reader usa **`router.replace`** (um único `history.back()` **volta ao site/anterior, não repassa pelo `/form`**); voltar ao `/form` limpo via navegação interna (ícone do app) — `/form` sem aba de histórico; deep-link `/reader` sem sessão aterrissa em `/form`; URL **e logs** limpos; `aria-busy` em submitting e `aria-current` na rota ativa; **foco move ao `<h1>` do leitor ao navegar** (form→reader) e ao heading do form via nav interna; **navegação entre histórias já criadas dentro do `/reader`** (multistória via context, sem `?story=`); **durante `POST /api/stories` a URL permanece `/form`** (progresso full-screen = `submitting`, sem rota `/steps`) — em `tests/e2e/`. **Locale** (next-intl pt-BR|en): navegar `/form`↔`/reader` não altera nem reseta a `locale` ativa (permanece no `LocaleProvider` acima das páginas)
 
 **Checkpoint**: `pnpm test:e2e` verde para pt-BR + EN (fake provider).
 
@@ -89,9 +89,9 @@ Tasks agrupadas por **user story** para implementação/teste independentes.
 
 **Purpose**: Storybook, budgets, quality gates e cobertura.
 
-- [ ] T314 [P] Storybook default/loading/error/edge p/ novas páginas + a11y (`aria-busy`/`aria-current`) em `.stories.tsx` co-localizados
-- [ ] T315 Rodar `pnpm lint`, `pnpm format:check`, `pnpm typecheck` após último edit; verificar budget (rota inicial ≤250 KiB gzip) e cobertura (≥80% geral; ≥90% safety/validation/orchestration)
-- [ ] T316 Rodar `quickstart.md` para validação end-to-end da feature (**exit critério**: `pnpm dev` sobe na porta documentada; fluxo `/`→`/form`→geração (fake)→`/reader` funcional; navegação interna (ícone do app) leva ao `/form` **limpo**; um `history.back()` do `/reader` sai do app (replace, não repassa pelo form); `/reader` sem sessão redireciona a `/form`; navegação entre histórias no `/reader`)
+- [x] T314 [P] Storybook default/loading/error/edge p/ novas páginas + a11y (`aria-busy`/`aria-current`) em `.stories.tsx` co-localizados
+- [x] T315 Rodar `pnpm lint`, `pnpm format:check`, `pnpm typecheck` após último edit; verificar budget (rota inicial ≤250 KiB gzip) e cobertura (≥80% geral; ≥90% safety/validation/orchestration)
+- [x] T316 Rodar `quickstart.md` para validação end-to-end da feature (**exit critério**: `pnpm dev` sobe na porta documentada; fluxo `/`→`/form`→geração (fake)→`/reader` funcional; navegação interna (ícone do app) leva ao `/form` **limpo**; um `history.back()` do `/reader` sai do app (replace, não repassa pelo form); `/reader` sem sessão redireciona a `/form`; navegação entre histórias no `/reader`)
 
 **Checkpoint**: gates verdes, budgets respeitados, storybook cobre estados.
 
