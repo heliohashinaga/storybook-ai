@@ -26,7 +26,7 @@ description: "Lista de tarefas para implementação do recurso"
   resultado **e um snapshot das fixtures dos adapters** (referência de commit/árvore limpa) para
   comparar fixtures de entrada/saída após a refatoração (SC-002).
 - [ ] T003 Verificar que `.specify/feature.json` aponta para `specs/008-refactor-provider-core` (já
-  atualizado pelo `create-new-feature.sh`); anotar para restaurar `007` ao final (T027).
+  atualizado pelo `create-new-feature.sh`); anotar para restaurar `007` ao final (T028).
 
 **Checkpoint**: Árvore vaiária verde no baseline; branch 008 criado; a refatoração começa em terreno conhecido.
 
@@ -41,17 +41,17 @@ description: "Lista de tarefas para implementação do recurso"
 ### 2.1 Núcleo de texto/moderação
 
 - [ ] T004 **Teste primeiro** — criar `tests/unit/provider-core/schemas.test.ts`, `prompts.test.ts`, `chat-json.test.ts`, `moderation.test.ts`, `provider-errors.test.ts` que exercitam `sceneCandidateSchema`, `storyCandidateSchema`, `moderationSchema`, `parseChatJson`, `NARRATIVE_SYSTEM_PROMPT`/`narrativeUserPrompt`, `MODERATION_SYSTEM_PROMPT`/`moderate` e `toProviderError`. **Confirmar que falham** (módulos inexistentes) antes de implementar — conforme constitution.
-- [ ] T005 [US1] Criar `src/features/story-generation/server/provider-core/schemas.ts` extraindo `sceneCandidateSchema`, `storyCandidateSchema` e `moderationSchema` (tal como atuais em openrouter/opencode). Fazer `diff` vazio com as definições originais.
-- [ ] T006 [US1] Criar `src/features/story-generation/server/provider-core/prompts.ts` com `NARRATIVE_SYSTEM_PROMPT`, `narrativeUserPrompt(input)` e `MODERATION_SYSTEM_PROMPT`. **`diff` vazio obrigatório** com os textos atuais dos dois providers (usar como fonte a versão canônica idêntica confirmada; não editar conteúdo).
-- [ ] T007 [US1] Criar `src/features/story-generation/server/provider-core/chat-json.ts` com `parseChatJson` (idêntico ao dos adapters).
-- [ ] T008 [US1] Criar `src/features/story-generation/server/provider-core/moderation.ts` com `moderate(...)` (usando `MODERATION_SYSTEM_PROMPT` + `moderationSchema`) e `provider-errors.ts` com `toProviderError`.
-- [ ] T009 [US1] Criar `src/features/story-generation/server/provider-core/index.ts` como barrel `server-only` re-exportando o núcleo.
+- [ ] T005 Criar `src/features/story-generation/server/provider-core/schemas.ts` extraindo `sceneCandidateSchema`, `storyCandidateSchema` e `moderationSchema` (tal como atuais em openrouter/opencode). Fazer `diff` vazio com as definições originais.
+- [ ] T006 Criar `src/features/story-generation/server/provider-core/prompts.ts` com `NARRATIVE_SYSTEM_PROMPT`, `narrativeUserPrompt(input)` e `MODERATION_SYSTEM_PROMPT`. **`diff` vazio obrigatório** com os textos atuais dos dois providers (usar como fonte a versão canônica idêntica confirmada; não editar conteúdo).
+- [ ] T007 Criar `src/features/story-generation/server/provider-core/chat-json.ts` com `parseChatJson` (idêntico ao dos adapters).
+- [ ] T008 Criar `src/features/story-generation/server/provider-core/moderation.ts` com `moderate(...)` (usando `MODERATION_SYSTEM_PROMPT` + `moderationSchema`) e `provider-errors.ts` com `toProviderError`.
+- [ ] T009 Criar `src/features/story-generation/server/provider-core/index.ts` como barrel `server-only` re-exportando o núcleo.
 
 ### 2.2 Cliente de imagem
 
 - [ ] T010 **Teste primeiro** — criar `tests/unit/provider-core/image-client.test.ts` que exercita o POST `/images` com `fetchImpl` fake: caso `b64_json`, caso `url`, caso sem `data`, caso `!response.ok`, caso timeout (abort). **Confirmar falha** antes de implementar.
-- [ ] T011 [US2] Criar `src/features/story-generation/server/provider-core/image-client.ts` com a função de transporte compartilhada `postImages(...) => { bytes, mediaType }` (corpo `{model, prompt, n:1, output_format:"webp", aspect_ratio:"1:1"}`), usando AbortController/timeout e re-utilizando o encoding/guarda de `image-optimizer.ts`.
-- [ ] T012 [US2] Integrar `image-optimizer.ts` ao `image-client.ts`: o novo cliente DEVE chamar `optimizeImageBytes` / `defaultSharpEncoder` no caminho real de geração, aplicando `DEFAULT_MAX_DATA_URI_LENGTH` (guarda de 4 MiB) — conforme confirmado na pesquisa, hoje órfão e a guarda não roda em produção. Isso fecha o vão de tamanho de data-URI; não manter órfão.
+- [ ] T011 Criar `src/features/story-generation/server/provider-core/image-client.ts` com a função de transporte compartilhada `postImages(...) => { bytes, mediaType }` (corpo `{model, prompt, n:1, output_format:"webp", aspect_ratio:"1:1"}`), usando AbortController/timeout e re-utilizando o encoding/guarda de `image-optimizer.ts`.
+- [ ] T012 Integrar `image-optimizer.ts` ao `image-client.ts`: o novo cliente DEVE chamar `optimizeImageBytes` / `defaultSharpEncoder` no caminho real de geração, aplicando `DEFAULT_MAX_DATA_URI_LENGTH` (guarda de 4 MiB) — conforme confirmado na pesquisa, hoje órfão e a guarda não roda em produção. Isso fecha o vão de tamanho de data-URI; não manter órfão.
 - [ ] T013 **Teste primeiro** — escrever/ajustar `tests/unit/image-optimizer.test.ts` (e, se
   necessário, novo teste do `image-client.ts`) para cobrir a guarda de tamanho e o reuso pelo
   caminho real de geração. **Um teste que falha primeiro** é escrito antes da implementação e
@@ -113,14 +113,15 @@ description: "Lista de tarefas para implementação do recurso"
   `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`,
   `pnpm build` — registrar resultado (sem stale). **Anexar a verificação de SC-005**: `wc -l`/`git diff
   --stat` dos dois adapters (antes vs depois) e checagem de cobertura pós-remoção.
-- [ ] T026 [P] [US3] Atualizar documentação: se algum contrato mudou, ajustar `docs/adr/`/`story-generation.openapi.yaml` (esperado: N.A.); registrar a decisão de extração do núcleo em `docs/adr/` (ADR novo) e em `specs/008-refactor-provider-core/reviews.md`.
-
-**Novo (remediação)**:
-
-- [ ] T028 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a refatoração não
-  introduziu identificador direto novo nos payloads/fakes, mantendo a fronteira `server-only` e
-  `POST /api/stories` como única entrada (FR-006). Registrar resultado em `reviews.md`.
-- [ ] T027 [US3] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou conforme convenção do workflow) e atualizar/revisar `reviews.md`.
+- [ ] T026 [P] [US3] Atualizar documentação: se algum contrato mudou, ajustar
+  `docs/adr/`/`story-generation.openapi.yaml` (esperado: N.A.); registrar a decisão de extração do
+  núcleo em `docs/adr/` (ADR novo) e em `specs/008-refactor-provider-core/reviews.md`.
+- [ ] T027 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a
+  refatoração não introduziu identificador direto novo nos payloads/fakes, mantendo a fronteira
+  `server-only` e `POST /api/stories` como única entrada (FR-006). Registrar resultado em
+  `reviews.md`.
+- [ ] T028 [US3] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
+  conforme convenção do workflow) e finalizar `reviews.md`. Tarefa final do recurso.
 
 **Checkpoint**: Recurso completo — duplicação eliminada, gates verdes na árvore suja, docs sincronizadas.
 
