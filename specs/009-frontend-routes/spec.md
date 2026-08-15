@@ -136,11 +136,13 @@ Derivadas do `AGENTS.md` e mantidas como regras de engenharia:
 | `/reader` | story (leitura)        | sim            | `redirect("/form")`      |
 | `/export` | (opcional) exportação  | sim            | `redirect("/form")`      |
 
-**Nota:** o multihistória atual seleciona a conta ativa por índice em memória.
-Ocasionalmente, `/reader` pode aceitar um **query param opcional `?story=<i>`** com
-índice de sessão (0 ≤ i < nº de histórias) usado **somente** como sugestão de
-seleção e **sempre revalidado** contra a lista em memória; fora de faixa ⇒
-ignorado (cai na conta ativa) — nunca é armazenado.
+**Nota:** o multihistória atual seleciona a conta ativa por **`activeId`** (id
+de história) em memória, e a sessão expõe também `activeIndex` (índice
+0-based) para tela/logica. O query `?story=<i>` usa o **índice** (`activeIndex`),
+sempre revalidado contra `storyCount`; fora de faixa ⇒ ignorado. O trigger
+(`?story=` presente) é definido: o histórico/multistória gera o link com o
+índice **apenas** quando há >1 história na sessão; com 1 história o link é
+omitido.
 
 ---
 
@@ -149,34 +151,44 @@ ignorado (cai na conta ativa) — nunca é armazenado.
 ### 6.1 Componentes de página (server-components)
 ```
 src/app/page.tsx         → redirect("/form")
-src/app/form/page.tsx    → <StoryRequestApp mode="form" .../>
-src/app/reader/page.tsx  → <StoryReader .../> (ou <StoryRequestApp mode="reader" .../>)
+src/app/form/page.tsx    → <StoryRequestApp isFake={...}/>
+src/app/reader/page.tsx  → <StoryRequestApp isFake={...}/>
 src/app/export/page.tsx  → (opcional)
 ```
+
+**Fonte única de verdade = a rota.** `StoryRequestApp` **não recebe prop `mode`**;
+ele deriva o modo (`form`|`reader`) do **path atual via `usePathname()`** (`/form`
+→ formulário; `/reader` → leitor). As duas páginas `page.tsx` montam o mesmo
+client wrapper, apenas com `isFake` (não há `mode="form"`/`mode="reader"`). As
+rotas `form`/`reader`/`export` são **server-components**; a verificação de sessão
+acontece no **client wrapper** tão logo o contexto hidrate.
 
 Como `StoryRequestApp` hoje gerencia o estado inteiro em memória, o design mínimo
 de refatoração:
 
 - **`StorySessionContext` torna-se o oráculo do estado de sessão.** Expor
-  `hasSession()`/`storyCount()`/`activeIndex` para que uma página server não
-  assuma nada — a verificação de sessão acontece no **client wrapper** tão logo o
-  contexto hidrate.
-- **Roteamento derivado de estado:** uma rota `/form` renderiza o formulário; uma
-  rota `/reader` renderiza o leitor. Transições são feitas com `router.push`. Se
-  `router.push` ocorre *antes* do estado estar pronto (ex. durante `submitting`),
-  o leitor renderiza um estado de carregamento/`aria-busy` e então mostra a
-  história.
+  `hasSession()`/`storyCount()`/`activeId`/`activeIndex` para que uma página
+  server não assuma nada — a verificação de sessão acontece no **client
+  wrapper** tão logo o contexto hidrate.
+- **Roteamento derivado de rota:** `usePathname()` é a única fonte do modo
+tela; `draftingNew` e `status` **derivam** dela, nunca a duplicam (ver §6.2).
+  Transições são feitas com `router.push`. Se `router.push` ocorre *antes* do
+  estado estar pronto (ex. durante `submitting`), o leitor renderiza um estado de
+  carregamento/`aria-busy` e então mostra a história.
 
 ### 6.2 Transição de estado → rota (mapeamento)
-| Estado (hoje) | Rota      | Rota(h) |
-|---------------|-----------|---------|
-| `draftingNew` | form      | `/form` |
-| `submitting`  | form (busy)| `/form` (aria-busy) — renderiza `StoryGenerationProgress` full-screen |
-| `story`       | reader    | `/reader` |
-| export        | reader (modal/PDF) | `/reader` (in-memory) |
+| Estado (hoje) | Fonte real (path) | Rota | Deriva de |
+|---------------|-------------------|------|-----------|
+| `draftingNew` | `/form`   | `/form` | path |
+| `submitting`  | `/form`   | `/form` (aria-busy) — renderiza `StoryGenerationProgress` full-screen | path |
+| `story`       | `/reader` | `/reader` | path |
+| export        | `/reader` | `/reader` (in-memory) | path |
 
-> `submitting` **não ganha rota própria**. A tela de progresso de geração é um
-> estado efêmero renderizado dentro de `/form` com `aria-busy` (ver §4).
+> **Fonte única: `usePathname()`. `draftingNew` e `status` derivam do path e
+> nunca o duplicam.** `submitting` **não ganha rota própria**: a tela de
+> progresso de geração é um estado efêmero renderizado dentro de `/form` com
+> `aria-busy` (ver §4). `usePathname()` em `/reader` com sessão ⇒ modo reader;
+> em `/form` ⇒ modo form.
 
 Há sempre **um** caminho canônico para cada estado. `router.replace` é preferido
 para dar "voltar" um passo apenas; `push` para abrir nova tela.
@@ -215,14 +227,20 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 2. **Integração (rota + invariantes):**
    - `/reader` sem sessão ⇒ `redirect("/form")`.
    - `/` ⇒ `redirect("/form")`.
-   - Nenhum `story`/`age`/id no `request.url` observável por fake provider.
+   - Nenhum `story`/`age`/id no `request.url` **nem nos logs** observáveis por
+     fake provider (invariante cobre URL **e** logs — constituição II, §AGENTS:
+     "nada sensível em logs").
+
+
 3. **E2E (Playwright):**
    - pt-BR e EN: form → reader usa `router.push`; `history.back()` volta ao form.
    - Deep-link direto a `/reader` (sem sessão) aterrissa em `/form`.
-   - Fluxo completo com fake provider mantém URL limpa de dados.
+   - Fluxo completo com fake provider mantém URL **e logs** limpos de dados.
    - Durante `POST /api/stories`, a URL **permanece `/form`** — a tela de
      progresso de geração é renderizada full-screen sem mudar a rota, e não
      existe rota `/steps` (ver §4).
+   - `aria-busy` presente durante `submitting` e `aria-current` no top-nav da
+     rota ativa (a11y do roteamento).
 4. **Storybook:** stories default/loading/error/edge para as novas páginas.
 
 ---
@@ -232,8 +250,8 @@ Roda no `useEffect`/durante hidratação para garantir `redirect` gracioso no re
 - [ ] Rotas `/form` e `/reader` funcionais; `/` redireciona a `/form`.
 - [ ] `top-nav` navega por `router.push`; event bus removido.
 - [ ] `redirect("/form")` para `/reader` sem sessão; testes cobrindo.
-- [ ] Nenhuma história/idade/identificador em URL/params/logs (invariante em
-      testes).
+- [ ] Nenhuma história/idade/identificador em URL/params/**logs** (invariante em
+      testes — ver §8).
 - [ ] A **tela de progresso de geração** (`StoryGenerationProgress`) não tem rota
       própria; permanece renderizada dentro de `/form` durante `submitting`, e a
       URL não muda enquanto `POST /api/stories` roda (não existe `/steps`).

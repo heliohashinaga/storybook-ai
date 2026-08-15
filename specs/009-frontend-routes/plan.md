@@ -19,14 +19,17 @@ no URL.
 
 ### Fase 0 — Estrutura de rotas
 - Criar `src/app/form/page.tsx` e `src/app/reader/page.tsx` (server-components).
+  Ambos montam **o mesmo client wrapper** `<StoryRequestApp isFake={...}/>` —
+  **sem prop `mode`**.
 - `src/app/page.tsx` passa a `redirect("/form")`.
 - (Opcional) `src/app/export/page.tsx`.
 
 ### Fase 1 — Refatoração de estado → rota
-- Revisar `StoryRequestApp` para derivar o modo (`form`|`reader`) da rota atual em
-  vez de booleano ad-hoc.
+- **Fonte única = rota.** `StoryRequestApp` deriva o modo (`form`|`reader`) do
+  **path atual via `usePathname()`**, em vez de prop `mode` ou booleano ad-hoc.
+  `draftingNew`/`status` derivam do path e nunca o duplicam.
 - `StorySessionContext` expõe guarda de sessão (`hasSession`, `storyCount`,
-  `activeIndex`).
+  `activeId`, `activeIndex`).
 
 ### Fase 2 — Navegação real
 - `top-nav`: substituir event bus (`requestHome`/`onHomeRequested`) por
@@ -34,12 +37,16 @@ no URL.
 - Mapear transições de estado → `router.push`/`replace`.
 
 ### Fase 3 — Session gate + opcional ?story=
-- Guarda client p/ `redirect("/form")` quando rota exige sessão sem ela.
-- (Opcional) `?story=<i>` apenas para seleção em memória, sempre revalidado.
+- Guarda client p/ `redirect("/form")` (via `router.replace`) quando rota exige
+  sessão sem ela.
+- (Opcional) `?story=<i>` apenas como seleção em memória, sempre revalidado;
+  trigger: link gerado só quando >1 história na sessão. Com 1 história, omitido.
 
 ### Fase 4 — Testes e qualidade
 - Unitários/integração/E2E (pt-BR + EN) para navegação e estado perdido.
 - Storybook default/loading/error/edge p/ novas páginas.
+- Invariante de privacidade cobre URL **e logs**; a11y cobre `aria-busy` e
+  `aria-current` no roteamento.
 - Budgets, a11y, `lint`/`format:check`/`typecheck` pós-último edit.
 
 ## Critérios de saída (rever spec §9)

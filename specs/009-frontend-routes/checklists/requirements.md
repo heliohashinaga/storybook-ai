@@ -11,6 +11,10 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
       sempre revalidado contra a lista em memória; fora de faixa ⇒ ignorado.
 - [ ] `top-nav` navega por `router.push("/form")`; event bus
       (`requestHome`/`onHomeRequested` + `home-request-event.ts`) removido.
+- [ ] **Fonte única = rota:** modo tela (`form`|`reader`) derivado do path via
+      `usePathname()`; `StoryRequestApp` **não** recebe prop `mode`;
+      `draftingNew`/`status` derivam do path e nunca o duplicam (spec §6.2).
+- [ ] `?story=<i>` é gerado **apenas** quando há >1 história na sessão.
 
 ## Privacidade / Anonimato (não-negociável)
 - [ ] Nenhuma história, idade exata, `ageBand`, `locale` derivado, UUID ou
@@ -19,8 +23,8 @@ Aceite de cada requisito desta spec. Marque conforme for satisfeito.
 - [ ] `server-only` e barreira servidor ↔ cliente preservados.
 - [ ] Sem persistência em cookies/localStorage/indexDB/cache; sessão = memória
       React.
-- [ ] Invariante verificável em teste: `request.url` observável (por fake
-      provider) não contém dados sensíveis.
+- [ ] Invariante verificável em teste: `request.url` **e logs** observáveis (por
+      fake provider) não contêm dados sensíveis.
 
 ## Sessão / Deep-link
 - [ ] `/reader` (ou `/export`) sem sessão ⇒ `redirect("/form")`.
