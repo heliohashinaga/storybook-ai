@@ -8,12 +8,7 @@ import "server-only";
  */
 export const APP_NAME = "storybook-ai";
 
-/** Optional public URL of the deployed app (used as the OpenRouter `HTTP-Referer`). */
-export const APP_URL =
-  process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://storybook-ai.example.com";
-
-/** OpenRouter-supported identification headers to attach to every provider request. */
+/** OpenRouter-supported identification header to attach to every provider request. */
 export const OPENROUTER_APP_HEADERS: Readonly<Record<string, string>> = {
   "X-Title": APP_NAME,
-  "HTTP-Referer": APP_URL,
 };
