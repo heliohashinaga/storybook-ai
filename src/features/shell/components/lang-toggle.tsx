@@ -17,8 +17,8 @@ export function LangToggle() {
   const { locale, setLocale } = useLocaleContext();
 
   const options: Array<{ value: Locale; label: string }> = [
-    { value: "pt-BR", label: t("portuguese") },
     { value: "en", label: t("english") },
+    { value: "pt-BR", label: t("portuguese") },
   ];
 
   return (
