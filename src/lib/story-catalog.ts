@@ -5,10 +5,10 @@ import {
 import type { Locale, Theme } from "../features/story-request/client/story-preferences-schema";
 
 /**
- * Primary/default locale for the application. Brazilian Portuguese is the
- * default UI language; English is supported as an alternative.
+ * Primary/default locale for the application. English is the default UI
+ * language; Brazilian Portuguese is supported as an alternative.
  */
-export const defaultLocale: Locale = "pt-BR";
+export const defaultLocale: Locale = "en";
 
 export interface LocaleEntry {
   value: Locale;

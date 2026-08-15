@@ -30,8 +30,8 @@ describe("story-catalog locales", () => {
     });
   });
 
-  it("defaults to pt-BR as the primary locale", () => {
-    expect(defaultLocale).toBe("pt-BR");
+  it("defaults to en as the primary locale", () => {
+    expect(defaultLocale).toBe("en");
   });
 });
 
@@ -102,11 +102,11 @@ describe("resolveLocale", () => {
     expect(resolveLocale("en")).toBe("en");
   });
 
-  it("defaults an unknown/unsupported locale to pt-BR", () => {
-    expect(resolveLocale("fr")).toBe("pt-BR");
+  it("defaults an unknown/unsupported locale to en", () => {
+    expect(resolveLocale("fr")).toBe("en");
   });
 
-  it("defaults an unspecified locale to pt-BR", () => {
-    expect(resolveLocale(undefined)).toBe("pt-BR");
+  it("defaults an unspecified locale to en", () => {
+    expect(resolveLocale(undefined)).toBe("en");
   });
 });

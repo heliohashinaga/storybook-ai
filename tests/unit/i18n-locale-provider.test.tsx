@@ -67,11 +67,11 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     expect(document.documentElement.lang).toBe("pt-BR");
   });
 
-  it("normalizes an unsupported default locale to pt-BR (T052 recovery)", () => {
+  it("normalizes an unsupported default locale to en (T052 recovery)", () => {
     renderProbe("fr" as never);
-    expect(screen.getByTestId("locale")).toHaveTextContent("pt-BR");
+    expect(screen.getByTestId("locale")).toHaveTextContent("en");
     expect(screen.getByTestId("subtitle")).toHaveTextContent(
-      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
+      "Make bedtime a little more magical with a story that is only theirs — to read together."
     );
   });
 });

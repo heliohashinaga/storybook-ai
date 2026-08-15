@@ -15,7 +15,7 @@ function renderProgress(props: {
   onRetry?: () => void;
 }) {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+    <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
       <StoryGenerationProgress {...props} />
     </NextIntlClientProvider>
   );

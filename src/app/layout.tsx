@@ -28,23 +28,23 @@ interface RootLayoutProps {
 }
 
 // Accessible non-empty document title (WCAG 2.4.2, `document-title` rule).
-// Defaults to pt-BR (the app's default locale); the in-form language switch
+// Defaults to en (the app's default locale); the in-form language switch
 // keeps the title static and anonymous.
 export const metadata: Metadata = {
   title: "Storybook AI",
-  description: "Gere histórias infantis personalizadas de forma anônima e efêmera.",
+  description: "Create personalized, anonymous, and ephemeral children's stories.",
 };
 
 /**
- * Minimal root layout. The anonymous app defaults to `pt-BR`; the story
+ * Minimal root layout. The anonymous app defaults to `en`; the story
  * language selected in the form drives the whole UI through LocaleProvider
  * (ADR 0003 / T056). This shell is kept intentionally lightweight.
  */
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="pt-BR" className={`${baloo.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${baloo.variable} ${nunito.variable}`}>
       <body>
-        <LocaleProvider defaultLocale="pt-BR">
+        <LocaleProvider defaultLocale="en">
           <TopNav />
           <main>{children}</main>
         </LocaleProvider>

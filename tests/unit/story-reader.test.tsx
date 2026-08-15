@@ -35,7 +35,7 @@ const story: GeneratedStory = {
 
 function renderReader() {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+    <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
       <StoryReader story={story} />
     </NextIntlClientProvider>
   );
@@ -60,7 +60,7 @@ describe("story reader — first/middle/last bounds", () => {
     };
     const user = userEvent.setup();
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <StoryReader story={five} />
       </NextIntlClientProvider>
     );
@@ -200,7 +200,7 @@ describe("story reader — localized alt text and scene rendering", () => {
 describe("scene progress — variable total (US3)", () => {
   it("renders one segment per scene reflecting the real (3–5 variable) total", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={3} total={5} label="Posição" />
       </NextIntlClientProvider>
     );
@@ -211,7 +211,7 @@ describe("scene progress — variable total (US3)", () => {
 
   it("marks the last segment active on the final scene", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={4} total={4} label="Posição" />
       </NextIntlClientProvider>
     );
@@ -222,7 +222,7 @@ describe("scene progress — variable total (US3)", () => {
 
   it("exposes the position through a labelled list", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={1} total={3} label="Posição na história" />
       </NextIntlClientProvider>
     );
@@ -310,7 +310,7 @@ describe("story reader — US4 show more / show less (accessible body collapse)"
       scenes: [scene(1, body)],
     };
     return render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <StoryReader story={longStory} />
       </NextIntlClientProvider>
     );

@@ -62,11 +62,11 @@ describe("i18n message catalog (EN + pt-BR)", () => {
     expect(enPaths).toEqual(ptPaths);
   });
 
-  it("defaults to the pt-BR baseline when locale is absent or unsupported", () => {
+  it("defaults to the en baseline when locale is absent or unsupported", () => {
     const base = getMessages();
-    expect(base.story.form.submit).toBe("Criar história");
+    expect(base.story.form.submit).toBe("Create story");
     expect(base.story.narration.reading).toBeTypeOf("string");
-    expect(getMessages("es" as never).story.form.submit).toBe("Criar história");
+    expect(getMessages("es" as never).story.form.submit).toBe("Create story");
   });
 
   it("returns the English catalog for the en locale", () => {

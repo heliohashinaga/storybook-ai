@@ -16,7 +16,7 @@ function renderForm(
   } = {}
 ) {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+    <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
       <StoryRequestForm
         onSubmit={props.onSubmit ?? (async () => ({ ok: true }))}
         onSuccess={props.onSuccess}
@@ -87,7 +87,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     const payload = onSubmit.mock.calls[0]![0]!;
-    expect(payload).toEqual({ ageBand: "5-7", locale: "pt-BR", theme: "courage", sceneCount: 3 });
+    expect(payload).toEqual({ ageBand: "5-7", locale: "en", theme: "courage", sceneCount: 3 });
     // Never an exact age or a child name.
     expect(Object.keys(payload).sort()).toEqual(["ageBand", "locale", "sceneCount", "theme"]);
     expect(JSON.stringify(payload)).not.toMatch(/name|"age":/i);
@@ -107,7 +107,7 @@ describe("StoryRequestForm — submission sends only ageBand/locale/theme", () =
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSubmit.mock.calls[0]?.[0]).toEqual({
       ageBand: "8-9",
-      locale: "pt-BR",
+      locale: "en",
       theme: "courage",
       sceneCount: 5,
     });
