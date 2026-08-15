@@ -8,7 +8,8 @@
 
 Refatoração **preservadora de comportamento** da camada de adapters de geração de histórias que
 elimina a duplicação verificada entre os adapters de provider e consolida o transporte de imagem,
-sem nenhuma mudança funcional, de env, de contrato ou de UX.
+sem mudança funcional, de env ou de contrato — **acrescida de uma mudança pontual de UX no reader**
+(US4, "Mostrar mais").
 
 Três objetivos (US1-US3, refatoração) **mais uma user story de UX** (US4):
 
@@ -55,7 +56,8 @@ Três objetivos (US1-US3, refatoração) **mais uma user story de UX** (US4):
 disco (ADR/T026).
 
 **Testing**: Vitest (unit/contract/pipeline) com `STORIES_TEST_MODE=fake` + fixtures determinísticas;
-Playwright E2E e visual fora do escopo desta refatoração (sem mudança de UI); Storybook não tocado.
+Playwright E2E e visual fora do escopo; Storybook **tocado apenas no reader** (US4, `story-reader.stories.tsx`)
+para os estados default/expandido/sem-overflow + a11y.
 
 **Target Platform**: Server (bordas server-only) — adapters e cliente de imagem executam no
 servidor, nunca no cliente.
@@ -69,9 +71,9 @@ manutenção (linhas duplicadas) sem afetar latência.
 preservar `timeoutMs`/`maxRetries` (texto 60 s, imagem 120 s) e os seams injetáveis de teste
 (`fetchImpl`, encoder).
 
-**Scale/Scope**: ~5 arquivos de origem na camada de geração + testes co-localizados. Escopo
-limitado a `story-generation/server`; não toca em `story-export`, `story-request` nem `story-reader`
-exceto se um re-export de constante pura for claramente seguro (avaliar em US2).
+**Scale/Scope**: ~5 arquivos de origem na camada de geração + testes co-localizados. Na refatoração
+(US1–US3) não toca em `story-export`/`story-request`/`story-reader`; **exceto a US4**, que toca em
+`src/features/story-reader/components/story-reader.tsx` (+ `.stories.tsx`) para o botão "Mostrar mais".
 
 ## Constitution Check
 
@@ -87,7 +89,10 @@ Avaliação contra `.specify/memory/constitution.md` v1.1.0:
 - **Code Quality**: refatoração reduz duplicação -> atende. Sem `any` novo (strict) -> atende.
 - **Testing Standards**: test-first exigido; testes existentes são o baseline a manter verde; novos
   testes (se necessário) escritos antes e confirmados a falhar -> atende.
-- **User Experience**: sem mudança intencional de UX -> atende (não regressivo).
+- **User Experience**: US1–US3 não regressivos (nenhuma mudança intencional de UX); **US4 é uma
+  mudança intencional e acessível de UX** (botão "Mostrar mais" com contraste AA, foco visível,
+  `prefers-reduced-motion`) -> atende (não regressivo nas US1–US3; US4 melhora UX de forma
+  acessível).
 - **Performance**: sem impacto; lazy `sharp` mantido -> atende.
 
 **Status: PASS**. Nenhuma violação que exija autorização de complexidade.

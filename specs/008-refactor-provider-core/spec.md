@@ -184,8 +184,9 @@ geração/providers/dados). Por isso P3, depois do MVP de refatoração (US1/US2
 - **Botão "Mostrar mais" falso positivo**: deve aparecer **somente** quando há overflow real do
   corpo em desktop (medir `scrollHeight > clientHeight` no breakpoint desktop); nunca surgir botão
   inútil em texto curto (US4/SC-006).
-- **Mobile não deve clamar**: o clamp é restrito ao breakpoint desktop (`md:`+) para não degerar a
-  UX mobile (US4). A lógica de "mostrar quando overflow" deve ser reavaliada em resize.
+- **Mobile não deve clamp**: clamp restrito ao breakpoint desktop (mesmo padrão `sm:` usado no
+  reader para o card) para não degrazer a UX mobile (US4). A lógica de "mostrar quando overflow"
+  deve ser reavaliada em resize.
 
 ## Requirements *(obrigatório)*
 
