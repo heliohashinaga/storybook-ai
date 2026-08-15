@@ -43,7 +43,7 @@ export function LangToggle() {
             onClick={() => {
               if (!active) setLocale(option.value);
             }}
-            className={`rounded-xl px-md py-xs text-caption font-title transition-colors duration-base ${
+            className={`flex min-h-10 items-center rounded-xl px-md py-xs text-caption font-title transition-colors duration-base ${
               active
                 ? "bg-primary text-primary-foreground"
                 : "bg-transparent text-text hover:bg-secondary"
