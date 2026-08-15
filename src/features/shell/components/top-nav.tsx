@@ -1,5 +1,6 @@
-"use client";
+import "use client";
 
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { LangToggle } from "./lang-toggle";
@@ -8,9 +9,10 @@ import { LangToggle } from "./lang-toggle";
  * Top bar (blossom-design §7.1): home brand mark + language + theme.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
- * - Left: a home button (primary, BookOpenText mark + display name + tagline);
- *   on a single-page anonymous app it scrolls to the top / focuses the story
- *   request rather than navigating to a different route.
+ * - Left: a home button (primary, BookOpenText mark + display name + tagline)
+ *   that navigates to the root route — market-standard "logo → home".
+ *   (The header is not sticky, so no scroll-to-top is needed: landing on `/`
+ *   already renders from the top.)
  * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
  *
  * All state is in-memory only: language and theme pickers drive `useLocaleContext`
@@ -18,12 +20,13 @@ import { LangToggle } from "./lang-toggle";
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
+  const router = useRouter();
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
       <button
         type="button"
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        onClick={() => router.push("/")}
         className="flex items-center gap-3 text-left"
       >
         <span className="flex size-11 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
