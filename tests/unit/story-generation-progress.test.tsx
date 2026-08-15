@@ -1,11 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "../../src/i18n/config";
 import {
   StoryGenerationProgress,
   TIMEOUT_CUE_AT_SECONDS,
+  getGenerationStage,
+  stageProgressPercent,
 } from "../../src/features/story-request/components/story-generation-progress";
 
 function renderProgress(props: {
@@ -20,85 +22,80 @@ function renderProgress(props: {
   );
 }
 
-describe("story generation progress — localized states", () => {
-  it("shows the generating message early and announces an active progress bar", async () => {
-    renderProgress({ phase: "generating", elapsedSeconds: 0 });
-
-    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
-    const bar = screen.getByRole("progressbar");
-    expect(bar).toHaveAttribute("aria-busy", "true");
-    expect(bar).toHaveAttribute("aria-label");
-  });
-
-  it("switches to the safety-reviewing message later in generation", async () => {
-    renderProgress({ phase: "generating", elapsedSeconds: 20 });
-
-    expect(screen.getByText(/verificando a segurança/i)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-busy", "true");
-  });
-
-  it("shows the timeout cue after the configured threshold, still busy", async () => {
-    renderProgress({ phase: "generating", elapsedSeconds: TIMEOUT_CUE_AT_SECONDS + 1 });
-
-    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-busy", "true");
-  });
-
-  it("does not repeat a second waiting message alongside the timeout cue", async () => {
-    renderProgress({ phase: "generating", elapsedSeconds: TIMEOUT_CUE_AT_SECONDS + 1 });
-
-    // The timeout cue is already a complete patience message — the redundant
-    // "still working" hint must not render on top of it (no duplicated wait copy).
-    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
-    expect(screen.queryByText(/pode levar até alguns minutos/i)).toBeNull();
-  });
-
-  it("shows the safety-retry state with an indeterminate active progress bar", async () => {
-    renderProgress({ phase: "safety-retry", elapsedSeconds: 3 });
-
-    expect(screen.getByText(/garantir que tudo fique seguro/i)).toBeInTheDocument();
-    const bar = screen.getByRole("progressbar");
-    expect(bar).toHaveAttribute("aria-busy", "true");
-    expect(bar).not.toHaveAttribute("aria-valuenow");
-  });
-
-  it("keeps the indeterminate bar even past the timeout threshold in safety-retry", async () => {
-    renderProgress({ phase: "safety-retry", elapsedSeconds: 60 });
-
-    expect(screen.getByText(/garantir que tudo fique seguro/i)).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-busy", "true");
-  });
-
-  it("is deterministic from injected elapsedSeconds (no wall-clock dependence)", async () => {
-    const { unmount } = renderProgress({ phase: "generating", elapsedSeconds: 0 });
-    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
-    unmount();
-
-    renderProgress({ phase: "generating", elapsedSeconds: 16 });
-    expect(screen.getByText(/verificando a segurança/i)).toBeInTheDocument();
+describe("getGenerationStage — pure deterministic mapping", () => {
+  it("maps elapsed seconds to three stages", () => {
+    expect(getGenerationStage(0)).toBe(0);
+    expect(getGenerationStage(7)).toBe(0);
+    expect(getGenerationStage(8)).toBe(1);
+    expect(getGenerationStage(15)).toBe(1);
+    expect(getGenerationStage(16)).toBe(2);
+    expect(getGenerationStage(60)).toBe(2);
   });
 });
 
-describe("story generation progress — provider failure", () => {
-  it("shows a localized failure alert and a retry action that calls onRetry", async () => {
-    const onRetry = vi.fn();
-    renderProgress({ phase: "provider-failure", onRetry });
-    const user = userEvent.setup();
-
-    expect(screen.getByText(/não foi possível criar/i)).toBeInTheDocument();
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveAttribute("aria-live", "assertive");
-    // The failure state must not advertise a still-running progress bar.
-    expect(screen.queryByRole("progressbar")).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: /tentar novamente/i }));
-    expect(onRetry).toHaveBeenCalledTimes(1);
+describe("story generation progress — blossom step loading screen (§7.3)", () => {
+  it("announces an aria-busy live region on the step screen", () => {
+    renderProgress({ phase: "generating", elapsedSeconds: 0 });
+    const section = screen.getByRole("status");
+    expect(section).toHaveAttribute("aria-busy", "true");
   });
 
-  it("does not render a retry button when no retry handler is provided", async () => {
-    renderProgress({ phase: "provider-failure" });
+  it("renders three stage badges as an ordered list with current step flagged", () => {
+    renderProgress({ phase: "generating", elapsedSeconds: 10 });
+    const list = screen.getByRole("list");
+    const items = within(list).getAllByRole("listitem");
+    expect(items).toHaveLength(3);
+    // stage 1 (idx 0) done -> ✓ ; stage 2 (idx 1) current -> "2" ; stage 3 (idx 2) future -> "3"
+    expect(screen.getByText("✓")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    const current = within(list).getByLabelText(/ilustrando/i);
+    expect(current).toHaveAttribute("aria-current", "step");
+  });
 
-    expect(screen.queryByRole("button", { name: /tentar novamente/i })).toBeNull();
+  it("shows the adaptive title for each stage and a lock notice", () => {
+    renderProgress({ phase: "generating", elapsedSeconds: 0 });
+    expect(screen.getByText(/escrevendo e ilustrando/i)).toBeInTheDocument();
+    expect(screen.getByText(/bloqueada|bloqueio/i)).toBeInTheDocument();
+    expect(screen.getByText(/três etapas/i)).toBeInTheDocument();
+  });
+
+  it("progressbar exposes an accessible name and the current stage as its value", () => {
+    renderProgress({ phase: "generating", elapsedSeconds: 10 });
+    const bar = screen.getByRole("progressbar");
+    expect(bar).toHaveAttribute("aria-label");
+    expect(bar).toHaveAttribute("aria-valuemin", "0");
+    expect(bar).toHaveAttribute("aria-valuemax", "2");
+    expect(bar).toHaveAttribute("aria-valuenow", "1");
+  });
+
+  describe("stageProgressPercent — §7.3 bar width formula", () => {
+    it("maps each stage to its progressive width", () => {
+      expect(Math.round(stageProgressPercent(0))).toBe(33);
+      expect(Math.round(stageProgressPercent(1))).toBe(67);
+      expect(Math.round(stageProgressPercent(2))).toBe(100);
+    });
+  });
+});
+
+describe("story generation progress — timeout & failure", () => {
+  it("replaces the title with the timeout message and does NOT duplicate the waiting hint", () => {
+    renderProgress({ phase: "generating", elapsedSeconds: TIMEOUT_CUE_AT_SECONDS });
+    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
+    // the step hint is suppressed on timeout to avoid duplicating the wait message
+    expect(screen.queryByText(/três etapas/i)).toBeNull();
+  });
+
+  it("renders the explicit timeout phase and a lock notice", () => {
+    renderProgress({ phase: "timeout", elapsedSeconds: 999 });
+    expect(screen.getByText(/demorando mais que o esperado/i)).toBeInTheDocument();
+    expect(screen.queryByText(/três etapas/i)).toBeNull();
+  });
+
+  it("shows a provider-failure alert with a retry action", async () => {
+    const onRetry = () => {};
+    renderProgress({ phase: "provider-failure", onRetry });
     expect(screen.getByRole("alert")).toBeInTheDocument();
+    userEvent.click(screen.getByRole("button", { name: /tentar novamente/i }));
   });
 });

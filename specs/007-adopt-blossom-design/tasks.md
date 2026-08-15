@@ -156,6 +156,7 @@ Phase 8 (US6: padrões compartilhados + topo) ──► Phase 9 (Polonia/revisã
 - [X] T056 **E2E/visual/perf**: `pnpm test:e2e` (pt-BR + EN, fake), `pnpm test:visual` (base aprovada da nova paleta), `pnpm test:performance` (≤250 KiB JS inicial; export PDF lazy; navegação ≤100 ms p75)
 - [X] T057 **DoD**: 6 temas no catálogo (SC-007), nenhum identificador em payload/log/catálogo/fixtures (SC-004), tokens com AA (SC-002), identidade em 100% das telas (SC-001), gates verdes (SC-005/SC-006)
 - [X] T058 Commit: `:lipstick: feat(story-generation): adopt story-blossom-room design system + 6 themes` (gitmoji + Conventional Commits)
+- [X] T059 **US2 §7.3 step loading screen (enhanced)**: substituir a barra única por tela de carregamento blossom (estágios com badges ✓/nº, `((stage+1)/3)*100`, aviso de lock), full-screen view em memória (sem rota `/loading`), i18n `hint`/`lockNotice`/`stageWriting`/`stageIllustrating`/`stageReviewing` (pt-BR+en), `getGenerationStage`+`stageProgressPercent` puros, stories default/edge/error + gate de a11y (progressbar-name)
 
 ---
 

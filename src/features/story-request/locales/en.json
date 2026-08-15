@@ -21,14 +21,18 @@
       "submitting": "Creating your story…"
     },
     "progress": {
+      "hint": "Your story is created in three steps.",
       "generating": "Writing and illustrating your story…",
       "illustrating": "Illustrating the scenes…",
       "reviewing": "Checking content safety…",
       "timeout": "This is taking longer than expected. Thanks for your patience — your story is still being created.",
       "safetyRetry": "We're reviewing once more to make sure everything is safe. Almost there!",
+      "lockNotice": "The screen is locked while we create your story. Don't close or refresh this page.",
+      "stageWriting": "Writing the story",
+      "stageIllustrating": "Illustrating the scenes",
+      "stageReviewing": "Checking safety",
       "providerFailure": "We couldn't create your story right now.",
-      "retry": "Try again",
-      "activeHint": "We can create short, medium, or long stories."
+      "retry": "Try again"
     },
     "error": {
       "invalidInput": "Invalid input. Please check the fields and try again.",
