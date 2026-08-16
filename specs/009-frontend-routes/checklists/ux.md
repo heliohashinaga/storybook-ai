@@ -9,43 +9,54 @@ introduz regressões de acessibilidade ou usabilidade.
 > apenas, evitando fonte dupla/`drift`.
 
 ## Navegação & Foco
-- [ ] Ao navegar `/form` → `/reader` e volta, o **foco** move-se para o novo
-      viewport (título ou container) de forma idempotente.
-- [ ] `aria-current` marca o item do `top-nav` da rota ativa (`/form` vs
-      `/reader`).
-- [ ] Gestos de navegação do navegador (`voltar`/`forward`) funcionam: `voltar`
+- [x] Ao navegar `/form` → `/reader` e volta, o **foco** move-se para o novo
+      viewport (título ou container) de forma idempotente. (`.focus()` em refs
+      no form e reader; `tabIndex={-1}` em títulos)
+- [x] `aria-current` marca o item do `top-nav` da rota ativa (`/form` vs
+      `/reader`. Verificado: `aria-current="page"` no `top-nav.tsx`).
+- [x] Gestos de navegação do navegador (`voltar`/`forward`) funcionam: `voltar`
       do leitor retorna ao formulário.
-- [ ] `router.replace` usado onde só "re-hidratar" o mesmo destino é o esperado
+- [x] `router.replace` usado onde só "re-hidratar" o mesmo destino é o esperado
       (evita voltar duplo no topo do fluxo), `push` para abrir nova tela.
+      (top-nav usa `router.push("/form")`; redirect de sessão usa replace)
 
 ## Estados Assíncronos
-- [ ] Durante `submitting` o formulário mantém `aria-busy` e algum indicador não
-      visual (ex. `aria-live`).
-- [ ] Load do leitor (após navegação antes de hidratar sessão) mostra um estado
+- [x] Durante `submitting` o formulário mantém `aria-busy` e algum indicador não
+      visual (ex. `aria-live`). (`story-request-form.tsx` e
+      `story-generation-progress.tsx`)
+- [x] Load do leitor (após navegação antes de hidratar sessão) mostra um estado
       de carregamento acessível (`aria-busy`), não um flash de erro.
-- [ ] Redirect gracioso (`redirect("/form")` em rota sem sessão) não dispara
-      leitura de voz, vídeo ou foco em elemento invisível.
+- [x] Redirect gracioso (`redirect("/form")` em rota sem sessão) não dispara
+      leitura de voz, vídeo ou foco em elemento invisível. (snapshot + live
+      region durante hidratação/redirect)
 
 ## Conteúdo & Idioma
-- [ ] Todo texto de página/tela novo (títulos, estados, erros) via catálogos
-      next-intl `pt-BR` + `en` — nenhum hardcoded.
-- [ ] A rota não altera a `locale` ativa (permanece no `LocaleProvider`, acima
+- [x] Todo texto de página/tela novo (títulos, estados, erros) via catálogos
+      next-intl `pt-BR` + `en` — nenhum hardcoded. (`useTranslations("story")`
+      em `story-request-app.tsx` e `story-request-form.tsx`)
+- [x] A rota não altera a `locale` ativa (permanece no `LocaleProvider`, acima
       das páginas).
 
 ## Movimento & Visual
-- [ ] `prefers-reduced-motion` respeitado em qualquer transição adicionada.
-- [ ] Nenhuma cor/hex hardcoded; apenas tokens semânticos do design-system.
-- [ ] Transições entre telas não causam flicks de layout (scroll top controlado).
+- [x] `prefers-reduced-motion` respeitado em qualquer transição adicionada.
+      (`scene-progress.tsx`, `narration-control.tsx`)
+- [x] Nenhuma cor/hex hardcoded; apenas tokens semânticos do design-system.
+      (grep: 0 hex/rgb/hsl em componentes; só CSS vars em `globals.css`)
+- [x] Transições entre telas não causam flicks de layout (scroll top controlado).
 
 ## Storybook
-- [ ] Cada página nova tem `.stories.tsx` cobrindo default / loading / error /
-      edge.
-- [ ] Comportamento do Storybook corresponde ao app (navegação por `router`
+- [x] Cada página nova tem `.stories.tsx` cobrindo default / loading / error /
+      edge. (10 `.stories.tsx` — ex. `story-request-app`, `story-reader`,
+      `narration-control`)
+- [x] Comportamento do Storybook corresponde ao app (navegação por `router`
       apenas onde faz sentido; páginas puras não mockam `router` sem razão).
-- [ ] A11y check (`storybook:test`) verde nas stories novas.
+      (stories usam fixture `pathname` do framework nextjs)
+- [x] A11y check (`storybook:test`) verde nas stories novas. (71/71 play-tests;
+      zero violações a11y — dívida pré-existente do `story-request-form`
+      resolvida com alinhamento do ecossistema 10.5.8)
 
 ## Regressões Usabilidade
-- [ ] `top-nav` ainda permite voltar ao formulário (agora via `router.push`).
-- [ ] Multihistória segue selecionável no leitor (US3) sem `href` sensível.
-- [ ] Campos do formulário retêm valores corretos em mudanças de tela
+- [x] `top-nav` ainda permite voltar ao formulário (agora via `router.push`).
+- [x] Multihistória segue selecionável no leitor (US3) sem `href` sensível.
+- [x] Campos do formulário retêm valores corretos em mudanças de tela
       (rascunho em memória, formato limpo ao voltar).
