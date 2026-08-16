@@ -52,8 +52,25 @@ e com os status em `tasks.md`/`plan.md`.
   rodando a mesma suíte com `next.config.ts` sem headers (stash→build→run→pop):
   **zero falhas novas** introduzidas por PR #4.
 
+### ✅ PR #3 — SCA — aprovado (com ressalva)
+- **Implementação:** `next@16.3.1`, `next-intl@4.13.6`, `@storybook/nextjs@10.5.8`;
+  override `nanoid: 3.3.18` em `pnpm-workspace.yaml`.
+- **Descoberta de processo:** pnpm 11 **ignora o campo `pnpm` em `package.json`**
+  (aviso `The "pnpm" field in package.json is no longer read`) — overrides
+  precisam estar em `pnpm-workspace.yaml`, que já tinha um bloco `overrides`.
+  Primeira tentativa (`package.json`) não surtiu efeito; corrigido.
+- **Resultado:** `pnpm audit --prod` = **0 vulnerabilidades** (runtime limpo;
+  nanoid high >60 caminhos resolvido).
+- **Ressalva registrada:** restam 2 high + 1 low **dev-only** (`image-size` ×2,
+  `elliptic`) via Storybook. Os patches upstream citados pela auditoria
+  (`image-size ≥2.0.3`, `elliptic ≥6.6.2`) **não existem no registry**
+  (verificado: `pnpm view` mostra 2.0.2 e 6.6.1 como últimas). Sem correção
+  possível até upstream publicar — acompanhar Dependabot/upstream.
+- **Gates:** `pnpm test` 649/649, `build`, `typecheck`, `lint`, `format:check` ✅;
+  E2E: 25 passed + mesmas 5 falhas pré-existentes (0 novas).
+
 ## Pendências (revisão futura)
 
-- **PR #3 (SCA):** atualizar `next`/`next-intl`/`@storybook/nextjs`; aceitar só
-  com `pnpm audit` 0 high/medium runtime + Dependabot alinhado.
 - **PR #5 (CodeQL):** workflow verde + 0 alerts novos.
+- **SCA residual (dev-only):** re-checar quando `image-size ≥2.0.3` e
+  `elliptic ≥6.6.2` forem publicados; limpar `pnpm audit` completo e Dependabot.

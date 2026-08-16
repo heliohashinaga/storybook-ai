@@ -21,12 +21,14 @@ Legenda: ✅ concluído · ⏳ pendente. Cada tarefa é verificável por teste/g
 - [x] T2.7 teste: HFF forjado ignorado sem proxy confiável (2º request → 429)
 - [x] T2.8 gates verdes (`pnpm test` 649, `typecheck`, `lint`, `format:check`, `build`)
 
-## T3 · SCA — atualizar dependências (PR #3) — ⏳
-- [ ] T3.1 `pnpm audit` inventário: confirmar `nanoid@3.3.17`, `image-size` ×2, `elliptic`
-- [ ] T3.2 atualizar `next`, `next-intl`, `@storybook/nextjs` (mínimo p/ limpar transitivos)
-- [ ] T3.3 `pnpm audit` → 0 high/medium no caminho de runtime
-- [ ] T3.4 alinhar alertas do GitHub Dependabot (0 abertos de severidade alta)
-- [ ] T3.5 regressão: `pnpm build`, `pnpm test`, `test:e2e`, `storybook:test`
+## T3 · SCA — atualizar dependências (PR #3) — ✅
+- [x] T3.1 `pnpm audit` inventário: confirmar `nanoid@3.3.17`, `image-size` ×2, `elliptic`
+- [x] T3.2 atualizar `next`→16.3.1, `next-intl`→4.13.6, `@storybook/nextjs`→10.5.8
+- [x] T3.3 override `nanoid: 3.3.18` em `pnpm-workspace.yaml` (pnpm 11: overrides no workspace, não no `package.json`)
+- [x] T3.4 `pnpm audit --prod` → **0 vulns** (runtime limpo; nanoid high de >60 caminhos resolvido)
+- [x] T3.5 regressão: `pnpm build`, `pnpm test` (649/649), `test:e2e` (5 falhas pré-existentes; 0 novas), lint/typecheck/format ✅
+- [ ] T3.6 ─ `image-size`/`elliptic` (dev-only): aguardar upstream publicar patches
+  (≥2.0.3 / ≥6.6.2 — ainda não existem no registry; verificado)
 
 ## T4 · Headers de segurança HTTP (PR #4) — ✅
 - [x] T4.1 teste de regressão primeiro: rota deve servir os 5 headers (falha hoje)

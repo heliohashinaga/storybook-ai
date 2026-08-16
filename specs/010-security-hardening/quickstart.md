@@ -18,7 +18,7 @@ Leia **este arquivo**, depois `spec.md` (o quê/porquê), `plan.md` (como) e
 |----|---------|-----------|--------|
 | #1 | SSRF por redirect (CWE-918) | Médio | ✅ `3857eb3` |
 | #2 | Rate-limit `unknown`/HFF forjável (CWE-770/799) | Médio | ✅ `6f87644` |
-| #3 | SCA — CVEs transitivas | Médio SCA | ⏳ pendente |
+| #3 | SCA — CVEs transitivas | Médio SCA | ✅ |
 | #4 | Headers de segurança HTTP | Baixo | ✅ |
 | #5 | CodeQL na CI | Baixo | ⏳ pendente |
 
@@ -31,10 +31,13 @@ pnpm audit            # inventário SCA (PR #3)
 pnpm build            # deve estar verde antes de mudar
 ```
 
-1. **PR #3 (SCA):** atualize `next`/`next-intl`/`@storybook/nextjs`; rode
-   `pnpm audit` até 0 high/medium runtime; confirme `build`/`test:e2e`;
-   alinhe o Dependabot.
-2. **PR #5 (CodeQL):** adicione `.github/workflows/codeql-analysis.yml`.
+1. **PR #5 (CodeQL):** adicione `.github/workflows/codeql-analysis.yml`.
+
+## Nota SCA (PR #3)
+- Overrides do pnpm 11 vivem em `pnpm-workspace.yaml`, **não** no campo `pnpm`
+  do `package.json` (ignorado). `nanoid: 3.3.18` já aplicado.
+- `pnpm audit --prod` = 0 vulns. `image-size`/`elliptic` (dev-only) aguardam
+  upstream publicar patches (≥2.0.3 / ≥6.6.2).
 
 ## Regras de qualidade (não pule)
 

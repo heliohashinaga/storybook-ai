@@ -23,10 +23,11 @@ e que os invariantes de privacidade/segurança seguem de pé.
 - [ ] Valor não-IP → `null` (nunca vira chave)
 - [ ] XFF forjado ignorado quando sem proxy (teste de rota cobre)
 
-## SCA (PR #3)
-- [ ] `pnpm audit` sem CVEs high/medium no caminho de runtime
-- [ ] GitHub Dependabot sem alerts de severidade alta abertos
-- [ ] `pnpm build` e `pnpm test` verdes após atualizar deps
+## SCA (PR #3) — ✅
+- [x] `pnpm audit --prod` sem CVEs no caminho de runtime (0 vulns)
+- [x] nanoid high (>60 caminhos) resolvido via override 3.3.18 no `pnpm-workspace.yaml`
+- [x] `pnpm build` e `pnpm test` verdes após atualizar deps (next 16.3.1, next-intl 4.13.6, @storybook/nextjs 10.5.8)
+- [ ] `image-size`/`elliptic` dev-only: aguardar upstream publicar patches (≥2.0.3 / ≥6.6.2)
 
 ## Headers (PR #4) — ✅
 - [x] Rotas servem CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`

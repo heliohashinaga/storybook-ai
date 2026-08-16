@@ -4,7 +4,7 @@ Derivado de `docs/security-audit-2026.md`. Ordem sugerida pela auditoria:
 PR #3 (SCA) → PR #1 (SSRF) → PR #2 (rate-limit) → PR #4 (headers) → PR #5
 (CodeQL); `_alternativa:_` PR #1 primeiro se preferir atacar o risco funcional.
 
-Status contratado: **#1, #2 e #4 CONCLUÍDOS**; **#3 e #5 PENDENTES**.
+Status contratado: **#1, #2, #3 e #4 CONCLUÍDOS**; **#5 PENDENTE**.
 
 ---
 
@@ -55,7 +55,7 @@ requests caem no bucket global (2º → 429).
 
 ---
 
-## PR #3 — SCA: atualizar dependências  ⏳ PENDENTE
+## PR #3 — SCA: atualizar dependências  ✅ CONCLUÍDO
 
 **Finding §3 (médio SCA):** `pnpm audit` = **3 high + 1 low** transitivos:
 `nanoid@3.3.17` (high), `image-size` ×2 (high), `elliptic` (low). Somente em
@@ -68,6 +68,14 @@ confirmar `pnpm build`/`test:e2e` com o Dependabot alinhado.
 
 **Critério de aceite:** `pnpm audit` sem CVEs de severidade high/medium no
 caminho de runtime; nenhuma mudança de comportamento.
+
+**Resultado:** `next@16.3.1`, `next-intl@4.13.6`, `@storybook/nextjs@10.5.8`;
+override `nanoid: 3.3.18` em `pnpm-workspace.yaml` (pnpm 11 requer overrides
+no workspace, não no `package.json`). `pnpm audit --prod` = **0 vulns** (runtime
+limpo); nanoid high de >60 caminhos resolvido. **Ressalva:** restam 2 high + 1
+low dev-only (`image-size` ×2, `elliptic`) via Storybook — os patches upstream
+(`image-size` ≥2.0.3, `elliptic` ≥6.6.2) **ainda não publicados no registry**
+(últimas versões 2.0.2 / 6.6.1); sem correção possível até upstream publicar.
 
 ---
 

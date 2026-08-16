@@ -262,3 +262,13 @@ data:` porque o reader exibe `data:` URIs; `style-src 'self' 'unsafe-inline'`
   e HSTS (só produção). Verificação real no browser (não só lint): E2E
   `tests/e2e/security-headers.spec.ts` (headers presentes; `/`, `/reader` e uma
   rota 404 carregam **sem violação de CSP no console**).
+
+- **PR #3 — SCA: CONCLUÍDO (com ressalva documentada).** `next@16.3.1`,
+  `next-intl@4.13.6` e `@storybook/nextjs@10.5.8` atualizados; override
+  `nanoid: 3.3.18` em `pnpm-workspace.yaml` **(pnpm 11 ignora o campo `pnpm` em
+  `package.json`** — overrides vivem em `pnpm-workspace.yaml`). Resultado:
+  **`pnpm audit --prod` = 0 vulnerabilidades** (runtime limpo, `nanoid` high de
+  > 60 caminhos resolvido). Permanecem **2 high + 1 low dev-only** (`image-size`
+  > ×2, `elliptic`) via Storybook — **os patches de upstream (`image-size` ≥2.0.3,
+  > `elliptic` ≥6.6.2) NÃO estão publicados no registry** (verificado: últimas
+  > versões são 2.0.2 e 6.6.1); sem correção possível até upstream publicar.
