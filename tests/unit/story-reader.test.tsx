@@ -41,6 +41,18 @@ function renderReader() {
   );
 }
 
+describe("story reader — byte-level contract guard", () => {
+  it("renders nothing when the story has no scenes (defensive)", () => {
+    const empty: GeneratedStory = { ...story, scenes: [] };
+    const { container } = render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
+        <StoryReader story={empty} />
+      </NextIntlClientProvider>
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+});
+
 describe("story reader — first/middle/last bounds", () => {
   it("navigates a 5-scene story to the last scene and stops (variable scene count)", async () => {
     const five: GeneratedStory = {

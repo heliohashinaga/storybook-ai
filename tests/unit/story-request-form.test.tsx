@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import {
@@ -213,5 +213,46 @@ describe("StoryRequestForm — submission states", () => {
     await user.click(screen.getByRole("button", { name: /criar história/i }));
     await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(1));
     expect(onSubmit).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects a non-integer age (3.5) and surfaces a localized field error", async () => {
+    const onSubmit = vi.fn(async (): Promise<SubmitResult> => ({ ok: true }));
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+
+    // A fractional value passes the slider's min/max clamp but fails the
+    // integer check, exercising the age-validation error branch.
+    fireEvent.change(ageSlider(), { target: { value: "3.5" } });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText("Informe uma idade entre 2 e 9 anos.")).toBeInTheDocument();
+    expect(ageSlider()).toHaveAttribute("aria-invalid", "true");
+
+    // Editing the age afterward clears the field error (the onChange branch).
+    fireEvent.change(ageSlider(), { target: { value: "6" } });
+    expect(screen.queryByText("Informe uma idade entre 2 e 9 anos.")).not.toBeInTheDocument();
+    expect(ageSlider()).not.toHaveAttribute("aria-invalid");
+  });
+
+  it("ignores a second submit while already submitting (single-flight guard)", async () => {
+    let release!: () => void;
+    const onSubmit = vi.fn(
+      async (): Promise<SubmitResult> =>
+        new Promise((resolve) => {
+          release = () => resolve({ ok: true });
+        })
+    );
+    renderForm({ onSubmit });
+
+    // fireEvent.submit bypasses the disabled button, so the handler's own
+    // `submitting` guard must absorb a re-entrant submission.
+    const form = document.querySelector("form") as HTMLFormElement;
+    fireEvent.change(ageSlider(), { target: { value: "6" } });
+    fireEvent.submit(form);
+    fireEvent.submit(form);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    act(() => release!());
   });
 });

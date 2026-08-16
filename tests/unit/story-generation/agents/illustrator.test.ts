@@ -85,6 +85,21 @@ describe("illustrator agent", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("returns a transient Err when approved is missing or not an array (defensive guard)", async () => {
+    const illustrate = vi.fn(async () => ({ dataUri: WEBP }));
+    const result = await illustrateStory(
+      ctx(),
+      null as unknown as Parameters<typeof illustrateStory>[1],
+      { illustrate }
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("illustrate");
+      expect(result.transient).toBe(true);
+    }
+    expect(illustrate).not.toHaveBeenCalled();
+  });
+
   it("altTextFor is localized and identifier-free", () => {
     expect(altTextFor("pt-BR", "courage", 1)).toEqual(
       "Ilustração da cena 1 de uma história sobre coragem."

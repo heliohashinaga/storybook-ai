@@ -352,4 +352,37 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
     await user.click(screen.getByRole("button", { name: /^História — A missão da estrelinha$/ }));
     expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
   });
+
+  it("runs the elapsed-clock interval while submitting and clears it on success", async () => {
+    vi.useFakeTimers();
+    let release!: (r: Response) => void;
+    const pendingFetch = vi
+      .fn()
+      .mockImplementation(() => new Promise<Response>((resolve) => (release = resolve)));
+    vi.stubGlobal("fetch", pendingFetch);
+    const { navigate } = renderApp();
+
+    // Fire submission but keep the request in flight so status stays submitting.
+    fireEvent.change(screen.getByRole("slider", { name: /idade/i }), {
+      target: { value: "6" },
+    });
+    // userEvent clicks await microtasks; drive submit directly to avoid hanging.
+    fireEvent.click(screen.getByRole("button", { name: /criar história/i }));
+
+    // Interval callback fires → setElapsed increments while submitting (line 47).
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2100);
+    });
+    expect(pendingFetch).toHaveBeenCalledTimes(1);
+
+    // Resolve; the effect cleanup clears the interval on the status change.
+    await act(async () => {
+      release(new Response(JSON.stringify(approvedStory), { status: 200 }));
+      await vi.advanceTimersByTimeAsync(100);
+    });
+    expect(navState.replace).toHaveBeenCalledWith("/reader");
+    await act(async () => navigate("/reader"));
+
+    vi.useRealTimers();
+  });
 });

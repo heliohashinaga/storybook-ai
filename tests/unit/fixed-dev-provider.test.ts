@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   createFixedDevProvider,
   createFakePhasedDelay,
@@ -68,5 +68,29 @@ describe("createFixedDevProvider — deterministic fake story generation", () =>
     } as ReturnType<typeof createFakePhasedDelay>);
     const result = await illustrate();
     expect(result).toEqual({ dataUri: FIXED_ILLUSTRATION_DATA_URI });
+  });
+
+  it("awaits the env-driven fake delay when not running under the test env", async () => {
+    // The no-op test guard short-circuits in the normal suite; here we force
+    // the real dev path with an isolated env override and fake timers.
+    vi.useFakeTimers();
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("STORY_FAKE_STEP_DELAY_MS", "1");
+    const impl = createFixedDevProvider(); // default → real fakeModeDelay
+    const p = impl.generateStory(input);
+
+    await vi.runOnlyPendingTimersAsync();
+    const story = await p;
+
+    expect(story.scenes).toHaveLength(5);
+    vi.useRealTimers();
+
+    // A non-numeric/<=0 delay falls back to an immediate resolve (no timer).
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("STORY_FAKE_STEP_DELAY_MS", "oops");
+    const instantImpl = createFixedDevProvider();
+    await expect(instantImpl.generateStory(input)).resolves.toMatchObject({
+      scenes: expect.any(Array),
+    });
   });
 });
