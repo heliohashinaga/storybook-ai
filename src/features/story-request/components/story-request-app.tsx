@@ -93,7 +93,7 @@ function FormScreen({ isFake }: { isFake: boolean }) {
 
   return (
     <section className="flex flex-col gap-md">
-      <div className="text-center">
+      <div className="mt-lg text-center">
         <h1 className="font-title mx-auto w-full max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
           {t("form.title")}
         </h1>

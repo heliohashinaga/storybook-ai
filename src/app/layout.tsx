@@ -53,7 +53,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <LocaleProvider defaultLocale="en">
           <StorySessionProvider>
             <TopNav />
-            <main className="pb-16">{children}</main>
+            <main className="pb-xl">{children}</main>
           </StorySessionProvider>
         </LocaleProvider>
       </body>
