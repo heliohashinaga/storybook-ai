@@ -17,13 +17,13 @@ consolidada nos artefatos deste diretório após a remoção do arquivo original
 |---|--------|-----|-----|------------|-----------|
 | 1 | SSRF — redirect sem revalidação | CWE-918 | Médio | **PR #1 ✅** | `plan.md` T1, `image-client.ts` |
 | 2 | Rate-limit — `unknown` + HFF forjável | CWE-770/799 | Médio | **PR #2 ✅** | `plan.md` T2, `rate-limit.ts` |
-| 3 | SCA — CVEs transitivas | – | Médio SCA | **PR #3 ⏳** | `plan.md` T3 |
+| 3 | SCA — CVEs transitivas | – | Médio SCA | **PR #3 ✅** | `plan.md` T3 |
 | 4 | Prompt injection | – | Baixo | Mitigado (enums+Zod+moderação) | `enums`/`moderation.ts` |
 | 5 | Authz/IDOR/BOLA | – | Baixo | True negative (sem ids enumeráveis) | – |
 | 6 | Validação de entrada (Zod) | – | Baixo | Aprovado; sem `content-length` | `schemas.ts` |
 | 7 | Segredos | – | Baixo | Limpo (sem `NEXT_PUBLIC_*`) | `lib/env.ts` |
-| 8 | Headers de segurança | – | Baixo | **PR #4 ⏳** | `plan.md` T4, `next.config.ts` |
-| – | CodeQL na CI | – | Baixo | **PR #5 ⏳** | `plan.md` T5, workflow GH |
+| 8 | Headers de segurança | – | Baixo | **PR #4 ✅** | `plan.md` T4, `next.config.ts` |
+| – | CodeQL na CI | – | Baixo | **PR #5 ✅** (GitHub Default Setup) | `plan.md` T5 |
 
 ## Verdito do true-negative
 Nenhum `dangerouslySetInnerHTML`/`eval`/`innerHTML` em `src/`; nenhum
