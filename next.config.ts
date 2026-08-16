@@ -4,6 +4,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const isProduction = process.env.NODE_ENV === "production";
+// React in dev mode uses eval() for debugging (callstack reconstruction / hot
+// reload). Production never uses eval, so we keep the strict CSP there and only
+// loosen script-src in dev to avoid the "eval() is not supported" console warning.
+const cspScriptSrc = isProduction
+  ? "script-src 'self' 'unsafe-inline'" // Next bootstrap; strict, no eval
+  : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"; // dev-only
 
 // HTTP security headers (audit §8 / PR #4). Defense-in-depth for an anonymous,
 // static+JSON app with no client secrets. Calibrated so the CSP does NOT break
@@ -16,7 +22,7 @@ const securityHeaders: { key: string; value: string }[] = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'", // Next bootstrap inline scripts
+      cspScriptSrc, // Next inline scripts; + unsafe-eval in dev only
       "style-src 'self' 'unsafe-inline'", // next/font + legit inline styles
       "img-src 'self' data:", // reader shows provider data: images
       "font-src 'self' data:",
