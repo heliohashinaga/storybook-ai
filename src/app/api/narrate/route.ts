@@ -15,9 +15,12 @@ import {
   type NarrateHttpError,
 } from "../../../features/story-read-aloud/server/narrate-http-errors";
 import {
+  ANONYMOUS_GLOBAL_KEY,
   createPseudoAnonymousKey,
   generateSalt,
   InMemoryRateLimiter,
+  resolveClientIp,
+  trustForwardedForEnv,
   type RateLimiter,
 } from "../../../lib/rate-limit";
 
@@ -71,6 +74,12 @@ export interface NarrateRouteDeps {
   rateLimiter: RateLimiter;
   /** Per-boot salt used to derive the pseudo-anonymous bucket key. */
   salt: string;
+  /**
+   * True when requests arrive through a trusted reverse proxy that rewrites
+   * `X-Forwarded-For` (e.g. Vercel). When false, the header is treated as
+   * client-forgeable and ignored (audit PR #2).
+   */
+  trustForwardedFor: boolean;
 }
 
 export function createNarrateHandler(deps: NarrateRouteDeps) {
@@ -100,9 +109,14 @@ export function createNarrateHandler(deps: NarrateRouteDeps) {
     // Anonymous per-user TTS budget (spec 004 rate-limit): bound synthesis cost
     // without storing any identity. The salt is per-boot and the IP is hashed,
     // so no raw IP or identifier is ever retained.
-    const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-    const ip = forwarded || "unknown";
-    const key = createPseudoAnonymousKey({ ip, salt: deps.salt });
+    const ip = resolveClientIp(
+      {
+        forwardedFor: request.headers.get("x-forwarded-for"),
+        realIp: request.headers.get("x-real-ip"),
+      },
+      { trustForwardedFor: deps.trustForwardedFor }
+    );
+    const key = ip ? createPseudoAnonymousKey({ ip, salt: deps.salt }) : ANONYMOUS_GLOBAL_KEY;
     const rate = await deps.rateLimiter.consume(key);
     if (!rate.allowed) {
       const response = jsonError(429, toNarrateErrorJson(narrateRateLimited));
@@ -143,4 +157,9 @@ const rateLimiter = new InMemoryRateLimiter({
   windowMs: TTS_RATE_LIMIT_WINDOW_MS,
 });
 
-export const POST = createNarrateHandler({ runtime, rateLimiter, salt });
+export const POST = createNarrateHandler({
+  runtime,
+  rateLimiter,
+  salt,
+  trustForwardedFor: trustForwardedForEnv(),
+});

@@ -54,6 +54,9 @@ function makeHandler(runtime: TtsRuntime) {
       windowMs: 60_000,
     }),
     salt: "test-salt",
+    // Direct connection in tests: not behind a trusted proxy, so no header is
+    // honored and requests use the shared anonymous global bucket.
+    trustForwardedFor: false,
   });
 }
 
@@ -66,6 +69,7 @@ function makeLimitedHandler(runtime: TtsRuntime, limit: number) {
       windowMs: 60_000,
     }),
     salt: "test-salt",
+    trustForwardedFor: false,
   });
 }
 

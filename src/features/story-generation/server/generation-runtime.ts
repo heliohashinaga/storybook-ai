@@ -1,6 +1,11 @@
 import "server-only";
 import { getEnv } from "../../../lib/env";
-import { InMemoryRateLimiter, generateSalt, type RateLimiter } from "../../../lib/rate-limit";
+import {
+  InMemoryRateLimiter,
+  generateSalt,
+  trustForwardedForEnv,
+  type RateLimiter,
+} from "../../../lib/rate-limit";
 import { createOpenCodeIllustration } from "./create-opencode-illustration";
 import {
   createFakePhasedDelay,
@@ -44,6 +49,7 @@ export interface GenerationRuntime {
   illustrate: (prompt: string) => Promise<{ dataUri: string }>;
   rateLimiter: RateLimiter;
   salt: string;
+  trustForwardedFor: boolean;
 }
 
 /**
@@ -240,6 +246,7 @@ export function createRealRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): Gene
       limit: Number.isFinite(rateLimitMax) ? rateLimitMax : 10,
     }),
     salt: generateSalt(),
+    trustForwardedFor: trustForwardedForEnv(),
   };
 }
 

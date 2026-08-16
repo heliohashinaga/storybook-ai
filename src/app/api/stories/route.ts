@@ -13,7 +13,12 @@ import {
   unsupportedLocale,
   type HttpErrorCode,
 } from "../../../lib/http-errors";
-import { createPseudoAnonymousKey, type RateLimiter } from "../../../lib/rate-limit";
+import {
+  ANONYMOUS_GLOBAL_KEY,
+  createPseudoAnonymousKey,
+  resolveClientIp,
+  type RateLimiter,
+} from "../../../lib/rate-limit";
 
 /**
  * `POST /api/stories` — the only server entry point for story generation.
@@ -41,6 +46,12 @@ export interface StoriesRouteDeps {
   illustrate: (prompt: string) => Promise<{ dataUri: string }>;
   rateLimiter: RateLimiter;
   salt: string;
+  /**
+   * True when requests arrive through a trusted reverse proxy that rewrites
+   * `X-Forwarded-For` (e.g. Vercel). When false, the header is treated as
+   * client-forgeable and ignored (audit PR #2).
+   */
+  trustForwardedFor: boolean;
 }
 
 function json(status: number, body: unknown, extraHeaders: Record<string, string> = {}) {
@@ -52,9 +63,14 @@ function json(status: number, body: unknown, extraHeaders: Record<string, string
 
 export function createStoriesHandler(deps: StoriesRouteDeps) {
   return async function POST(request: Request): Promise<Response> {
-    const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-    const ip = forwarded || "unknown";
-    const key = createPseudoAnonymousKey({ ip, salt: deps.salt });
+    const ip = resolveClientIp(
+      {
+        forwardedFor: request.headers.get("x-forwarded-for"),
+        realIp: request.headers.get("x-real-ip"),
+      },
+      { trustForwardedFor: deps.trustForwardedFor }
+    );
+    const key = ip ? createPseudoAnonymousKey({ ip, salt: deps.salt }) : ANONYMOUS_GLOBAL_KEY;
 
     const rate = await deps.rateLimiter.consume(key);
     if (!rate.allowed) {

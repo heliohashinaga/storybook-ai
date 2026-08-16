@@ -36,12 +36,19 @@ function fakeProvider(): StoryGenerationProvider {
   };
 }
 
-function makeHandler(limit: number) {
+function makeHandler(
+  limit: number,
+  overrides: Partial<Parameters<typeof createStoriesHandler>[0]> = {}
+) {
   return createStoriesHandler({
     provider: fakeProvider(),
     illustrate: async () => ({ dataUri: "data:image/webp;base64,QUJDRA==" }),
     rateLimiter: new InMemoryRateLimiter({ windowMs: 60_000, limit }),
     salt: "test-salt",
+    // The XFF-per-client test runs behind a trusted proxy, so header rewrites
+    // are honored. The forged-XFF test below overrides this to `false`.
+    trustForwardedFor: true,
+    ...overrides,
   });
 }
 
@@ -96,5 +103,32 @@ describe("dual story route rate limiting (T028)", () => {
     expect((await handler(ipA)).status).toBe(200);
     expect((await handler(ipA)).status).toBe(429); // A throttled after first
     expect((await handler(ipB)).status).toBe(200); // B not throttled (own bucket)
+  });
+
+  it("does NOT trust client-forged X-Forwarded-For when NOT behind a trusted proxy (prevent key spoofing)", async () => {
+    // No trusted proxy → the header is client-forgeable and must be ignored. Two
+    // requests claiming different forged IPs must share the global anonymous
+    // bucket, so the second is throttled — proving an attacker cannot spin up a
+    // fresh per-IP budget ad infinitum.
+    const forgedA = new Request("http://localhost/api/stories", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "203.0.113.9", // client-invented
+      },
+      body: JSON.stringify(REQUEST_BODY),
+    });
+    const forgedB = new Request("http://localhost/api/stories", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "198.51.100.9", // client-invented, different
+      },
+      body: JSON.stringify(REQUEST_BODY),
+    });
+
+    const handler = makeHandler(1, { trustForwardedFor: false });
+    expect((await handler(forgedA)).status).toBe(200); // first global request allowed
+    expect((await handler(forgedB)).status).toBe(429); // second shares the global bucket
   });
 });

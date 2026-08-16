@@ -241,3 +241,13 @@ risco de código antes do SCA.)_
   e limita a **1 hop** (redirect encadeado → `unsafe-url`); corpo final buscado
   exatamente uma vez. Testes adicionados em `tests/unit/provider-core/image-client.test.ts`
   (redirect→interno, redirect válido único, chain de 2 hops).
+
+- **PR #2 — rate-limit: CONCLUÍDO.** `lib/rate-limit.ts` adiciona
+  `resolveClientIp()` (confiança em `X-Forwarded-For`/`x-real-ip` só quando
+  `trustForwardedFor` = `VERCEL=1`/`TRUST_PROXY=1`, e aí somente o hop da
+  **direita** acrescentado pelo proxy) e `ANONYMOUS_GLOBAL_KEY` (bucket anônimo
+  agregado e limitado quando não há IP confiável — elimina o colapso em
+  `"unknown"`). Rotas `stories`/`narrate` e o bootstrap (`generation-runtime.ts`)
+  injetam `trustForwardedFor`. Testes novos em `tests/unit/rate-limit.test.ts` e
+  `tests/unit/stories-route.rate-limit.test.ts` (XFF à direita; XFF forjado é
+  ignorado sem proxy confiável; fallback global anônimo).

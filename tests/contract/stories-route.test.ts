@@ -13,6 +13,7 @@ function makeDeps(overrides: Partial<StoriesRouteDeps> = {}): StoriesRouteDeps {
     illustrate: async () => ({ dataUri: webpDataUri }),
     rateLimiter: new InMemoryRateLimiter({ windowMs: 60_000, limit: 100 }),
     salt: "test-salt",
+    trustForwardedFor: true,
     ...overrides,
   };
 }

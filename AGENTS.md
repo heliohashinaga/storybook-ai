@@ -51,13 +51,15 @@ invariants; a regression here is a failed definition of done.
   capped at 1 hop then `redirect: "error"`. Never download from a redirect that
   fails safety checks (incl. loopback/RFC1918/metadata/link-local and all IPv6).
 - **Rate limiting is a DoS/impersonation seam:** `InMemoryRateLimiter`
-  (`lib/rate-limit.ts`) is single-instance and keys on a salted, hashed IP from
-  `X-Forwarded-For` (only trusted when the origin is provably behind the
-  proxy, e.g. Vercel). A missing/absent header collapses every user into a
-  shared bucket — never let that become a cross-user DoS (treat `unknown` with
-  a looser aggregate bucket) and never trust client-forgeable values for
-  per-user limits. Keep the `RateLimiter` interface as the seam for a shared
-  store if scaling out.
+  (`lib/rate-limit.ts`) is single-instance and keys on a salted, hashed IP.
+  Client IP is derived via `resolveClientIp()` (`lib/rate-limit.ts`): it only
+  trusts `X-Forwarded-For`/`x-real-ip` when `trustForwardedFor` is true (derived
+  from `VERCEL=1` or `TRUST_PROXY=1`), and then only the **rightmost** (proxy-
+  appended) hop — the leftmost hop is client-forgeable. When no trustworthy IP
+  exists it falls back to `ANONYMOUS_GLOBAL_KEY` (a stable, shared, bounded
+  anonymous bucket) instead of the old cross-user `"unknown"` collapse. Never
+  trust client-forgeable header values for per-user limits; keep the
+  `RateLimiter` interface as the seam for a shared store if scaling out.
 - **Server input is a closed enum set:** the only entities the server accepts
   are `POST /api/stories` (`ageBand`, `locale`, `theme`, `sceneCount`) and
   `POST /api/narrate` (`sceneText` max 2000, `locale`), both Zod `.strict()`.
