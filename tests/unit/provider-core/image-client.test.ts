@@ -65,20 +65,41 @@ describe("provider-core image-client postImages", () => {
     expect(headers.has("http-referer")).toBe(false);
   });
 
-  it("fetches bytes from url when b64_json is absent", async () => {
+  it("fetches bytes from url when b64_json is absent (public https host)", async () => {
     const { fetchImpl, calls } = createFakeFetch(({ url }) => {
       if (url.includes("/images")) {
-        return jsonResponse({ data: [{ url: "https://cdn.test/img.webp" }] });
+        return jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/img.webp" }] });
       }
       return new Response(new Uint8Array([1, 2, 3]), {
         status: 200,
         headers: { "content-type": "image/webp" },
       });
     });
-    const result = await postImages({ ...baseReq, fetchImpl });
+    const result = await postImages({
+      ...baseReq,
+      fetchImpl,
+      urlSafetyResolver: async () => ["1.2.3.4"],
+    });
     expect(calls).toHaveLength(2);
-    expect(calls[1]!.url).toBe("https://cdn.test/img.webp");
+    expect(calls[1]!.url).toBe("https://cdn.cloudflare.com/img.webp");
     expect(result.mediaType).toBe("image/webp");
+  });
+
+  it("refuses to fetch a provider-returned URL that is not a public https host (SSRF)", async () => {
+    const { fetchImpl, calls } = createFakeFetch(({ url }) => {
+      if (url.includes("/images")) {
+        return jsonResponse({ data: [{ url: "https://169.254.169.254/latest/meta-data" }] });
+      }
+      return new Response(new Uint8Array([1, 2, 3]), {
+        status: 200,
+        headers: { "content-type": "image/webp" },
+      });
+    });
+    await expect(
+      postImages({ ...baseReq, fetchImpl, urlSafetyResolver: async () => [] })
+    ).rejects.toMatchObject({ kind: "unsafe-url" });
+    // The inner image URL was never fetched.
+    expect(calls.filter((c) => c.url.includes("169.254"))).toHaveLength(0);
   });
 
   it("throws ProviderError when the provider is unavailable", async () => {

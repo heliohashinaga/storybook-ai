@@ -287,13 +287,17 @@ describe("createOpenRouterIllustration", () => {
   it("fetches and wraps an image URL response", async () => {
     const { fetchImpl } = createFakeFetch((call) => {
       if (call.url.endsWith("/images")) {
-        return jsonResponse({ data: [{ url: "https://cdn.test/i.webp" }] });
+        return jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/i.webp" }] });
       }
       return new Response(WEBP_BYTES, {
         headers: { "content-type": "image/webp" },
       });
     });
-    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+    const illustrate = createOpenRouterIllustration({
+      ...deps,
+      fetchImpl,
+      urlSafetyResolver: async () => ["1.2.3.4"],
+    });
 
     await expect(illustrate("cena 2")).resolves.toMatchObject({
       dataUri: `data:image/webp;base64,${WEBP_B64}`,
@@ -375,10 +379,14 @@ describe("createOpenRouterIllustration", () => {
   it("maps a failed image URL fetch to unavailable", async () => {
     const { fetchImpl } = createFakeFetch((call) =>
       call.url.endsWith("/images")
-        ? jsonResponse({ data: [{ url: "https://cdn.test/i.webp" }] })
+        ? jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/i.webp" }] })
         : new Response("not found", { status: 404 })
     );
-    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+    const illustrate = createOpenRouterIllustration({
+      ...deps,
+      fetchImpl,
+      urlSafetyResolver: async () => ["1.2.3.4"],
+    });
 
     await expect(illustrate("prompt")).rejects.toMatchObject({ kind: "unavailable" });
   });

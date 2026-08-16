@@ -6,6 +6,7 @@ import {
   WEBP_DATA_URI_PREFIX,
   optimizeImageBytes,
 } from "../image-optimizer";
+import { isSafeImageUrl, type UrlResolver } from "./url-safety";
 
 /** Raw image payload as returned by a provider's `/images` endpoint. */
 export interface RawImage {
@@ -25,6 +26,11 @@ export interface PostImagesRequest {
   timeoutMs?: number;
   /** Replaceable transport; defaults to global fetch. */
   fetchImpl?: typeof fetch;
+  /**
+   * Overridable DNS resolver for the SSRF guard (CWE-918). Defaults to the
+   * real `node:dns` lookup; tests inject a fixed set to stay hermetic.
+   */
+  urlSafetyResolver?: UrlResolver;
 }
 
 /**
@@ -35,7 +41,7 @@ export interface PostImagesRequest {
  * {@link ProviderError}.
  */
 export async function postImages(request: PostImagesRequest): Promise<RawImage> {
-  const { baseUrl, apiKey, imageModel, prompt, fetchImpl = fetch } = request;
+  const { baseUrl, apiKey, imageModel, prompt, fetchImpl = fetch, urlSafetyResolver } = request;
   const timeoutMs = request.timeoutMs ?? 60_000;
 
   const controller = new AbortController();
@@ -78,6 +84,12 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
     }
 
     if (typeof first?.url === "string") {
+      // SSRF guard (CWE-918): a provider-returned URL is untrusted (the
+      // provider is a third party and subject to prompt injection). Only fetch
+      // https URLs that resolve entirely to public hosts.
+      if (!(await isSafeImageUrl(first.url, urlSafetyResolver))) {
+        throw new ProviderError("unsafe-url", "Refusing to fetch a non-public image URL.");
+      }
       const imageResponse = await fetchImpl(first.url, { signal: controller.signal });
       if (!imageResponse.ok) {
         throw new ProviderError("unavailable", "Image URL could not be fetched.");

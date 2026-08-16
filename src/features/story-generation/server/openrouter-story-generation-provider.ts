@@ -18,6 +18,7 @@ import {
   toProviderError,
   toWebPDataUri,
   OPENROUTER_APP_HEADERS,
+  type UrlResolver,
 } from "./provider-core";
 import { moderate } from "./provider-core/moderation";
 
@@ -54,6 +55,8 @@ export interface OpenRouterDeps {
   fetchImpl?: typeof fetch;
   /** Non-WebP → WebP transcoder; defaults to a lazy `sharp` import. */
   imageEncoder?: (bytes: Buffer) => Promise<Buffer>;
+  /** Overridable DNS resolver for the SSRF guard (CWE-918); tests inject a fixed set. */
+  urlSafetyResolver?: UrlResolver;
 }
 
 function resolveDeps(deps: OpenRouterDeps) {
@@ -74,6 +77,7 @@ function resolveDeps(deps: OpenRouterDeps) {
     maxRetries: deps.maxRetries ?? 2,
     fetchImpl: deps.fetchImpl ?? fetch,
     imageEncoder: deps.imageEncoder ?? defaultImageEncoder,
+    urlSafetyResolver: deps.urlSafetyResolver,
   };
 }
 
@@ -150,7 +154,8 @@ export function createOpenRouterIllustration(
   deps: OpenRouterDeps = { timeoutMs: IMAGE_TIMEOUT_MS }
 ): (prompt: string) => Promise<{ dataUri: string }> {
   return async (prompt: string): Promise<{ dataUri: string }> => {
-    const { apiKey, imageModel, baseUrl, timeoutMs, fetchImpl, imageEncoder } = resolveDeps(deps);
+    const { apiKey, imageModel, baseUrl, timeoutMs, fetchImpl, imageEncoder, urlSafetyResolver } =
+      resolveDeps(deps);
 
     const raw = await postImages({
       baseUrl,
@@ -159,6 +164,7 @@ export function createOpenRouterIllustration(
       prompt,
       timeoutMs,
       fetchImpl,
+      urlSafetyResolver,
     });
 
     const encode: ((bytes: Uint8Array) => Promise<Uint8Array>) | undefined = imageEncoder
