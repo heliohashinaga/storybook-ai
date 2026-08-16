@@ -63,6 +63,7 @@ function mockSpeech(): SpeechMock {
 
 /** Minimal Audio stub so `new Audio(url)` + `play()` work in jsdom. */
 class MockAudio {
+  static instances: MockAudio[] = [];
   url: string;
   onended: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -70,6 +71,7 @@ class MockAudio {
   pause = vi.fn();
   constructor(url: string) {
     this.url = url;
+    MockAudio.instances.push(this);
   }
 }
 
@@ -121,6 +123,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   Object.defineProperty(window, "speechSynthesis", { configurable: true, writable: true });
   (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = undefined;
+  MockAudio.instances = [];
 });
 
 beforeEach(() => {
@@ -198,6 +201,41 @@ describe("useAiReadAloud — US1 happy path (AI narration)", () => {
 
     unmount();
     expect(revokeObjectUrl).toHaveBeenCalledWith("blob:mock-narration");
+  });
+
+  it("audio onended releases the object URL and returns to idle", async () => {
+    installFetchMock("ok");
+    const { revokeObjectUrl } = installAudioMocks();
+    const { result } = renderAiReadAloud();
+
+    act(() => result.current.toggle());
+    await waitFor(() => expect(result.current.status).toBe("speaking"));
+
+    // Playback finishes: fire the Audio element's onended callback.
+    act(() => {
+      const audio = MockAudio.instances.at(-1);
+      audio?.onended?.call(audio);
+    });
+
+    expect(result.current.status).toBe("idle");
+    expect(revokeObjectUrl).toHaveBeenCalled();
+  });
+
+  it("audio onerror also cleans up and returns to idle", async () => {
+    installFetchMock("ok");
+    const { revokeObjectUrl } = installAudioMocks();
+    const { result } = renderAiReadAloud();
+
+    act(() => result.current.toggle());
+    await waitFor(() => expect(result.current.status).toBe("speaking"));
+
+    act(() => {
+      const audio = MockAudio.instances.at(-1);
+      audio?.onerror?.call(audio);
+    });
+
+    expect(result.current.status).toBe("idle");
+    expect(revokeObjectUrl).toHaveBeenCalled();
   });
 
   it("does nothing on toggle with empty text", () => {

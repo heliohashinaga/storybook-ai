@@ -1,5 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it, vi, afterEach } from "vitest";
+
+// The default image encoder lazily imports `sharp` only for non-WebP bytes.
+// A hoisted mock keeps that path deterministic and offline (T024).
+const sharpMock = vi.hoisted(() =>
+  vi.fn(() => ({ webp: () => ({ toBuffer: async () => Buffer.from("SHARPWEBP") }) }))
+);
+vi.mock("sharp", () => ({ default: sharpMock }));
+
 import { ProviderError } from "../../src/features/story-generation/server/story-generation-provider";
 import type { OpenRouterDeps } from "../../src/features/story-generation/server/openrouter-story-generation-provider";
 import {
@@ -338,6 +346,21 @@ describe("createOpenRouterIllustration", () => {
       dataUri: "data:image/webp;base64," + Buffer.from("ENCODEDWEBP").toString("base64"),
     });
     expect(encoder).toHaveBeenCalledTimes(1);
+  });
+
+  it("transcodes non-WebP bytes through the default sharp encoder", async () => {
+    sharpMock.mockClear();
+    const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const { fetchImpl } = createFakeFetch(() =>
+      jsonResponse({ data: [{ b64_json: Buffer.from(pngBytes).toString("base64") }] })
+    );
+    // No imageEncoder injected → the lazy `sharp` default transcodes the bytes.
+    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+
+    await expect(illustrate("prompt")).resolves.toMatchObject({
+      dataUri: "data:image/webp;base64," + Buffer.from("SHARPWEBP").toString("base64"),
+    });
+    expect(sharpMock).toHaveBeenCalledTimes(1);
   });
 
   it("accepts WebP bytes even without a media type", async () => {

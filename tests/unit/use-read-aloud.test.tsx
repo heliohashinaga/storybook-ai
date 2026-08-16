@@ -167,4 +167,25 @@ describe("useReadAloud — edge behaviors", () => {
     act(() => result.current.stop());
     expect(result.current.speaking).toBe(false);
   });
+
+  it("falls back to the primary-subtag voice match for unknown locales", () => {
+    const speech = mockSpeech();
+    // "fr" is not in LOCALE_TO_VOICE_TAG and no fr voice exists: narration
+    // still starts with the correct fallback lang and no assigned voice.
+    const { result } = renderHook(() => useReadAloud({ text: "Bonjour", locale: "fr" }));
+    act(() => result.current.toggle());
+    expect(result.current.speaking).toBe(true);
+    const utt = speech.calls()[0]!;
+    expect(utt.lang).toBe("fr");
+    expect(utt.voice).toBeFalsy();
+  });
+
+  it("marks speaking=false when the utterance errors out", () => {
+    const speech = mockSpeech();
+    const { result } = renderHook(() => useReadAloud({ text: "Cena.", locale: "pt-BR" }));
+    act(() => result.current.toggle());
+    expect(result.current.speaking).toBe(true);
+    act(() => speech.calls()[0]!.onerror?.());
+    expect(result.current.speaking).toBe(false);
+  });
 });

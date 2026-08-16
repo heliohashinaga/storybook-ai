@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   planStory,
   providerInputFor,
@@ -49,6 +49,37 @@ describe("planner agent", () => {
       provider: fake.provider,
     });
     expect(result.ok).toBe(false);
+  });
+
+  it("returns a non-transient Err for out-of-range scene counts", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const result = await planStory(ctx({ sceneCountRequested: 2 }), {
+      provider: fake.provider,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("plan");
+      expect(result.transient).toBe(false);
+      expect(result.message).toBe("story.error.invalidInput");
+    }
+    expect(fake.generateCalls).toBe(0);
+  });
+
+  it("returns a transient Err when the provider throws a plain Error", async () => {
+    const fake = createFakeProvider({ scenario: "safe" });
+    const throwingProvider = {
+      ...fake.provider,
+      generateStory: vi.fn().mockRejectedValue(new Error("socket closed")),
+    };
+    const result = await planStory(ctx({ sceneCountRequested: 3 }), {
+      provider: throwingProvider,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("plan");
+      expect(result.transient).toBe(true);
+      expect(result.errorCode).toBeUndefined();
+    }
   });
 
   it("purposeFor is theme-aligned for all six themes and identifier-free", () => {

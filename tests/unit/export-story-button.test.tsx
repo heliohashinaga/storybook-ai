@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LocaleProvider } from "../../src/i18n/locale-provider";
 import type { GeneratedStory } from "../../src/features/story-generation/server/schemas";
@@ -38,12 +38,27 @@ const story: GeneratedStory = {
 };
 
 const buildStoryPdfMock = vi.hoisted(() =>
-  vi.fn().mockResolvedValue(new Blob(["pdf"], { type: "application/pdf" }))
+  vi
+    .fn()
+    .mockImplementation(
+      async (_story: unknown, deps?: { download?: (blob: Blob, filename: string) => void }) => {
+        const blob = new Blob(["pdf"], { type: "application/pdf" });
+        // Mirror the real buildStoryPdf: hand the PDF to the injected downloader.
+        deps?.download?.(blob, "a-missao-da-estrelinha.pdf");
+        return blob;
+      }
+    )
 );
 vi.mock("../../src/features/story-export/client/build-story-pdf", () => ({
   buildStoryPdf: buildStoryPdfMock,
 }));
 const buildStoryPdf = buildStoryPdfMock;
+
+beforeEach(() => {
+  // jsdom lacks the blob-object-URL browser APIs; provide them deterministically.
+  URL.createObjectURL = vi.fn(() => "blob:mock");
+  URL.revokeObjectURL = vi.fn();
+});
 
 function renderButton() {
   return render(
@@ -106,6 +121,38 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     // The retry re-runs the export and succeeds this time.
     await user.click(retry);
     expect(buildStoryPdf).toHaveBeenCalledTimes(2);
+    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+  });
+
+  it("downloads the blob via a temporary anchor (browserDownload) — no network", async () => {
+    const user = userEvent.setup();
+    const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await screen.findByRole("button", { name: /pdf baixado/i });
+
+    // The rendered blob is handed to the real browserDownload helper.
+    expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
+    expect(anchorClick).toHaveBeenCalled();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock");
+    anchorClick.mockRestore();
+  });
+
+  it("ignores a second click while an export is already in flight", async () => {
+    const user = userEvent.setup();
+    let release!: (blob: Blob) => void;
+    buildStoryPdf.mockImplementationOnce(() => new Promise<Blob>((resolve) => (release = resolve)));
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    // While exporting the button re-labels to "baixando". A raw click on the
+    // disabled element triggers handleExport, whose guard returns early — the
+    // PDF builder is never called a second time.
+    fireEvent.click(screen.getByRole("button", { name: /gerando pdf/i }));
+    expect(buildStoryPdf).toHaveBeenCalledTimes(1);
+
+    release(new Blob(["pdf"], { type: "application/pdf" }));
     expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
   });
 });

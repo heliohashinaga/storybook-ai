@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { writeStory } from "../../../../src/features/story-generation/server/agents/writer";
 import type {
   JobContext,
@@ -51,5 +51,34 @@ describe("writer agent", () => {
     const result = await writeStory(ctx(), outline(3), { provider: fake.provider });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.transient).toBe(true);
+  });
+
+  it("returns a permanent Err when the provider returns a malformed candidate", async () => {
+    // The "invalid" scenario returns 2 scenes instead of the requested 3:
+    // the candidate-guard rejects it as unrecoverable rather than transient.
+    const fake = createFakeProvider({ scenario: "invalid" });
+    const result = await writeStory(ctx(), outline(3), { provider: fake.provider });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("write");
+      expect(result.transient).toBe(false);
+      expect(result.errorCode).toBe("unsafe_unrecoverable");
+    }
+  });
+
+  it("returns a transient Err when the provider throws a non-categorized error", async () => {
+    // A plain Error (no ProviderError `kind`) still maps to a transient
+    // generation-unavailable result, never a crash.
+    const throwingProvider = {
+      ...createFakeProvider({ scenario: "safe" }).provider,
+      generateStory: vi.fn().mockRejectedValue(new Error("transport exploded")),
+    };
+    const result = await writeStory(ctx(), outline(3), { provider: throwingProvider });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.stage).toBe("write");
+      expect(result.transient).toBe(true);
+      expect(result.errorCode).toBeUndefined();
+    }
   });
 });

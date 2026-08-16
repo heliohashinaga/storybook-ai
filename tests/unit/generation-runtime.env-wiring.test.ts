@@ -179,4 +179,16 @@ describe("MODEL_TIMEOUT_MS / MODEL_MAX_ATTEMPTS → provider wiring", () => {
     // Illustration only honors the timeout, not retries.
     expect(illustrationOptions).toEqual([{ timeoutMs: 45000 }]);
   });
+
+  it("throws a clear error when a required model env var is missing", async () => {
+    // Every model except the planner target gets set; the runtime must fail
+    // fast with an explicit name instead of silently routing an empty model.
+    setModels();
+    delete process.env.PLANNER_MODEL;
+    const { createRealRuntime } = await load();
+    const { seams } = spySeams();
+    const runtime = createRealRuntime(seams);
+
+    expect(() => runtime.plannerProvider).toThrow(/missing required provider configuration/i);
+  });
 });
