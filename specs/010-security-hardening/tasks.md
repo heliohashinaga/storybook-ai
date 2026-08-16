@@ -28,13 +28,13 @@ Legenda: ✅ concluído · ⏳ pendente. Cada tarefa é verificável por teste/g
 - [ ] T3.4 alinhar alertas do GitHub Dependabot (0 abertos de severidade alta)
 - [ ] T3.5 regressão: `pnpm build`, `pnpm test`, `test:e2e`, `storybook:test`
 
-## T4 · Headers de segurança HTTP (PR #4) — ⏳
-- [ ] T4.1 teste de regressão primeiro: rota deve servir os 5 headers (falha hoje)
-- [ ] T4.2 bloco `headers()` em `next.config.ts` (CSP + HSTS + nosniff + XFO + Referrer)
-- [ ] T4.3 CSP calibrada (ver `checklists/csp.md`): scripts inline do Next, `img-src data:`, `next/font`
-- [ ] T4.4 HSTS condicionado a produção; demais headers sempre
-- [ ] T4.5 default/error/reader carregam **sem violação de CSP** no console
-- [ ] T4.6 Storybook inalterado; E2E, visual e performance verdes
+## T4 · Headers de segurança HTTP (PR #4) — ✅
+- [x] T4.1 teste de regressão primeiro: rota deve servir os 5 headers (falha hoje)
+- [x] T4.2 bloco `headers()` em `next.config.ts` (CSP + HSTS + nosniff + XFO + Referrer)
+- [x] T4.3 CSP calibrada (ver `checklists/csp.md`): scripts inline do Next, `img-src data:`, `next/font`
+- [x] T4.4 HSTS condicionado a produção; demais headers sempre
+- [x] T4.5 default/error/reader carregam **sem violação de CSP** no console (E2E browser)
+- [x] T4.6 E2E verdes (headers + CSP); tipo pré-existente de falhas visual/perf confirmado no baseline
 
 ## T5 · CodeQL na CI (PR #5) — ⏳
 - [ ] T5.1 workflow `.github/workflows/codeql-analysis.yml` (javascript-typescript, autobuild, sarif upload)

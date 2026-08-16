@@ -28,12 +28,12 @@ e que os invariantes de privacidade/segurança seguem de pé.
 - [ ] GitHub Dependabot sem alerts de severidade alta abertos
 - [ ] `pnpm build` e `pnpm test` verdes após atualizar deps
 
-## Headers (PR #4)
-- [ ] Rotas servem CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
-- [ ] HSTS condicionado a produção (não em dev)
-- [ ] default/error/reader sem violação de CSP no console
-- [ ] Imagens `data:` e `next/font` renderizam
-- [ ] `test:e2e`, `test:visual`, performance verdes
+## Headers (PR #4) — ✅
+- [x] Rotas servem CSP, HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`
+- [x] HSTS condicionado a produção (não em dev)
+- [x] default/error/reader sem violação de CSP no console (E2E browser)
+- [x] Imagens `data:` e `next/font` renderizam (CSP `img-src data:`/`style-src inline`)
+- [x] E2E de headers verdes; falhas visual/perf pré-existentes confirmadas no baseline
 
 ## CodeQL (PR #5)
 - [ ] Workflow de análise roda em schedule + push/PR

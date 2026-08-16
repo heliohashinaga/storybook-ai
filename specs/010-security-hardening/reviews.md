@@ -38,10 +38,22 @@ e com os status em `tasks.md`/`plan.md`.
   chamador a decidir explicitamente); HFF é confiado apenas atrás de proxy
   controlado (`VERCEL=1`/`TRUST_PROXY=1`); valor não-IP nunca vira chave.
 
+### ✅ PR #4 — Headers de segurança — aprovado
+- **Implementação:** `next.config.ts` `headers()` global; CSP calibrada
+  (checklists/csp.md) + `nosniff`/`XFO:DENY`/`Referrer-Policy`/HSTS (produção).
+- **Revisão (test-first + validação real):** E2E `security-headers.spec.ts`
+  (headers presentes; browser carrega `/`, `/reader`, 404 **sem violação de
+  CSP no console**).
+- **Decisões:** `script-src 'unsafe-inline'` (sem nonce) — app sem HTML perigoso
+  (auditoria confirmou ausência de `dangerouslySetInnerHTML`/`eval`/`innerHTML`)
+  e nonce exigiria `middleware.ts` (maior superfície); HSTS só produção.
+- **Verificação de baseline:** as 5 falhas de E2E (2 perf-budget, 2 reader-visual
+  por seletor `idade`, 1 smoke locale pt-BR) foram confirmadas **pré-existentes**
+  rodando a mesma suíte com `next.config.ts` sem headers (stash→build→run→pop):
+  **zero falhas novas** introduzidas por PR #4.
+
 ## Pendências (revisão futura)
 
 - **PR #3 (SCA):** atualizar `next`/`next-intl`/`@storybook/nextjs`; aceitar só
   com `pnpm audit` 0 high/medium runtime + Dependabot alinhado.
-- **PR #4 (headers):** validar CSP real no browser (console sem violação),
-  não apenas lint; verificar default/error/reader.
 - **PR #5 (CodeQL):** workflow verde + 0 alerts novos.

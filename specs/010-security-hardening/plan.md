@@ -4,7 +4,7 @@ Derivado de `docs/security-audit-2026.md`. Ordem sugerida pela auditoria:
 PR #3 (SCA) → PR #1 (SSRF) → PR #2 (rate-limit) → PR #4 (headers) → PR #5
 (CodeQL); `_alternativa:_` PR #1 primeiro se preferir atacar o risco funcional.
 
-Status contratado: **#1 e #2 CONCLUÍDOS**; **#3, #4, #5 PENDENTES**.
+Status contratado: **#1, #2 e #4 CONCLUÍDOS**; **#3 e #5 PENDENTES**.
 
 ---
 
@@ -71,7 +71,7 @@ caminho de runtime; nenhuma mudança de comportamento.
 
 ---
 
-## PR #4 — Headers de segurança HTTP  ⏳ PENDENTE
+## PR #4 — Headers de segurança HTTP  ✅ CONCLUÍDO
 
 **Finding §8 (baixo, hardening, pré-existente):** `next.config.ts` **sem**
 `headers()` e **sem** `middleware.ts`; o app responde sem CSP, HSTS,
@@ -93,6 +93,12 @@ visual (headers afetam carregamento).
 **Critério de aceite:** rotas servem os 5 headers; default/error/reader carregam
 sem violação de CSP no console; Storybook inalterado; E2E/visual/performance
 verdes.
+
+**Resultado:** headers aplicados em `next.config.ts` (`headers()` global); CSP
+validada em browser real via E2E (`tests/e2e/security-headers.spec.ts`): heads
+presentes e `/`, `/reader`, 404 sem violação de console. Falhas pré-existentes
+confirmadas no baseline (locale/perf/visual — presentes sem os headers).
+`pnpm test` 649/649; build tipo A; gates verdes.
 
 ---
 

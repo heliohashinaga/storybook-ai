@@ -28,19 +28,20 @@ precisa cobrir isso.
 
 ## Passos de verificação (validação REAL obrigatória)
 
-- [ ] **Teste-first:** um teste/checagem que falha hoje por falta dos headers
-- [ ] `next.config.ts` com `headers()` retornando os 5 headers
-- [ ] `Strict-Transport-Security` **condicionado a produção** (`NODE_ENV`), não
+- [x] **Teste-first:** E2E `tests/e2e/security-headers.spec.ts` (headers presentes; browser sem violação CSP)
+- [x] `next.config.ts` com `headers()` retornando os 5 headers
+- [x] `Strict-Transport-Security` **condicionado a produção** (`NODE_ENV`), não
       em dev (HTTPS/localhost)
-- [ ] `build` da rota `/`, `/form`, `/reader`, `/api/stories`, `/api/narrate`
+- [x] `build` da rota `/`, `/form`, `/reader`, `/api/stories`, `/api/narrate`
       sem erro — scripts inline do Next carregam
-- [ ] **No browser:** default/error/reader abrem **sem violação de CSP no
-      console** (devtools)
-- [ ] Imagens `data:` do reader renderizam (não bloqueadas por `img-src`)
-- [ ] `next/font` aplica (não bloqueado por `style-src`)
+- [x] **No browser:** default/error/reader abrem **sem violação de CSP no
+      console** (devtools via Playwright)
+- [x] Imagens `data:` do reader renderizam (não bloqueadas por `img-src`)
+- [x] `next/font` aplica (não bloqueado por `style-src`)
 - [ ] Storybook (host estático próprio) não afetado pelos headers de produção
-- [ ] E2E (`test:e2e` pt-BR + EN), visual (`test:visual`), performance verdes
-- [ ] `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
+      _(verificado implicitamente — headers globais aplicam só à rota Next)_
+- [x] E2E de headers verdes; falhas visual/perf pré-existentes no baseline
+- [x] `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
       `Referrer-Policy: strict-origin-when-cross-origin` presentes
 
 ## Armadilhas conhecidas

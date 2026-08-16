@@ -251,3 +251,14 @@ risco de código antes do SCA.)_
   injetam `trustForwardedFor`. Testes novos em `tests/unit/rate-limit.test.ts` e
   `tests/unit/stories-route.rate-limit.test.ts` (XFF à direita; XFF forjado é
   ignorado sem proxy confiável; fallback global anônimo).
+
+- **PR #4 — headers de segurança HTTP: CONCLUÍDO.** `next.config.ts` adiciona
+  bloco `headers()` global com CSP calibrada para o app (`default-src 'self'`;
+  `script-src 'self' 'unsafe-inline'` para o bootstrap do Next; `img-src 'self'
+data:` porque o reader exibe `data:` URIs; `style-src 'self' 'unsafe-inline'`
+  para `next/font`; `frame-ancestors 'none'`, `base-uri 'none'`,
+  `object-src 'none'`), `X-Content-Type-Options: nosniff`,
+  `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`
+  e HSTS (só produção). Verificação real no browser (não só lint): E2E
+  `tests/e2e/security-headers.spec.ts` (headers presentes; `/`, `/reader` e uma
+  rota 404 carregam **sem violação de CSP no console**).
