@@ -145,12 +145,17 @@ function ReaderScreen({ isFake: _isFake }: { isFake: boolean }) {
     return <section aria-live="polite" aria-busy="true" />;
   }
 
+  // Keep the reader/history grid inside the same horizontal container as the
+  // header (`max-w-7xl` + responsive padding) so the story card and history
+  // panel never extend past the logo / theme-toggle alignment on wide screens.
   return (
-    <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_18rem]">
-      <StoryReader story={story} onNewStory={onNewStory} />
-      <aside className="flex h-full flex-col gap-sm">
-        <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
-      </aside>
+    <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-12">
+      <div className="grid gap-lg lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <StoryReader story={story} onNewStory={onNewStory} />
+        <aside className="flex h-full flex-col gap-sm">
+          <StoryHistory storyEntries={stories} activeId={activeId} onSelect={accessStory} />
+        </aside>
+      </div>
     </div>
   );
 }
