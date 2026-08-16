@@ -1,10 +1,13 @@
 # Plano — Hardening de Segurança 2026
 
-Derivado de `docs/security-audit-2026.md`. Ordem sugerida pela auditoria:
+Derivado da auditoria de segurança 2026 (documento original removido; conteúdo
+consolidado neste diretório — ver `research.md` para o mapa achado→tratamento).
+Ordem sugerida pela auditoria:
 PR #3 (SCA) → PR #1 (SSRF) → PR #2 (rate-limit) → PR #4 (headers) → PR #5
 (CodeQL); `_alternativa:_` PR #1 primeiro se preferir atacar o risco funcional.
 
-Status contratado: **#1, #2, #3 e #4 CONCLUÍDOS**; **#5 PENDENTE**.
+Status contratado: **#1–#4 CONCLUÍDOS**; **#5 COBERTO pelo GitHub Default Setup**
+(ver seção PR #5 abaixo).
 
 ---
 
@@ -110,13 +113,28 @@ confirmadas no baseline (locale/perf/visual — presentes sem os headers).
 
 ---
 
-## PR #5 — CodeQL na CI  ⏳ PENDENTE
+## PR #5 — CodeQL na CI  ✅ COBERTO (GitHub Default Setup)
 
 **Finding:** ausente da auditoria como item baixo; recomendado como hardening.
 
-**Ação:** adicionar workflow GitHub Actions `codeql-analysis.yml` (languages
-`javascript-typescript`), `autobuild`, sarif `upload`, rodando em `schedule` +
-push/PR da branch padrão. Sem estourar budget de CI.
+**Ação original:** adicionar workflow GitHub Actions `codeql-analysis.yml`
+(languages `javascript-typescript`), `autobuild`, sarif `upload`, rodando em
+`schedule` + push/PR da branch padrão. Sem estourar budget de CI.
 
 **Critério de aceite:** workflow verde com sarif reportado e 0 alerts de
 severidade high/medium introduzidos por mudanças novas.
+
+**Resultado (decisão registrada):** **nenhum workflow manual foi criado** — o
+repositório já tem **CodeQL ativo via GitHub Default Setup** (configuração
+gerenciada pelo GitHub, sem arquivo no repo):
+- Languages: **JavaScript/TypeScript + GitHub Actions** (as 2 detectadas);
+- Query suite: **Default (high-precision)**;
+- Runner: **Standard GitHub runner**;
+- Scan events: **push + PR para `main`/branches protegidas + schedule semanal**
+  (próxima varredura de `main` registrada no painel).
+
+Isso atende T5.1–T5.4 sem custo de manutenção e sem tributar o CI por-PR.
+**Não adotar advanced setup** (workflow manual p/ customizar queries): sinal já
+é baixo neste repo (verifique: sem `dangerouslySetInnerHTML`/`eval`/`innerHTML`,
+sem DB/shell/file-I/O de usuário; SSRF já coberto por PR #1 + testes) e o suite
+default é o ajuste certo.

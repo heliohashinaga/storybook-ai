@@ -1,7 +1,8 @@
 # Pesquisa — Hardening de Segurança 2026
 
 Mapa de evidência: achado da auditoria → tratamento → artefatos.
-Fonte primária: `docs/security-audit-2026.md` (25/03/2026; leitura; 0 mudanças).
+Fonte primária: auditoria de segurança 2026 (25/03/2026; leitura; 0 mudanças),
+consolidada nos artefatos deste diretório após a remoção do arquivo original.
 
 ## Resumo da auditoria
 - **Veredito:** 0 riscos críticos; 2 médios (código) + 1 médio SCA; 3 baixos

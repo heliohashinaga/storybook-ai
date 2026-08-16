@@ -1,8 +1,8 @@
 # Reviews — Hardening de Segurança 2026
 
 Registro de decisões e estações de revisão da feature. Atualizado conforme cada
-PR avança; o status `CONCLUÍDO` aqui deve bater com `docs/security-audit-2026.md`
-e com os status em `tasks.md`/`plan.md`.
+PR avança; o status `CONCLUÍDO` aqui deve bater com os status em
+`tasks.md`/`plan.md`.
 
 ## Estações
 

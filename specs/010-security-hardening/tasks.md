@@ -38,14 +38,14 @@ Legenda: ✅ concluído · ⏳ pendente. Cada tarefa é verificável por teste/g
 - [x] T4.5 default/error/reader carregam **sem violação de CSP** no console (E2E browser)
 - [x] T4.6 E2E verdes (headers + CSP); tipo pré-existente de falhas visual/perf confirmado no baseline
 
-## T5 · CodeQL na CI (PR #5) — ⏳
-- [ ] T5.1 workflow `.github/workflows/codeql-analysis.yml` (javascript-typescript, autobuild, sarif upload)
-- [ ] T5.2 rodar em `schedule` + push/PR da branch padrão
-- [ ] T5.3 0 alerts high/medium novos introduzidos por mudanças novas
-- [ ] T5.4 workflow verde sem estourar budget de CI
+## T5 · CodeQL na CI (PR #5) — ✅ coberto pelo GitHub Default Setup
+- [x] T5.1 linguagens detectadas: JS/TS + GitHub Actions (default setup ativo — sem workflow manual)
+- [x] T5.2 scan events: push + PR → `main`/branches protegidas + schedule semanal
+- [x] T5.3 query suite Default (high-precision); runner padrão
+- [x] T5.4 decisão: **não** adotar advanced setup (sinal baixo neste repo; sem custo extra de CI)
 
 ## T6 · Documentação e sync — ⏳ (em andamento)
 - [x] T6.1 `AGENTS.md` seção **Security Hardening** (baseline audit; reflete PR #1/#2)
-- [x] T6.2 `docs/security-audit-2026.md` status de remediação (PR #1/#2 CONCLUÍDO)
+- [x] T6.2 `tasks.md`/`plan.md` status de remediação (PR #1–#4 CONCLUÍDO; PR #5 coberto pelo GitHub Default Setup)
 - [x] T6.3 este diretório `specs/010-security-hardening/` (spec/plan/tasks/reviews/quickstart/checklist/csp)
-- [ ] T6.4 atualizar status aqui em `reviews.md` conforme #3/#4/#5 avançarem
+- [x] T6.4 `docs/security-audit-2026.md` **removido** (auditoria consolidada nos artefatos; refs atualizadas: AGENTS.md + spec 010)

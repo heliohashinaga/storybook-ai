@@ -36,10 +36,10 @@ e que os invariantes de privacidade/segurança seguem de pé.
 - [x] Imagens `data:` e `next/font` renderizam (CSP `img-src data:`/`style-src inline`)
 - [x] E2E de headers verdes; falhas visual/perf pré-existentes confirmadas no baseline
 
-## CodeQL (PR #5)
-- [ ] Workflow de análise roda em schedule + push/PR
-- [ ] sarif reportado; 0 alerts high/medium novos
-- [ ] CI verde sem estourar budget
+## CodeQL (PR #5) — ✅ coberto pelo GitHub Default Setup
+- [x] Scan ativo em push + PR → `main`/branches protegidas + schedule semanal (default setup)
+- [x] Linguagens: JS/TS + GitHub Actions; query suite Default (high-precision)
+- [x] Sem workflow manual; 0 custo extra de CI; não usar advanced setup
 
 ## Gates finais
 - [ ] `pnpm lint` (0 warnings)

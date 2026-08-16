@@ -1,8 +1,10 @@
 # Spec — Hardening de Segurança 2026
 
 **Feature:** `010-security-hardening`
-**Status:** em execução (PR #1 e #2 concluídos; PR #3, #4 e #5 pendentes)
-**Origem:** auditoria de segurança [`docs/security-audit-2026.md`](../../docs/security-audit-2026.md) (leitura; nenhum código alterado na auditoria)
+**Status:** em execução (PR #1–#4 concluídos; PR #5 coberto pelo GitHub Default Setup)
+**Origem:** auditoria de segurança 2026, consolidada nos artefatos deste diretório
+(o arquivo `docs/security-audit-2026.md` foi removido; findings → `plan.md`,
+`research.md`; remediação/status → `plan.md`, `tasks.md`, `reviews.md`)
 
 ---
 

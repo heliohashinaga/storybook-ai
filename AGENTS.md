@@ -39,8 +39,10 @@ names in the scripts section below and `specs/001-personalized-story-generation/
 
 ## Security Hardening
 
-Baseline from [`docs/security-audit-2026.md`](docs/security-audit-2026.md)
-(read before touching security-relevant code). Apply and preserve these
+Baseline: [`specs/010-security-hardening/`](specs/010-security-hardening/spec.md)
+(Spec Kit artifacts consolidando a auditoria 2026; o arquivo original
+`docs/security-audit-2026.md` foi removido — findings/remediação vivem aqui).
+Apply and preserve these
 invariants; a regression here is a failed definition of done.
 
 - **SSRF on image fetch:** guard the **URL every hop**, not just the original.
