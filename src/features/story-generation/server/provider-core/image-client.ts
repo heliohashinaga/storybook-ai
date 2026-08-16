@@ -87,10 +87,12 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
       // SSRF guard (CWE-918): a provider-returned URL is untrusted (the
       // provider is a third party and subject to prompt injection). Only fetch
       // https URLs that resolve entirely to public hosts.
-      if (!(await isSafeImageUrl(first.url, urlSafetyResolver))) {
-        throw new ProviderError("unsafe-url", "Refusing to fetch a non-public image URL.");
-      }
-      const imageResponse = await fetchImpl(first.url, { signal: controller.signal });
+      const imageResponse = await fetchSafeImage(
+        first.url,
+        fetchImpl,
+        urlSafetyResolver,
+        controller.signal
+      );
       if (!imageResponse.ok) {
         throw new ProviderError("unavailable", "Image URL could not be fetched.");
       }
@@ -110,6 +112,52 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** True when an HTTP status is a 3xx response. */
+function isRedirectStatus(status: number): boolean {
+  return status >= 300 && status < 400;
+}
+
+/**
+ * Validated fetch of a provider-returned image URL with a bounded redirect chain.
+ *
+ * SSRF guard (CWE-918): the original URL is validated with {@link isSafeImageUrl},
+ * but the global `fetch` follows redirects by default without re-validation.
+ * A hostile/prompt-injected provider could return a public URL that `3xx`
+ * redirects to an internal/cloud-metadata host. So we fetch with
+ * `redirect: "manual"` and, on a 3xx, **re-validate the `Location` target**
+ * against the same url-safety resolver before following, capped at a single
+ * hop (a chained second redirect is refused). Non-2xx responses fall through
+ * to the caller's `.ok` handling. The final body is fetched exactly once.
+ */
+async function fetchSafeImage(
+  url: string,
+  fetchImpl: typeof fetch,
+  urlSafetyResolver: UrlResolver | undefined,
+  signal: AbortSignal
+): Promise<Response> {
+  if (!(await isSafeImageUrl(url, urlSafetyResolver))) {
+    throw new ProviderError("unsafe-url", "Refusing to fetch a non-public image URL.");
+  }
+
+  const first = await fetchImpl(url, { signal, redirect: "manual" });
+  if (!isRedirectStatus(first.status)) return first;
+
+  // Follow exactly one re-validated hop.
+  const location = first.headers.get("location");
+  if (!location) {
+    throw new ProviderError("unsafe-url", "Image URL redirect has no target.");
+  }
+  const target = new URL(location, url).href;
+  if (!(await isSafeImageUrl(target, urlSafetyResolver))) {
+    throw new ProviderError("unsafe-url", "Image URL redirect target is not a public https host.");
+  }
+  const second = await fetchImpl(target, { signal, redirect: "manual" });
+  if (isRedirectStatus(second.status)) {
+    throw new ProviderError("unsafe-url", "Image URL redirects may not chain (max 1 hop).");
+  }
+  return second;
 }
 
 /** True when a raw image buffer already carries the WebP container signature. */

@@ -233,3 +233,11 @@ risco de código antes do SCA.)_
   este arquivo por data/versão e acoplar o CodeQL + Dependabot como gate.
 - Nenhum código foi alterado nesta auditoria; o plano acima é a proposta de
   execução.
+
+### Status da remediação
+
+- **PR #1 — SSRF por redirect: CONCLUÍDO.** `image-client.ts` agora usa
+  `redirect: "manual"` + revalida o alvo do `Location` com `isSafeImageUrl()`
+  e limita a **1 hop** (redirect encadeado → `unsafe-url`); corpo final buscado
+  exatamente uma vez. Testes adicionados em `tests/unit/provider-core/image-client.test.ts`
+  (redirect→interno, redirect válido único, chain de 2 hops).

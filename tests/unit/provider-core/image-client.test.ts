@@ -120,4 +120,82 @@ describe("provider-core image-client postImages", () => {
       ProviderError
     );
   });
+
+  it("re-validates an image URL redirect target (SSRF) and refuses internal/metadata hops", async () => {
+    const { fetchImpl, calls } = createFakeFetch(({ url }) => {
+      if (url.includes("/images")) {
+        return jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/img.webp" }] });
+      }
+      // First hop: a public CDN that redirects to cloud-metadata/private.
+      return new Response(null, {
+        status: 302,
+        headers: { location: "http://169.254.169.254/latest/meta-data/iam/credentials" },
+      });
+    });
+    await expect(
+      postImages({
+        ...baseReq,
+        fetchImpl,
+        urlSafetyResolver: async () => ["1.2.3.4"],
+      })
+    ).rejects.toMatchObject({ kind: "unsafe-url" });
+    // The internal redirect target was never fetched.
+    expect(calls.filter((c) => c.url.includes("169.254"))).toHaveLength(0);
+  });
+
+  it("follows a single re-validated image URL redirect hop and returns the image bytes", async () => {
+    const { fetchImpl, calls } = createFakeFetch(({ url }) => {
+      if (url.includes("/images")) {
+        return jsonResponse({ data: [{ url: "https://cdn.example.com/start.webp" }] });
+      }
+      if (url.includes("/start.webp")) {
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://cdn.example.com/final.webp" },
+        });
+      }
+      return new Response(new Uint8Array([9, 8, 7]), {
+        status: 200,
+        headers: { "content-type": "image/webp" },
+      });
+    });
+    const result = await postImages({
+      ...baseReq,
+      fetchImpl,
+      urlSafetyResolver: async () => ["93.184.216.34"],
+    });
+    expect(calls.filter((c) => c.url.includes("/final.webp"))).toHaveLength(1);
+    expect(new Uint8Array(result.bytes)).toEqual(new Uint8Array([9, 8, 7]));
+    expect(result.mediaType).toBe("image/webp");
+  });
+
+  it("caps image URL redirects at one hop and rejects a second redirect (SSRF)", async () => {
+    const { fetchImpl, calls } = createFakeFetch(({ url }) => {
+      if (url.includes("/images")) {
+        return jsonResponse({ data: [{ url: "https://cdn.example.com/a.webp" }] });
+      }
+      if (url.includes("/a.webp")) {
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://cdn.example.com/b.webp" },
+        });
+      }
+      if (url.includes("/b.webp")) {
+        return new Response(null, {
+          status: 302,
+          headers: { location: "https://cdn.example.com/c.webp" },
+        });
+      }
+      return new Response(new Uint8Array([1]), { status: 200 });
+    });
+    await expect(
+      postImages({
+        ...baseReq,
+        fetchImpl,
+        urlSafetyResolver: async () => ["93.184.216.34"],
+      })
+    ).rejects.toMatchObject({ kind: "unsafe-url" });
+    // The second redirect was never followed.
+    expect(calls.filter((c) => c.url.includes("/c.webp"))).toHaveLength(0);
+  });
 });
