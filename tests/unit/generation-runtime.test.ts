@@ -43,8 +43,8 @@ describe("createGenerationRuntime provider selection", () => {
       sceneCount: 3,
     });
     expect(story.scenes).toHaveLength(3);
-    expect(story.title).toMatch(/star/i);
-    expect(story.scenes[0]!.title).toMatch(/scene/i);
+    expect(story.title).toBe("The Little Bridge of Friendship");
+    expect(story.scenes[0]!.title).toBe("Berry by the Stream");
     expect(JSON.stringify(story)).not.toMatch(/estrelinha/i);
     expect(JSON.stringify(story)).not.toMatch(/[áàâãçéêíóôõúü]/i);
   });

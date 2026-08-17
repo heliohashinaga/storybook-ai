@@ -4,12 +4,18 @@ import type {
   ProviderStoryInput,
   StoryGenerationProvider,
 } from "./story-generation-provider";
+import {
+  catalogIllustration,
+  catalogMarker,
+  parseCatalogMarker,
+  resolveFixture,
+} from "./fake-content-catalog";
 
 /**
  * Optional artificial latency so the story-request loading/progress screen is
  * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
  *
- * Controlled by `STORY_FAKE_STEP_DELAY_MS` (default 3000ms). The fake load is
+ * Controlled by `STORY_FAKE_STEP_DELAY_MS` (default 1000ms). The fake load is
  * applied **once per pipeline phase** (write → illustrate → review), not per
  * provider call, so each UI step lasts roughly the same time and the progress
  * bar advances evenly instead of stalling on the final (clamped) step. The
@@ -19,7 +25,7 @@ import type {
  */
 function fakeModeDelay(): Promise<void> {
   if (process.env.NODE_ENV === "test") return Promise.resolve();
-  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "3000");
+  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "1000");
   if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -40,6 +46,7 @@ export function createFakePhasedDelay(
   delayFn: (phase: FakeLoadPhase) => Promise<void> = fakeModeDelay
 ): {
   wait(phase: FakeLoadPhase): Promise<void>;
+  reset(): void;
 } {
   const paid = new Set<FakeLoadPhase>();
   return {
@@ -47,6 +54,10 @@ export function createFakePhasedDelay(
       if (paid.has(phase)) return;
       paid.add(phase);
       await delayFn(phase);
+    },
+    /** Forget which phases were already paid so the next generation re-delays. */
+    reset(): void {
+      paid.clear();
     },
   };
 }
@@ -317,8 +328,34 @@ export function createFixedDevProvider(
 ): StoryGenerationProvider {
   return {
     async generateStory(input: ProviderStoryInput) {
+      // A generation = one pipeline run. The fake load is meant to recreate the
+      // appearance of progress each time, so reset the (per-request) paid-phase
+      // tracker before the first wait — otherwise later generations skip the
+      // delay and complete in ~0ms (progress flash/bug UX-012).
+      delay.reset();
       // Writes pay the fake load once (covers Planner + Writer calls).
       await delay.wait("write");
+      // Catalog (spec 012): prefer the captured fixture for the combo, else the
+      // legacy authored builder; a catalog scene's illustrationPrompt carries a
+      // marker so the dev illustrator can resolve the captured WebP per scene.
+      const fixture = resolveFixture(input.locale, input.theme, input.sceneCount);
+      if (fixture) {
+        return {
+          title: fixture.story.title,
+          scenes: fixture.story.scenes.map((scene) => ({
+            ordinal: scene.ordinal,
+            title: scene.title,
+            body: scene.body,
+            altText: scene.altText,
+            illustrationPrompt: catalogMarker(
+              input.theme,
+              input.locale,
+              input.sceneCount,
+              scene.ordinal
+            ),
+          })),
+        };
+      }
       return input.locale === "en"
         ? enStory(input.sceneCount, input.theme)
         : ptBRStory(input.sceneCount, input.theme);
@@ -338,9 +375,21 @@ export function createFixedDevProvider(
 export function createFixedDevIllustration(
   delay: ReturnType<typeof createFakePhasedDelay> = createFakePhasedDelay()
 ) {
-  return async () => {
+  return async (prompt: string) => {
     // The whole illustration set pays the fake load once, not once per scene.
     await delay.wait("illustrate");
+    // Catalog marker (spec 012): resolve the captured WebP for that scene;
+    // anything else falls back to the fixed dev image.
+    const marker = parseCatalogMarker(prompt);
+    if (marker) {
+      const dataUri = catalogIllustration(
+        marker.locale,
+        marker.theme,
+        marker.sceneCount,
+        marker.ordinal
+      );
+      if (dataUri) return { dataUri };
+    }
     return { dataUri: FIXED_ILLUSTRATION_DATA_URI };
   };
 }

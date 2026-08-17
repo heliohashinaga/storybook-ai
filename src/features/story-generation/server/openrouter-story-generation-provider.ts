@@ -1,26 +1,14 @@
 import "server-only";
 import OpenAI from "openai";
-import { z } from "zod";
 import { getEnv, modelWithoutProviderPrefix } from "../../../lib/env";
-import type {
-  GeneratedStoryCandidate,
-  ModerationDecision,
-  ProviderStoryInput,
-  StoryGenerationProvider,
-} from "./story-generation-provider";
-import { ProviderError } from "./story-generation-provider";
+import type { StoryGenerationProvider } from "./story-generation-provider";
 import {
-  NARRATIVE_SYSTEM_PROMPT,
-  narrativeUserPrompt,
-  parseChatJson,
+  createChatCompletionsProvider,
   postImages,
-  storyCandidateSchema,
-  toProviderError,
   toWebPDataUri,
   OPENROUTER_APP_HEADERS,
   type UrlResolver,
 } from "./provider-core";
-import { moderate } from "./provider-core/moderation";
 
 /**
  * Server-only OpenRouter adapter (T024) for narrative generation, text/image
@@ -96,44 +84,28 @@ function buildChatClient(deps: OpenRouterDeps) {
 
 /**
  * Creates the OpenRouter-backed {@link StoryGenerationProvider}.
+ *
+ * This is a **thin adapter**: it owns only client construction (`getClient`
+ * with `baseUrl` + `defaultHeaders`/app-identity) and model resolution, and
+ * composes the shared orchestration factory
+ * (`createChatCompletionsProvider` in `provider-core`) for
+ * `generateStory`/`moderateText`/`moderateImage`. There is no orchestration
+ * body here (spec 013, SC-001/SC-004). The SDK client is built lazily on first
+ * use so importing this module (e.g. the App Router route, or the build) never
+ * requires provider env to be present; env is validated on the first real
+ * request instead (spec 013, SC-002). `buildChatClient` reads model
+ * identifiers only from `src/lib/env.ts`.
  */
 export function createOpenRouterStoryProvider(deps: OpenRouterDeps = {}): StoryGenerationProvider {
-  // Build the SDK client lazily on first use so importing this module (e.g. the
-  // App Router route, or the build) never requires provider env to be present;
-  // env is validated on the first real request instead. `buildChatClient` reads
-  // model identifiers only from `src/lib/env.ts`.
   let client: OpenAI | undefined;
   const getClient = () => (client ??= buildChatClient(deps));
-
-  return {
-    async generateStory(input: ProviderStoryInput): Promise<GeneratedStoryCandidate> {
-      try {
-        const completion = await getClient().chat.completions.create({
-          model: resolveDeps(deps).textModel,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: NARRATIVE_SYSTEM_PROMPT },
-            { role: "user", content: narrativeUserPrompt(input) },
-          ],
-        });
-        const parsed = parseChatJson(completion.choices[0]?.message?.content);
-        return storyCandidateSchema.parse(parsed);
-      } catch (error) {
-        if (error instanceof z.ZodError || error instanceof ProviderError) {
-          throw new ProviderError("invalid_structured_output", "Story candidate is invalid.");
-        }
-        toProviderError(error);
-      }
-    },
-
-    async moderateText(text: string): Promise<ModerationDecision> {
-      return moderate(getClient(), resolveDeps(deps).moderationModel, text);
-    },
-
-    async moderateImage(prompt: string): Promise<ModerationDecision> {
-      return moderate(getClient(), resolveDeps(deps).moderationModel, prompt);
-    },
-  };
+  // Model identifiers are resolved once here and passed to the factory; client
+  // construction and env validation are deferred to the first request via
+  // `getClient`. Production always resolves routes (and therefore env) before
+  // constructing a provider, so this is behavior-identical to per-call
+  // resolution (spec 013, SC-003).
+  const { textModel, moderationModel } = resolveDeps(deps);
+  return createChatCompletionsProvider({ getClient, textModel, moderationModel });
 }
 
 /** Lazy `sharp` transcode — loaded only when the upstream bytes are not WebP. */

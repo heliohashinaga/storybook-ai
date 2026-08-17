@@ -1,6 +1,10 @@
 import "server-only";
 export { APP_NAME, OPENROUTER_APP_HEADERS } from "./app-identity";
 export { parseChatJson } from "./chat-json";
+export {
+  createChatCompletionsProvider,
+  type ChatCompletionsProviderDeps,
+} from "./create-chat-provider";
 export { isWebP, postImages, toWebPDataUri } from "./image-client";
 export { isSafeImageUrl, isPrivateAddress, type UrlResolver } from "./url-safety";
 export type { PostImagesRequest, RawImage, WebPEncoder } from "./image-client";

@@ -146,7 +146,7 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
     if (i < body.scenes.length - 1) await nextButton.click();
   }
   // The full story text is in English and mentions the star hero.
-  expect(fullStoryText).toMatch(/\bstar\b/i);
+  expect(fullStoryText).toMatch(/\bstars?\b/i);
   // Forward bound: the last scene disables "next".
   await expect(nextButton).toBeDisabled();
 });

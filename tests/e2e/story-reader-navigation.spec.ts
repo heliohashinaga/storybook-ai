@@ -48,7 +48,7 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
 
   // ---- Opens on the first scene: previous disabled, next enabled --------
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
-  await expect(page.getByText(/Era uma vez uma estrelinha/)).toBeVisible();
+  await expect(page.getByText(/Num dia ensolarado, um coelhinho/)).toBeVisible();
   const previous = page.getByRole("button", { name: /^Anterior$/i });
   const next = page.getByRole("button", { name: /^Próxima$/i });
   await expect(previous).toBeDisabled();
@@ -65,7 +65,7 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
   await page.keyboard.press("ArrowRight");
 
   await expect(page.getByText("Cena 2 de 5")).toBeVisible();
-  await expect(page.getByText(/desceu devagar até a areia/)).toBeVisible();
+  await expect(page.getByText(/colocou uma pata na ponte/)).toBeVisible();
   // Focus moved to the new scene heading (G194-adjacent dynamic-content cue);
   // the scene heading is the reader's `[data-scene-heading]` h1.
   await expect(page.locator("[data-scene-heading]")).toBeFocused();
@@ -74,19 +74,19 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
   // Advance through the middle scenes added by the five-scene selection.
   await page.keyboard.press("ArrowRight");
   await expect(page.getByText("Cena 3 de 5")).toBeVisible();
-  await expect(page.getByText(/conheceu uma conchinha curiosa/)).toBeVisible();
+  await expect(page.getByText(/respirou fundo/)).toBeVisible();
 
   await page.keyboard.press("ArrowRight");
   await expect(page.getByText("Cena 4 de 5")).toBeVisible();
-  await expect(page.getByText(/se aconchegaram na areia/)).toBeVisible();
+  await expect(page.getByText(/olhou para baixo/)).toBeVisible();
 
   await page.keyboard.press("ArrowRight");
   await expect(page.getByText("Cena 5 de 5")).toBeVisible();
-  await expect(page.getByText(/voltou ao céu feliz/)).toBeVisible();
+  await expect(page.getByText(/chegou à campina/)).toBeVisible();
   // Forward bound: last scene disables next and ArrowRight is a no-op.
   await expect(next).toBeDisabled();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByText(/voltou ao céu feliz/)).toBeVisible();
+  await expect(page.getByText(/chegou à campina/)).toBeVisible();
 
   // Back through the middle scenes.
   await page.keyboard.press("ArrowLeft");

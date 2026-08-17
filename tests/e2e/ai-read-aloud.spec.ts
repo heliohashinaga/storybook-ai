@@ -122,8 +122,8 @@ test("AI narration failure shows an accessible error and never falls back to Web
   await expect(
     page.getByText("Não foi possível reproduzir o áudio. Tente novamente.")
   ).toBeVisible();
-  // The scene body stays fully readable.
-  await expect(page.getByText(/Era uma vez uma estrelinha/)).toBeVisible();
+  // The scene body stays fully readable (real catalog content, spec 012).
+  await expect(page.getByText(/Num dia ensolarado, um coelhinho/)).toBeVisible();
 
   // No Web Speech audio was ever issued during the AI failure.
   const speechCalled = await page.evaluate(
