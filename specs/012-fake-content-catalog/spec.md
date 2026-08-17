@@ -172,6 +172,12 @@ combinação pedida.
 - **Peso**: budget por cena (default 60 KB) e orçamento total (default 8 MB) auditados no script e
   no teste — falha explícita se estourar.
 - **NODE_ENV=test**: nenhum delay e catálogo lido de disco (fixtures commitadas) — sem rede.
+- **Playwright (e2e/visual/perf) via `next start`**: `playwright.config.ts` zera o delay fake
+  (`STORY_FAKE_STEP_DELAY_MS=0`), pois essas suítes rodam server production onde o delay de dev
+  não tem valor — mantém as suítes determinísticas e rápidas (teste multi-story de 4 gerações,
+  orçamento de perf). O progress UI continua exercitado por testes com `page.route()` deferido
+  (`frontend-routing.spec`), não pelo delay de parede. `pnpm dev` preserva o default 1000 ms
+  (UX-012).
 - **pt-BR vs en**: ambos os catálogos precisam existir e conter as mesmas combinações → só o
   conteúdo difere (check de paridade no teste).
 - **Windows/CRLF ou leitura de mídia**: fixtures lidas com `fs` puro (sem path magic); JSON com

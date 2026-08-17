@@ -68,7 +68,7 @@ different provider/model with the fitting capability.
 | Variable                   | Default | Purpose                                                  |
 | -------------------------- | ------- | -------------------------------------------------------- |
 | `STORIES_TEST_MODE`        | unset   | `fake` → deterministic offline dev provider, no AI calls |
-| `STORY_FAKE_STEP_DELAY_MS` | `3000`  | per-step fake latency in `fake` mode (0 = fastest)       |
+| `STORY_FAKE_STEP_DELAY_MS` | `1000`  | per-step fake latency in `fake` mode (0 = fastest)       |
 | `AI_NARRATION_ENABLED`     | `false` | enable the AI neural voice (uses `READER_MODEL`)         |
 
 #### ⏱️ Timeouts & retries (all optional)

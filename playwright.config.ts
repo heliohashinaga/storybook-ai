@@ -64,6 +64,14 @@ export default defineConfig({
     // STORIES_TEST_MODE in their environment; default here is the fake.
     env: {
       ...(process.env.STORIES_TEST_MODE ? {} : { STORIES_TEST_MODE: "fake" }),
+      // E2E/visual/perf run against a production `next start` server, where the
+      // dev-only fake load provides no UX value. Zero it here so suites stay fast
+      // and deterministic: the multi-story E2E (4 generations) and the perf
+      // budget check both depend on generation completing quickly. The progress
+      // UI is still exercised via deferred-fetch tests (frontend-routing.spec),
+      // not via this wall-clock delay. `pnpm dev` keeps the 1000ms default for
+      // the intended UX-012 progress visibility.
+      ...(process.env.STORY_FAKE_STEP_DELAY_MS ? {} : { STORY_FAKE_STEP_DELAY_MS: "0" }),
       ...(process.env.STORY_RATE_LIMIT_MAX_REQUESTS
         ? {}
         : { STORY_RATE_LIMIT_MAX_REQUESTS: "100" }),

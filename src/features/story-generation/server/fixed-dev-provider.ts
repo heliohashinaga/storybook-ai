@@ -15,7 +15,7 @@ import {
  * Optional artificial latency so the story-request loading/progress screen is
  * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
  *
- * Controlled by `STORY_FAKE_STEP_DELAY_MS` (default 3000ms). The fake load is
+ * Controlled by `STORY_FAKE_STEP_DELAY_MS` (default 1000ms). The fake load is
  * applied **once per pipeline phase** (write → illustrate → review), not per
  * provider call, so each UI step lasts roughly the same time and the progress
  * bar advances evenly instead of stalling on the final (clamped) step. The
@@ -25,7 +25,7 @@ import {
  */
 function fakeModeDelay(): Promise<void> {
   if (process.env.NODE_ENV === "test") return Promise.resolve();
-  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "3000");
+  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "1000");
   if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
