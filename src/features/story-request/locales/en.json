@@ -27,7 +27,6 @@
     "progress": {
       "timeout": "This is taking longer than expected. Thanks for your patience — your story is still being created.",
       "safetyRetry": "We're reviewing once more to make sure everything is safe. Almost there!",
-      "lockNotice": "The screen is locked while we create your story. Don't close or refresh this page.",
       "stageWriting": "Writing your story…",
       "stageIllustrating": "Illustrating the scenes…",
       "stageReviewing": "Running safety checks…",

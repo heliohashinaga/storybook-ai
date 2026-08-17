@@ -385,4 +385,40 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
 
     vi.useRealTimers();
   });
+
+  it("shows the processing panel again on a second submission after a story exists (regression)", async () => {
+    // First story: resolve immediately so we land on the reader.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(approvedStory), { status: 200 }))
+    );
+    const { navigate } = renderApp();
+    await submitValidForm();
+    await goToReaderAfterSuccess(navigate);
+    expect(screen.getByRole("region", { name: /sua história/i })).toBeInTheDocument();
+
+    // Go back to a clean /form to create a second story.
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: /nova história/i }));
+    navigate("/form");
+    expect(screen.getByRole("button", { name: /criar história/i })).toBeInTheDocument();
+
+    // Second submission stays in flight so the processing panel must reappear.
+    let resolveSecond!: (r: Response) => void;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise<Response>((res) => (resolveSecond = res)))
+    );
+    await submitValidForm();
+
+    // The progress panel must be shown again on this second attempt.
+    expect(screen.getByRole("progressbar")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /criar história/i })).not.toBeInTheDocument();
+
+    await act(async () => {
+      resolveSecond(new Response(JSON.stringify(secondStory()), { status: 200 }));
+    });
+    await goToReaderAfterSuccess(navigate);
+    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+  });
 });

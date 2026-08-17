@@ -27,7 +27,6 @@
     "progress": {
       "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
       "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
-      "lockNotice": "A tela está bloqueada enquanto criamos sua história. Não feche nem atualize esta página.",
       "stageWriting": "Escrevendo sua história…",
       "stageIllustrating": "Ilustrando as cenas…",
       "stageReviewing": "Verificando a segurança…",

@@ -159,7 +159,7 @@ export function StoryGenerationProgress({
       role="status"
       aria-busy="true"
       aria-live="polite"
-      className="flex min-h-screen items-center justify-center p-4"
+      className="flex min-h-[60vh] items-center justify-center p-4"
     >
       <div className="w-full max-w-3xl rounded-4xl border border-border bg-card p-8 text-center shadow-lift">
         <div
@@ -223,10 +223,6 @@ export function StoryGenerationProgress({
             );
           })}
         </ol>
-
-        <p className="mt-6 rounded-2xl bg-secondary px-4 py-3 text-sm font-bold text-secondary-foreground">
-          {t("lockNotice")}
-        </p>
       </div>
     </section>
   );
