@@ -54,8 +54,8 @@ correção é estruturalmente barata: reordenar/recompor o array, adicionar a la
 ### User Story 1 - Progresso com a ordem real do pipeline (Priority: P1)
 
 O responsável que aguarda a geração vê, em ordem, quatro etapas que espelham exatamente o fluxo
-executado: **estruturando a história** (Planner), **escrevendo a história** (Writer), **verificando
-a segurança** (Moderator) e **ilustrando as cenas** (Illustrator) — em `pt-BR` e `en`. A etapa
+executado: **preparando a história** (Planner), **escrevendo a história** (Writer), **verificando
+que está tudo seguro** (Moderator) e **ilustrando as cenas** (Illustrator) — em `pt-BR` e `en`. A etapa
 corrente avança como antes (título adaptativo + badge destacado), e ao concluir a geração a barra
 chega a 100%.
 
@@ -71,11 +71,11 @@ por estágio.
 **Acceptance Scenarios**:
 
 1. **Given** uma geração em andamento no estágio 0, **When** a tela é inspecionada, **Then** o
-   primeiro badge/título é "estruturando" (Planner) e não "escrevendo".
+   primeiro badge/título é "preparando" (Planner) e não "escrevendo".
 2. **Given** uma geração no estágio 2, **When** a tela é inspecionada, **Then** o badge/título atual
-   é "verificando a segurança" (Moderator) e o badge de ilustração ainda não está concluído.
+   é "verificando que está tudo seguro" (Moderator) e o badge de ilustração ainda não está concluído.
 3. **Given** uma geração no estágio 3 (último), **When** a tela é inspecionada, **Then** o
-   badge/título atual é "ilustrando as cenas", com os três anteriores marcados como concluídos.
+   badge/título atual é "ilustrando suas cenas", com os três anteriores marcados como concluídos.
 
 ---
 
@@ -174,7 +174,7 @@ for adicionado.
 - **FR-001**: O sistema DEVE expor `GENERATION_STAGES` na ordem do pipeline real:
   `stagePlanning` → `stageWriting` → `stageReviewing` → `stageIllustrating`.
 - **FR-002**: O catálogo i18n (`story.progress`) DEVE conter `stagePlanning` em `pt-BR`
-  ("Estruturando sua história…") e `en` ("Structuring your story…").
+  ("Preparando sua história…") e `en` ("Planning your story…").
 - **FR-003**: O `ol` de badges DEVE iterar `GENERATION_STAGES` (fonte única de verdade), com
   `aria-current="step"` e labels localizados por estágio.
 - **FR-004**: O progressbar DEVE expor `aria-valuemax` derivado de `MAX_STAGE` (= 3) e

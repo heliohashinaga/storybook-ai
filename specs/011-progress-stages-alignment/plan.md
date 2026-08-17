@@ -124,8 +124,8 @@ como única fonte da ordem canônica.
    0/8/16/24 s, clamp 24+), `barPercent` (0/25/50/75, done=100), badges (4 itens), ARIA
    (`aria-valuemax=3`) e contrato i18n (`stagePlanning` string) — confirmar que falham com a ordem
    atual.
-2. **i18n (green parcial)**: adicionar `stagePlanning` em `pt-BR.json` ("Estruturando sua
-   história…") e `en.json` ("Structuring your story…").
+2. **i18n (green parcial)**: adicionar `stagePlanning` em `pt-BR.json` ("Preparando sua
+   história…") e `en.json` ("Planning your story…").
 3. **Componente (green)**: `GENERATION_STAGES =
    ["stagePlanning","stageWriting","stageReviewing","stageIllustrating"]`; atualizar JSDoc
    (ordem de avanço, "2×8 = 16 s" → "3×8 = 24 s", "three steps" → "four" na doc do prop

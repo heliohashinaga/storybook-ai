@@ -45,7 +45,7 @@ falham contra a ordem atual (3 estágios) — prova de que capturam a mudança.
   e 100 com `done=true`; remover asserts 33/66; manter o caso de generalização
   (`barPercent(stage, stageCount)`) para provar o API data-driven
 - [x] T003 [US3] Atualizar mesmo arquivo: renderização com 4 badges (`ol` com 4 itens, badges
-  ✓/2/3/4 no estágio 1), título adaptativo do estágio 0 = "Estruturando sua história…"
+  ✓/2/3/4 no estágio 1), título adaptativo do estágio 0 = "Preparando sua história…"
   (`pt-BR`), e `progressbar` com `aria-valuemax="3"` / `aria-valuenow` por estágio (remover "2")
 - [x] T004 [US4] Atualizar `tests/unit/i18n-config.test.ts`: assert de que
   `story.progress.stagePlanning` é string nos dois catálogos (junto de `stageWriting`/
@@ -59,8 +59,8 @@ falham contra a ordem atual (3 estágios) — prova de que capturam a mudança.
 
 **Purpose**: Implementar a correção — labels de planejamento e a ordem canônica de 4 estágios.
 
-- [x] T005 [P] [US1] Adicionar `"stagePlanning": "Estruturando sua história…"` em
-  `src/features/story-request/locales/pt-BR.json` e `"Structuring your story…"` em
+- [x] T005 [P] [US1] Adicionar `"stagePlanning": "Preparando sua história…"` em
+  `src/features/story-request/locales/pt-BR.json` e `"Planning your story…"` em
   `src/features/story-request/locales/en.json` dentro de `story.progress` (antes de `stageWriting`)
 - [x] T006 [P] [US1][US2] Em `src/features/story-request/components/story-generation-progress.tsx`:
   `GENERATION_STAGES = ["stageWriting", "stageIllustrating", "stageReviewing"]` →

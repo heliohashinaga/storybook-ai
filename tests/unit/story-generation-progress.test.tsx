@@ -70,7 +70,7 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
   it("shows the adaptive title matching each stage", () => {
     renderProgress({ phase: "generating", elapsedSeconds: 0 });
     // The adaptive title matches the current step text (blossom §7.3).
-    expect(screen.getAllByText(/estruturando sua história/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/preparando sua história/i).length).toBeGreaterThan(0);
   });
 
   it("progressbar exposes an accessible name and the current stage as its value", () => {
