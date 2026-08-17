@@ -16,7 +16,14 @@ describe("storyPreferencesSchema", () => {
   });
 
   it("accepts every allow-listed theme", () => {
-    for (const theme of ["courage", "friendship", "kindness"]) {
+    for (const theme of [
+      "courage",
+      "friendship",
+      "kindness",
+      "curiosity",
+      "perseverance",
+      "empathy",
+    ]) {
       expect(storyPreferencesSchema.safeParse({ ...valid, theme }).success).toBe(true);
     }
   });

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   defaultMaxAttempts,
+  defaultModelTimeoutMs,
   runWithRetry,
   type RetryOperation,
 } from "../../../../src/features/story-generation/server/agents/retry";
@@ -8,6 +9,23 @@ import {
 describe("retry policy", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  it("defaultModelTimeoutMs returns 60000 when unset", () => {
+    delete process.env.MODEL_TIMEOUT_MS;
+    expect(defaultModelTimeoutMs()).toBe(60_000);
+  });
+
+  it("defaultModelTimeoutMs reads a valid env override", () => {
+    process.env.MODEL_TIMEOUT_MS = "45000";
+    expect(defaultModelTimeoutMs()).toBe(45_000);
+  });
+
+  it("defaultModelTimeoutMs falls back to 60000 for invalid/below-minimum env", () => {
+    process.env.MODEL_TIMEOUT_MS = "not-a-number";
+    expect(defaultModelTimeoutMs()).toBe(60_000);
+    process.env.MODEL_TIMEOUT_MS = "500"; // below the 1000ms floor
+    expect(defaultModelTimeoutMs()).toBe(60_000);
   });
 
   it("defaultMaxAttempts returns 1 (no retry) when unset", () => {
@@ -64,5 +82,18 @@ describe("retry policy", () => {
     const result = await runWithRetry<string>(fn, { maxAttempts: 2 });
     expect(fn).toHaveBeenCalledTimes(2);
     expect(result).toEqual({ ok: true, value: "ok" });
+  });
+
+  it("returns the generic error for a non-finite attempt budget (exhaustiveness guard)", async () => {
+    // NaN maxAttempts makes the loop condition false immediately, exercising
+    // the defensive "unreachable" return that keeps the promise type stable.
+    const fn = vi.fn(async () => ({ ok: true, value: "nope" }));
+    const result = await runWithRetry<string>(fn, { maxAttempts: Number.NaN });
+    expect(fn).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      ok: false,
+      message: "story.error.generationUnavailable",
+      transient: true,
+    });
   });
 });

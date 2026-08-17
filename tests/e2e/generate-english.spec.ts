@@ -35,14 +35,20 @@ interface RequestPayload {
 
 /** Fills the form with age 9 + friendship and selects the English locale. */
 async function fillAndSubmitEnglish(page: Page): Promise<void> {
-  await page.goto("/");
+  await page.goto("/form");
 
   // No name / direct-identifier field exists on the form (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
 
-  await page.getByLabel(/Idade da criança|Child's age/i).fill("9");
-  await page.getByLabel(/Idioma|Language/i).selectOption("en");
-  // Selecting the story language flips the whole UI to English (ADR 0003).
+  // The app defaults to English, so the EN story locale is already selected in
+  // the form's segmented selector (aria-pressed). Select it explicitly anyway
+  // to make the journey self-contained, then fill the rest of the form.
+  await page
+    .locator("form")
+    .getByRole("button", { name: /^English$/i })
+    .click();
+  await page.getByRole("slider", { name: /Age/i }).fill("9");
+  // Selecting the story language keeps the whole UI in English (ADR 0003).
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Friendship/i }).click();
   await page.getByRole("button", { name: /Create story/i }).click();
@@ -98,13 +104,17 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   expect(body.scenes).toHaveLength(3);
 
   // ---- Reader view assertions --------------------------------------------
-  // The reader (T040) shows exactly one scene at a time and navigates with
-  // the previous/next buttons; every scene is reached and asserted in order.
-  const imgs = page.locator('img[src^="data:image/webp;base64,"]');
+  // Spec 009: generation navigates to `/reader` (replace). The reader (T040)
+  // shows exactly one scene at a time and navigates with the previous/next
+  // buttons; every scene is reached and asserted in order.
+  await expect(page).toHaveURL(/\/reader$/);
+  const reader = page.getByRole("region", { name: "Your story" });
+  // The scene image lives inside the reader region; the in-session history
+  // sidebar also shows a webp thumbnail, so scope the count to the reader.
+  const imgs = reader.locator('img[src^="data:image/webp;base64,"]');
   // The reader chrome is English because the selected story language drives
   // the whole UI (ADR 0003 / T056): region, buttons and counter are localized.
-  const reader = page.getByRole("region", { name: "Your story" });
-  const nextButton = page.getByRole("button", { name: "Next scene" });
+  const nextButton = page.getByRole("button", { name: "Next" });
   let fullStoryText = "";
 
   for (let i = 0; i < body.scenes.length; i += 1) {

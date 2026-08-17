@@ -20,8 +20,8 @@ TEXT_MODEL=opencode-go/qwen/qwen3.7-flash
 IMAGE_MODEL=openrouter/qwen/qwen3.7-flash
 MODERATION_MODEL=opencode-go/qwen/qwen3.7-flash
 
-# TTS (feature 004, fora deste roteamento) — opcional
-TTS_MODEL=...
+# TTS/leitura em voz (feature 004) — roteada como as demais via READER_MODEL
+READER_MODEL=openrouter/hexgrad/kokoro-82m
 AI_NARRATION_ENABLED=false
 
 # Ambientes determinísticos

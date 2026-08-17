@@ -30,8 +30,8 @@ describe("story-catalog locales", () => {
     });
   });
 
-  it("defaults to pt-BR as the primary locale", () => {
-    expect(defaultLocale).toBe("pt-BR");
+  it("defaults to en as the primary locale", () => {
+    expect(defaultLocale).toBe("en");
   });
 });
 
@@ -42,27 +42,55 @@ describe("story-catalog themes", () => {
 
   it("exposes a deterministic catalog covering every supported theme", () => {
     const values = themeCatalog.map((entry) => entry.value);
-    expect(values).toEqual(["courage", "friendship", "kindness"]);
+    expect(values).toEqual([
+      "courage",
+      "friendship",
+      "kindness",
+      "curiosity",
+      "perseverance",
+      "empathy",
+    ]);
     expect(new Set(values).size).toBe(values.length);
   });
 
-  it("gives every theme entry exact label and description metadata", () => {
+  it("gives every theme entry exact label, description and emoji metadata", () => {
     const byValue = Object.fromEntries(themeCatalog.map((entry) => [entry.value, entry]));
     expect(byValue).toEqual({
       courage: {
         value: "courage",
         label: "Courage",
         description: "Overcoming fear and doing the right thing.",
+        emoji: "🦁",
       },
       friendship: {
         value: "friendship",
         label: "Friendship",
         description: "Kindness, sharing, and being a good friend.",
+        emoji: "🤝",
       },
       kindness: {
         value: "kindness",
         label: "Kindness",
         description: "Caring for others and lending a hand.",
+        emoji: "💛",
+      },
+      curiosity: {
+        value: "curiosity",
+        label: "Curiosity",
+        description: "Asking questions and discovering the unknown.",
+        emoji: "🔍",
+      },
+      perseverance: {
+        value: "perseverance",
+        label: "Perseverance",
+        description: "Trying again and never giving up.",
+        emoji: "💪",
+      },
+      empathy: {
+        value: "empathy",
+        label: "Empathy",
+        description: "Understanding how others feel.",
+        emoji: "🌱",
       },
     });
   });
@@ -74,11 +102,11 @@ describe("resolveLocale", () => {
     expect(resolveLocale("en")).toBe("en");
   });
 
-  it("defaults an unknown/unsupported locale to pt-BR", () => {
-    expect(resolveLocale("fr")).toBe("pt-BR");
+  it("defaults an unknown/unsupported locale to en", () => {
+    expect(resolveLocale("fr")).toBe("en");
   });
 
-  it("defaults an unspecified locale to pt-BR", () => {
-    expect(resolveLocale(undefined)).toBe("pt-BR");
+  it("defaults an unspecified locale to en", () => {
+    expect(resolveLocale(undefined)).toBe("en");
   });
 });

@@ -1,5 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it, vi, afterEach } from "vitest";
+
+// The default image encoder lazily imports `sharp` only for non-WebP bytes.
+// A hoisted mock keeps that path deterministic and offline (T024).
+const sharpMock = vi.hoisted(() =>
+  vi.fn(() => ({ webp: () => ({ toBuffer: async () => Buffer.from("SHARPWEBP") }) }))
+);
+vi.mock("sharp", () => ({ default: sharpMock }));
+
 import { ProviderError } from "../../src/features/story-generation/server/story-generation-provider";
 import type { OpenRouterDeps } from "../../src/features/story-generation/server/openrouter-story-generation-provider";
 import {
@@ -279,13 +287,17 @@ describe("createOpenRouterIllustration", () => {
   it("fetches and wraps an image URL response", async () => {
     const { fetchImpl } = createFakeFetch((call) => {
       if (call.url.endsWith("/images")) {
-        return jsonResponse({ data: [{ url: "https://cdn.test/i.webp" }] });
+        return jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/i.webp" }] });
       }
       return new Response(WEBP_BYTES, {
         headers: { "content-type": "image/webp" },
       });
     });
-    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+    const illustrate = createOpenRouterIllustration({
+      ...deps,
+      fetchImpl,
+      urlSafetyResolver: async () => ["1.2.3.4"],
+    });
 
     await expect(illustrate("cena 2")).resolves.toMatchObject({
       dataUri: `data:image/webp;base64,${WEBP_B64}`,
@@ -340,6 +352,21 @@ describe("createOpenRouterIllustration", () => {
     expect(encoder).toHaveBeenCalledTimes(1);
   });
 
+  it("transcodes non-WebP bytes through the default sharp encoder", async () => {
+    sharpMock.mockClear();
+    const pngBytes = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+    const { fetchImpl } = createFakeFetch(() =>
+      jsonResponse({ data: [{ b64_json: Buffer.from(pngBytes).toString("base64") }] })
+    );
+    // No imageEncoder injected → the lazy `sharp` default transcodes the bytes.
+    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+
+    await expect(illustrate("prompt")).resolves.toMatchObject({
+      dataUri: "data:image/webp;base64," + Buffer.from("SHARPWEBP").toString("base64"),
+    });
+    expect(sharpMock).toHaveBeenCalledTimes(1);
+  });
+
   it("accepts WebP bytes even without a media type", async () => {
     const { fetchImpl } = createFakeFetch(() => jsonResponse({ data: [{ b64_json: WEBP_B64 }] }));
     const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
@@ -352,10 +379,14 @@ describe("createOpenRouterIllustration", () => {
   it("maps a failed image URL fetch to unavailable", async () => {
     const { fetchImpl } = createFakeFetch((call) =>
       call.url.endsWith("/images")
-        ? jsonResponse({ data: [{ url: "https://cdn.test/i.webp" }] })
+        ? jsonResponse({ data: [{ url: "https://cdn.cloudflare.com/i.webp" }] })
         : new Response("not found", { status: 404 })
     );
-    const illustrate = createOpenRouterIllustration({ ...deps, fetchImpl });
+    const illustrate = createOpenRouterIllustration({
+      ...deps,
+      fetchImpl,
+      urlSafetyResolver: async () => ["1.2.3.4"],
+    });
 
     await expect(illustrate("prompt")).rejects.toMatchObject({ kind: "unavailable" });
   });

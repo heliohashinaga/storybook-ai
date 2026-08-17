@@ -26,14 +26,14 @@ interface LocaleContextValue {
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
-const FALLBACK: LocaleContextValue = { locale: "pt-BR", setLocale: () => {} };
+const FALLBACK: LocaleContextValue = { locale: "en", setLocale: () => {} };
 
 export function useLocaleContext(): LocaleContextValue {
   return useContext(LocaleContext) ?? FALLBACK;
 }
 
 export function LocaleProvider({
-  defaultLocale = "pt-BR",
+  defaultLocale = "en",
   children,
 }: {
   defaultLocale?: Locale;

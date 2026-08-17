@@ -19,7 +19,7 @@ function Probe() {
   const { locale, setLocale } = useLocaleContext();
   return (
     <div>
-      <p data-testid="title">{t("form.title")}</p>
+      <p data-testid="subtitle">{t("form.subtitle")}</p>
       <p data-testid="locale">{locale}</p>
       <button onClick={() => setLocale("en")}>to-en</button>
       <button onClick={() => setLocale("pt-BR")}>to-pt</button>
@@ -38,7 +38,9 @@ function renderProbe(defaultLocale: Locale = "pt-BR") {
 describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => {
   it("defaults to pt-BR messages and exposes the locale", () => {
     renderProbe();
-    expect(screen.getByTestId("title")).toHaveTextContent("Crie uma história personalizada");
+    expect(screen.getByTestId("subtitle")).toHaveTextContent(
+      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
+    );
     expect(screen.getByTestId("locale")).toHaveTextContent("pt-BR");
   });
 
@@ -46,7 +48,9 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     const user = userEvent.setup();
     renderProbe();
     await user.click(screen.getByRole("button", { name: "to-en" }));
-    expect(screen.getByTestId("title")).toHaveTextContent("Create a personalized story");
+    expect(screen.getByTestId("subtitle")).toHaveTextContent(
+      "Make bedtime a little more magical with a story that is only theirs — to read together."
+    );
     expect(screen.getByTestId("locale")).toHaveTextContent("en");
     // The page language follows the experience language (a11y).
     expect(document.documentElement.lang).toBe("en");
@@ -57,13 +61,17 @@ describe("LocaleProvider — single-locale experience (ADR 0003 / T056)", () => 
     renderProbe();
     await user.click(screen.getByRole("button", { name: "to-en" }));
     await user.click(screen.getByRole("button", { name: "to-pt" }));
-    expect(screen.getByTestId("title")).toHaveTextContent("Crie uma história personalizada");
+    expect(screen.getByTestId("subtitle")).toHaveTextContent(
+      "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos."
+    );
     expect(document.documentElement.lang).toBe("pt-BR");
   });
 
-  it("normalizes an unsupported default locale to pt-BR (T052 recovery)", () => {
+  it("normalizes an unsupported default locale to en (T052 recovery)", () => {
     renderProbe("fr" as never);
-    expect(screen.getByTestId("locale")).toHaveTextContent("pt-BR");
-    expect(screen.getByTestId("title")).toHaveTextContent("Crie uma história personalizada");
+    expect(screen.getByTestId("locale")).toHaveTextContent("en");
+    expect(screen.getByTestId("subtitle")).toHaveTextContent(
+      "Make bedtime a little more magical with a story that is only theirs — to read together."
+    );
   });
 });

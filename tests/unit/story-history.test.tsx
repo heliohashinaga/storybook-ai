@@ -53,22 +53,23 @@ function renderSwitcher(entries: StoryEntry[], activeId: string | null, onSelect
 describe("StoryHistory (T049)", () => {
   it("renders nothing when there are no stories", () => {
     renderSwitcher([], null);
-    expect(screen.queryByRole("group")).toBeNull();
+    expect(screen.queryByRole("complementary")).toBeNull();
   });
 
   it("renders the stories newest-first with the active one marked", () => {
+    // Session stores stories newest-first: index 0 is the newest (= active).
     renderSwitcher(
       [
-        { id: "story-1", story: storyB },
         { id: "story-2", story: storyA },
+        { id: "story-1", story: storyB },
       ],
       "story-2"
     );
 
-    const group = screen.getByRole("group", { name: /suas histórias/i });
+    const group = screen.getByRole("complementary", { name: /suas histórias/i });
     const buttons = within(group).getAllByRole("button");
     expect(buttons).toHaveLength(2);
-    // Newest-first: storyA (story-2, active) is listed before storyB.
+    // Newest-first: the active story (storyA) is listed before the older one.
     expect(buttons[0]).toHaveAccessibleName(new RegExp(`História — ${storyA.title}`));
     expect(buttons[1]).toHaveAccessibleName(new RegExp(`História — ${storyB.title}`));
     // Active carries aria-pressed + aria-current.

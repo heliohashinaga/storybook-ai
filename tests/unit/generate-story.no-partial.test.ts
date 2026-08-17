@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { generateStory } from "../../src/features/story-generation/server/generate-story";
+
+describe("generate-story — provider boundary", () => {
+  it("throws when neither a provider nor a per-agent planner provider is given", async () => {
+    await expect(
+      generateStory({
+        input,
+        illustrate: async () => ({ dataUri: "data:image/webp;base64,AA==" }),
+      })
+    ).rejects.toThrow("generateStory requires a provider (single or per-agent).");
+  });
+});
+
 import type {
   GeneratedStoryCandidate,
   ModerationDecision,

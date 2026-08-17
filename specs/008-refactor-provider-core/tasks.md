@@ -1,0 +1,229 @@
+---
+description: "Lista de tarefas para implementação do recurso"
+---
+
+# Tasks: Núcleo Comum dos Adapters de Provider
+
+**Input**: Documentos de design de `/specs/008-refactor-provider-core/`
+
+**Prerequisites**: plan.md (obrigatório), spec.md (obrigatório; user stories US1-US4: US1-US3 como objetivos de qualidade + US4 UX funcional)
+
+**Tests**: Testes existentes são o baseline a manter verde; testes novos (se necessários) são escritos ANTES e confirmados a FALHAR.
+
+**Organization**: Tarefas agrupadas por user story (US1-US4), com a Fase 2 (Fundacional) bloqueando US1-US3.
+
+---
+
+## Phase 1: Setup (Shared Infrastructure)
+
+**Purpose**: Preparar o contexto da refatoração e proteger o baseline.
+
+- [x] T001 Confirmar que a branch `008-refactor-provider-core` está ativa e limpa (scaffold commitado),
+  com `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`). A criação da branch já foi
+  feita a partir de `007-adopt-blossom-design`; verificação serve como baseline.
+- [x] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
+  `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o
+  resultado (74 arquivos de teste, 501 testes verdes) **e um snapshot das fixtures dos adapters**
+  (referência de commit/árvore limpa) para comparar fixtures de entrada/saída após a refatoração
+  (SC-002).
+- [x] T003 Verificar que `.specify/feature.json` aponta para `specs/008-refactor-provider-core` (já
+  atualizado pelo `create-new-feature.sh`); anotar para restaurar `007` ao final (T035).
+
+**Checkpoint**: Árvore vaiária verde no baseline; branch 008 criado; a refatoração começa em terreno conhecido.
+
+---
+
+## Phase 2: Fundacional (Blocking Prerequisites)
+
+**Purpose**: Criar o núcleo `provider-core/` e o cliente de imagem base — sem quebrar os adapters, ainda usando os módulos novos em paralelo aos antigos até a troca completa.
+
+**⚠️ CRITICAL**: Nenhum user story pode ser marcado completo até o núcleo existir e ser testado.
+
+### 2.1 Núcleo de texto/moderação
+
+- [x] T004 **Teste primeiro** — criar `tests/unit/provider-core/schemas.test.ts`, `prompts.test.ts`, `chat-json.test.ts`, `moderation.test.ts`, `provider-errors.test.ts` que exercitam `sceneCandidateSchema`, `storyCandidateSchema`, `moderationSchema`, `parseChatJson`, `NARRATIVE_SYSTEM_PROMPT`/`narrativeUserPrompt`, `MODERATION_SYSTEM_PROMPT`/`moderate` e `toProviderError`. **Confirmar que falham** (módulos inexistentes) antes de implementar — conforme constitution.
+- [x] T005 Criar `src/features/story-generation/server/provider-core/schemas.ts` extraindo `sceneCandidateSchema`, `storyCandidateSchema` e `moderationSchema` (tal como atuais em openrouter/opencode). Fazer `diff` vazio com as definições originais.
+- [x] T006 Criar `src/features/story-generation/server/provider-core/prompts.ts` com `NARRATIVE_SYSTEM_PROMPT`, `narrativeUserPrompt(input)` e `MODERATION_SYSTEM_PROMPT`. **`diff` vazio obrigatório** com os textos atuais dos dois providers (usar como fonte a versão canônica idêntica confirmada; não editar conteúdo).
+- [x] T007 Criar `src/features/story-generation/server/provider-core/chat-json.ts` com `parseChatJson` (idêntico ao dos adapters).
+- [x] T008 Criar `src/features/story-generation/server/provider-core/moderation.ts` com `moderate(...)` (usando `MODERATION_SYSTEM_PROMPT` + `moderationSchema`) e `provider-errors.ts` com `toProviderError`.
+- [x] T009 Criar `src/features/story-generation/server/provider-core/index.ts` como barrel `server-only` re-exportando o núcleo.
+
+### 2.2 Cliente de imagem
+
+- [x] T010 **Teste primeiro** — criar `tests/unit/provider-core/image-client.test.ts` que exercita o POST `/images` com `fetchImpl` fake: caso `b64_json`, caso `url`, caso sem `data`, caso `!response.ok`, caso timeout (abort). **Confirmar falha** antes de implementar.
+- [x] T011 Criar `src/features/story-generation/server/provider-core/image-client.ts` com a função de transporte compartilhada `postImages(...) => { bytes, mediaType }` (corpo `{model, prompt, n:1, output_format:"webp", aspect_ratio:"1:1"}`), usando AbortController/timeout e re-utilizando o encoding/guarda de `image-optimizer.ts`.
+- [x] T012 Integrar `image-optimizer.ts` ao `image-client.ts`: o novo cliente DEVE chamar `optimizeImageBytes` / `defaultSharpEncoder` no caminho real de geração, aplicando `DEFAULT_MAX_DATA_URI_LENGTH` (guarda de 4 MiB) — conforme confirmado na pesquisa, hoje órfão e a guarda não roda em produção. Isso fecha o vão de tamanho de data-URI; não manter órfão.
+- [x] T013 **Teste primeiro** — escrever/ajustar `tests/unit/image-optimizer.test.ts` (e, se
+  necessário, novo teste do `image-client.ts`) para cobrir a guarda de tamanho e o reuso pelo
+  caminho real de geração. **Um teste que falha primeiro** é escrito antes da implementação e
+  confirmado a falhar (constitution).
+
+**Checkpoint**: Núcleo creador + cliente de imagem extraídos e verdes isoladamente; ainda nada de produção chamando eles (troca nos user stories).
+
+---
+
+## Phase 3: User Story 1 — Núcleo único de texto/moderação (Priority: P1) 🎯 MVP
+
+**Goal**: Adaptadores OpenRouter/OpenCode passam a consumir `provider-core` eliminando duplicação de texto/moderação.
+
+**Independent Test**: `tests/unit/openrouter-story-generation-provider.test.ts` e `opencode-story-generation-provider.test.ts` seguem 100% verdes com fixtures de entrada/saída inalteradas.
+
+### Tests for User Story 1 ⚠️
+
+- [x] T014 [US1] Garantir que os testes existentes dos dois adapters cobrem o caminho de moderação
+  (regen de cenário inseguro) e erro. Se for detectado um gap, escrever um teste que falha primeiro em
+  `tests/unit/*story-generation-provider.test.ts` antes da implementação (constitution).
+
+### Implementation for User Story 1
+
+- [x] T015 [P] [US1] Refatorar `src/features/story-generation/server/opencode-story-generation-provider.ts`: trocar definições locais pelos imports de `provider-core` (schemas, `parseChatJson`, prompts, `moderate`, `toProviderError`); manter apenas `OpenCodeDeps`, `resolveDeps` (env key `OPENCODE_GO_API_KEY`), `createOpenCodeStoryProvider` e a construção do cliente SDK.
+- [x] T016 [P] [US1] Refatorar `src/features/story-generation/server/openrouter-story-generation-provider.ts`: trocar definições locais pelos imports de `provider-core`; manter `OpenRouterDeps`, `resolveDeps` (env key `OPENROUTER_API_KEY`, `imageModel` via `modelWithoutProviderPrefix`, `imageEncoder`), construção do cliente SDK. **A remoção do código de imagem acontece em US2** (evitar dupla mudança).
+- [x] T017 [US1] Remover as definições duplicadas dos módulos antigos (`grep` para confirmar zero ocorrência restante de cada helper fora de `provider-core/`).
+- [x] T018 [US1] Rodar `pnpm test` + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na árvore suja e garantir verdes.
+
+**Checkpoint**: US1 entrega o MVP — ambos adapters mais finos, comportamento idêntico, testes verdes.
+
+---
+
+## Phase 4: User Story 2 — Transporte único de ilustração `/images` (Priority: P2)
+
+**Goal**: `createOpenRouterIllustration` e `createOpenCodeIllustration` passam a usar o `image-client.ts` (via `image-optimizer.ts`), eliminando o transporte `/images` duplicado e tirando a imagem de dentro do adapter OpenRouter.
+
+**Independent Test**: `tests/unit/opencode-illustration.test.ts`, `tests/unit/illustration-concurrency.test.ts` e `tests/unit/image-optimizer.test.ts` verdes com as mesmas respostas fake.
+
+### Implementation for User Story 2
+
+- [x] T019 [US2] Refatorar `src/features/story-generation/server/create-opencode-illustration.ts` para chamar `postImages` + encoding via `image-optimizer` (removendo `defaultImageEncoder`/`toProviderError`/`resolveDeps` locais duplicados; manter `OpenCodeIllustrationDeps` e o seam de timeout).
+- [x] T020 [US2] Refatorar `createOpenRouterIllustration` dentro de `openrouter-story-generation-provider.ts` para usar `postImages` + encoding via `image-optimizer` (removendo `isWebP`/`defaultImageEncoder`/`toWebPBuffer` locais). Manter o `imageEncoder` injetável como opt-in do núcleo.
+- [x] T021 [P] [US2] Avaliar `src/features/story-export/client/build-story-pdf.tsx` que re-declara `WEBP_DATA_URI_PREFIX`; se um re-export seguro (fora de `server-only`) for possível sem puxar código server-only ao client, reutilizar a constante; senão, deixar como está por fronteira. **Decisão: deixar por fronteira** — `build-story-pdf.tsx` é client (`"use client"`) e `provider-core` é `server-only`; re-declarar a constante local é preferível a puxar server-only para o client (documentado na review).
+- [x] T022 [US2] Rodar pipeline de testes de ilustração + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na árvore suja.
+
+**Checkpoint**: US1 + US2 completos — transporte e encoding de imagem centralizados, adapters enxutos.
+
+---
+
+## Phase 5: User Story 3 — Higiene e validação de fechamento (Priority: P3)
+
+**Goal**: `generation-runtime.ts` e `fixed-dev-provider.ts` sem duplicação nova; gates finais pós-última-edição; documentação sincronizada.
+
+**Independent Test**: execução do pipeline completo com a árvore suja (não-deployed) em `STORIES_TEST_MODE=fake`.
+
+- [x] T023 [P] [US3] Confirmar `src/features/story-generation/server/generation-runtime.ts`: atualizar apenas imports/seams se algum caminho de import dos adapters mudou; roteamento por provider (texto/moderação/imagem) permanece idêntico.
+- [x] T024 [US3] Revisar `src/features/story-generation/server/fixed-dev-provider.ts` (287 linhas): consolidar fixtures determinísticas com as usadas nos testes/pipeline (sem re-declarar estruturas repetidas), só se isso não alterar comportamento fake.
+- [x] T025 [P] [US3] Executar TODOS os gates na árvore suja APÓS a última edição: `pnpm lint`,
+  `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check`, `pnpm test:coverage`,
+  `pnpm build` — registrar resultado (sem stale). **Anexar a verificação de SC-005**: `wc -l`/`git diff
+  --stat` dos dois adapters (antes vs depois) e checagem de cobertura pós-remoção.
+  **Resultado**: todos os gates passam na árvore suja (lint 0 avisos; format:check limpo; typecheck ok;
+  test 535 verdes; coverage Lines 92.58%/Statements 91.27%/Branches 82.92%/Functions 91.11%; build ok).
+  **SC-005**: openrouter 350→168; opencode 231→120; create-opencode-illustration 125→60.
+- [x] T026 [P] [US3] Atualizar documentação de contrato, se algo mudou (esperado: N.A. —
+  `story-generation.openapi.yaml` mantido). Registro do ADR novo da extração fica em T028.
+- [x] T027 [P] [US3] **Verificação de privacidade**: assertar (via `grep`/review) que a
+  refatoração não introduziu identificador direto novo nos payloads/fakes, mantendo a fronteira
+  `server-only` e `POST /api/stories` como única entrada (FR-006). Registrar resultado em
+  `reviews.md`.
+- [x] T028 [P] [US3] Atualizar `docs/adr/` e `specs/008-refactor-provider-core/reviews.md` com a
+decisão de extração do núcleo (ADR novo). `docs/adr/0008-provider-core-extraction.md` criado.
+
+**Checkpoint**: Recurso completo — duplicação eliminada, gates verdes na árvore suja, docs sincronizadas.
+
+---
+
+## Phase 6: User Story 4 — "Mostrar mais" acessível no corpo da cena (reader, Priority: P3) 👶 UX
+
+**Goal**: Adicionar o botão "Mostrar mais / Mostrar menos" no corpo da cena do reader, com
+`line-clamp-6` no **desktop** e expansão completa no **mobile**; o botão aparece **somente** quando
+há overflow real (decisões Q1=A, Q2=B).
+
+**Independent Test**: storybook de `story-reader` cobre os estados default/expandido/sem-overflow;
+a11y (foco, `aria-expanded`, `prefers-reduced-motion`, contraste AA); `pnpm test` verde.
+
+### Tests for User Story 4 ⚠️ (test-first)
+
+- [x] T029 [P] [US4] **Teste primeiro** — criar teste de componente (e/ou story de `story-reader`)
+falhando para o estado **expandido** (`aria-expanded="true"`, corpo sem clamp, rótulo "Mostrar
+menos"). Confirmar que falha antes de implementar.
+- [x] T030 [P] [US4] **Teste primeiro** — criar teste/story falhando para o estado **sem overflow**
+(sem botão quando o corpo cabe em ~6 linhas) e **mobile** (corpo integral, sem clamp). Confirmar falha.
+
+### Implementation for User Story 4
+
+- [x] T031 [US4] Implementar no reader (`src/features/story-reader/components/story-reader.tsx`)
+um estado de "mostrar mais"; aplicar `line-clamp-6` no corpo **somente no breakpoint desktop** e
+renderizar o botão somente quando `scrollHeight > clientHeight` (resize-aware).
+- [x] T032 [US4] Adicionar o botão acessível "Mostrar mais / Mostrar menos" com `aria-expanded`,
+`aria-controls` e id no parágrafo do corpo; garantir foco visível e `prefers-reduced-motion`;
+**re-set do estado expandido ao trocar de cena** (nova cena nasce colapsada).
+- [x] T033 [US4] Atualizar os stories de `story-reader.stories.tsx` para cobrir default/expandido/
+sem-overflow e validar acessibilidade (contraste AA, teclado), incluindo mudança de cena com
+expansão.
+- [x] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
+árvore suja; ajustar se a borda do `aria-live`/foco de navegação for afetada.
+- [x] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
+conforme convenção do workflow) e finalizar `reviews.md`. **Tarefa final do recurso** (após US4).
+
+**Checkpoint**: US4 completo — corpo colapsável acessível no desktop, mobile expande, botão só com
+overflow.
+
+---
+
+## Dependencies & Execution Order
+
+### Phase Dependencies
+
+- **Setup (Phase 1)**: sem dependências; começa imediato.
+- **Fundacional (Phase 2)**: depende do Setup; **BLOQUEIA** os user stories.
+- **US1 (Phase 3)**: depende da Phase 2 (núcleo).
+- **US2 (Phase 4)**: depende da Phase 2 (image-client). Pode rodar depois de US1 ou em paralelo (arquivos distintos), mas os dois adapters compartilham `openrouter-story-generation-provider.ts` — então US1 e US2 mexem no mesmo arquivo OpenRouter; **recomendado sequencial** para evitar conflito.
+- **US3 (Phase 5)**: depende de US1 + US2 completos.
+- **US4 (Phase 6)**: depende de US2/US3 (implementação do reader não depende do núcleo, mas é parte da
+  mesma feature); pode rodar em paralelo com US2/US3 ou após.
+
+### User Story Dependencies
+
+- **US1 (P1)**: pode iniciar após a Fundacional; sem dependência de US2.
+- **US2 (P2)**: pode iniciar após a Fundacional; integra com US1 no arquivo OpenRouter (sequencial recomendado).
+- **US3 (P3)**: validação de fechamento; depende de US1 + US2.
+- **US4 (P3)**: UX no reader; independe de US1-US3 (mesma feature), pode rodar em paralelo;
+  gates finais (T034) após a última edição.
+
+### Within Each User Story
+
+- Testes (quando novos) escritos e **falhando** antes da implementação.
+- Núcleo antes dos adapters; backend (server-only) sempre.
+- Story completo antes do próximo.
+
+### Parallel Opportunities
+
+- T015/T016 (US1) — arquivos distintos, podem rodar em paralelo.
+- T021 (US2 build-story-pdf) — independente, pode rodar em paralelo com T019/T020.
+- T023/T025/T026 (US3) — podem rodar em paralelo, mas T025 é o meio-fio final.
+- T029/T030 (US4 testes) + T031/T032 (US4 impl) — arquivos no reader, independentes das de US1-US3;
+  podem rodar em paralelo com as demais (mesma feature).
+
+---
+
+## Implementation Strategy
+
+### MVP First (US1)
+
+1. Phase 1: Setup (baseline verde + branch).
+2. Phase 2: Fundacional (núcleo + cliente de imagem) — CRÍTICO, bloqueia tudo.
+3. Phase 3: US1 → VALIDAR (adapters verdes, thin shells).
+4. Fase 4: US2 → VALIDAR.
+5. Fase 5: US3 (gates finais + docs).
+6. Fase 6: US4 (reader "Mostrar mais") — pode ser paralela a US3; encerra a feature.
+
+### Parallel Strategy (se 2 devs)
+
+- Dev A: US1 (T015/T016).
+- Dev B: US2 (T019/T020) + T021.
+- Ambos esperam Fundacional; coordenar o arquivo OpenRouter (um faz T016, o outro T020 — de preferência sequencial).
+
+## Notes
+
+- [P] = arquivos diferentes, sem dependências.
+- Cada símbolo duplicado deve ser definido **uma única vez** em `provider-core/` no fim (SC-001).
+- Gates (`lint`/`format:check`/`typecheck`) re-executados APÓS a última edição — resultado stale é inaceitável.
+- Nenhum commit com `--no-verify`; hook pré-commit executando lint/format/typecheck.

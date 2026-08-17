@@ -17,27 +17,30 @@ export interface ChoiceCardProps extends Omit<
 }
 
 const base =
-  "flex flex-col items-center justify-center gap-xs rounded-md border-2 bg-surface px-md py-lg " +
-  "text-center transition-colors duration-base disabled:cursor-not-allowed " +
-  "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus " +
-  "disabled:opacity-50";
+  "flex w-full flex-col items-start gap-sm rounded-3xl border-2 bg-card px-lg py-lg text-left " +
+  "transition-all duration-base disabled:cursor-not-allowed disabled:opacity-50 " +
+  "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 /**
  * Shared selectable card for choosing one option among a few (e.g. a story
  * theme). A single toggle via `aria-pressed`, visible focus (focus-visible
- * outline) and full keyboard activation. Colours use semantic tokens only;
- * callers supply localized label/description and manage single-selection.
+ * outline) and full keyboard activation. Uses the prototype's large-card
+ * language (wide radius, soft idling shadow, lift when selected + hover).
+ * Colours use semantic tokens only; callers supply localized label/
+ * description/icon and manage single-selection.
  */
 export const ChoiceCard = forwardRef<HTMLButtonElement, ChoiceCardProps>(function ChoiceCard(
   { label, description, selected = false, icon, onSelect, onClick, disabled, className, ...rest },
   ref
 ) {
-  const stateClasses = selected ? "border-accent text-text" : "border-disabled text-text";
+  const stateClasses = selected
+    ? "border-primary shadow-lift"
+    : "border-border shadow-soft hover:border-primary/50 hover:-translate-y-0.5";
   return (
     <button
       ref={ref}
       type="button"
-      className={`${base} ${stateClasses} hover:border-accent ${className ?? ""}`}
+      className={`${base} ${stateClasses} ${className ?? ""}`}
       aria-pressed={selected}
       disabled={disabled}
       onClick={(event) => {
@@ -46,9 +49,17 @@ export const ChoiceCard = forwardRef<HTMLButtonElement, ChoiceCardProps>(functio
       }}
       {...rest}
     >
-      {icon ? <span aria-hidden="true">{icon}</span> : null}
-      <span className="text-body font-title">{label}</span>
+      {icon ? (
+        <span aria-hidden="true" className="text-3xl">
+          {icon}
+        </span>
+      ) : null}
+      <span className="text-title font-display font-bold">{label}</span>
       {description ? <span className="text-caption text-text-subtle">{description}</span> : null}
+      <span
+        aria-hidden="true"
+        className={`h-1.5 w-10 rounded-full ${selected ? "bg-primary" : "bg-border"}`}
+      />
     </button>
   );
 });

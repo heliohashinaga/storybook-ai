@@ -8,6 +8,7 @@ import { test, expect } from "@playwright/test";
 test("root route renders", async ({ page }) => {
   const res = await page.goto("/");
   expect(res?.status()).toBe(200);
-  await expect(page.locator("html[lang='pt-BR']")).toHaveCount(1);
+  // The root redirects to /form; default locale is en (defaultLocale "en").
+  await expect(page.locator("html[lang='en']")).toHaveCount(1);
   await expect(page.locator("main")).toHaveCount(1);
 });

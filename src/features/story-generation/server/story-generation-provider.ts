@@ -40,7 +40,13 @@ export interface ModerationDecision {
 }
 
 /** Categorised provider failures so the route can map to a typed HTTP error. */
-export type ProviderErrorKind = "unavailable" | "timeout" | "invalid_structured_output";
+export type ProviderErrorKind =
+  | "unavailable"
+  | "timeout"
+  | "invalid_structured_output"
+  // A provider asked the server to fetch a host that is not a public https
+  // URL (SSRF refusal, CWE-918). Treated as non-transient; nothing to retry.
+  | "unsafe-url";
 
 export class ProviderError extends Error {
   readonly kind: ProviderErrorKind;

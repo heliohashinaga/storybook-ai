@@ -8,14 +8,14 @@
 
 ## Summary
 
-Substituir/evoluir a narração da leitura por voz de `speechSynthesis` local para um **TTS de IA com voz mais natural**, **server-only controlado por config**: quando `AI_NARRATION_ENABLED=true`, o texto anônimo da cena é enviado pela fronteira do servidor a um modelo de TTS de voz neural (`TTS_MODEL`); se o provedor falhar, apresenta **erro acessível (sem fallback para a voz de sistema)**. Quando `false`, o controle usa a voz de sistema (Web Speech). O **perfil de custo-vs-naturalidade é configurável por ambiente** (sem teto por narração). Todos os invariantes de anonimato/persistência são mantidos (sem identificador, zero persistência, áudio transitório em memória). Reutiliza o padrão de adapter `server-only` já existente na geração de histórias e estende o hook local `use-read-aloud`.
+Substituir/evoluir a narração da leitura por voz de `speechSynthesis` local para um **TTS de IA com voz mais natural**, **server-only controlado por config**: quando `AI_NARRATION_ENABLED=true`, o texto anônimo da cena é enviado pela fronteira do servidor a um modelo de TTS de voz neural (`READER_MODEL`); se o provedor falhar, apresenta **erro acessível (sem fallback para a voz de sistema)**. Quando `false`, o controle usa a voz de sistema (Web Speech). O **perfil de custo-vs-naturalidade é configurável por ambiente** (sem teto por narração). Todos os invariantes de anonimato/persistência são mantidos (sem identificador, zero persistência, áudio transitório em memória). Reutiliza o padrão de adapter `server-only` já existente na geração de histórias e estende o hook local `use-read-aloud`.
 
 ## Technical Context
 
 **Linguagem/Versão**: TypeScript estrito (Next.js 16 App Router, React 19). Server-only boundary já enforced via imports `server-only`.
 
 **Primary Dependencies**:
-- Server (novo adapter TTS): chamada HTTP a modelo de TTS de voz via provedor (referência: OpenRouter `output_modalities=speech`, cobrado por caractere). Modelo e comportamento **configuráveis por env** (server-only): `AI_NARRATION_ENABLED` (ligar/desligar a IA, default `false`) e `TTS_MODEL` (provedor/modelo de voz; assume-se OpenRouter por hora). Sem switch de ativação de usuário na tela.
+- Server (novo adapter TTS): chamada HTTP a modelo de TTS de voz via provedor (referência: OpenRouter `output_modalities=speech`, cobrado por caractere). Modelo e comportamento **configuráveis por env** (server-only): `AI_NARRATION_ENABLED` (ligar/desligar a IA, default `false`) e `READER_MODEL` (provedor/modelo de voz; assume-se OpenRouter por hora). Sem switch de ativação de usuário na tela.
 - Cliente: API de áudio do navegador para reprodução (ex. `HTMLAudioElement` blob / `Audio`), reusando `use-read-aloud` para estados.
 - Já existentes: `@react-pdf/renderer` (lazy), zod, next-intl.
 
@@ -36,11 +36,11 @@ Substituir/evoluir a narração da leitura por voz de `speechSynthesis` local pa
 - **Server-only**: a chamada ao TTS de IA fica atrás do adapter `server-only` (nunca no cliente; chave/provedor nunca expostos).
 - **Zero persistência**: áudio transitório; recarregar nao re-apresenta; sem storage.
 - **Contrato anônimo**: o TTS recebe **apenas o texto da cena** (sem identificador); sem nome/idade exata/email/id.
-- **Server-only controlado (Q1-C/Q2-C)**: IA quando `AI_NARRATION_ENABLED=true`; se o provedor falhar → erro acessível (não fallback); perfil de qualidade por env (`TTS_MODEL`).
+- **Server-only controlado (Q1-C/Q2-C)**: IA quando `AI_NARRATION_ENABLED=true`; se o provedor falhar → erro acessível (não fallback); perfil de qualidade por env (`READER_MODEL`).
 - **Acessibilidade AA**: `aria-live`/`aria-busy`, foco/teclado, `prefers-reduced-motion` honrado nos estados do controle.
 - **Budget/Melhorismo**: progressive enhancement — texto sempre legível; se não houver voz no idioma, controle desabilitado com mensagem localizada.
 
-**Scale/Scope**: Projeto pessoal, não-comercial; uso leve (1 usuário/baixo volume). Sem teto de custo por narração (configuração só `AI_NARRATION_ENABLED` + `TTS_MODEL`).
+**Scale/Scope**: Projeto pessoal, não-comercial; uso leve (1 usuário/baixo volume). Sem teto de custo por narração (configuração só `AI_NARRATION_ENABLED` + `READER_MODEL`).
 
 ## Constitution Check
 

@@ -20,7 +20,7 @@ const sizes: Record<SelectSize, string> = {
 };
 
 const base =
-  "w-full rounded-md border bg-surface text-text shadow-sm transition-colors duration-base " +
+  "w-full rounded-xl border bg-card text-text shadow-soft transition-colors duration-base " +
   "disabled:cursor-not-allowed disabled:bg-disabled disabled:text-text-subtle";
 
 /**
@@ -45,7 +45,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <select
         ref={ref}
         id={inputId}
-        className={`${base} ${sizes[size]} ${error ? "border-danger" : "border-disabled"} ${className ?? ""}`}
+        className={`${base} ${sizes[size]} ${error ? "border-danger" : "border-input"} ${className ?? ""}`}
         aria-invalid={error ? true : undefined}
         aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
         {...rest}

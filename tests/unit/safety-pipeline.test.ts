@@ -252,6 +252,30 @@ describe("safety pipeline — candidate schema validation", () => {
     expect(count()).toBe(2);
   });
 
+  it("rejects a candidate with an empty title even when scenes pass", async () => {
+    const { provider, count } = sequentialFake([
+      (i) => ({ ...buildSafeCandidate(i), title: "   " }),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+  });
+
+  it("rejects a title leaking a template marker before any scene is moderated", async () => {
+    const { provider, count } = sequentialFake([
+      (i) => ({ ...buildSafeCandidate(i), title: "Olá {name}!" }),
+    ]);
+    const result = await runSafetyPipeline({ provider, input });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error.code).toBe("unsafe_unrecoverable");
+    expect(count()).toBe(2);
+    // The marker never leaks into the error.
+    expect(JSON.stringify(result.error)).not.toContain("{name}");
+  });
+
   it("rejects an empty illustration prompt even when image moderation passes", async () => {
     const { provider, count } = sequentialFake([
       (i) =>

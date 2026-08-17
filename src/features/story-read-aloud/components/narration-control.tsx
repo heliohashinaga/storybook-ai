@@ -58,8 +58,19 @@ export function NarrationControl({
   const buttonLabel = t(labelKey);
 
   return (
-    <div aria-busy={active || undefined} role="group" aria-label={t("control")}>
-      <Button variant="secondary" aria-pressed={active} onClick={onToggle}>
+    <span
+      aria-busy={active || undefined}
+      role="group"
+      aria-label={t("control")}
+      className="flex w-full flex-col"
+    >
+      <Button
+        variant="secondary"
+        aria-pressed={active}
+        onClick={onToggle}
+        className="w-full rounded-2xl! bg-secondary! text-secondary-foreground! font-bold! hover:brightness-95!"
+      >
+        {active ? <PauseIcon className="size-5" /> : <Volume2Icon className="size-5" />}
         {buttonLabel}
       </Button>
       <span aria-live="polite" className="sr-only">
@@ -70,6 +81,42 @@ export function NarrationControl({
           {errorMessage}
         </span>
       ) : null}
-    </div>
+    </span>
+  );
+}
+
+/** Inline Pause icon shown while narration is playing (lucide-style). */
+function PauseIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="6" y="4" width="4" height="16" rx="1" />
+      <rect x="14" y="4" width="4" height="16" rx="1" />
+    </svg>
+  );
+}
+
+/** Inline Volume2 (speaker with sound waves) icon (lucide-style). */
+function Volume2Icon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M11 4.7 6.6 9H3v6h3.6L11 19.3a1.5 1.5 0 0 0 2.6-1V5.7a1.5 1.5 0 0 0-2.6-1Z" />
+      <path d="M15 9.3a4 4 0 0 1 0 5.4" />
+      <path d="M18.3 6a8 8 0 0 1 0 12" />
+    </svg>
   );
 }

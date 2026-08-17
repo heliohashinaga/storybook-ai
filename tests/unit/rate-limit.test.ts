@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  ANONYMOUS_GLOBAL_KEY,
   InMemoryRateLimiter,
   createPseudoAnonymousKey,
+  resolveClientIp,
   type RateLimiter,
 } from "../../src/lib/rate-limit";
 
@@ -71,5 +73,53 @@ describe("InMemoryRateLimiter sliding window", () => {
     // At now=12000 the earliest hit (1000) and the denied hit (2000) are both
     // outside the sliding window (start 2000, exclusive), so a new window opens.
     expect((await limiter.consume("kn", 12_000)).allowed).toBe(true);
+  });
+});
+
+describe("resolveClientIp (trusted reverse-proxy model)", () => {
+  const trust = { trustForwardedFor: true };
+  const noTrust = { trustForwardedFor: false };
+
+  it("behind a trusted proxy returns the RIGHTMOST XFF hop (the real client), not the client-forged leftmost hop", () => {
+    // CWE-918-style XFF spoofing: attacker sends a public leftmost hop and the
+    // proxy appends the actual client to the right.
+    expect(
+      resolveClientIp({ forwardedFor: "203.0.113.1, 198.51.100.9", realIp: null }, trust)
+    ).toBe("198.51.100.9");
+  });
+
+  it("behind a trusted proxy returns a single XFF hop", () => {
+    expect(resolveClientIp({ forwardedFor: "203.0.113.7", realIp: null }, trust)).toBe(
+      "203.0.113.7"
+    );
+  });
+
+  it("ignores a non-IP-literal XFF value (no usable key)", () => {
+    expect(resolveClientIp({ forwardedFor: "ScriptKiddie", realIp: null }, trust)).toBeNull();
+  });
+
+  it("DOES NOT trust XFF when not behind a trusted proxy (no client-forged key)", () => {
+    expect(resolveClientIp({ forwardedFor: "203.0.113.7", realIp: null }, noTrust)).toBeNull();
+  });
+
+  it("falls back to a validated real-ip header when behind a trusted proxy", () => {
+    expect(resolveClientIp({ forwardedFor: null, realIp: "198.51.100.9" }, trust)).toBe(
+      "198.51.100.9"
+    );
+  });
+
+  it("returns null when the proxy is trusted but no forwarded/real IP is present", () => {
+    expect(resolveClientIp({ forwardedFor: null, realIp: null }, trust)).toBeNull();
+  });
+
+  it("trailing comma list resolves the last non-empty hop", () => {
+    expect(
+      resolveClientIp({ forwardedFor: "203.0.113.1,198.51.100.9,", realIp: null }, trust)
+    ).toBe("198.51.100.9");
+  });
+
+  it("has a stable non-identifier global fallback key", () => {
+    expect(ANONYMOUS_GLOBAL_KEY).toBe("<anonymous-global>");
+    expect(ANONYMOUS_GLOBAL_KEY).not.toMatch(/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/);
   });
 });

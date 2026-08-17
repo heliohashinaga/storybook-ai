@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "../../src/i18n/config";
@@ -35,11 +35,23 @@ const story: GeneratedStory = {
 
 function renderReader() {
   return render(
-    <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+    <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
       <StoryReader story={story} />
     </NextIntlClientProvider>
   );
 }
+
+describe("story reader — byte-level contract guard", () => {
+  it("renders nothing when the story has no scenes (defensive)", () => {
+    const empty: GeneratedStory = { ...story, scenes: [] };
+    const { container } = render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
+        <StoryReader story={empty} />
+      </NextIntlClientProvider>
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+});
 
 describe("story reader — first/middle/last bounds", () => {
   it("navigates a 5-scene story to the last scene and stops (variable scene count)", async () => {
@@ -60,17 +72,17 @@ describe("story reader — first/middle/last bounds", () => {
     };
     const user = userEvent.setup();
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <StoryReader story={five} />
       </NextIntlClientProvider>
     );
     expect(screen.getByText("A estrelinha parte.")).toBeInTheDocument();
     expect(screen.getByText(/1 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
     for (let i = 0; i < 4; i += 1) {
-      await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+      await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     }
     expect(screen.getByText("Volta para casa feliz.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
     expect(screen.getByText(/5 \/ 5|de 5|of 5|\/5/)).toBeInTheDocument();
   });
 
@@ -79,43 +91,43 @@ describe("story reader — first/middle/last bounds", () => {
 
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
     expect(screen.queryByText("A estrelinha subiu ao céu.")).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeEnabled();
   });
 
   it("enables both directions on a middle scene", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     expect(screen.getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeEnabled();
   });
 
   it("disables forward navigation on the last scene", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /próxima cena/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /cena anterior/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /^Próxima$/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /^Anterior$/i })).toBeEnabled();
   });
 
   it("never navigates past the bounds when clicking the disabled edges", async () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    await user.click(screen.getByRole("button", { name: /^Anterior$/i }));
     expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("E brilhou para sempre.")).toBeInTheDocument();
   });
 });
@@ -127,13 +139,13 @@ describe("story reader — previous/next navigation and progress", () => {
 
     expect(screen.getByText("Cena 1 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
     expect(screen.getByText("Cena 3 de 3")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /cena anterior/i }));
+    await user.click(screen.getByRole("button", { name: /^Anterior$/i }));
     expect(screen.getByText("Cena 2 de 3")).toBeInTheDocument();
   });
 
@@ -156,7 +168,7 @@ describe("story reader — focus management", () => {
     const user = userEvent.setup();
     renderReader();
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     const heading = screen.getByRole("heading", { name: /título 2/i });
     await expect.poll(() => heading).toHaveFocus();
@@ -179,7 +191,7 @@ describe("story reader — localized alt text and scene rendering", () => {
     expect(img).toHaveAttribute("alt", "Ilustração da cena 1 em aquarela.");
     expect(img).toHaveAttribute("src", "data:image/webp;base64,cena1");
 
-    await user.click(screen.getByRole("button", { name: /próxima cena/i }));
+    await user.click(screen.getByRole("button", { name: /^Próxima$/i }));
 
     const nextArticle = screen.getByRole("article", { name: /cena 2/i });
     expect(within(nextArticle).getByRole("img")).toHaveAttribute(
@@ -200,7 +212,7 @@ describe("story reader — localized alt text and scene rendering", () => {
 describe("scene progress — variable total (US3)", () => {
   it("renders one segment per scene reflecting the real (3–5 variable) total", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={3} total={5} label="Posição" />
       </NextIntlClientProvider>
     );
@@ -211,7 +223,7 @@ describe("scene progress — variable total (US3)", () => {
 
   it("marks the last segment active on the final scene", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={4} total={4} label="Posição" />
       </NextIntlClientProvider>
     );
@@ -222,7 +234,7 @@ describe("scene progress — variable total (US3)", () => {
 
   it("exposes the position through a labelled list", () => {
     render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
         <SceneProgress current={1} total={3} label="Posição na história" />
       </NextIntlClientProvider>
     );
@@ -230,20 +242,141 @@ describe("scene progress — variable total (US3)", () => {
   });
 });
 
-describe("scene view — standalone renderer", () => {
-  it("renders a single scene with its illustration, heading, and body", async () => {
-    render(
-      <NextIntlClientProvider locale="pt-BR" messages={getMessages()}>
-        <SceneView scene={story.scenes[1] ?? scene(1, "fallback")} />
+describe("scene view — standalone illustration header", () => {
+  it("renders a scene's full-bleed illustration", async () => {
+    render(<SceneView scene={story.scenes[1] ?? scene(1, "fallback")} />);
+
+    expect(screen.getByRole("img")).toHaveAttribute("alt", "Ilustração da cena 2 em aquarela.");
+    expect(screen.getByRole("img")).toHaveAttribute("src", "data:image/webp;base64,cena2");
+  });
+});
+
+describe("story reader — US4 show more / show less (accessible body collapse)", () => {
+  const longBody =
+    "Era uma vez uma estrelinha muito curiosa que queria conhecer o mar. " +
+    "Ela brilhou forte e desceu até a areia, onde conheceu uma conchinha. " +
+    "Juntas enfrentaram a tempestade e descobriram que amizade vence tudo. ".repeat(8);
+
+  // jsdom does no layout: stub scrollHeight/clientHeight so the overflow
+  // measurement is deterministic (200 > 100 = overflow, 100 == 100 = fits).
+  const originalScrollHeight = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "scrollHeight"
+  );
+  const originalClientHeight = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    "clientHeight"
+  );
+
+  function stubLayout(overflows: boolean, isDesktop: boolean) {
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => (overflows ? 200 : 100),
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 100,
+    });
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: isDesktop,
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  function restoreLayout() {
+    if (originalScrollHeight) {
+      Object.defineProperty(HTMLElement.prototype, "scrollHeight", originalScrollHeight);
+    }
+    if (originalClientHeight) {
+      Object.defineProperty(HTMLElement.prototype, "clientHeight", originalClientHeight);
+    }
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: false,
+        media: query,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      }),
+    });
+  }
+
+  afterEach(() => {
+    restoreLayout();
+  });
+
+  function renderReaderWith(body: string) {
+    const longStory: GeneratedStory = {
+      ...story,
+      scenes: [scene(1, body)],
+    };
+    return render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
+        <StoryReader story={longStory} />
       </NextIntlClientProvider>
     );
+  }
 
-    const article = screen.getByRole("article", { name: /cena 2/i });
-    expect(within(article).getByRole("heading", { name: /título 2/i })).toBeInTheDocument();
-    expect(within(article).getByText("A estrelinha subiu ao céu.")).toBeInTheDocument();
-    expect(within(article).getByRole("img")).toHaveAttribute(
-      "alt",
-      "Ilustração da cena 2 em aquarela."
+  // Desktop (matchMedia >= 640px) with a body long enough to overflow 6 lines:
+  // the reader clamps to ~6 lines and renders an accessible "Mostrar mais"
+  // button (aria-expanded=false).
+  it("clamps a long body on desktop and shows the show-more button (collapsed)", async () => {
+    stubLayout(true, true);
+    renderReaderWith(longBody);
+
+    const button = await screen.findByRole("button", { name: /mostrar mais/i });
+    expect(button).toHaveAttribute("aria-expanded", "false");
+  });
+
+  // Activating the toggle expands the full body and switches the label +
+  // aria-expanded state.
+  it("expands the body and switches to 'Mostrar menos' (aria-expanded=true)", async () => {
+    const user = userEvent.setup();
+    stubLayout(true, true);
+    renderReaderWith(longBody);
+
+    const showMore = await screen.findByRole("button", { name: /mostrar mais/i });
+    await user.click(showMore);
+
+    const showLess = await screen.findByRole("button", { name: /mostrar menos/i });
+    expect(showLess).toHaveAttribute("aria-expanded", "true");
+  });
+
+  // Short text: no overflow -> no clamp, no button (no useless control).
+  it("renders no show-more button for a short body", async () => {
+    stubLayout(false, true);
+    renderReaderWith("Era uma vez uma estrelinha.");
+
+    expect(screen.getByText("Era uma vez uma estrelinha.")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /mostrar mais|mostrar menos/i })
+      ).not.toBeInTheDocument()
+    );
+  });
+
+  // Mobile (<640px): the body is never clamped, so no button even for long text.
+  it("does not clamp or show the button on mobile", async () => {
+    stubLayout(true, false);
+    renderReaderWith(longBody);
+
+    // body is fully rendered on mobile
+    expect(screen.getByText(new RegExp(longBody.slice(0, 40)))).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: /mostrar mais|mostrar menos/i })
+      ).not.toBeInTheDocument()
     );
   });
 });

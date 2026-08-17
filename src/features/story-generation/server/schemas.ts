@@ -10,7 +10,14 @@ import { z } from "zod";
 
 export const ageBandSchema = z.enum(["2-4", "5-7", "8-9"]);
 export const localeSchema = z.enum(["pt-BR", "en"]);
-export const themeSchema = z.enum(["courage", "friendship", "kindness"]);
+export const themeSchema = z.enum([
+  "courage",
+  "friendship",
+  "kindness",
+  "curiosity",
+  "perseverance",
+  "empathy",
+]);
 
 export type AgeBand = z.infer<typeof ageBandSchema>;
 export type Locale = z.infer<typeof localeSchema>;

@@ -11,8 +11,8 @@ with illustrations.
 ## Overview
 
 - 🧒 **Age bands**: `2-4`, `5-7`, `8-9`.
-- 🎭 **Themes**: courage, friendship, kindness.
-- 🌎 **Languages**: `pt-BR` (default) and `en`.
+- 🎭 **Themes**: courage, friendship, kindness, curiosity, perseverance, empathy.
+- 🌎 **Languages**: `en` and `pt-BR`.
 - 📖 **Scenes** `3–5` with generated illustrations.
 - 🔊 **Read-aloud** of the current scene.
 - 📄 **PDF export**.
@@ -20,7 +20,7 @@ with illustrations.
 
 ## How story generation works
 
-You pick an age range, a language, and a theme (courage, friendship, kindness).
+You pick an age range, a language, and a theme.
 The app writes a story with 3–5 scenes — text plus illustrations made for that
 age range — all in a single step. From there you can flip between scenes, listen
 to each one read aloud, export it as a PDF, or change to dark mode.
@@ -55,19 +55,29 @@ of each `*_MODEL` selects the provider):
 Each capability routes **independently**, so every `*_MODEL` can point to a
 different provider/model with the fitting capability.
 
-| Variable           | Purpose                                  | Example                          |
-| ------------------ | ---------------------------------------- | -------------------------------- |
-| `TEXT_MODEL`       | story narrative generation (text, req)   | `opencode-go/qwen/qwen3.7-flash` |
-| `MODERATION_MODEL` | safety moderation (text + image prompts) | `opencode-go/qwen/qwen3.7-flash` |
-| `IMAGE_MODEL`      | illustration generation (WebP, req)      | `openrouter/qwen/qwen3.7-flash`  |
-| `TTS_MODEL`        | narration voice (AI TTS, optional)       | `openrouter/qwen/qwen3.7-flash`  |
+| Variable            | Purpose                                  | Example                          |
+| ------------------- | ---------------------------------------- | -------------------------------- |
+| `PLANNER_MODEL`     | story outline generation (text, req)     | `opencode-go/qwen/qwen3.7-flash` |
+| `WRITER_MODEL`      | story narrative generation (text, req)   | `opencode-go/qwen/qwen3.7-flash` |
+| `MODERATOR_MODEL`   | safety moderation (text + image prompts) | `opencode-go/qwen/qwen3.7-flash` |
+| `ILLUSTRATOR_MODEL` | illustration generation (WebP, req)      | `openrouter/qwen/qwen3.7-flash`  |
+| `READER_MODEL`      | AI narration voice (TTS, req)            | `openrouter/qwen/qwen3.7-flash`  |
 
 #### ⚙️ Mode
 
-| Variable               | Default | Purpose                                                  |
-| ---------------------- | ------- | -------------------------------------------------------- |
-| `STORIES_TEST_MODE`    | unset   | `fake` → deterministic offline dev provider, no AI calls |
-| `AI_NARRATION_ENABLED` | `false` | enable the AI neural voice (requires `TTS_MODEL`)        |
+| Variable                   | Default | Purpose                                                  |
+| -------------------------- | ------- | -------------------------------------------------------- |
+| `STORIES_TEST_MODE`        | unset   | `fake` → deterministic offline dev provider, no AI calls |
+| `STORY_FAKE_STEP_DELAY_MS` | `3000`  | per-step fake latency in `fake` mode (0 = fastest)       |
+| `AI_NARRATION_ENABLED`     | `false` | enable the AI neural voice (uses `READER_MODEL`)         |
+
+#### ⏱️ Timeouts & retries (all optional)
+
+| Variable              | Default  | Purpose                                      |
+| --------------------- | -------- | -------------------------------------------- |
+| `MODEL_TIMEOUT_MS`    | `60000`  | per single model/provider call timeout (ms)  |
+| `MODEL_MAX_ATTEMPTS`  | `1`      | total attempts per model call (1 = no retry) |
+| `PIPELINE_TIMEOUT_MS` | `120000` | end-to-end story generation budget (ms)      |
 
 #### ⏱️ Rate limiting (anonymous, per IP)
 

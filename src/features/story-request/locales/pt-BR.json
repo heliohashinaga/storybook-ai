@@ -1,11 +1,14 @@
 {
   "story": {
     "form": {
-      "title": "Crie uma história personalizada",
+      "title": "Storybook AI",
+      "subtitle": "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos.",
       "age": {
-        "label": "Idade da criança",
+        "label": "Idade",
         "placeholder": "Digite a idade (2 a 9)",
-        "errorRange": "Informe uma idade entre 2 e 9 anos."
+        "errorRange": "Informe uma idade entre 2 e 9 anos.",
+        "hint": "Ajuste a idade para personalizar o tom da história.",
+        "years": "anos"
       },
       "locale": {
         "label": "Idioma"
@@ -14,18 +17,19 @@
         "label": "Tema da história"
       },
       "scenes": {
-        "label": "Quantas cenas?",
-        "scene-unit": "cenas"
+        "label": "Quantidade de cenas",
+        "scene-unit": "cenas",
+        "hint": "Escolha quantas cenas ilustradas a história terá."
       },
       "submit": "Criar história",
       "submitting": "Criando sua história…"
     },
     "progress": {
-      "generating": "Escrevendo e ilustrando sua história…",
-      "illustrating": "Ilustrando as cenas…",
-      "reviewing": "Verificando a segurança do conteúdo…",
       "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
       "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
+      "stageWriting": "Escrevendo sua história…",
+      "stageIllustrating": "Ilustrando as cenas…",
+      "stageReviewing": "Verificando a segurança…",
       "providerFailure": "Não foi possível criar sua história no momento.",
       "retry": "Tentar novamente"
     },
@@ -41,18 +45,25 @@
       "title": "Sua história",
       "sceneLabel": "Cena {ordinal}",
       "newStory": "Criar outra história",
-      "previous": "Cena anterior",
-      "next": "Próxima cena",
+      "footerNewStory": "Nova história",
+      "sessionOnly": "Só nesta sessão, no seu navegador",
+      "previous": "Anterior",
+      "next": "Próxima",
       "sceneCount": "Cena {current} de {total}",
       "exportPdf": "Baixar como PDF",
       "exporting": "Gerando PDF…",
       "exportError": "Não foi possível baixar o PDF. Tente de novo.",
       "generateAnother": "Gerar outra história",
-      "readAloud": "Ouvir esta cena",
+      "readAloud": "Ouvir",
       "stopReading": "Parar leitura",
       "reading": "Lendo a cena",
       "exportSuccess": "PDF baixado",
-      "retryExport": "Tentar novamente"
+      "retryExport": "Tentar novamente",
+      "showMore": "Mostrar mais",
+      "showLess": "Mostrar menos",
+      "navigationLabel": "Navegação de cenas",
+      "showMore": "Mostrar mais",
+      "showLess": "Mostrar menos"
     },
     "storySwitcher": {
       "label": "Suas histórias",
@@ -63,13 +74,31 @@
       "theme": {
         "courage": "Coragem",
         "friendship": "Amizade",
-        "kindness": "Bondade"
+        "kindness": "Bondade",
+        "curiosity": "Curiosidade",
+        "perseverance": "Persistência",
+        "empathy": "Empatia"
       },
       "themeDescription": {
         "courage": "Enfrentar o medo e fazer a coisa certa.",
         "friendship": "Gentileza, partilha e ser um bom amigo.",
-        "kindness": "Cuidar dos outros e ajudar."
+        "kindness": "Cuidar dos outros e ajudar.",
+        "curiosity": "Fazer perguntas e descobrir o desconhecido.",
+        "perseverance": "Tentar de novo e não desistir nunca.",
+        "empathy": "Entender como os outros se sentem."
       }
+    },
+    "brand": {
+      "name": "Storybook AI",
+      "home": "Voltar ao início",
+      "tagline": "Histórias ilustradas",
+      "languageLabel": "Idioma",
+      "portuguese": "Português (Brasil)",
+      "english": "English",
+      "ptLabel": "Português (Brasil)",
+      "enLabel": "Inglês",
+      "ptShort": "BR",
+      "enShort": "EN"
     }
   },
   "theme": {

@@ -56,7 +56,7 @@ export function useAiReadAloud({
     text,
     locale,
     // Surface Web Speech start/stop on the accessible control so the label
-    // toggles "ouvir esta cena" → "parar leitura" and back (US4.2).
+    // toggles "Listen" → "Stop reading" and back (US4.2).
     onStart: () => setStatus("speaking"),
     onEnd: () => setStatus((prev) => (prev === "speaking" ? "idle" : prev)),
   });
@@ -134,7 +134,7 @@ export function useAiReadAloud({
         if (response.status === 204) {
           // AI narration disabled server-side → delegate to Web Speech.
           // onStart/onEnd on `useReadAloud` keep `status` in sync so the
-          // control shows "parar leitura" while the system speech plays.
+          // control shows "stop reading" while the system speech plays.
           setMode("system");
           system.toggle();
           return;

@@ -95,3 +95,20 @@ EN é ativado apenas quando o usuário seleciona.
   UI no idioma do usuário + história no idioma alvo (padrão de aprendizado).
 - Se surgir demanda explícita de aprendizado de idiomas com pais assistindo em
   idioma diferente do conteúdo.
+
+## Atualização de decisão (2026-08-15)
+
+O **idioma padrão** da experiência mudou de `pt-BR` para **`en`**. A decisão fundamental do ADR —
+"uma experiência por idioma, dirigida pelo idioma da história" — permanece; apenas o default
+inverteu (commit `170fe8d`):
+
+- `src/lib/story-catalog.ts` → `defaultLocale: "en"` (fonte canônica).
+- `src/i18n/routing.ts` → `defaultLocale: "en"`.
+- `src/app/layout.tsx` → `<html lang="en">`, `LocaleProvider defaultLocale="en"`, metadata en.
+- `src/i18n/config.ts` (`getMessages` baseline) e `locale-provider.tsx` (`FALLBACK`) → `en`.
+- O seletor de idioma no formulário continua permitindo alternar entre `en`/`pt-BR`; o idioma da
+  história segue independente do idioma da UI.
+
+Motivação: priorizar o público global/EN por padrão, mantendo pt-BR disponível. A mitigação de
+risco anterior ("default pt-BR para criança brasileira") é revertida em favor do default EN; pt-BR
+continua suportado via o seletor.

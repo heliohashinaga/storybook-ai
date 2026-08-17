@@ -65,7 +65,7 @@ export const Idle: Story = {
   play: async ({ canvasElement }) => {
     onToggleCalls = 0;
     const canvas = within(canvasElement);
-    const button = canvas.getByRole("button", { name: /ouvir esta cena/i });
+    const button = canvas.getByRole("button", { name: /^ouvir$/i });
     await expect(button).toBeVisible();
     // Single start/stop toggle: the button is a native button, keyboard
     // focusable, and not pressed while idle.
@@ -86,9 +86,7 @@ export const Busy: Story = {
   args: { status: "busy", mode: "ai" },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(
-      canvas.getByRole("button", { name: /obtendo o áudio da narração/i })
-    ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /obtendo o áudio/i })).toBeVisible();
     await expect(canvas.getByRole("button", { name: /obtendo/i })).toHaveAttribute(
       "aria-pressed",
       "true"
@@ -100,9 +98,7 @@ export const Busy: Story = {
     await expect(group).toHaveAttribute("aria-label", "Controle de narração");
     // The busy label is announced via the sr-only aria-live region in
     // addition to the visible button label.
-    await expect(canvas.getAllByText(/obtendo o áudio da narração/i).length).toBeGreaterThanOrEqual(
-      1
-    );
+    await expect(canvas.getAllByText(/obtendo o áudio/i).length).toBeGreaterThanOrEqual(1);
   },
 };
 
@@ -150,8 +146,8 @@ export const System: Story = {
   args: { status: "idle", mode: "system" },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("button", { name: /ouvir esta cena/i })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: /ouvir esta cena/i })).toHaveAttribute(
+    await expect(canvas.getByRole("button", { name: /^ouvir$/i })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /^ouvir$/i })).toHaveAttribute(
       "aria-pressed",
       "false"
     );

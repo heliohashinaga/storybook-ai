@@ -51,10 +51,10 @@ const catalogs: Record<string, Messages> = {
 };
 
 /**
- * Returns the message catalog for a locale (or the `pt-BR` baseline when the
- * locale is absent or unsupported).
+ * Returns the message catalog for a locale (or the `en` baseline when the
+ * locale is absent or unsupported). `en` is the app default.
  */
 export function getMessages(locale?: string): Messages {
   if (locale && catalogs[locale]) return catalogs[locale];
-  return ptBRFull;
+  return enFull;
 }

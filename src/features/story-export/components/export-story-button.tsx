@@ -43,7 +43,9 @@ export function ExportStoryButton({ story }: { story: GeneratedStory }) {
         variant={status === "error" ? "danger" : "secondary"}
         onClick={handleExport}
         disabled={exporting}
+        className="gap-2!"
       >
+        <DownloadIcon className="size-4" />
         {status === "success" ? t("exportSuccess") : exporting ? t("exporting") : t("exportPdf")}
       </Button>
       {status === "error" ? (
@@ -59,6 +61,26 @@ export function ExportStoryButton({ story }: { story: GeneratedStory }) {
         </p>
       ) : null}
     </div>
+  );
+}
+
+/** Inline Download (arrow into a tray) icon — lucide-style. */
+function DownloadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" x2="12" y1="3" y2="15" />
+    </svg>
   );
 }
 

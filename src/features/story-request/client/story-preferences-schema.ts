@@ -2,7 +2,14 @@ import { z } from "zod";
 
 export const ageBandValues = ["2-4", "5-7", "8-9"] as const;
 export const localeValues = ["pt-BR", "en"] as const;
-export const themeValues = ["courage", "friendship", "kindness"] as const;
+export const themeValues = [
+  "courage",
+  "friendship",
+  "kindness",
+  "curiosity",
+  "perseverance",
+  "empathy",
+] as const;
 
 /** Client-side scene-count range (3, 4, 5); mirrors `schemas.ts` server bounds. */
 export const MIN_SCENES = 3;

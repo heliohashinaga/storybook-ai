@@ -25,7 +25,7 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   API, logs, analytics, or provider payloads.
 - The browser derives `ageBand` (`2-4 | 5-7 | 8-9`) from exact age in memory; the
   server receives **only** `ageBand`, `locale` (`pt-BR` default | `en`), `theme`
-  (`courage | friendship | kindness`).
+  (`courage | friendship | kindness | curiosity | perseverance | empathy`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
   cache. Exact age and generated stories live in React in-memory state only.
 - All AI-vendor calls stay behind a **server-only provider adapter**
@@ -37,12 +37,53 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   regenerate **once** with stronger constraints → else return a generic localized
   safe error. Partial illustration sets are never a successful story.
 
+## Security Hardening
+
+Baseline: [`specs/010-security-hardening/`](specs/010-security-hardening/spec.md)
+(Spec Kit artifacts consolidando a auditoria 2026; o arquivo original
+`docs/security-audit-2026.md` foi removido — findings/remediação vivem aqui).
+Apply and preserve these
+invariants; a regression here is a failed definition of done.
+
+- **SSRF on image fetch:** guard the **URL every hop**, not just the original.
+  `isSafeImageUrl()` (`provider-core/url-safety.ts`) runs before download, but
+  the global `fetch` follows redirects by default. Any network call to a
+  third-party-influenced URL must use `redirect: "manual"` and **re-validate the
+  `Location` target** with the same url-safety resolver before re-fetching,
+  capped at 1 hop then `redirect: "error"`. Never download from a redirect that
+  fails safety checks (incl. loopback/RFC1918/metadata/link-local and all IPv6).
+- **Rate limiting is a DoS/impersonation seam:** `InMemoryRateLimiter`
+  (`lib/rate-limit.ts`) is single-instance and keys on a salted, hashed IP.
+  Client IP is derived via `resolveClientIp()` (`lib/rate-limit.ts`): it only
+  trusts `X-Forwarded-For`/`x-real-ip` when `trustForwardedFor` is true (derived
+  from `VERCEL=1` or `TRUST_PROXY=1`), and then only the **rightmost** (proxy-
+  appended) hop — the leftmost hop is client-forgeable. When no trustworthy IP
+  exists it falls back to `ANONYMOUS_GLOBAL_KEY` (a stable, shared, bounded
+  anonymous bucket) instead of the old cross-user `"unknown"` collapse. Never
+  trust client-forgeable header values for per-user limits; keep the
+  `RateLimiter` interface as the seam for a shared store if scaling out.
+- **Server input is a closed enum set:** the only entities the server accepts
+  are `POST /api/stories` (`ageBand`, `locale`, `theme`, `sceneCount`) and
+  `POST /api/narrate` (`sceneText` max 2000, `locale`), both Zod `.strict()`.
+  Don't widen the surface (no free-text identity, no resource ids/UUIDs/tokens
+  in path/query/body, no `NEXT_PUBLIC_*`). Any new server route stays
+  `Cache-Control: no-store`.
+- **HTTP headers:** keep the security header set (CSP, HSTS,
+  `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) in
+  `next.config.ts`. If one is removed or a policy loosened, call it out in the
+  diff — there is no unlabeled relaxation.
+- **Secrets:** keys are read only via `getEnv()` (`lib/env.ts`, `.strict()`
+  whitelist) and injected only in `Authorization: Bearer`; no secret goes to the
+  client. Never commit `.env.local`; scrub `apiKey`/`secret`/`token` from
+  observability. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
+  alerts checked (no new high-severity CVEs in the runtime path).
+
 ## Commands
 
 Run these from the repo root. All are real scripts in `package.json`:
 
 ```bash
-pnpm dev             # dev server, http://localhost:3000 (pt-BR default)
+pnpm dev             # dev server, http://localhost:3000 (en default)
 pnpm start            # production server (after pnpm build)
 pnpm lint            # no warnings allowed
 pnpm format:check    # prettier, no drift
@@ -156,7 +197,7 @@ anonymous design. Do not remove, weaken, or bypass these notices.
 
 Before a PR/commit: all required checks pass; coverage gates met; no direct
 identifier in payloads/logs/storage; stories + a11y pass; Storybook behavior
-matches the app; budgets respected; spec/OpenAPI updated if a contract changed.**
+matches the app; budgets respected; spec/OpenAPI updated if a contract changed.
 Quality gates (`lint`/`format:check`/`typecheck`) are re-run AFTER the final
 edit — a stale result is not acceptable (see Code Style).
 

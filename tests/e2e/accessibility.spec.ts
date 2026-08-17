@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
 import { injectAxe, getViolations } from "axe-playwright";
+import { switchToPortuguese } from "./helpers";
 
 /**
  * Application-level accessibility coverage (T059).
@@ -7,7 +8,8 @@ import { injectAxe, getViolations } from "axe-playwright";
  * Runs axe against the live app (deterministic dev provider — never a live AI
  * service) across the states that Storybook's isolated per-story checks cannot:
  * the real form, the error submission UI, the reader with export controls, and
- * the in-session story switcher.
+ * the in-session story switcher. The pt-BR journeys switch the UI to pt-BR
+ * explicitly (the app defaults to English) so the assertions use pt-BR labels.
  *
  * All scans enforce WCAG 2.1 A + AA (including the AA colour-contrast
  * requirement — `wcag2aa`/`wcag21aa` colours). A separate reduced-motion
@@ -27,7 +29,9 @@ async function expectNoViolations(page: Page): Promise<void> {
 }
 
 async function fillAndSubmit(page: Page): Promise<void> {
-  await page.getByLabel(/Idade da criança/i).fill("6");
+  await page.goto("/form");
+  await switchToPortuguese(page);
+  await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
   await page.getByRole("button", { name: /^Coragem/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();
@@ -35,44 +39,49 @@ async function fillAndSubmit(page: Page): Promise<void> {
 
 test.describe("application accessibility (T059)", () => {
   test("landing form has no WCAG A/AA violations", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: /uma história/i }).first()).toBeVisible();
+    await page.goto("/form");
+    await switchToPortuguese(page);
+    await expect(page.getByRole("heading", { name: /storybook ai/i }).first()).toBeVisible();
     await expectNoViolations(page);
   });
 
   test("reader and export controls have no WCAG A/AA violations", async ({ page }) => {
-    await page.goto("/");
     const response = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
     );
     await fillAndSubmit(page);
     await response;
+    await expect(page).toHaveURL(/\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
     // Reader scene controls plus the export button are on screen and reachable
     // by keyboard, with the focused control clearly indicated.
     await expect(page.getByRole("button", { name: /Baixar como PDF/i })).toBeVisible();
-    await page.getByRole("button", { name: /Próxima cena/i }).focus();
-    await expect(page.getByRole("button", { name: /Próxima cena/i })).toBeFocused();
+    await page.getByRole("button", { name: /^Próxima$/i }).focus();
+    await expect(page.getByRole("button", { name: /^Próxima$/i })).toBeFocused();
 
     await expectNoViolations(page);
   });
 
   test("in-session story switcher has no WCAG A/AA violations", async ({ page }) => {
-    await page.goto("/");
     const first = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
     );
     await fillAndSubmit(page);
     await first;
+    await expect(page).toHaveURL(/\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
-    // Append a second story so the switcher appears.
+    // Append a second story: "Nova história" returns to the clean /form, then
+    // submit again so the in-session switcher shows both stories.
     const second = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
     );
-    await page.getByRole("button", { name: /Gerar outra história/i }).click();
+    await page.getByRole("button", { name: /Nova história/i }).click();
+    await expect(page).toHaveURL(/\/form$/);
+    await page.getByRole("button", { name: /Criar história/i }).click();
     await second;
+    await expect(page).toHaveURL(/\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
     // The accessible switcher group exposes the active story via a pressed state.
@@ -99,7 +108,8 @@ test.describe("application accessibility (T059)", () => {
       })
     );
 
-    await page.goto("/");
+    await page.goto("/form");
+    await switchToPortuguese(page);
     const response = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
     );
@@ -115,7 +125,7 @@ test.describe("application accessibility (T059)", () => {
 test.describe("prefers-reduced-motion (T059)", () => {
   test("reduced-motion is honoured in the app", async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto("/");
+    await page.goto("/form");
 
     // The media query is active under the reduced-motion preference.
     expect(
