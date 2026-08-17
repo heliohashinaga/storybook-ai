@@ -6,11 +6,13 @@ import {
   FIXED_ILLUSTRATION_DATA_URI,
   UNSAFE_MARKER,
 } from "../../src/features/story-generation/server/fixed-dev-provider";
+import type { FakeLoadPhase } from "../../src/features/story-generation/server/fixed-dev-provider";
 import type { ProviderStoryInput } from "../../src/features/story-generation/server/story-generation-provider";
 
 /** Detachable, instant fake-load provider so a story build runs synchronously. */
 const noopProvider = createFixedDevProvider({
   wait: async () => {},
+  reset: () => {},
 } as ReturnType<typeof createFakePhasedDelay>);
 
 const input: ProviderStoryInput = {
@@ -62,9 +64,32 @@ describe("createFixedDevProvider — deterministic fake story generation", () =>
     expect(FIXED_ILLUSTRATION_DATA_URI).toMatch(/^data:image\/webp;base64,/);
   });
 
+  it("resets the paid-phase tracker so each generation re-pays the fake load (UX-012)", async () => {
+    // Regression: the dev provider used to share one `paid` Set across requests,
+    // so the 2nd generation skipped the delay and completed in ~0ms (no progress
+    // UI). reset() on generateStory must make every generation re-delay.
+    const pays: FakeLoadPhase[] = [];
+    const phaseDelay = createFakePhasedDelay(async (phase) => {
+      pays.push(phase);
+    });
+    const provider = createFixedDevProvider(phaseDelay);
+    const input: ProviderStoryInput = {
+      ageBand: "5-7",
+      locale: "pt-BR",
+      theme: "courage",
+      sceneCount: 3,
+    };
+    await provider.generateStory(input);
+    await provider.generateStory(input);
+    // Each generation must re-pay the write phase (reset works). Without the
+    // fix, generation 2 would skip the delay entirely (5-gen count of 1).
+    expect(pays.filter((p) => p === "write").length).toBe(2);
+  });
+
   it("produces a fixed illustration set through the injectable delay", async () => {
     const illustrate = createFixedDevIllustration({
       wait: async () => {},
+      reset: () => {},
     } as ReturnType<typeof createFakePhasedDelay>);
     const result = await illustrate("a non-catalog prompt");
     expect(result).toEqual({ dataUri: FIXED_ILLUSTRATION_DATA_URI });

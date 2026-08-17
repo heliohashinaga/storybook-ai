@@ -46,6 +46,7 @@ export function createFakePhasedDelay(
   delayFn: (phase: FakeLoadPhase) => Promise<void> = fakeModeDelay
 ): {
   wait(phase: FakeLoadPhase): Promise<void>;
+  reset(): void;
 } {
   const paid = new Set<FakeLoadPhase>();
   return {
@@ -53,6 +54,10 @@ export function createFakePhasedDelay(
       if (paid.has(phase)) return;
       paid.add(phase);
       await delayFn(phase);
+    },
+    /** Forget which phases were already paid so the next generation re-delays. */
+    reset(): void {
+      paid.clear();
     },
   };
 }
@@ -323,6 +328,11 @@ export function createFixedDevProvider(
 ): StoryGenerationProvider {
   return {
     async generateStory(input: ProviderStoryInput) {
+      // A generation = one pipeline run. The fake load is meant to recreate the
+      // appearance of progress each time, so reset the (per-request) paid-phase
+      // tracker before the first wait — otherwise later generations skip the
+      // delay and complete in ~0ms (progress flash/bug UX-012).
+      delay.reset();
       // Writes pay the fake load once (covers Planner + Writer calls).
       await delay.wait("write");
       // Catalog (spec 012): prefer the captured fixture for the combo, else the
