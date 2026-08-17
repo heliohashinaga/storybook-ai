@@ -83,21 +83,22 @@ via barrel e testada.
 
 **Purpose**: Provar que não sobrou duplicação e que os gates finais estão verdes no diff final.
 
-- [ ] T030 (US3) **Prova de ausência de duplicação**: grep de `parseChatJson`/`moderateText`/
+- [ ] T030 (US3, SC-004) **Prova de ausência de duplicação**: grep de `parseChatJson`/`moderateText`/
   `moderateImage`/`storyCandidateSchema.parse` — deve retornar ocorrências **apenas** em
   `provider-core/` (factory), nunca no corpo dos adapters.
 - [ ] T031 (US3) Remover dead code: confirmar que nenhum import/helper órfão ficou nos adapters após
   a extração (sem imports não usados, sem funções mortas).
-- [ ] T032 (US3) Documentação: criar `docs/adr/adr-0010-provider-orchestration-factory.md` seguindo
-  o template dos ADRs existentes (ex.: `adr-0008-provider-core-extraction.md`), registrando a
-  decisão da factory única e o motivo (evitar divergência silenciosa entre providers).
+- [ ] T032 (US3) Documentação: **verificar/revisar** `docs/adr/adr-0010-provider-orchestration-factory.md`
+  (já criado e commitado na fase de setup do spec), confirmando que está em sincronia com a
+  implementação real da factory única (decisão, consequências e arquivos mencionados), e ajustar
+  se necessário — seguindo o template dos ADRs existentes (ex.: `adr-0008-provider-core-extraction.md`).
 - [ ] T033 (US3) Atualizar `specs/013-refactor-provider-orchestration/spec.md` e `plan.md` se o
   diff final divergir do desenhado (sem relaxar invariantes).
 - [ ] T034 (US3) **Gates finais pós-edição** (no diff final, não antes): `pnpm lint` (0 warnings),
   `pnpm format:check` (rodar `pnpm format` em QUALQUER arquivo novo/editado, incluindo specs e ADR),
   `pnpm typecheck`, `pnpm test`.
 - [ ] T035 (US3) Restaurar `.specify/feature.json` para `specs/012-fake-content-catalog` e confirmar
-  que o scafffdo da branch está limpo e pronto para review.
+  que o scaffold da branch está limpo e pronto para review.
 
 **Checkpoint**: Diff final verde (lint/format/typecheck/test); ADR-0010 criado; nenhuma duplicação;
 branch 013 pronta para merge e review.

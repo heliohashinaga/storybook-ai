@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Feature branch** | `013-provider-orchestration` |
+| **Feature branch** | `013-refactor-provider-orchestration` |
 | **Criado** | 2026-08-17 |
 | **Status** | Draft |
 | **Input** | `012-fake-content-catalog` |
@@ -36,18 +36,21 @@ modelo, essa divergência é invisível em runtime até quebrar.
 
 ## Success Criteria
 
-1. `openrouter` e `opencode` passam a ser **adaptadores finos**: apenas `resolveDeps()`,
-   `getClient()` (baseUrl/modelos/defaultHeaders) e a composição da factory — **sem**
-   corpo de `generateStory`/`moderateText`/`moderateImage` duplicado.
-2. A **orquestração única** vive em `provider-core` como uma factory
-   (`createChatCompletionsProvider(deps)`) que devolve o objeto que implementa
-   `StoryGenerationProvider`.
-3. **Behavior-preserving**: nenhuma mudança de semântica, modelo, prompt, timeout,
-   retry, capabilidades ou tratamento de erro. Interface pública e routing intactos.
-4. Não há **nenhum** arquivo de código duplicado no repo (sem prova nova), e a feature
-   `008` permanece intacta (não é revertida nem re-escrita).
-5. Todos os gates verdes: `pnpm lint`, `pnpm format:check`, `pnpm typecheck` e
-   `pnpm test` (baseline de teste existente dos dois adapters garante paridade).
+- **SC-001** `openrouter` e `opencode` passam a ser **adaptadores finos**: apenas
+  `resolveDeps()`, `getClient()` (baseUrl/modelos/defaultHeaders) e a composição da
+  factory — **sem** corpo de `generateStory`/`moderateText`/`moderateImage` duplicado.
+- **SC-002** A **orquestração única** vive em `provider-core` como uma factory
+  (`createChatCompletionsProvider(deps)`) que devolve o objeto que implementa
+  `StoryGenerationProvider`.
+- **SC-003** **Behavior-preserving**: nenhuma mudança de semântica, modelo, prompt,
+  timeout, retry, capabilidades ou tratamento de erro. Interface pública e routing
+  intactos; os testes existentes dos dois adapters continuam verdes **sem alteração de
+  expectativa** (paridade garantida).
+- **SC-004** Não há **nenhum** corpo de orquestração duplicado entre os adapters (grep de
+  `parseChatJson`/`moderateText`/`moderateImage` retorna ocorrências **apenas** em
+  `provider-core/`), e a feature `008` permanece intacta (não é revertida nem re-escrita).
+- **SC-005** Todos os gates verdes no diff final: `pnpm lint`, `pnpm format:check`,
+  `pnpm typecheck` e `pnpm test`.
 
 ## Out of Scope (ainda que parecido)
 
@@ -72,14 +75,18 @@ modelo, essa divergência é invisível em runtime até quebrar.
   dois adapters continuem verdes **sem modificação de expectativa**, provando que o
   refactor é behavior-preserving.
 
-## Tasks (resumo — detalhe em `tasks.md`)
+## Tasks (resumo — detalhe e IDs completos em `tasks.md`)
 
-- `T001` Extrair factory `createChatCompletionsProvider` em `provider-core`.
-- `T002` Refatorar `openrouter` para consumir a factory.
-- `T003` Refatorar `opencode` para consumir a factory.
-- `T004` Garantir que nenhum corpo duplicado sobreviva (grep de `parseChatJson`/
-  `moderateText`/`moderateImage` fora do `provider-core`).
-- `T005` Rodar gates completos e confirmar gates verdes no diff final.
+- **Phase 1 (Setup)** — `T001`–`T003`: baseline verde, branch ativa, `feature.json` alinhado.
+- **Phase 2 (Factory — US1)** — `T010`–`T013`: criar `create-chat-provider.ts` (verbatim),
+  exportar via barrel, teste novo que falha-antes/passa-depois.
+- **Phase 3 (Adapters finos — US2)** — `T020`–`T023`: refatorar `openrouter`/`opencode`
+  para compor a factory; comportamento de imagem por decisão (`T022`).
+- **Phase 4 (Verificação — US3)** — `T030`–`T035`: prova de ausência de duplicação,
+  remoção de dead code, ADR/review, gates finais pós-edição, restauração do `feature.json`.
+
+> Os IDs em `tasks.md` usam numeração esparsa por faixa de fase (T0xx/T1xx/…); não há
+> `T004`–`T009`/`T014`–`T019`/`T024`–`T029` — consulte `tasks.md` para a lista definitiva.
 
 ## ADR
 

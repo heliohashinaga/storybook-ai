@@ -32,11 +32,13 @@ Três user stories de qualidade (US1-US3), todas preservadoras de comportamento:
 - **Decisão-2**: Esta feature **complementa** o `008`, não o duplica nem o reverte. O `008` está
   convergido (35/35 tasks naquela especificação) e sua extração de baixo nível é o **baseline**
   desta feature. A factory de orquestração é o passo seguinte não coberto pelo `008`.
-- **Decisão-3**: A factory deve receber como dependência o **client OpenAI já construído**
-  (`OpenAI` ou tipo compatível) + modelos (`textModel`, `moderationModel`) + `fetchImpl`
+- **Decisão-3**: A factory recebe o **client OpenAI já construído** tipado como `OpenAI`
+  (do pacote `openai`) + modelos (`textModel`, `moderationModel`) + `fetchImpl?`
   (para testes determinísticos), devolvendo um objeto que implementa `StoryGenerationProvider`
-  nas capacidades text+moderation. **Não** move prompt/defaultHeaders para a factory a menos que
-  sejam idênticos entre os dois — se houver drift, registrar no `reviews.md` e conservar.
+  nas capacidades text+moderation. A construção do client (`getClient()` com
+  `baseUrl`/`defaultHeaders`/app-identity) **permanece em cada adapter** — a factory recebe o
+  client pronto, sem conhecer `defaultHeaders`. **Não** move prompt/defaultHeaders para a factory
+  a menos que sejam idênticos entre os dois — se houver drift, registrar no `reviews.md` e conservar.
 - **Decisão-4**: Interface pública (`StoryGenerationProvider`, `provider-routing`, `env.ts`,
   `generate-story`, OpenAPI) **não muda**. Nenhum novo identificador/front; fronteira `server-only`
   mantida. A geração de ilustrações (openrouter `/images` vs opencode) **fica de fora** desta
