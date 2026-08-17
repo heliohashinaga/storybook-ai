@@ -14,7 +14,7 @@ import { Button } from "../../../components/ui/button";
  * timeline (`STEP_DURATION_SECONDS` each), so adding a new step is a single
  * array entry plus its localized label — the stage mapping, bar width, ARIA
  * value range and adaptive title all re-derive automatically. Status advances
- * from "writing" to "illustrating" to "safety review" to a patient timeout cue,
+ * from "planning" to "writing" to "safety review" to "illustrating" to a patient timeout cue,
  * all driven by the injected `elapsedSeconds` so behavior is deterministic in
  * tests (no wall-clock or timer dependence). Nothing here receives or renders
  * request/story content.
@@ -24,7 +24,12 @@ import { Button } from "../../../components/ui/button";
  * The generation pipeline steps, in order. Adding a step = add its i18n key
  * (`story.progress.stageXxx` in both locale catalogs) plus one entry here.
  */
-export const GENERATION_STAGES = ["stageWriting", "stageIllustrating", "stageReviewing"] as const;
+export const GENERATION_STAGES = [
+  "stagePlanning",
+  "stageWriting",
+  "stageReviewing",
+  "stageIllustrating",
+] as const;
 
 /** Stage index of the last step — used as the ARIA max and clamp boundary. */
 export const MAX_STAGE = GENERATION_STAGES.length - 1;
@@ -33,8 +38,8 @@ export const MAX_STAGE = GENERATION_STAGES.length - 1;
  * Equal length of every pipeline step, in seconds. Keeping stage boundaries
  * evenly spaced means a new step can be slotted in without re-tuning any
  * threshold: step `i` simply begins at `i * STEP_DURATION_SECONDS`, so the
- * last step starts at `MAX_STAGE * STEP_DURATION_SECONDS` (here 2×8 = 16 s,
- * matching the legacy reviewing threshold for three steps).
+ * last step starts at `MAX_STAGE * STEP_DURATION_SECONDS` (here 3×8 = 24 s,
+ * before the patient timeout cue at `TIMEOUT_CUE_AT_SECONDS`).
  */
 export const STEP_DURATION_SECONDS = 8;
 
@@ -54,7 +59,7 @@ export interface StoryGenerationProgressProps {
   /**
    * Override the equal, per-step duration (default `STEP_DURATION_SECONDS`).
    * Squeezing every step to speed up the whole pipeline while keeping them
-   * evenly spaced (e.g. `3` in fake mode so the three steps complete fast).
+   * evenly spaced (e.g. `3` in fake mode so the four steps complete fast).
    */
   stepDurationSeconds?: number;
 }
@@ -64,8 +69,8 @@ export interface StoryGenerationProgressProps {
  * steps. Stage `i` spans `[i * stepDuration, (i+1) * stepDuration)` and the
  * result clamps to the final stage. `stepDurationSeconds` defaults to
  * `STEP_DURATION_SECONDS` and `stageCount` to `GENERATION_STAGES.length`, so
- * the legacy three-stage timings (0 → writing, 8 → illustrating, 16 →
- * reviewing) are preserved out of the box.
+ * the pipeline timings (0 → planning, 8 → writing, 16 → safety review, 24 →
+ * illustrating) derive out of the box.
  */
 export function getGenerationStage(
   elapsedSeconds: number,
@@ -78,7 +83,7 @@ export function getGenerationStage(
 
 /**
  * Bar width tied to the current step, generalised over `stageCount` steps:
- * step `i` shows `(i / stageCount) * 100`% (0%, 33%, 66% … with three steps)
+ * step `i` shows `(i / stageCount) * 100`% (0%, 25%, 50%, 75% … with four steps)
  * and 100% once concluded. The `done` flag raises the bar to 100% so the
  * final step is reached just short of the bar's end and only completion fills
  * it. `done` is the optional third arg to stay source-compatible with tests/
