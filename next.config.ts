@@ -16,6 +16,13 @@ const cspScriptSrc = isProduction
 // the reader: it renders data: URIs (provider images) and next/font inlines
 // CSS, so img-src must include `data:` and style-src must allow inline. HSTS is
 // production-only (the dev server runs over http://localhost).
+//
+// EXPLICIT RELAXATIONS (signed off, per AGENTS.md - no unlabeled loosening):
+// the client-side PDF export lazy-loads `@react-pdf/renderer`, which fetches its
+// WASM yoga binary via a `data:` URI and spawns a layout Web Worker from a
+// `blob:` URL. So `connect-src` gains `data:` and `worker-src` is added with
+// `blob:`, scoped to keep everything else strict (default-src 'self', no eval in
+// prod, frame-ancestors/object-src/base-uri/form-action locked down).
 const securityHeaders: { key: string; value: string }[] = [
   // Content-Security-Policy: block XSS while keeping the app functional.
   {
@@ -26,7 +33,8 @@ const securityHeaders: { key: string; value: string }[] = [
       "style-src 'self' 'unsafe-inline'", // next/font + legit inline styles
       "img-src 'self' data:", // reader shows provider data: images
       "font-src 'self' data:",
-      "connect-src 'self'", // only own API (stories/narrate)
+      "connect-src 'self' data:", // self API + @react-pdf fetches its WASM yoga binary as a data: URI
+      "worker-src 'self' blob:", // @react-pdf spawns a layout Web Worker from a blob: URL
       "frame-ancestors 'none'", // anti-clickjacking
       "base-uri 'none'",
       "form-action 'self'",
