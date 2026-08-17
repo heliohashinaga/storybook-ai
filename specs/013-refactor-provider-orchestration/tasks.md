@@ -12,6 +12,11 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Organization**: Tarefas agrupadas por user story (US1-US3), com a Phase 2 (Fundacional) bloqueando US1-US3. Feature **preservadora de comportamento** — nenhuma mudança de UI, contrato, env ou prompt.
 
+> **Numeração esparsa por fase (intencional):** cada Phase reserva uma faixa de IDs
+> (Phase 1: T00x; Phase 2: T01x; Phase 3: T02x; Phase 4: T03x). Não há `T004`–`T009`, `T014`–`T019`,
+> `T024`–`T029` — o gap é proposital para permitir inserção sem renumerar. Consulte esta lista
+> definitiva (e não o resumo do `spec.md`) como fonte canônica de IDs.
+
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -69,8 +74,10 @@ via barrel e testada.
   `getClient()` **sem** `defaultHeaders` (como hoje).
 - [ ] T022 (US2) Comportamento de imagem: se houver drift entre `createOpenRouterIllustration`/
   `create-opencode-illustration` e o `provider-core/image-client.ts`, **não** mesclar nesta feature —
-  registrar follow-up no `reviews.md` (SC: fora do escopo, ver Decisão-4). Se o diff for trivial,
-  reutilizar o que `image-client.ts` já expõe.
+  registrar follow-up no `reviews.md` (fora do escopo, ver Decisão-4). Reutilizar o que
+  `image-client.ts` já expõe **apenas** se o diff for trivial — aqui "trivial" significa: mudança
+  puramente mecânica, sem alteração de comportamento/contrato, ≤ ~15 linhas, e coberta por teste
+  existente. Caso contrário (não trivial), registrar follow-up e não mesclar.
 - [ ] T023 (US2) Rodar `pnpm typecheck` e `pnpm test` — os testes existentes dos dois adapters
   verdes **sem alteração de expectativa** (paridade garantida, SC-003).
 

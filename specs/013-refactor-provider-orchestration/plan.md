@@ -42,7 +42,9 @@ Três user stories de qualidade (US1-US3), todas preservadoras de comportamento:
 - **Decisão-4**: Interface pública (`StoryGenerationProvider`, `provider-routing`, `env.ts`,
   `generate-story`, OpenAPI) **não muda**. Nenhum novo identificador/front; fronteira `server-only`
   mantida. A geração de ilustrações (openrouter `/images` vs opencode) **fica de fora** desta
-  feature — seguir apenas se o diff for trivial; caso contrário, registrar como follow-up.
+  feature — reutilizar `image-client.ts` apenas se o diff for trivial (mudança mecânica, sem
+alteração de comportamento, ≤ ~15 linhas e coberta por teste existente); caso contrário, registrar
+  como follow-up.
 
 ## Technical Context
 
