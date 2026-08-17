@@ -37,13 +37,13 @@ com custo externo; as demais são determinísticas e rodam em qualquer ambiente.
 
 **Purpose**: Entregar o script parametrizável e validar o plano de captura **antes** de gastar API.
 
-- [ ] T001 [US4] Criar `scripts/generate-fake-content.ts` (server-only, `#!/usr/bin/env` node-run
+- [x] T001 [US4] Criar `scripts/generate-fake-content.ts` (server-only, `#!/usr/bin/env` node-run
   via `tsx`): grid default 6 temas × 2 locais × counts [3,4,5]; flags `--dry-run`, `--limit`,
   `--locales`, `--themes`, `--counts`; lê env via `getEnv()` (sem novos `NEXT_PUBLIC_*`)
-- [ ] T002 [US4] Em modo `--dry-run`: imprimir plano (combinações, estimativa de peso por cena
+- [x] T002 [US4] Em modo `--dry-run`: imprimir plano (combinações, estimativa de peso por cena
   com sharp 512×512 q70 `/ 60 KB`, total `/ 8 MB`) e validar o shape de saída do runtime real com
   Zod (sem chamar provider); exit 0 limpo
-- [ ] T003 [P] [US4] Adicionar `README.md` em `tests/fixtures/story-generation/fake-content/`
+- [x] T003 [P] [US4] Adicionar `README.md` em `tests/fixtures/story-generation/fake-content/`
   (formato do fixture, como rodar dry-run/captura, budgets); `quickstart.md` no spec 012 apontando
   para o script
 
@@ -56,14 +56,14 @@ com custo externo; as demais são determinísticas e rodam em qualquer ambiente.
 **Purpose**: Gerar o catálogo (uma rodada). **Requer env real + ok do usuário.** NUNCA em CI
 (FR-008: falha explícita se `process.env.CI`).
 
-- [ ] T004 [US1] No script: instanciar o runtime real (`generation-runtime.ts` — planner/writer/
+- [x] T004 [US1] No script: instanciar o runtime real (`generation-runtime.ts` — planner/writer/
   moderator/illustrator com `*_MODEL` do env), paralelismo ~3, timeouts respeitados; cada
   narrativa validada pelo Moderator real — rejeição ⇒ **descarta** (não grava) + contabiliza;
   recidiva ⇒ aborta com resumo
-- [ ] T005 [US2] Antes de gravar: verificar **anonimato** (sem nomes próprios/identificadores/
+- [x] T005 [US2] Antes de gravar: verificar **anonimato** (sem nomes próprios/identificadores/
   template markers/`unsafecontent`); re-comprimir ilustrações com sharp (512×512 WebP q70, budget
   por cena 60 KB, total 8 MB) e auditar pesos (falha se estourar)
-- [ ] T006 [US1][US2] Gravar fixtures `{theme}-{locale}-{sceneCount}.json` com shape do FR-002
+- [x] T006 [US1][US2] Gravar fixtures `{theme}-{locale}-{sceneCount}.json` com shape do FR-002
   (story + illustrations + meta: model, capturedAt, sha256) — grid 36 + 6 `generic` (42; prompts
   neutros nas capturas genéricas)
 
@@ -76,14 +76,14 @@ com custo externo; as demais são determinísticas e rodam em qualquer ambiente.
 
 **Purpose**: Fazer o fake resolver o catálogo com fallback (contrato de saída inalterado).
 
-- [ ] T007 [P] [US1] Criar `src/features/story-generation/server/fake-content-catalog.ts`: loader
+- [x] T007 [P] [US1] Criar `src/features/story-generation/server/fake-content-catalog.ts`: loader
   com `fs` puro + validação Zod do shape FR-002 + cache de módulo; chave `(locale, theme,
   sceneCount)` + resolução **virtual `generic`** para temas fora do catálogo; leitura tolerante (fixture ausente/corrompida ⇒ `null` + `console.warn` server-only)
-- [ ] T008 [US1][US3] Em `fixed-dev-provider.ts` (`createFixedDevProvider.generateStory`): lookup
+- [x] T008 [US1][US3] Em `fixed-dev-provider.ts` (`createFixedDevProvider.generateStory`): lookup
   no loader; fallback **neutro de qualidade**: tema fora do catálogo → fixture `generic` → builder
   genérico manual (substituir `?? THEME_PT.courage`/`?? THEME_EN.courage` — tema desconhecido nunca
   exibe conteúdo de outro tema)
-- [ ] T009 [US2][US3] Em `fixed-dev-provider.ts` (`createFixedDevIllustration`): receber
+- [x] T009 [US2][US3] Em `fixed-dev-provider.ts` (`createFixedDevIllustration`): receber
   `(locale, theme, sceneCount, sceneIndex)` e devolver a ilustração da cena do catálogo; fallback
   em cadeia: ilustração `generic` → builder genérico → `FIXED_ILLUSTRATION_DATA_URI`
 
@@ -96,17 +96,17 @@ comportamento antigo para o resto.
 
 **Purpose**: Cobrir variedade, paridade, anonimato, fallback, budget e determinismo.
 
-- [ ] T010 [P] [US1] `tests/unit/fake-content-catalog.test.tsx`: farrapo (variedade por tema —
+- [x] T010 [P] [US1] `tests/unit/fake-content-catalog.test.tsx`: farrapo (variedade por tema —
   títulos/corpos distintos; 3/4/5 cenas corretos; pt-BR ≠ en; determinismo — duas leituras
   idênticas)
-- [ ] T011 [P] [US2] Mesmo arquivo: `illustrations.length === scenes.length`; data-URI WebP
+- [x] T011 [P] [US2] Mesmo arquivo: `illustrations.length === scenes.length`; data-URI WebP
   válida; budget por cena ≤ 60 KB e total ≤ 8 MB
-- [ ] T012 [P] [US3] Fallsbacks: tema fora do grid ⇒ fixture `generic` (e, se ausente, builder
+- [x] T012 [P] [US3] Fallsbacks: tema fora do grid ⇒ fixture `generic` (e, se ausente, builder
   genérico manual — política B); fixture ausente/corrompida ⇒ `null` (provider usa builder
   neutro/`FIXED_ILLUSTRATION_DATA_URI`) sem throw
-- [ ] T013 [P] [US1][US2] Anonimato: varredura das fixtures com os detectores existentes
+- [x] T013 [P] [US1][US2] Anonimato: varredura das fixtures com os detectores existentes
   (template markers, `unsafecontent`, padrões de nome próprio) — zero ocorrências
-- [ ] T014 [US4] `--dry-run`/`--limit` testados via execução do script (spawn node) sem env de
+- [x] T014 [US4] `--dry-run`/`--limit` testados via execução do script (spawn node) sem env de
   provider: plano impresso, nenhuma rede
 
 **Checkpoint**: suíte completa (`pnpm test`) verde — 650+ testes, com os novos.
@@ -118,11 +118,11 @@ comportamento antigo para o resto.
 **Purpose**: Rodar todos os gates depois da última edição; resultados anteriores são STALE
 (AGENTS.md) e não contam.
 
-- [ ] T015 [P] `pnpm lint` (0 warnings) e `pnpm typecheck` (strict, sem `any`)
-- [ ] T016 [P] `pnpm format:check` sem drift — `pnpm format` em/após TODOS os arquivos
+- [x] T015 [P] `pnpm lint` (0 warnings) e `pnpm typecheck` (strict, sem `any`)
+- [x] T016 [P] `pnpm format:check` sem drift — `pnpm format` em/após TODOS os arquivos
   novos/editados (inclui `.md` do spec e fixtures JSON)
-- [ ] T017 [P] `pnpm test` verde e `pnpm build` passando
-- [ ] T018 Revisar diff final: rotas HTTP/contrato/backend/privacidade **intocados**; peso de
+- [x] T017 [P] `pnpm test` verde e `pnpm build` passando
+- [x] T018 Revisar diff final: rotas HTTP/contrato/backend/privacidade **intocados**; peso de
   fixtures dentro do orçamento; estado git limpo na branch `012-fake-content-catalog`
 
 **Definition of Done**: catálogo 42 (36 + 6 `generic`) no grid com ilustração por cena; fake
