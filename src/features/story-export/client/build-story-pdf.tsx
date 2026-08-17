@@ -37,6 +37,23 @@ export interface StoryPdfDeps {
 const WEBP_DATA_URI_PREFIX = "data:image/webp;base64,";
 
 /**
+ * Converts a `data:*;base64,...` URI into a Blob without any network call.
+ * `fetch(data:...)` is refused by our strict CSP (`connect-src 'self'`), so the
+ * data-URI is decoded locally with `atob` into a Blob — still fully client-side
+ * and CSP-compliant (AGENTS.md: never loosen security headers silently).
+ */
+function dataUriToBlob(dataUri: string): Blob {
+  const comma = dataUri.indexOf(",");
+  const meta = dataUri.slice(0, comma); // `data:image/webp;base64`
+  const base64 = dataUri.slice(comma + 1);
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const mime = (meta.slice(5).split(";")[0] ?? "").trim();
+  return new Blob([bytes], { type: mime || "application/octet-stream" });
+}
+
+/**
  * Converts a WebP data-URI to a PNG data-URI in the browser, so the PDF can
  * embed the illustration (`@react-pdf/renderer` does not reliably embed WebP).
  * Uses createImageBitmap + canvas (both decode WebP and encode PNG) — fully
@@ -45,7 +62,7 @@ const WEBP_DATA_URI_PREFIX = "data:image/webp;base64,";
  */
 async function defaultWebpToPng(webpUri: string): Promise<string> {
   if (!webpUri.startsWith(WEBP_DATA_URI_PREFIX)) return webpUri;
-  const decoded = await createImageBitmap(await (await fetch(webpUri)).blob()).catch(() => null);
+  const decoded = await createImageBitmap(dataUriToBlob(webpUri)).catch(() => null);
   if (!decoded) return webpUri;
   try {
     const canvas = document.createElement("canvas");
