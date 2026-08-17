@@ -36,13 +36,17 @@ um adapter e esquecer o outro).
 
 1. **Criar uma factory única de orquestração em `provider-core`** —
    `createChatCompletionsProvider(deps)` — que encapsula `generateStory`, `moderateText` e
-   `moderateImage`. A factory recebe o client OpenAI **já construído** pelo adapter + os modelos
-   (`textModel`, `moderationModel`) + `fetchImpl` opcional (para testes determinísticos) e devolve
-   um objeto que implementa as capacidades text+moderation de `StoryGenerationProvider`.
+   `moderateImage`. A factory recebe o client OpenAI via **lazy getter** (`getClient: () => OpenAI`,
+   invocado na primeira operação) + os modelos já resolvidos (`textModel`, `moderationModel`), e
+   devolve um objeto que implementa as capacidades text+moderation de `StoryGenerationProvider`.
+   A construção do client (`baseUrl`/`defaultHeaders`/`fetchImpl`/timeout/retry) permanece em cada
+   adapter — a factory **não** recebe `fetchImpl` nem builda o client — preservando a invariante de
+   que importar/criar o provider nunca exige env de provedor (as API keys são validadas via
+   `getEnv()` apenas no primeiro request real, ver clarificação 2026-08-17 da spec 013).
 
 2. **Adapters viram shell fino de configuração.** `openrouter` e `opencode` mantêm apenas
    `resolveDeps()`, `getClient()` (baseUrl/modelos/`defaultHeaders`) e a **composição**:
-   `createChatCompletionsProvider({ client, textModel, moderationModel, fetchImpl })`. Nenhum corpo
+   `createChatCompletionsProvider({ getClient, textModel, moderationModel })`. Nenhum corpo
    de orquestração permanece neles.
 
 3. **Comportamento preservado ao extremo.** O corpo da factory é movido **verbatim** dos adapters —
@@ -65,8 +69,9 @@ um adapter e esquecer o outro).
 
 **Negativas / trade-offs:**
 
-- A factory recebe o client já construído; a lógica de `getClient()` (defaultHeaders específicos)
-  permanece por adapter — duplicação mínima e intencional, pois é a parte genuinamente específica.
+- A factory recebe o client via lazy getter (`getClient`); a lógica de construção do client
+  (defaultHeaders específicos) permanece por adapter — duplicação mínima e intencional, pois é a
+  parte genuinamente específica, e a construção adiada preserva o lazy-env nos requests reais.
 
 **Neutras / custos:**
 

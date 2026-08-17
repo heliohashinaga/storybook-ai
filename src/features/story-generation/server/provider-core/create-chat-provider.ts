@@ -41,9 +41,7 @@ export interface ChatCompletionsProviderDeps {
  * Semantics, prompts, timeouts, retries and error handling match the adapter
  * bodies verbatim (spec 013, SC-003).
  */
-export function createChatCompletionsProvider(
-  deps: ChatCompletionsProviderDeps
-): {
+export function createChatCompletionsProvider(deps: ChatCompletionsProviderDeps): {
   generateStory(input: ProviderStoryInput): Promise<GeneratedStoryCandidate>;
   moderateText(text: string): Promise<ModerationDecision>;
   moderateImage(prompt: string): Promise<ModerationDecision>;

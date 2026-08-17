@@ -68,19 +68,19 @@ via barrel e testada.
 
 **Purpose**: Trocar `openrouter` e `opencode` para compor a factory, eliminando o corpo duplicado.
 
-- [ ] T020 (US2) Refatorar `openrouter-story-generation-provider.ts`: remover o corpo de
+- [x] T020 (US2) Refatorar `openrouter-story-generation-provider.ts`: remover o corpo de
   `generateStory`/`moderateText`/`moderateImage` e delegar a `createChatCompletionsProvider({
   getClient, textModel, moderationModel })`, mantendo `resolveDeps()`, `getClient()` (baseUrl +
   `defaultHeaders`) e a interface `StoryGenerationProvider` intacta.
-- [ ] T021 (US2) Refatorar `opencode-story-generation-provider.ts`: idêntico ao T020 (delega via
+- [x] T021 (US2) Refatorar `opencode-story-generation-provider.ts`: idêntico ao T020 (delega via
   `getClient` lazy à factory), mantendo `getClient()` **sem** `defaultHeaders` (como hoje).
-- [ ] T022 (US2) Comportamento de imagem: se houver drift entre `createOpenRouterIllustration`/
+- [x] T022 (US2) Comportamento de imagem: se houver drift entre `createOpenRouterIllustration`/
   `create-opencode-illustration` e o `provider-core/image-client.ts`, **não** mesclar nesta feature —
   registrar follow-up no `reviews.md` (fora do escopo, ver Decisão-4). Reutilizar o que
   `image-client.ts` já expõe **apenas** se o diff for trivial — aqui "trivial" significa: mudança
   puramente mecânica, sem alteração de comportamento/contrato, ≤ ~15 linhas, e coberta por teste
   existente. Caso contrário (não trivial), registrar follow-up e não mesclar.
-- [ ] T023 (US2) Rodar `pnpm typecheck` e `pnpm test` — os testes existentes dos dois adapters
+- [x] T023 (US2) Rodar `pnpm typecheck` e `pnpm test` — os testes existentes dos dois adapters
   verdes **sem alteração de expectativa** (paridade garantida, SC-003).
 
 **Checkpoint**: Adapters são finos; nenhum corpo de orquestração duplicado permanece fora do
@@ -92,21 +92,21 @@ via barrel e testada.
 
 **Purpose**: Provar que não sobrou duplicação e que os gates finais estão verdes no diff final.
 
-- [ ] T030 (US3, SC-004) **Prova de ausência de duplicação**: grep de `parseChatJson`/`moderateText`/
+- [x] T030 (US3, SC-004) **Prova de ausência de duplicação**: grep de `parseChatJson`/`moderateText`/
   `moderateImage`/`storyCandidateSchema.parse` — deve retornar ocorrências **apenas** em
   `provider-core/` (factory), nunca no corpo dos adapters.
-- [ ] T031 (US3) Remover dead code: confirmar que nenhum import/helper órfão ficou nos adapters após
+- [x] T031 (US3) Remover dead code: confirmar que nenhum import/helper órfão ficou nos adapters após
   a extração (sem imports não usados, sem funções mortas).
-- [ ] T032 (US3) Documentação: **verificar/revisar** `docs/adr/adr-0010-provider-orchestration-factory.md`
+- [x] T032 (US3) Documentação: **verificar/revisar** `docs/adr/adr-0010-provider-orchestration-factory.md`
   (já criado e commitado na fase de setup do spec), confirmando que está em sincronia com a
   implementação real da factory única (decisão, consequências e arquivos mencionados), e ajustar
   se necessário — seguindo o template dos ADRs existentes (ex.: `adr-0008-provider-core-extraction.md`).
-- [ ] T033 (US3) Atualizar `specs/013-refactor-provider-orchestration/spec.md` e `plan.md` se o
+- [x] T033 (US3) Atualizar `specs/013-refactor-provider-orchestration/spec.md` e `plan.md` se o
   diff final divergir do desenhado (sem relaxar invariantes).
-- [ ] T034 (US3) **Gates finais pós-edição** (no diff final, não antes): `pnpm lint` (0 warnings),
+- [x] T034 (US3) **Gates finais pós-edição** (no diff final, não antes): `pnpm lint` (0 warnings),
   `pnpm format:check` (rodar `pnpm format` em QUALQUER arquivo novo/editado, incluindo specs e ADR),
   `pnpm typecheck`, `pnpm test`.
-- [ ] T035 (US3) Restaurar `.specify/feature.json` para `specs/012-fake-content-catalog` e confirmar
+- [x] T035 (US3) Restaurar `.specify/feature.json` para `specs/012-fake-content-catalog` e confirmar
   que o scaffold da branch está limpo e pronto para review.
 
 **Checkpoint**: Diff final verde (lint/format/typecheck/test); ADR-0010 criado; nenhuma duplicação;
@@ -116,9 +116,9 @@ branch 013 pronta para merge e review.
 
 ## Definition of Done (resumo)
 
-- [ ] `openrouter` e `opencode` são adapters finos (só config + composição da factory).
-- [ ] `createChatCompletionsProvider` vive em `provider-core/` e é exportado pelo barrel.
-- [ ] Nenhum corpo de `generateStory`/`moderateText`/`moderateImage` fora do `provider-core`.
-- [ ] Testes existentes dos adapters verdes **sem alteração de expectativa**.
-- [ ] `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` verdes no diff final.
-- [ ] ADR-0010 criado; `spec.md`/`plan.md` em sincronia; `feature.json` restaurado para `012`.
+- [x] `openrouter` e `opencode` são adapters finos (só config + composição da factory).
+- [x] `createChatCompletionsProvider` vive em `provider-core/` e é exportado pelo barrel.
+- [x] Nenhum corpo de `generateStory`/`moderateText`/`moderateImage` fora do `provider-core`.
+- [x] Testes existentes dos adapters verdes **sem alteração de expectativa**.
+- [x] `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test` verdes no diff final.
+- [x] ADR-0010 criado; `spec.md`/`plan.md` em sincronia; `feature.json` restaurado para `012`.

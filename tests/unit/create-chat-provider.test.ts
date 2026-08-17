@@ -148,9 +148,7 @@ describe("createChatCompletionsProvider", () => {
   });
 
   it("generateStory maps a provider 5xx to unavailable", async () => {
-    const { provider } = makeFactory(() =>
-      jsonResponse({ error: { message: "overloaded" } }, 500)
-    );
+    const { provider } = makeFactory(() => jsonResponse({ error: { message: "overloaded" } }, 500));
 
     await expect(provider.generateStory(storyInput)).rejects.toMatchObject({
       kind: "unavailable",
