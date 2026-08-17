@@ -26,9 +26,9 @@ describe("createFixedDevProvider — deterministic fake story generation", () =>
     expect(story.title).toBeTruthy();
     expect(story.scenes).toHaveLength(5);
     expect(story.scenes.map((s) => s.ordinal)).toEqual([1, 2, 3, 4, 5]);
-    // The final scene is the fixed closing (resolution) with a watercolor art
-    // prompt; titles are localized by locale.
-    expect(story.scenes[4]!.illustrationPrompt).toContain("watercolor");
+    // The catalog (spec 012) is active for this grid: illustrationPrompt is a catalog
+    // marker the dev illustrator resolves to the captured WebP per scene.
+    expect(story.scenes[4]!.illustrationPrompt).toMatch(/^catalog:\/\//);
     for (const scene of story.scenes) {
       expect(scene.body.length).toBeGreaterThan(0);
       expect(scene.illustrationPrompt.length).toBeGreaterThan(0);
@@ -44,7 +44,7 @@ describe("createFixedDevProvider — deterministic fake story generation", () =>
   it("localizes the opening scene for the en locale", async () => {
     const story = await noopProvider.generateStory({ ...input, locale: "en" });
     expect(story.scenes[0]!.body.length).toBeGreaterThan(0);
-    expect(story.scenes[0]!.illustrationPrompt).toContain("watercolor");
+    expect(story.scenes[0]!.illustrationPrompt).toMatch(/^catalog:\/\//);
   });
 
   it("moderates image prompts: flags unsafe, approves safe text and images", async () => {
@@ -66,7 +66,7 @@ describe("createFixedDevProvider — deterministic fake story generation", () =>
     const illustrate = createFixedDevIllustration({
       wait: async () => {},
     } as ReturnType<typeof createFakePhasedDelay>);
-    const result = await illustrate();
+    const result = await illustrate("a non-catalog prompt");
     expect(result).toEqual({ dataUri: FIXED_ILLUSTRATION_DATA_URI });
   });
 

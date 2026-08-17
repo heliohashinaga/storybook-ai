@@ -4,6 +4,12 @@ import type {
   ProviderStoryInput,
   StoryGenerationProvider,
 } from "./story-generation-provider";
+import {
+  catalogIllustration,
+  catalogMarker,
+  parseCatalogMarker,
+  resolveFixture,
+} from "./fake-content-catalog";
 
 /**
  * Optional artificial latency so the story-request loading/progress screen is
@@ -319,6 +325,27 @@ export function createFixedDevProvider(
     async generateStory(input: ProviderStoryInput) {
       // Writes pay the fake load once (covers Planner + Writer calls).
       await delay.wait("write");
+      // Catalog (spec 012): prefer the captured fixture for the combo, else the
+      // legacy authored builder; a catalog scene's illustrationPrompt carries a
+      // marker so the dev illustrator can resolve the captured WebP per scene.
+      const fixture = resolveFixture(input.locale, input.theme, input.sceneCount);
+      if (fixture) {
+        return {
+          title: fixture.story.title,
+          scenes: fixture.story.scenes.map((scene) => ({
+            ordinal: scene.ordinal,
+            title: scene.title,
+            body: scene.body,
+            altText: scene.altText,
+            illustrationPrompt: catalogMarker(
+              input.theme,
+              input.locale,
+              input.sceneCount,
+              scene.ordinal
+            ),
+          })),
+        };
+      }
       return input.locale === "en"
         ? enStory(input.sceneCount, input.theme)
         : ptBRStory(input.sceneCount, input.theme);
@@ -338,9 +365,21 @@ export function createFixedDevProvider(
 export function createFixedDevIllustration(
   delay: ReturnType<typeof createFakePhasedDelay> = createFakePhasedDelay()
 ) {
-  return async () => {
+  return async (prompt: string) => {
     // The whole illustration set pays the fake load once, not once per scene.
     await delay.wait("illustrate");
+    // Catalog marker (spec 012): resolve the captured WebP for that scene;
+    // anything else falls back to the fixed dev image.
+    const marker = parseCatalogMarker(prompt);
+    if (marker) {
+      const dataUri = catalogIllustration(
+        marker.locale,
+        marker.theme,
+        marker.sceneCount,
+        marker.ordinal
+      );
+      if (dataUri) return { dataUri };
+    }
     return { dataUri: FIXED_ILLUSTRATION_DATA_URI };
   };
 }
