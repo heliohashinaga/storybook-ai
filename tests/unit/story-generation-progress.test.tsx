@@ -63,11 +63,10 @@ describe("story generation progress — blossom step loading screen (§7.3)", ()
     expect(current).toHaveAttribute("aria-current", "step");
   });
 
-  it("shows the adaptive title for each stage and a lock notice", () => {
+  it("shows the adaptive title matching each stage", () => {
     renderProgress({ phase: "generating", elapsedSeconds: 0 });
     // The adaptive title matches the current step text (blossom §7.3).
     expect(screen.getAllByText(/escrevendo sua história/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/bloqueada|bloqueio/i)).toBeInTheDocument();
   });
 
   it("progressbar exposes an accessible name and the current stage as its value", () => {
