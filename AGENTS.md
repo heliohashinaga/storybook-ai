@@ -25,7 +25,7 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   API, logs, analytics, or provider payloads.
 - The browser derives `ageBand` (`2-4 | 5-7 | 8-9`) from exact age in memory; the
   server receives **only** `ageBand`, `locale` (`pt-BR` default | `en`), `theme`
-  (`courage | friendship | kindness`).
+  (`courage | friendship | kindness | curiosity | perseverance | empathy`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
   cache. Exact age and generated stories live in React in-memory state only.
 - All AI-vendor calls stay behind a **server-only provider adapter**
