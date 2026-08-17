@@ -28,18 +28,23 @@ export default meta;
 
 type Story = StoryObj<typeof StoryGenerationProgress>;
 
-/** Stage 0 — writing/illustrating just started (33% bar). */
-export const Writing: Story = {
+/** Stage 0 — planning the scene structure (bar at 0%). */
+export const Planning: Story = {
   args: { phase: "generating", elapsedSeconds: 0 },
 };
 
-/** Stage 1 — illustrating (67% bar, badge 1 done). */
-export const Illustrating: Story = {
+/** Stage 1 — writing the narrative (bar at 25%, badge 1 done). */
+export const Writing: Story = {
   args: { phase: "generating", elapsedSeconds: STEP_DURATION_SECONDS },
 };
 
-/** Stage 2 — safety review (bar at 66%, badges 1–2 done; bar fills on completion). */
+/** Stage 2 — safety review gate (bar at 50%, badges 1–2 done). */
 export const Reviewing: Story = {
+  args: { phase: "generating", elapsedSeconds: 2 * STEP_DURATION_SECONDS },
+};
+
+/** Stage 3 — illustrating, the pipeline's final step (bar at 75%; fills on completion). */
+export const Illustrating: Story = {
   args: { phase: "generating", elapsedSeconds: LAST_STAGE_AT_SECONDS },
 };
 

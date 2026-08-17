@@ -27,9 +27,10 @@
     "progress": {
       "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
       "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
+      "stagePlanning": "Preparando sua história…",
       "stageWriting": "Escrevendo sua história…",
-      "stageIllustrating": "Ilustrando as cenas…",
-      "stageReviewing": "Verificando a segurança…",
+      "stageIllustrating": "Ilustrando suas cenas…",
+      "stageReviewing": "Verificando que está tudo seguro…",
       "providerFailure": "Não foi possível criar sua história no momento.",
       "retry": "Tentar novamente"
     },
