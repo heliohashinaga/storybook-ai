@@ -23,13 +23,13 @@ description: "Lista de tarefas para implementação do recurso"
 
 **Purpose**: Preparar o contexto da refatoração e proteger o baseline.
 
-- [ ] T001 Confirmar que a branch `013-refactor-provider-orchestration` está ativa e limpa
+- [x] T001 Confirmar que a branch `013-refactor-provider-orchestration` está ativa e limpa
   (git status limpo; scaffold do spec commitado), a partir do base `012-fake-content-catalog`.
-- [ ] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
+- [x] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
   `pnpm format:check`, `pnpm typecheck`, `pnpm test` — registrar o resultado **e um snapshot das
   fixtures dos adapters** (entrada/saída de `generateStory`/`moderateText`/`moderateImage`) como
   referência para comparar após a refatoração (paridade behavior-preserving, SC-003).
-- [ ] T003 Verificar que `.specify/feature.json` aponta para `specs/013-refactor-provider-orchestration`
+- [x] T003 Verificar que `.specify/feature.json` aponta para `specs/013-refactor-provider-orchestration`
   (atualizar se necessário; registrar o valor anterior para restauração ao final).
 
 **Checkpoint**: Árvore verde no baseline; branch 013 ativo; a refatoração começa em terreno conhecido.
@@ -45,19 +45,19 @@ próprias definições até a troca completa).
 **⚠️ CRITICAL**: Nenhum user story pode ser marcado completo até a factory existir, ser exportada
 via barrel e testada.
 
-- [ ] T010 (US1) Criar `src/features/story-generation/server/provider-core/create-chat-provider.ts`
+- [x] T010 (US1) Criar `src/features/story-generation/server/provider-core/create-chat-provider.ts`
   com a `ChatCompletionsProviderDeps` e a factory `createChatCompletionsProvider`, contendo
   `generateStory`, `moderateText`, `moderateImage` — **cópia verbatim** do corpo dos adapters
   (sem mudança de semântica, prompt, timeout, retry ou tratamento de erro). O client é recebido
   como **lazy getter** (`getClient`), invocado na primeira operação (ver Clarifications Session 2026-08-17).
-- [ ] T011 (US1) Exportar a factory + tipo `ChatCompletionsProviderDeps` no barrel
+- [x] T011 (US1) Exportar a factory + tipo `ChatCompletionsProviderDeps` no barrel
   `provider-core/index.ts` (`export * from './create-chat-provider'`), coerente com os exports atuais.
-- [ ] T012 (US1) **Teste novo ANTES de implementar o restante** (obrigatório): um teste de unit da
+- [x] T012 (US1) **Teste novo ANTES de implementar o restante** (obrigatório): um teste de unit da
   factory que confirme que `generateStory`/`moderateText`/`moderateImage` produzem exatamente o
   mesmo output das fixtures dos adapters (baseline T002), com `fetchImpl` fake
   e `STORIES_TEST_MODE=fake`. Confirmar que **falha** antes da factory existir, e **passa** depois
   (ver Clarifications Session 2026-08-17).
-- [ ] T013 (US1) Rodar `pnpm typecheck` e `pnpm test` — a factory nova compila e os testes dela
+- [x] T013 (US1) Rodar `pnpm typecheck` e `pnpm test` — a factory nova compila e os testes dela
   verdes, sem tocar nos adapters ainda.
 
 **Checkpoint**: Factory existe, exportada e testada; adapters ainda intactos (verde).
