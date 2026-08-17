@@ -48,13 +48,15 @@ via barrel e testada.
 - [ ] T010 (US1) Criar `src/features/story-generation/server/provider-core/create-chat-provider.ts`
   com a `ChatCompletionsProviderDeps` e a factory `createChatCompletionsProvider`, contendo
   `generateStory`, `moderateText`, `moderateImage` — **cópia verbatim** do corpo dos adapters
-  (sem mudança de semântica, prompt, timeout, retry ou tratamento de erro).
+  (sem mudança de semântica, prompt, timeout, retry ou tratamento de erro). O client é recebido
+  como **lazy getter** (`getClient`), invocado na primeira operação (ver Clarifications Session 2026-08-17).
 - [ ] T011 (US1) Exportar a factory + tipo `ChatCompletionsProviderDeps` no barrel
   `provider-core/index.ts` (`export * from './create-chat-provider'`), coerente com os exports atuais.
-- [ ] T012 (US1) **Teste novo ANTES de implementar o restante** (se necessário): um teste de unit da
+- [ ] T012 (US1) **Teste novo ANTES de implementar o restante** (obrigatório): um teste de unit da
   factory que confirme que `generateStory`/`moderateText`/`moderateImage` produzem exatamente o
   mesmo output das fixtures dos adapters (baseline T002), com `fetchImpl` fake
-  e `STORIES_TEST_MODE=fake`. Confirmar que **falha** antes da factory existir, e **passa** depois.
+  e `STORIES_TEST_MODE=fake`. Confirmar que **falha** antes da factory existir, e **passa** depois
+  (ver Clarifications Session 2026-08-17).
 - [ ] T013 (US1) Rodar `pnpm typecheck` e `pnpm test` — a factory nova compila e os testes dela
   verdes, sem tocar nos adapters ainda.
 
@@ -67,11 +69,11 @@ via barrel e testada.
 **Purpose**: Trocar `openrouter` e `opencode` para compor a factory, eliminando o corpo duplicado.
 
 - [ ] T020 (US2) Refatorar `openrouter-story-generation-provider.ts`: remover o corpo de
-  `generateStory`/`moderateText`/`moderateImage` e delegar a `createChatCompletionsProvider({ client,
-  textModel, moderationModel, fetchImpl })`, mantendo `resolveDeps()`, `getClient()` (baseUrl +
+  `generateStory`/`moderateText`/`moderateImage` e delegar a `createChatCompletionsProvider({
+  getClient, textModel, moderationModel })`, mantendo `resolveDeps()`, `getClient()` (baseUrl +
   `defaultHeaders`) e a interface `StoryGenerationProvider` intacta.
-- [ ] T021 (US2) Refatorar `opencode-story-generation-provider.ts`: idêntico ao T020, mantendo
-  `getClient()` **sem** `defaultHeaders` (como hoje).
+- [ ] T021 (US2) Refatorar `opencode-story-generation-provider.ts`: idêntico ao T020 (delega via
+  `getClient` lazy à factory), mantendo `getClient()` **sem** `defaultHeaders` (como hoje).
 - [ ] T022 (US2) Comportamento de imagem: se houver drift entre `createOpenRouterIllustration`/
   `create-opencode-illustration` e o `provider-core/image-client.ts`, **não** mesclar nesta feature —
   registrar follow-up no `reviews.md` (fora do escopo, ver Decisão-4). Reutilizar o que

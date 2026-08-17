@@ -34,18 +34,35 @@ erro em um adapter e esquecer o outro — divergência silenciosa de comportamen
 providers. Como o routing (`provider-routing.ts`) escolhe o provider por prefixo de
 modelo, essa divergência é invisível em runtime até quebrar.
 
+## Clarifications
+
+### Session 2026-08-17
+
+- Q: A factory deve receber o client OpenAI como lazy getter (construção adiada) ou como objeto pré-construído?
+  A: lazy getter — o adapter passa `getClient` (função de zero argumentos) e a factory o invoca na primeira operação
+  (geração/moderação), preservando a invariante de que **importar/criar o provider nunca exige env de provedor**;
+  as API keys só são validadas via `getEnv()` no primeiro request real (`getClient` → `resolveDeps`), idêntico ao
+  comportamento atual dos dois adapters.
+- Q: Um teste de unit dedicado da factory é um item obrigatório do Definition of Done? A: sim — um teste novo da
+  factory (fail-before/pass-after, com as fixtures dos adapters como paridade) é obrigatório (test-first, Constitution
+  Principle II); os testes existentes dos adapters verdes/sem alteração são necessários mas não suficientes como prova
+  isolada de SC-003.
+
 ## Success Criteria
 
 - **SC-001** `openrouter` e `opencode` passam a ser **adaptadores finos**: apenas
   `resolveDeps()`, `getClient()` (baseUrl/modelos/defaultHeaders) e a composição da
   factory — **sem** corpo de `generateStory`/`moderateText`/`moderateImage` duplicado.
 - **SC-002** A **orquestração única** vive em `provider-core` como uma factory
-  (`createChatCompletionsProvider(deps)`) que devolve o objeto que implementa
-  `StoryGenerationProvider`.
+  (`createChatCompletionsProvider(deps)`) que devolve o objeto que implementa `StoryGenerationProvider`.
+  A factory recebe o client via **lazy getter** (função `() => OpenAI`, ver Clarifications Session 2026-08-17) e o
+  invoca na primeira operação — importar/criar o provider nunca exige env de provedor.
 - **SC-003** **Behavior-preserving**: nenhuma mudança de semântica, modelo, prompt,
   timeout, retry, capabilidades ou tratamento de erro. Interface pública e routing
   intactos; os testes existentes dos dois adapters continuam verdes **sem alteração de
-  expectativa** (paridade garantida).
+  expectativa** (paridade garantida). A prova de SC-003 inclui um **teste de unit dedicado da
+  factory** (obrigatório, fail-before/pass-after, fixtures dos adapters como paridade — ver
+  Clarifications Session 2026-08-17).
 - **SC-004** Não há **nenhum** corpo de orquestração duplicado entre os adapters (grep de
   `parseChatJson`/`moderateText`/`moderateImage` retorna ocorrências **apenas** em
   `provider-core/`), e a feature `008` permanece intacta (não é revertida nem re-escrita).

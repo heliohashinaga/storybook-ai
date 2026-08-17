@@ -32,13 +32,15 @@ Três user stories de qualidade (US1-US3), todas preservadoras de comportamento:
 - **Decisão-2**: Esta feature **complementa** o `008`, não o duplica nem o reverte. O `008` está
   convergido (35/35 tasks naquela especificação) e sua extração de baixo nível é o **baseline**
   desta feature. A factory de orquestração é o passo seguinte não coberto pelo `008`.
-- **Decisão-3**: A factory recebe o **client OpenAI já construído** tipado como `OpenAI`
-  (do pacote `openai`) + modelos (`textModel`, `moderationModel`) + `fetchImpl?`
-  (para testes determinísticos), devolvendo um objeto que implementa `StoryGenerationProvider`
-  nas capacidades text+moderation. A construção do client (`getClient()` com
-  `baseUrl`/`defaultHeaders`/app-identity) **permanece em cada adapter** — a factory recebe o
-  client pronto, sem conhecer `defaultHeaders`. **Não** move prompt/defaultHeaders para a factory
-  a menos que sejam idênticos entre os dois — se houver drift, registrar no `reviews.md` e conservar.
+- **Decisão-3**: A factory recebe o **client via lazy getter** — `getClient: () => OpenAI`
+  (função de zero argumentos, invocada na primeira operação) + modelos (`textModel`, `moderationModel`),
+  devolvendo um objeto que implementa `StoryGenerationProvider` nas capacidades text+moderation.
+  A construção do client (`getClient()` com `baseUrl`/`defaultHeaders`/app-identity) **permanece em
+  cada adapter** — a factory não conhece `defaultHeaders` nem builda o client. Isso preserva a
+  invariante de que **importar/criar o provider nunca exige env de provedor** (as api keys são
+  validadas via `getEnv()` apenas no primeiro request real — ver Clarifications Session 2026-08-17).
+  **Não** move prompt/defaultHeaders para a factory a menos que sejam idênticos entre os dois — se
+  houver drift, registrar no `reviews.md` e conservar.
 - **Decisão-4**: Interface pública (`StoryGenerationProvider`, `provider-routing`, `env.ts`,
   `generate-story`, OpenAPI) **não muda**. Nenhum novo identificador/front; fronteira `server-only`
   mantida. A geração de ilustrações (openrouter `/images` vs opencode) **fica de fora** desta
@@ -68,38 +70,38 @@ Novo módulo (ex.: `provider-core/create-chat-provider.ts`), coberto por barrel 
 
 ```ts
 export interface ChatCompletionsProviderDeps {
-  client: OpenAI;                 // client já construído pelo adapter (baseUrl/defaultHeaders)
+  getClient: () => OpenAI;        // lazy getter passado pelo adapter; invocado na 1ª operação
   textModel: string;
   moderationModel: string;
-  fetchImpl?: typeof fetch;       // opcional, para testes determinísticos
 }
 
 export function createChatCompletionsProvider(deps: ChatCompletionsProviderDeps): {
   generateStory(input: ProviderStoryInput): Promise<GeneratedStoryCandidate>;
   moderateText(text: string): Promise<ModerationDecision>;
-  moderateImage(dataUri: string): Promise<ModerationDecision>;
+  moderateImage(prompt: string): Promise<ModerationDecision>;
 }
 ```
 
 - `generateStory`: reproduz **exatamente** o corpo atual dos dois adapters —
-  `deps.client.chat.completions.create(...)` com `NARRATIVE_SYSTEM_PROMPT`/`narrativeUserPrompt`/
+  `deps.getClient().chat.completions.create(...)` com `NARRATIVE_SYSTEM_PROMPT`/`narrativeUserPrompt`/
   `response_format: json_object` → `parseChatJson` → `storyCandidateSchema.parse` → catch
   `ZodError`/`ProviderError` → `toProviderError`. Sem mudança de semântica.
-- `moderateText`/`moderateImage`: delega a `moderate(deps.client, deps.moderationModel, …)`
+- `moderateText`/`moderateImage`: delega a `moderate(deps.getClient(), deps.moderationModel, …)`
   idêntico ao que os dois adapters já fazem.
 
 ### Resultado esperado nos adapters
 
 - `openrouter-story-generation-provider.ts`: mantém `resolveDeps()`, `getClient()`
   (baseUrl + `defaultHeaders: OPENROUTER_APP_HEADERS`/app-identity) e a **composição**:
-  `createChatCompletionsProvider({ client, textModel, moderationModel, fetchImpl })`.
+  `createChatCompletionsProvider({ getClient, textModel, moderationModel })`.
 - `opencode-story-generation-provider.ts`: idêntico, sem `defaultHeaders` (como hoje).
 
 ## Phases
 
 - **Phase 1 — Setup**: baseline verde registrado; feature.json apontando para `013`.
 - **Phase 2 — Factory**: criar `provider-core/create-chat-provider.ts` + barrel, com o corpo de
-  orquestração movido dos adapters **verbatim**; testes novos (se necessários) ANTES e a falhar.
+  orquestração movido dos adapters **verbatim**; teste novo da factory (obrigatório, fail-before/
+  pass-after, fixtures dos adapters como paridade) ANTES e a falhar (ver Clarifications Session 2026-08-17).
 - **Phase 3 — Adapters finos**: trocar os dois adapters para composição da factory.
 - **Phase 4 — Verificação**: gates completos + grep de prova de ausência de duplicação.
 
