@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { OAuthProviderButton, type OAuthProvider } from "./oauth-provider-button";
 import { LangToggle } from "../../shell/components/lang-toggle";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
+import { StarField } from "./star-field";
 
 export interface LoginCredentials {
   google: boolean;
@@ -131,7 +132,9 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
   const errorMessage = messageFor(error, t("accessDenied"), t("signInError"));
 
   return (
-    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-12">
+    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 py-12">
+      {/* Blossom-style decorative star field behind the login hero. */}
+      <StarField />
       {/* The login gate has no app header, so the session-only language + theme
           toggles live here in the top-right corner (ADR 0003, spec 003 US5). */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-sm">

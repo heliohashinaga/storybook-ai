@@ -276,3 +276,18 @@
     }
   }
 }
+
+/* Decor: login star field (blossom). The global prefers-reduced-motion override
+   above neutralizes the animation for reduced-motion users (static field). */
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.animate-twinkle {
+  animation: twinkle 3s ease-in-out infinite;
+}
