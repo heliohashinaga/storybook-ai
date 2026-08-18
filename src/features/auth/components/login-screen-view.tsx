@@ -73,81 +73,90 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
 
   return (
     <main className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-2 text-center">
+      <div className="grid w-full max-w-6xl gap-10 sm:gap-14 lg:grid-cols-2 lg:items-center">
+        {/* Brand / value prop — distributed across the left half on wide screens. */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
           <BrandMark />
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
             {t("heading")}
           </h1>
-          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+          <p className="mt-3 max-w-md text-sm text-muted-foreground sm:text-base">
+            {t("subtitle")}
+          </p>
         </div>
 
-        {anyProvider && (
-          <section
-            aria-labelledby="playground-heading"
-            className="space-y-3 rounded-3xl border border-border bg-card p-5"
-          >
-            <div className="text-center">
-              <h2
-                id="playground-heading"
-                className="font-display text-lg font-bold text-foreground"
-              >
-                {t("playgroundHeading")}
-              </h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">{t("playgroundDescription")}</p>
-            </div>
+        {/* Auth / demo actions — panel on the right half, centered within its column.
+            (max-w-md, not max-w-sm: this design system maps size max-widths to the
+            spacing tokens, so max-w-sm resolves to 8px and only max-w-md is a valid
+            small-panel cap — same token used across the story UI.) */}
+        <div className="w-full max-w-md justify-self-center space-y-5">
+          {anyProvider && (
+            <section
+              aria-labelledby="playground-heading"
+              className="space-y-3 rounded-3xl border border-border bg-card p-5"
+            >
+              <div className="text-center">
+                <h2
+                  id="playground-heading"
+                  className="font-display text-lg font-bold text-foreground"
+                >
+                  {t("playgroundHeading")}
+                </h2>
+                <p className="mt-0.5 text-xs text-muted-foreground">{t("playgroundDescription")}</p>
+              </div>
 
-            <div className="space-y-3">
-              <OAuthProviderButton
-                provider="google"
-                label={t("google")}
-                disabled={!credentials.google}
-                busy={busyProvider === "google"}
-                onClick={() => handleOAuth("google")}
-              />
-              <OAuthProviderButton
-                provider="github"
-                label={t("github")}
-                disabled={!credentials.github}
-                busy={busyProvider === "github"}
-                onClick={() => handleOAuth("github")}
-              />
-            </div>
+              <div className="space-y-3">
+                <OAuthProviderButton
+                  provider="google"
+                  label={t("google")}
+                  disabled={!credentials.google}
+                  busy={busyProvider === "google"}
+                  onClick={() => handleOAuth("google")}
+                />
+                <OAuthProviderButton
+                  provider="github"
+                  label={t("github")}
+                  disabled={!credentials.github}
+                  busy={busyProvider === "github"}
+                  onClick={() => handleOAuth("github")}
+                />
+              </div>
 
-            {errorMessage && (
-              <p
-                role="alert"
-                aria-live="assertive"
-                className="text-center text-sm text-destructive"
-              >
-                {errorMessage}
-              </p>
-            )}
+              {errorMessage && (
+                <p
+                  role="alert"
+                  aria-live="assertive"
+                  className="text-center text-sm text-destructive"
+                >
+                  {errorMessage}
+                </p>
+              )}
+            </section>
+          )}
+
+          {!anyProvider && (
+            <p
+              role="note"
+              className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground"
+            >
+              {t("noCredentials")}
+            </p>
+          )}
+
+          <section aria-label={t("demo")} className="space-y-2">
+            <a
+              href="/demo"
+              lang={locale}
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            >
+              <SparklesIcon className="size-4" />
+              {t("demo")}
+            </a>
+            <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
           </section>
-        )}
 
-        {!anyProvider && (
-          <p
-            role="note"
-            className="rounded-2xl border border-border bg-card p-4 text-center text-sm text-muted-foreground"
-          >
-            {t("noCredentials")}
-          </p>
-        )}
-
-        <section aria-label={t("demo")} className="space-y-2">
-          <a
-            href="/demo"
-            lang={locale}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            <SparklesIcon className="size-4" />
-            {t("demo")}
-          </a>
-          <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
-        </section>
-
-        <p className="text-center text-[11px] text-muted-foreground">{t("privacyNote")}</p>
+          <p className="text-center text-[11px] text-muted-foreground">{t("privacyNote")}</p>
+        </div>
       </div>
     </main>
   );
@@ -155,7 +164,7 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
 
 function BrandMark() {
   return (
-    <div className="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
+    <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
       <BookOpenIcon className="size-7" />
     </div>
   );
