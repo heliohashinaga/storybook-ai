@@ -58,23 +58,43 @@ function ipv4ToInt(address: string): number | null {
   return value;
 }
 
+/** Single private IPv4 octet range, matched on the first two octets. */
+interface PrivateIpv4Range {
+  /** First octet (network class). */
+  readonly a: number;
+  /** Required second-octet interval when the range is constrained by it. */
+  readonly minB?: number;
+  readonly maxB?: number;
+  /** Required exact second octet when the range is a /16-style range. */
+  readonly exactB?: number;
+}
+
+/** Private/loopback/metadata/sentinel IPv4 ranges. First octets are distinct. */
+const PRIVATE_IPV4_RANGES: readonly PrivateIpv4Range[] = [
+  { a: 10 }, // 10.0.0.0/8
+  { a: 172, minB: 16, maxB: 31 }, // 172.16.0.0/12
+  { a: 192, exactB: 168 }, // 192.168.0.0/16
+  { a: 127 }, // 127.0.0.0/8 loopback
+  { a: 100, minB: 64, maxB: 127 }, // 100.64.0.0/10 CGNAT
+  { a: 169, exactB: 254 }, // 169.254.0.0/16 link-local/metadata
+  { a: 0 }, // 0.0.0.0/8
+];
+
+function matchesPrivateRange(range: PrivateIpv4Range, a: number, b: number): boolean {
+  if (range.a !== a) return false;
+  if (range.minB !== undefined && (b < range.minB || b > range.maxB!)) return false;
+  if (range.exactB !== undefined && b !== range.exactB) return false;
+  return true;
+}
+
 function ipv4IsPrivate(value: number): boolean {
   const a = (value >>> 24) & 0xff;
   const b = (value >>> 16) & 0xff;
-  // 10.0.0.0/8
-  if (a === 10) return true;
-  // 172.16.0.0/12
-  if (a === 172 && b >= 16 && b <= 31) return true;
-  // 192.168.0.0/16
-  if (a === 192 && b === 168) return true;
-  // 127.0.0.0/8, 100.64.0.0/10 (CGNAT), 169.254.0.0/16 (link-local/metadata)
-  if (a === 127) return true;
-  if (a === 100 && b >= 64 && b <= 127) return true;
-  if (a === 169 && b === 254) return true;
-  // 0.0.0.0/8 and 255.255.255.255/32 sentinels
-  if (a === 0) return true;
-  if (value === 0xffffffff) return true;
-  return false;
+  for (const range of PRIVATE_IPV4_RANGES) {
+    if (matchesPrivateRange(range, a, b)) return true;
+  }
+  // 255.255.255.255/32 sentinel
+  return value === 0xffffffff;
 }
 
 /** Hostnames that are ambiguous or never safe to reach from a public service. */
@@ -108,6 +128,24 @@ function isLiteralIp(host: string): boolean {
  * Validates a provider-returned image URL against the SSRF rule set.
  * `resolver` is injected so tests never touch the real DNS.
  */
+/**
+ * Re-resolves a hostname and confirms every answer is public (DNS-rebinding
+ * guard). Fails closed: a resolution error or an empty set yields false.
+ */
+async function resolvesToPublicOnly(host: string, resolver: UrlResolver): Promise<boolean> {
+  let addresses: readonly string[];
+  try {
+    addresses = await resolver(host);
+  } catch {
+    return false;
+  }
+  if (addresses.length === 0) return false;
+  for (const address of addresses) {
+    if (isPrivateAddress(address)) return false;
+  }
+  return true;
+}
+
 export async function isSafeImageUrl(
   url: string,
   resolver: UrlResolver = defaultResolver
@@ -130,16 +168,5 @@ export async function isSafeImageUrl(
   }
   if (isAmbiguousHost(host)) return false;
 
-  // Defend against DNS rebinding: re-resolve and confirm every answer is public.
-  // On any resolution failure we assume unsafe (fail closed).
-  try {
-    const addresses = await resolver(host);
-    if (addresses.length === 0) return false;
-    for (const address of addresses) {
-      if (isPrivateAddress(address)) return false;
-    }
-    return true;
-  } catch {
-    return false;
-  }
+  return resolvesToPublicOnly(host, resolver);
 }

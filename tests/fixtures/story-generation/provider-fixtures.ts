@@ -126,6 +126,20 @@ export function createFakeProvider(options: Options = {}): FakeProvider {
   const decide = (value: string): ModerationDecision =>
     value.includes(UNSAFE) ? { safe: false, reason: "unsafe-content" } : { safe: true };
 
+  // First-call "unsafe then safe" scenario builders, keyed by scenario.
+  // Multi-name scenarios map to the same builder.
+  const firstCallBuilders: Record<
+    string,
+    (input: Parameters<StoryGenerationProvider["generateStory"]>[0]) => GeneratedStoryCandidate
+  > = {
+    "unsafe-then-safe": (input) => unsafeOn(0)(buildSafeCandidate(input), "body"),
+    "unsafe-text-scene-0-then-safe": (input) => unsafeOn(0)(buildSafeCandidate(input), "body"),
+    "unsafe-text-scene-2-then-safe": (input) => unsafeOn(2)(buildSafeCandidate(input), "body"),
+    "unsafe-illustration-scene-1-then-safe": (input) =>
+      unsafeOn(1)(buildSafeCandidate(input), "illustrationPrompt"),
+    "inconsistent-illustrations": (input) => inconsistentSet(input),
+  };
+
   const generateStory: StoryGenerationProvider["generateStory"] = async (input) => {
     generateCalls += 1;
     requests.push(input);
@@ -133,25 +147,15 @@ export function createFakeProvider(options: Options = {}): FakeProvider {
     if (scenario === "unavailable") throw new ProviderError("unavailable", "provider down");
     if (scenario === "timeout") throw new ProviderError("timeout", "provider timed out");
 
+    const firstCallBuilder = firstCallBuilders[scenario];
+    if (generateCalls === 1 && firstCallBuilder) return firstCallBuilder(input);
+
     if (scenario === "double-unsafe") {
       const bad = buildSafeCandidate(input);
       return {
         title: bad.title,
         scenes: bad.scenes.map((s) => ({ ...s, body: `${s.body} ${UNSAFE}` })),
       };
-    }
-
-    if (scenario === "unsafe-then-safe" || scenario === "unsafe-text-scene-0-then-safe") {
-      if (generateCalls === 1) return unsafeOn(0)(buildSafeCandidate(input), "body");
-    }
-    if (scenario === "unsafe-text-scene-2-then-safe") {
-      if (generateCalls === 1) return unsafeOn(2)(buildSafeCandidate(input), "body");
-    }
-    if (scenario === "unsafe-illustration-scene-1-then-safe") {
-      if (generateCalls === 1) return unsafeOn(1)(buildSafeCandidate(input), "illustrationPrompt");
-    }
-    if (scenario === "inconsistent-illustrations") {
-      if (generateCalls === 1) return inconsistentSet(input);
     }
     if (scenario === "template-marker-leak") {
       return leakingCandidate(input);

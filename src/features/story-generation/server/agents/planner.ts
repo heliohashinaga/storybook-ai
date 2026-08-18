@@ -55,6 +55,45 @@ export function purposeFor(ctx: JobContext, index: number): string {
  * @param ctx   anonymous job context
  * @param seams provider for planning
  */
+/** Maps a provider transport error to a user-facing plan failure. */
+function mapPlanError(error: unknown): AgentResult<Outline> {
+  const err = error as ProviderError | undefined;
+  if (err && "kind" in err) {
+    if (err.kind === "timeout") {
+      return {
+        ok: false,
+        stage: "plan",
+        message: "story.error.generationTimeout",
+        transient: true,
+        errorCode: "generation_timeout",
+      };
+    }
+    return {
+      ok: false,
+      stage: "plan",
+      message: "story.error.generationUnavailable",
+      transient: true,
+      errorCode: "generation_unavailable",
+    };
+  }
+  return {
+    ok: false,
+    stage: "plan",
+    message: "story.error.generationUnavailable",
+    transient: true,
+  };
+}
+
+/** True when the returned candidate is structurally unusable for planning. */
+function isUnusableCandidate(
+  candidate: Awaited<ReturnType<StoryGenerationProvider["generateStory"]>> | undefined | null,
+  expectedCount: number
+): boolean {
+  return (
+    !candidate || !Array.isArray(candidate.scenes) || candidate.scenes.length !== expectedCount
+  );
+}
+
 export async function planStory(
   ctx: JobContext,
   seams: PlannerSeams
@@ -73,32 +112,10 @@ export async function planStory(
   try {
     candidate = await provider.generateStory(providerInputFor(ctx));
   } catch (error) {
-    const err = error as ProviderError | undefined;
-    if (err && "kind" in err) {
-      return {
-        ok: false,
-        stage: "plan",
-        message:
-          err.kind === "timeout"
-            ? "story.error.generationTimeout"
-            : "story.error.generationUnavailable",
-        transient: true,
-        errorCode: err.kind === "timeout" ? "generation_timeout" : "generation_unavailable",
-      };
-    }
-    return {
-      ok: false,
-      stage: "plan",
-      message: "story.error.generationUnavailable",
-      transient: true,
-    };
+    return mapPlanError(error);
   }
 
-  if (
-    !candidate ||
-    !Array.isArray(candidate.scenes) ||
-    candidate.scenes.length !== ctx.sceneCountRequested
-  ) {
+  if (isUnusableCandidate(candidate, ctx.sceneCountRequested)) {
     return {
       ok: false,
       stage: "plan",

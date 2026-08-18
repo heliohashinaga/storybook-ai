@@ -23,25 +23,35 @@ function leafPaths(node: unknown, prefix = ""): string[] {
 
 /** Merge feature catalogs exactly like i18n/config does, for structural checks. */
 function deepMerge<TBase, TExtra>(base: TBase, extra: TExtra): TBase & TExtra {
-  if (
-    base &&
-    extra &&
-    typeof base === "object" &&
-    typeof extra === "object" &&
-    !Array.isArray(base) &&
-    !Array.isArray(extra)
-  ) {
-    const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
-    for (const [key, value] of Object.entries(extra as Record<string, unknown>)) {
-      const existing = (base as Record<string, unknown>)[key];
-      out[key] =
-        existing !== undefined && value && typeof existing === "object" && typeof value === "object"
-          ? deepMerge(existing, value)
-          : value;
-    }
-    return out as TBase & TExtra;
+  if (isMergeableObject(base) && isMergeableObject(extra)) {
+    return mergeRecords(
+      base as Record<string, unknown>,
+      extra as Record<string, unknown>
+    ) as TBase & TExtra;
   }
   return extra as TBase & TExtra;
+}
+
+/** True when a value is a plain, non-array object that can be deep-merged. */
+function isMergeableObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Merges `extra` onto a shallow copy of `base`, recursing for object leaves. */
+function mergeRecords(
+  base: Record<string, unknown>,
+  extra: Record<string, unknown>
+): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(extra)) {
+    const existing = base[key];
+    if (isMergeableObject(existing) && isMergeableObject(value)) {
+      out[key] = mergeRecords(existing, value);
+    } else {
+      out[key] = value;
+    }
+  }
+  return out;
 }
 
 const mergedPt = deepMerge(ptBR, ptBRNarration);

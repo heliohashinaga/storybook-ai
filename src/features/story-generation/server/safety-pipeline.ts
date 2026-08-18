@@ -100,25 +100,10 @@ async function moderateCandidate(
   candidate: GeneratedStoryCandidate,
   expectedCount: number
 ): Promise<ModeratedStoryCandidate | null> {
-  if (candidate.scenes.length !== expectedCount) return null;
-  if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return null;
-  if (hasForbiddenContent(candidate.title)) return null;
+  if (!isCandidateShapeValid(candidate, expectedCount)) return null;
 
   for (const scene of candidate.scenes) {
-    if (!isStructurallyValid(scene, expectedCount)) return null;
-    if (
-      hasForbiddenContent(scene.title) ||
-      hasForbiddenContent(scene.body) ||
-      hasForbiddenContent(scene.illustrationPrompt)
-    ) {
-      return null;
-    }
-
-    const text = await provider.moderateText(scene.body);
-    if (!text.safe) return null;
-
-    const illustration = await provider.moderateImage(scene.illustrationPrompt);
-    if (!illustration.safe) return null;
+    if (!(await moderateScene(provider, scene, expectedCount))) return null;
   }
 
   return {
@@ -131,6 +116,40 @@ async function moderateCandidate(
       illustrationPrompt: scene.illustrationPrompt,
     })),
   };
+}
+
+/** True when the candidate's scene count, title, and title safety are valid. */
+function isCandidateShapeValid(candidate: GeneratedStoryCandidate, expectedCount: number): boolean {
+  if (candidate.scenes.length !== expectedCount) return false;
+  if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return false;
+  if (hasForbiddenContent(candidate.title)) return false;
+  return true;
+}
+
+/**
+ * Safety + structural moderation of one scene: title/body/prompt content,
+ * then text moderation, then illustration moderation. Returns true only when
+ * the scene is both structurally valid and fully safe.
+ */
+async function moderateScene(
+  provider: StoryGenerationProvider,
+  scene: ProviderScene,
+  expectedCount: number
+): Promise<boolean> {
+  if (!isStructurallyValid(scene, expectedCount)) return false;
+  if (
+    hasForbiddenContent(scene.title) ||
+    hasForbiddenContent(scene.body) ||
+    hasForbiddenContent(scene.illustrationPrompt)
+  ) {
+    return false;
+  }
+
+  const text = await provider.moderateText(scene.body);
+  if (!text.safe) return false;
+
+  const illustration = await provider.moderateImage(scene.illustrationPrompt);
+  return illustration.safe;
 }
 
 /**

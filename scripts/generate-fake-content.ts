@@ -209,6 +209,40 @@ interface Flags {
   counts: Set<number>;
 }
 
+/** Applies one CLI flag and returns the next index to visit. */
+type FlagHandler = (flags: Flags, argv: string[], index: number) => number;
+
+/**
+ * Dispatch table for supported flags. Value-taking flags read `argv[index+1]`
+ * and return `index+2`; boolean flags advance by one. Unknown flags throw.
+ */
+const FLAG_HANDLERS: Record<string, FlagHandler> = {
+  "--dry-run": (flags, _argv, index) => {
+    flags.dryRun = true;
+    return index + 1;
+  },
+  "--missing": (flags, _argv, index) => {
+    flags.missing = true;
+    return index + 1;
+  },
+  "--limit": (flags, argv, index) => {
+    flags.limit = Number(argv[index + 1]);
+    return index + 2;
+  },
+  "--locales": (flags, argv, index) => {
+    for (const v of argv[index + 1]!.split(",")) flags.locales.add(v);
+    return index + 2;
+  },
+  "--themes": (flags, argv, index) => {
+    for (const v of argv[index + 1]!.split(",")) flags.themes.add(v);
+    return index + 2;
+  },
+  "--counts": (flags, argv, index) => {
+    for (const v of argv[index + 1]!.split(",")) flags.counts.add(Number(v));
+    return index + 2;
+  },
+};
+
 function parseFlags(argv: string[]): Flags {
   const flags: Flags = {
     dryRun: false,
@@ -217,15 +251,12 @@ function parseFlags(argv: string[]): Flags {
     themes: new Set(),
     counts: new Set(),
   };
-  for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i];
-    if (arg === "--dry-run") flags.dryRun = true;
-    else if (arg === "--missing") flags.missing = true;
-    else if (arg === "--limit") flags.limit = Number(argv[++i]);
-    else if (arg === "--locales") for (const v of argv[++i]!.split(",")) flags.locales.add(v);
-    else if (arg === "--themes") for (const v of argv[++i]!.split(",")) flags.themes.add(v);
-    else if (arg === "--counts") for (const v of argv[++i]!.split(",")) flags.counts.add(Number(v));
-    else throw new Error(`Unknown flag: ${arg}`);
+  let i = 0;
+  while (i < argv.length) {
+    const arg = argv[i]!;
+    const handler = FLAG_HANDLERS[arg];
+    if (!handler) throw new Error(`Unknown flag: ${arg}`);
+    i = handler(flags, argv, i);
   }
   return flags;
 }

@@ -27,14 +27,10 @@ export default [
       // a deterministic fake provider that must satisfy an interface contract
       // but ignores its input). Non-underscore unused args still warn.
       "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      // Cyclomatic-complexity guard-rail. Threshold set to 16 (the current
-      // global maximum) so the existing codebase stays green while new code is
-      // kept from growing beyond it. Tracked as a follow-up to reduce the top
-      // offenders toward a healthier limit (<=10): url-safety ipv4IsPrivate
-      // (15), UI Progress/Select (~13/11), i18n deepMerge (12), and the
-      // resolveDeps env-parse helpers (13-16, incl. TTS provider). Do NOT lower
-      // the threshold until those functions are split.
-      complexity: ["error", { max: 16 }],
+      // Cyclomatic-complexity gate. Set to a healthy limit of 10 after the
+      // spec 014 reduction (all 19 offenders previously >10 are now split).
+      // Any function that grows beyond 10 cyclomatic complexity fails lint.
+      complexity: ["error", { max: 10 }],
     },
   },
 ];
