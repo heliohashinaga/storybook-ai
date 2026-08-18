@@ -26,7 +26,7 @@ const STARS: Star[] = [
   { top: "30%", left: "16%", size: 20, opacity: 0.5, delay: 0.3 },
   { top: "38%", left: "91%", size: 24, opacity: 0.32, delay: 1.2 },
   { top: "52%", left: "6%", size: 34, opacity: 0.26, delay: 2 },
-  { top: "60%", left: "47%", size: 20, opacity: 0.42, delay: 0.6 },
+  { top: "47%", left: "94%", size: 22, opacity: 0.4, delay: 0.6 },
   { top: "70%", left: "84%", size: 26, opacity: 0.36, delay: 1.6 },
   { top: "78%", left: "20%", size: 38, opacity: 0.24, delay: 0.2 },
   { top: "84%", left: "64%", size: 22, opacity: 0.44, delay: 1.1 },

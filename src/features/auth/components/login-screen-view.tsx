@@ -144,7 +144,7 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
       {/* Story-blossom style: one centered column — icon, then heading, subtitle,
           then the sign-in + demo actions below. (max-w-md, not max-w-sm: this design
           system maps size max-widths to spacing tokens, so max-w-sm = 8px.) */}
-      <div className="w-full max-w-md text-center">
+      <div className="relative z-10 w-full max-w-md text-center">
         <div className="mb-4 flex justify-center">
           <BrandMark />
         </div>
