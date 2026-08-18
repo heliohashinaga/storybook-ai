@@ -13,9 +13,7 @@ import { test, expect } from "@playwright/test";
 test("/form without a session redirects to the login gate", async ({ page }) => {
   await page.goto("/form");
   await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   // The playground form itself is not exposed.
   await expect(page.getByRole("slider", { name: /Age/i })).toHaveCount(0);
 });
@@ -23,9 +21,7 @@ test("/form without a session redirects to the login gate", async ({ page }) => 
 test("/reader without a session redirects to the login gate", async ({ page }) => {
   await page.goto("/reader");
   await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   await expect(page.getByLabel("Your story")).toHaveCount(0);
 });
 

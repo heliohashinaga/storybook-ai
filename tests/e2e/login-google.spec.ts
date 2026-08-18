@@ -46,9 +46,7 @@ test("the login gate shows the Demo entry and the configured Google button (no s
 
   await page.goto("/");
 
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   // The Google OAuth button is wired to the sign-in flow.
   await expect(page.getByRole("button", { name: /Continue with Google/i })).toBeVisible();
   // The anonymous demo remains available side by side.
@@ -106,9 +104,7 @@ test("signing out clears the session and returns to the login gate", async ({ pa
 
   // Back at the gate with the session cookie removed.
   await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   const cookies = await context.cookies();
   expect(cookies.some((c) => c.name === AUTH_COOKIE_NAME)).toBe(false);
 });

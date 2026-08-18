@@ -44,9 +44,7 @@ test("/ renders the login gate and never redirects anonymous visitors to /form",
   await page.goto("/");
   await expect(page).toHaveURL(/\/$/);
   // The login gate (spec 015) is shown, with the anonymous demo entry point.
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /Explore the Demo/i })).toBeVisible();
   // The clean login gate has no name/direct-identifier input (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
@@ -70,9 +68,7 @@ test("demo→demo/reader uses replace: a single history.back() leaves the app", 
 test("deep-link /reader without a session redirects to the login gate /", async ({ page }) => {
   await page.goto("/reader");
   await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
 });
 
 test("during submission the URL stays /demo (no /steps route)", async ({ page }) => {

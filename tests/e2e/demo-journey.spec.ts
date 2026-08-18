@@ -17,9 +17,7 @@ test("login gate → demo → generate fake story → demo reader", async ({ pag
   const payloads = await captureStoryCalls(page);
 
   await page.goto("/");
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
 
   // Demo entry point is available without any authentication.
   await page.getByRole("link", { name: /Explore the Demo/i }).click();

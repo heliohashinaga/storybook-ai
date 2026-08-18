@@ -1,7 +1,8 @@
 {
   "login": {
     "title": "Storybook AI",
-    "heading": "Create magical stories with AI.",
+    "heading": "Storybook AI",
+    "tagline": "Create magical stories with AI.",
     "subtitle": "Create personalized children’s stories with beautiful illustrations.",
     "playgroundHeading": "AI Playground",
     "playgroundDescription": "Generate stories using real AI models.",

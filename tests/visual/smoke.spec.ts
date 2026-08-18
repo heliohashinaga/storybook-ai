@@ -15,9 +15,7 @@ test("root route renders the login gate", async ({ page }) => {
   // Default locale is en (defaultLocale "en").
   await expect(page.locator("html[lang='en']")).toHaveCount(1);
   // The login gate is up with its English heading and the anonymous demo entry.
-  await expect(
-    page.getByRole("heading", { name: /Create magical stories with AI/i })
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Storybook AI/i })).toBeVisible();
   await expect(page.getByRole("link", { name: /Explore the Demo/i })).toBeVisible();
   // An anonymous visitor is NOT redirected off the gate to /form (spec 015).
   await expect(page).toHaveURL(/\/$/);

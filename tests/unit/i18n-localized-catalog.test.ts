@@ -97,8 +97,10 @@ describe("i18n message catalog (EN + pt-BR)", () => {
     expect(story.form?.submit).toBeTypeOf("string");
     expect(story.reader?.sceneLabel).toBeTypeOf("string");
     expect(story.narration?.reading).not.toBe(ptBRNarration.story.narration.reading);
-    // spec 015: the auth catalog is genuinely translated, not a copy.
-    expect(getMessages("en").login.heading).not.toBe(ptBRAuth.login.heading);
+    // spec 015: the auth catalog is genuinely translated, not a copy. The
+    // `login.heading` is the brand name (identical across locales), so check
+    // genuinely-localized keys instead.
+    expect(getMessages("en").login.subtitle).not.toBe(ptBRAuth.login.subtitle);
     expect(getMessages("en").auth.nav.logout).not.toBe(ptBRAuth.auth.nav.logout);
   });
 

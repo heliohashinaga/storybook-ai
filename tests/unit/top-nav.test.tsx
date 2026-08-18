@@ -50,12 +50,14 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     expect(screen.getByText("Histórias ilustradas")).toBeVisible();
   });
 
-  it("marks the home button as the current page on the / login gate", () => {
+  it("hides the app header on the / login gate (standalone screen)", () => {
     navState.setPath("/");
     renderTopNav();
 
-    const home = screen.getByRole("button", { name: "Voltar ao início" });
-    expect(home).toHaveAttribute("aria-current", "page");
+    // Spec 015: the login page has no app header — the brand is presented by
+    // the centered login hero itself.
+    expect(screen.queryByRole("button", { name: "Voltar ao início" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Idioma" })).not.toBeInTheDocument();
   });
 
   it("navigates to the login gate / when the brand mark is clicked", () => {

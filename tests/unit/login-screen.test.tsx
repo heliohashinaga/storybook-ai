@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import {
@@ -64,9 +64,10 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
   it("renders the page title, brand headline and subtitle", () => {
     renderLogin(WITH_PROVIDERS);
 
-    expect(
-      screen.getByRole("heading", { level: 1, name: "Crie histórias mágicas com IA." })
-    ).toBeVisible();
+    // Brand title (Storybook AI) + the storytelling tagline + the description
+    // stay as page content below the icon.
+    expect(screen.getByRole("heading", { level: 1, name: "Storybook AI" })).toBeVisible();
+    expect(screen.getByText("Crie histórias mágicas com IA.")).toBeVisible();
     expect(
       screen.getByText("Crie histórias infantis personalizadas com belas ilustrações.")
     ).toBeVisible();
@@ -92,6 +93,15 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     );
   });
 
+  it('separates the sign-in card from the demo entry with an "or" divider', () => {
+    renderLogin(WITH_PROVIDERS);
+
+    // Blossom-style divider: OAuth card … — ou — … Explore the Demo.
+    expect(screen.getByText("— ou —")).toBeVisible();
+    // The demo entry remains a separate section (not merged into the sign-in card).
+    expect(screen.getByRole("region", { name: "Explorar a Demo" })).toBeVisible();
+  });
+
   it("keeps the demo entry always enabled and pointing at /demo", () => {
     renderLogin(WITHOUT_PROVIDERS);
 
@@ -100,6 +110,21 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     expect(demo).toBeVisible();
     // The demo section is labeled with the same localized string (a11y).
     expect(screen.getByRole("region", { name: "Explorar a Demo" })).toBeVisible();
+  });
+
+  it("groups the not-configured notice, the demo button and its hint in one card", () => {
+    renderLogin(WITHOUT_PROVIDERS);
+
+    // Without any provider credentials, the "sign-in isn't configured" notice,
+    // the Explore-the-Demo button and the hint all live in the same card.
+    const card = screen.getByRole("region", { name: "Explorar a Demo" });
+    expect(within(card).getByRole("note")).toHaveTextContent(
+      "O acesso ainda não está configurado nesta instância."
+    );
+    expect(within(card).getByRole("link", { name: "Explorar a Demo" })).toBeVisible();
+    expect(
+      within(card).getByText("Experimente histórias pré-geradas — sem precisar de conta.")
+    ).toBeVisible();
   });
 
   it("does not call signIn when a disabled provider button is clicked", async () => {

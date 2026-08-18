@@ -29,6 +29,10 @@ export function TopNav() {
   const router = useRouter();
   // Navigation home is the login gate `/`; it redirects to `/form` when authed.
   const pathname = usePathname();
+  // The login gate `/` is a standalone, center-focused screen: it has no app
+  // header/nav — the brand is already presented by the login hero itself.
+  // Return after all hooks so hook order stays stable across renders.
+  if (pathname === "/") return null;
   const onHome = pathname === "/";
   // Sign out is meaningful only on the protected playground routes.
   const isPlayground = pathname === "/form" || pathname === "/reader";
