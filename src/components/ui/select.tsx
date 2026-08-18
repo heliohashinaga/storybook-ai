@@ -34,8 +34,6 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
 ) {
   const autoId = useId();
   const inputId = id ?? autoId;
-  const hintId = hint ? `${inputId}-hint` : undefined;
-  const errorId = error ? `${inputId}-error` : undefined;
 
   return (
     <div className="flex flex-col gap-xs">
@@ -45,23 +43,45 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
       <select
         ref={ref}
         id={inputId}
-        className={`${base} ${sizes[size]} ${error ? "border-danger" : "border-input"} ${className ?? ""}`}
+        className={selectClass({ size, error, className })}
         aria-invalid={error ? true : undefined}
-        aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
+        aria-describedby={describedBy(inputId, hint, error)}
         {...rest}
       >
         {children}
       </select>
       {hint ? (
-        <span id={hintId} className="text-caption text-text-subtle">
+        <span id={`${inputId}-hint`} className="text-caption text-text-subtle">
           {hint}
         </span>
       ) : null}
       {error ? (
-        <span id={errorId} role="alert" className="text-caption text-danger">
+        <span id={`${inputId}-error`} role="alert" className="text-caption text-danger">
           {error}
         </span>
       ) : null}
     </div>
   );
 });
+
+/** Concatenates the control base, size, error border, and caller classes. */
+function selectClass({
+  size,
+  error,
+  className,
+}: {
+  size: SelectSize;
+  error?: string;
+  className?: string;
+}): string {
+  const border = error ? "border-danger" : "border-input";
+  return `${base} ${sizes[size]} ${border} ${className ?? ""}`;
+}
+
+/** Joins the hint/error element ids referenced by aria-describedby. */
+function describedBy(inputId: string, hint?: string, error?: string): string | undefined {
+  const ids: string[] = [];
+  if (hint) ids.push(`${inputId}-hint`);
+  if (error) ids.push(`${inputId}-error`);
+  return ids.length > 0 ? ids.join(" ") : undefined;
+}

@@ -1,6 +1,6 @@
 import "server-only";
 import OpenAI from "openai";
-import { getEnv, modelWithoutProviderPrefix } from "../../../lib/env";
+import { envOrDefault, modelEnvOrDefault, readEnvIfNeeded } from "./provider-core/env-deps";
 import type { StoryGenerationProvider } from "./story-generation-provider";
 import {
   createChatCompletionsProvider,
@@ -50,21 +50,18 @@ export interface OpenRouterDeps {
 function resolveDeps(deps: OpenRouterDeps) {
   // Production reads the key and model identifiers only from the validated
   // server env; tests may inject every value and skip `getEnv()` entirely.
-  const requiresEnv = [deps.apiKey, deps.textModel, deps.imageModel, deps.moderationModel].some(
-    (value) => value === undefined
-  );
-  const env = requiresEnv ? getEnv() : null;
+  const fields = [deps.apiKey, deps.textModel, deps.imageModel, deps.moderationModel] as const;
+  const env = readEnvIfNeeded(fields);
   return {
-    apiKey: deps.apiKey ?? env?.OPENROUTER_API_KEY ?? "",
-    textModel: deps.textModel ?? (env ? modelWithoutProviderPrefix(env.PLANNER_MODEL) : ""),
-    imageModel: deps.imageModel ?? (env ? modelWithoutProviderPrefix(env.ILLUSTRATOR_MODEL) : ""),
-    moderationModel:
-      deps.moderationModel ?? (env ? modelWithoutProviderPrefix(env.MODERATOR_MODEL) : ""),
-    baseUrl: deps.baseUrl ?? DEFAULT_BASE_URL,
-    timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    maxRetries: deps.maxRetries ?? 2,
-    fetchImpl: deps.fetchImpl ?? fetch,
-    imageEncoder: deps.imageEncoder ?? defaultImageEncoder,
+    apiKey: envOrDefault(deps.apiKey, env?.OPENROUTER_API_KEY, ""),
+    textModel: modelEnvOrDefault(deps.textModel, env, "PLANNER_MODEL"),
+    imageModel: modelEnvOrDefault(deps.imageModel, env, "ILLUSTRATOR_MODEL"),
+    moderationModel: modelEnvOrDefault(deps.moderationModel, env, "MODERATOR_MODEL"),
+    baseUrl: envOrDefault(deps.baseUrl, undefined, DEFAULT_BASE_URL),
+    timeoutMs: envOrDefault(deps.timeoutMs, undefined, DEFAULT_TIMEOUT_MS),
+    maxRetries: envOrDefault(deps.maxRetries, undefined, 2),
+    fetchImpl: envOrDefault(deps.fetchImpl, undefined, fetch),
+    imageEncoder: envOrDefault(deps.imageEncoder, undefined, defaultImageEncoder),
     urlSafetyResolver: deps.urlSafetyResolver,
   };
 }

@@ -40,6 +40,61 @@ export interface WriterSeams {
  * @param outline Planner output describing the scene structure
  * @param seams   provider for writing
  */
+/** Maps a provider transport error to a user-facing write failure. */
+function mapWriteError(error: unknown): AgentResult<WrittenStory> {
+  const err = error as ProviderError | undefined;
+  if (err && "kind" in err) {
+    if (err.kind === "timeout") {
+      return {
+        ok: false,
+        stage: "write",
+        message: "story.error.generationTimeout",
+        transient: true,
+        errorCode: "generation_timeout",
+      };
+    }
+    return {
+      ok: false,
+      stage: "write",
+      message: "story.error.generationUnavailable",
+      transient: true,
+      errorCode: "generation_unavailable",
+    };
+  }
+  return {
+    ok: false,
+    stage: "write",
+    message: "story.error.generationUnavailable",
+    transient: true,
+  };
+}
+
+/** True when a returned candidate is structurally unusable for writing. */
+function isUnusableWrittenCandidate(
+  candidate: Awaited<ReturnType<StoryGenerationProvider["generateStory"]>> | undefined | null,
+  expectedCount: number
+): boolean {
+  return (
+    !candidate ||
+    typeof candidate.title !== "string" ||
+    !Array.isArray(candidate.scenes) ||
+    candidate.scenes.length !== expectedCount
+  );
+}
+
+/** Maps provider scene entries into validated, localized written scenes. */
+function toWrittenScenes(candidate: {
+  scenes: { title?: unknown; body?: unknown; illustrationPrompt?: unknown }[];
+}): WrittenScene[] {
+  return candidate.scenes.map((scene, index) => ({
+    ordinal: index + 1,
+    title: typeof scene.title === "string" ? stripSceneTitlePrefix(scene.title) : "",
+    body: typeof scene.body === "string" ? scene.body : "",
+    illustrationPrompt:
+      typeof scene.illustrationPrompt === "string" ? scene.illustrationPrompt : "",
+  }));
+}
+
 export async function writeStory(
   ctx: JobContext,
   outline: Outline,
@@ -60,33 +115,10 @@ export async function writeStory(
   try {
     candidate = await provider.generateStory(providerInputFor(ctx));
   } catch (error) {
-    const err = error as ProviderError | undefined;
-    if (err && "kind" in err) {
-      return {
-        ok: false,
-        stage: "write",
-        message:
-          err.kind === "timeout"
-            ? "story.error.generationTimeout"
-            : "story.error.generationUnavailable",
-        transient: true,
-        errorCode: err.kind === "timeout" ? "generation_timeout" : "generation_unavailable",
-      };
-    }
-    return {
-      ok: false,
-      stage: "write",
-      message: "story.error.generationUnavailable",
-      transient: true,
-    };
+    return mapWriteError(error);
   }
 
-  if (
-    !candidate ||
-    typeof candidate.title !== "string" ||
-    !Array.isArray(candidate.scenes) ||
-    candidate.scenes.length !== ctx.sceneCountRequested
-  ) {
+  if (isUnusableWrittenCandidate(candidate, ctx.sceneCountRequested)) {
     return {
       ok: false,
       stage: "write",
@@ -96,13 +128,9 @@ export async function writeStory(
     };
   }
 
-  const scenes: WrittenScene[] = candidate.scenes.map((scene, index) => ({
-    ordinal: index + 1,
-    title: typeof scene.title === "string" ? stripSceneTitlePrefix(scene.title) : "",
-    body: typeof scene.body === "string" ? scene.body : "",
-    illustrationPrompt:
-      typeof scene.illustrationPrompt === "string" ? scene.illustrationPrompt : "",
-  }));
-
-  return { ok: true, value: { title: candidate.title, scenes } };
+  const valid = candidate as NonNullable<typeof candidate> & {
+    title: string;
+    scenes: { title?: unknown; body?: unknown; illustrationPrompt?: unknown }[];
+  };
+  return { ok: true, value: { title: valid.title, scenes: toWrittenScenes(valid) } };
 }

@@ -25,28 +25,41 @@ export const Progress = forwardRef<HTMLDivElement, ProgressProps>(function Progr
   const percent = determinate
     ? Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100))
     : undefined;
+  const ariaValue = ariaValueAttrs(determinate, value, min, max);
+  const containerClass = `flex flex-col gap-xs ${className ?? ""}`;
+  const barClass = determinate
+    ? "h-full rounded-full bg-primary transition-all duration-slow"
+    : "h-full w-1/2 rounded-full bg-primary animate-pulse transition-all duration-slow";
+  const barStyle = determinate ? { width: `${percent}%` } : undefined;
 
   return (
     <div
       ref={ref}
       role="progressbar"
       aria-label={label}
-      aria-valuemin={determinate ? min : undefined}
-      aria-valuemax={determinate ? max : undefined}
-      aria-valuenow={determinate ? value : undefined}
       aria-busy={busy || undefined}
-      className={`flex flex-col gap-xs ${className ?? ""}`}
+      className={containerClass}
+      {...ariaValue}
       {...rest}
     >
       <div role="presentation" className="h-sm overflow-hidden rounded-full bg-secondary">
-        <div
-          className={`h-full rounded-full bg-primary transition-all duration-slow ${
-            determinate ? "" : "w-1/2 animate-pulse"
-          }`}
-          style={determinate ? { width: `${percent}%` } : undefined}
-        />
+        <div className={barClass} style={barStyle} />
       </div>
       {children ? <div className="text-caption text-text-subtle">{children}</div> : null}
     </div>
   );
 });
+
+/** aria-valuemin/max/now for a determinate progress bar (all undefined when indeterminate). */
+function ariaValueAttrs(
+  determinate: boolean,
+  value: number | undefined,
+  min: number,
+  max: number
+): { "aria-valuemin"?: number; "aria-valuemax"?: number; "aria-valuenow"?: number } {
+  return {
+    "aria-valuemin": determinate ? min : undefined,
+    "aria-valuemax": determinate ? max : undefined,
+    "aria-valuenow": determinate ? value : undefined,
+  };
+}

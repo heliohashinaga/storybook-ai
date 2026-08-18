@@ -1,5 +1,5 @@
 <p align="center">
-<img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
+<img src="docs/img/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
 </p>
 
 # Storybook AI
@@ -146,6 +146,8 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Lint       | no lint warnings            |
   | Format     | no Prettier drift           |
   | Typecheck  | strict TypeScript, no `any` |
+
+  Lint also enforces a **cyclomatic-complexity gate**: every function must stay at `≤ 10`.
 
 - **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):

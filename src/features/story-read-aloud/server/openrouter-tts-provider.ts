@@ -1,7 +1,10 @@
 import "server-only";
 import OpenAI from "openai";
 import { z } from "zod";
-import { getEnv } from "../../../lib/env";
+import {
+  envOrDefault,
+  readEnvIfNeeded,
+} from "../../story-generation/server/provider-core/env-deps";
 import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
 import { TtsProviderError, type TtsProviderErrorKind } from "./tts-provider";
 
@@ -36,15 +39,15 @@ export interface OpenRouterTtsDeps {
 function resolveDeps(deps: OpenRouterTtsDeps) {
   // Production reads the key/model only from the validated server env; tests
   // may inject them and skip `getEnv()` entirely.
-  const requiresEnv = deps.apiKey === undefined || deps.model === undefined;
-  const env = requiresEnv ? getEnv() : null;
+  const fields = [deps.apiKey, deps.model] as const;
+  const env = readEnvIfNeeded(fields);
   return {
-    apiKey: deps.apiKey ?? env?.OPENROUTER_API_KEY ?? "",
-    model: deps.model ?? env?.READER_MODEL ?? "",
-    baseUrl: deps.baseUrl ?? DEFAULT_BASE_URL,
-    timeoutMs: deps.timeoutMs ?? DEFAULT_TIMEOUT_MS,
-    maxRetries: deps.maxRetries ?? 2,
-    fetchImpl: deps.fetchImpl ?? fetch,
+    apiKey: envOrDefault(deps.apiKey, env?.OPENROUTER_API_KEY, ""),
+    model: envOrDefault(deps.model, env?.READER_MODEL, ""),
+    baseUrl: envOrDefault(deps.baseUrl, undefined, DEFAULT_BASE_URL),
+    timeoutMs: envOrDefault(deps.timeoutMs, undefined, DEFAULT_TIMEOUT_MS),
+    maxRetries: envOrDefault(deps.maxRetries, undefined, 2),
+    fetchImpl: envOrDefault(deps.fetchImpl, undefined, fetch),
   };
 }
 

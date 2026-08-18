@@ -68,6 +68,14 @@ function providerErrorJson(error: TtsProviderError): Response {
   return jsonError(target.status, toNarrateErrorJson(target));
 }
 
+/** True when the raw payload carries an explicit but unsupported locale. */
+function isUnsupportedLocalePayload(payload: unknown): boolean {
+  const raw = payload as { locale?: unknown } | null;
+  return (
+    raw !== null && typeof raw.locale === "string" && !localeSchema.safeParse(raw.locale).success
+  );
+}
+
 export interface NarrateRouteDeps {
   runtime: TtsRuntime;
   /** Per-anonymous-user rate limiter for TTS synthesis (spec 004 rate-limit). */
@@ -99,8 +107,7 @@ export function createNarrateHandler(deps: NarrateRouteDeps) {
 
     const parsed = narrateRequestSchema.safeParse(payload);
     if (!parsed.success) {
-      const raw = payload as { locale?: unknown } | null;
-      if (raw && typeof raw.locale === "string" && !localeSchema.safeParse(raw.locale).success) {
+      if (isUnsupportedLocalePayload(payload)) {
         return jsonError(422, toNarrateErrorJson(narrateUnsupportedLocale));
       }
       return jsonError(400, toNarrateErrorJson(narrateInvalidInput));

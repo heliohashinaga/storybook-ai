@@ -51,6 +51,22 @@ export interface ModeratorSeams {
  * @param written  the Writer's output to moderate
  * @param seams provider for moderation + bounded regeneration
  */
+/** Maps a provider transport error to a moderated failure result (or null). */
+function mapModerateError(error: unknown): AgentResult<ModeratedStoryCandidate> | null {
+  const err = error as ProviderError | undefined;
+  if (err && "kind" in err) {
+    const timeout = err.kind === "timeout";
+    return {
+      ok: false,
+      stage: "moderate",
+      message: timeout ? "story.error.generationTimeout" : "story.error.generationUnavailable",
+      transient: true,
+      errorCode: timeout ? "generation_timeout" : "generation_unavailable",
+    };
+  }
+  return null;
+}
+
 export async function moderateStory(
   ctx: JobContext,
   written: WrittenStory,
@@ -80,33 +96,13 @@ export async function moderateStory(
   // Attempt 1: regenerate via the moderator's own model, then re-moderate.
   try {
     const regenerated = await provider.generateStory(providerInputFor(ctx));
-    const regeneratedWritten: WrittenStory = {
-      title: regenerated.title,
-      scenes: regenerated.scenes.map((s) => ({
-        ordinal: s.ordinal,
-        title: s.title,
-        body: s.body,
-        illustrationPrompt: s.illustrationPrompt,
-      })),
-    };
-    const approved1 = await moderateOneCandidate(provider, regeneratedWritten);
+    const approved1 = await moderateOneCandidate(provider, toWritten(regenerated));
     if (approved1) {
       return { ok: true, value: { ...approved1, safetyDecision: "regenerated" as const } };
     }
   } catch (error) {
-    const err = error as ProviderError | undefined;
-    if (err && "kind" in err) {
-      return {
-        ok: false,
-        stage: "moderate",
-        message:
-          err.kind === "timeout"
-            ? "story.error.generationTimeout"
-            : "story.error.generationUnavailable",
-        transient: true,
-        errorCode: err.kind === "timeout" ? "generation_timeout" : "generation_unavailable",
-      };
-    }
+    const mapped = mapModerateError(error);
+    if (mapped) return mapped;
   }
 
   return {
@@ -115,6 +111,22 @@ export async function moderateStory(
     message: "story.error.unsafeUnrecoverable",
     transient: false,
     errorCode: "unsafe_unrecoverable",
+  };
+}
+
+/** Casts a generated story into a `WrittenStory` shape for re-moderation. */
+function toWritten(regenerated: {
+  title: string;
+  scenes: { ordinal: number; title: string; body: string; illustrationPrompt: string }[];
+}): WrittenStory {
+  return {
+    title: regenerated.title,
+    scenes: regenerated.scenes.map((s) => ({
+      ordinal: s.ordinal,
+      title: s.title,
+      body: s.body,
+      illustrationPrompt: s.illustrationPrompt,
+    })),
   };
 }
 
@@ -127,24 +139,10 @@ async function moderateOneCandidate(
   candidate: WrittenStory
 ): Promise<{ title: string; scenes: ModeratedStoryScene[] } | null> {
   const scenes = candidate.scenes;
-  if (!Array.isArray(scenes) || scenes.length < 3) return null;
-  if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return null;
+  if (!isCandidateShapeValid(candidate)) return null;
 
   for (const scene of scenes) {
-    if (!isStructurallyValid(scene, scenes.length)) return null;
-    if (
-      hasForbiddenContent(scene.title) ||
-      hasForbiddenContent(scene.body) ||
-      hasForbiddenContent(scene.illustrationPrompt)
-    ) {
-      return null;
-    }
-
-    const text = await provider.moderateText(scene.body);
-    if (!text.safe) return null;
-
-    const image = await provider.moderateImage(scene.illustrationPrompt);
-    if (!image.safe) return null;
+    if (!(await isSceneSafe(provider, scene, scenes.length))) return null;
   }
 
   return {
@@ -156,4 +154,34 @@ async function moderateOneCandidate(
       illustrationPrompt: s.illustrationPrompt,
     })),
   };
+}
+
+/** True when a written candidate has a plausible scene-count and non-empty title. */
+function isCandidateShapeValid(candidate: WrittenStory): boolean {
+  const scenes = candidate.scenes;
+  if (!Array.isArray(scenes) || scenes.length < 3) return false;
+  if (typeof candidate.title !== "string" || candidate.title.trim().length === 0) return false;
+  return true;
+}
+
+/** Structural + text + image safety of a single scene. */
+async function isSceneSafe(
+  provider: StoryGenerationProvider,
+  scene: { title: string; body: string; illustrationPrompt: string },
+  expectedCount: number
+): Promise<boolean> {
+  if (!isStructurallyValid(scene, expectedCount)) return false;
+  if (
+    hasForbiddenContent(scene.title) ||
+    hasForbiddenContent(scene.body) ||
+    hasForbiddenContent(scene.illustrationPrompt)
+  ) {
+    return false;
+  }
+
+  const text = await provider.moderateText(scene.body);
+  if (!text.safe) return false;
+
+  const image = await provider.moderateImage(scene.illustrationPrompt);
+  return image.safe;
 }

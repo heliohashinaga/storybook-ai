@@ -74,35 +74,8 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
     const json = (await response.json()) as {
       data?: { b64_json?: string; url?: string; media_type?: string }[];
     };
-    const first = json.data?.[0];
 
-    if (typeof first?.b64_json === "string") {
-      return {
-        bytes: Buffer.from(first.b64_json, "base64"),
-        mediaType: first.media_type,
-      };
-    }
-
-    if (typeof first?.url === "string") {
-      // SSRF guard (CWE-918): a provider-returned URL is untrusted (the
-      // provider is a third party and subject to prompt injection). Only fetch
-      // https URLs that resolve entirely to public hosts.
-      const imageResponse = await fetchSafeImage(
-        first.url,
-        fetchImpl,
-        urlSafetyResolver,
-        controller.signal
-      );
-      if (!imageResponse.ok) {
-        throw new ProviderError("unavailable", "Image URL could not be fetched.");
-      }
-      return {
-        bytes: new Uint8Array(await imageResponse.arrayBuffer()),
-        mediaType: imageResponse.headers.get("content-type") ?? undefined,
-      };
-    }
-
-    throw new ProviderError("unavailable", "Image provider returned no data.");
+    return await renderImagePayload(json, fetchImpl, urlSafetyResolver, controller.signal);
   } catch (error) {
     if (error instanceof ProviderError) throw error;
     if (controller.signal.aborted) {
@@ -117,6 +90,53 @@ export async function postImages(request: PostImagesRequest): Promise<RawImage> 
 /** True when an HTTP status is a 3xx response. */
 function isRedirectStatus(status: number): boolean {
   return status >= 300 && status < 400;
+}
+
+/**
+ * Renders the provider's `/images` JSON payload into a {@link RawImage},
+ * handling both `b64_json` and `url` (SSRF-guarded) response shapes.
+ */
+async function renderImagePayload(
+  json: { data?: { b64_json?: string; url?: string; media_type?: string }[] },
+  fetchImpl: typeof fetch,
+  urlSafetyResolver: UrlResolver | undefined,
+  signal: AbortSignal
+): Promise<RawImage> {
+  const first = json.data?.[0];
+
+  if (typeof first?.b64_json === "string") {
+    return {
+      bytes: Buffer.from(first.b64_json, "base64"),
+      mediaType: first.media_type,
+    };
+  }
+
+  if (typeof first?.url === "string") {
+    return renderUrlPayload(first.url, fetchImpl, urlSafetyResolver, signal);
+  }
+
+  throw new ProviderError("unavailable", "Image provider returned no data.");
+}
+
+/**
+ * Fetches an SSRF-guarded provider-returned URL (CWE-918). The provider is a
+ * third party subject to prompt injection, so only https URLs that resolve
+ * entirely to public hosts are fetched.
+ */
+async function renderUrlPayload(
+  url: string,
+  fetchImpl: typeof fetch,
+  urlSafetyResolver: UrlResolver | undefined,
+  signal: AbortSignal
+): Promise<RawImage> {
+  const imageResponse = await fetchSafeImage(url, fetchImpl, urlSafetyResolver, signal);
+  if (!imageResponse.ok) {
+    throw new ProviderError("unavailable", "Image URL could not be fetched.");
+  }
+  return {
+    bytes: new Uint8Array(await imageResponse.arrayBuffer()),
+    mediaType: imageResponse.headers.get("content-type") ?? undefined,
+  };
 }
 
 /**

@@ -61,6 +61,19 @@ function json(status: number, body: unknown, extraHeaders: Record<string, string
   });
 }
 
+/** True when the raw payload carries an explicit but unsupported locale. */
+function isUnsupportedLocalePayload(payload: unknown): boolean {
+  const raw = payload as { locale?: unknown } | null;
+  return (
+    raw !== null && typeof raw.locale === "string" && !localeSchema.safeParse(raw.locale).success
+  );
+}
+
+/** Wire status for a typed generation error code, falling back to 502. */
+function statusForError(code: string): number {
+  return STATUS_BY_CODE[code as HttpErrorCode] ?? 502;
+}
+
 export function createStoriesHandler(deps: StoriesRouteDeps) {
   return async function POST(request: Request): Promise<Response> {
     const ip = resolveClientIp(
@@ -88,8 +101,7 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
 
     const parsed = generateRequestSchema.safeParse(payload);
     if (!parsed.success) {
-      const raw = payload as { locale?: unknown } | null;
-      if (raw && typeof raw.locale === "string" && !localeSchema.safeParse(raw.locale).success) {
+      if (isUnsupportedLocalePayload(payload)) {
         return json(422, toErrorJson(unsupportedLocale));
       }
       return json(400, toErrorJson(invalidInput));
@@ -110,7 +122,7 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
     if (result.ok) {
       return json(200, result.story);
     }
-    return json(STATUS_BY_CODE[result.error.code] ?? 502, result.error);
+    return json(statusForError(result.error.code), result.error);
   };
 }
 
