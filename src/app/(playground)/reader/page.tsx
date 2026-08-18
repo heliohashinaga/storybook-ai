@@ -1,5 +1,6 @@
 import { requireSession } from "../../../features/auth/server/session";
 import { StoryRequestApp } from "../../../features/story-request/components/story-request-app";
+import { ScrollToTop } from "../../../components/ui/scroll-to-top";
 
 // The playground session gate is request-time: without a session cookie this
 // page redirects to `/`. Never statically prerender (which would bake the
@@ -17,5 +18,10 @@ export const dynamic = "force-dynamic";
 export default async function ReaderPage() {
   await requireSession();
   const isFake = process.env.STORIES_TEST_MODE === "fake";
-  return <StoryRequestApp isFake={isFake} />;
+  return (
+    <>
+      <ScrollToTop />
+      <StoryRequestApp isFake={isFake} />
+    </>
+  );
 }

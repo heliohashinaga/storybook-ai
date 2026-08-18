@@ -122,7 +122,8 @@ export function StoryReader({
   }
 
   // Move focus to the new scene heading on navigation, but never steal focus
-  // on the initial render.
+  // on the initial render. (Scroll-to-top on reader load is handled by the
+  // page-level <ScrollToTop />, which runs after Next's scroll restoration.)
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;

@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { OAuthProviderButton, type OAuthProvider } from "./oauth-provider-button";
 import { LangToggle } from "../../shell/components/lang-toggle";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
@@ -42,14 +43,16 @@ function DemoPanel({
   note: string;
 }) {
   const link = (
-    <a
+    <Link
       href="/demo"
       lang={locale}
       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      // Client-side navigation (not a full reload) so the in-memory language /
+      // theme chosen on the login screen carries into the demo.
     >
       <SparklesIcon className="size-4" />
       {demoLabel}
-    </a>
+    </Link>
   );
   const hint = <p className="text-center text-xs text-muted-foreground">{demoHint}</p>;
   if (combined) {
