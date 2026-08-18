@@ -72,24 +72,20 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
     error === "accessDenied" ? t("accessDenied") : error === "generic" ? t("signInError") : null;
 
   return (
-    <main className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-10">
-      <div className="grid w-full max-w-6xl gap-10 sm:gap-14 lg:grid-cols-2 lg:items-center">
-        {/* Brand / value prop — distributed across the left half on wide screens. */}
-        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+    <main className="flex min-h-[calc(100dvh-4rem)] items-center justify-center px-4 py-12">
+      {/* Story-blossom style: one centered column — icon, then heading, subtitle,
+          then the sign-in + demo actions below. (max-w-md, not max-w-sm: this design
+          system maps size max-widths to spacing tokens, so max-w-sm = 8px.) */}
+      <div className="w-full max-w-md text-center">
+        <div className="mb-4 flex justify-center">
           <BrandMark />
-          <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            {t("heading")}
-          </h1>
-          <p className="mt-3 max-w-md text-sm text-muted-foreground sm:text-base">
-            {t("subtitle")}
-          </p>
         </div>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          {t("heading")}
+        </h1>
+        <p className="mt-3 text-base text-muted-foreground">{t("subtitle")}</p>
 
-        {/* Auth / demo actions — panel on the right half, centered within its column.
-            (max-w-md, not max-w-sm: this design system maps size max-widths to the
-            spacing tokens, so max-w-sm resolves to 8px and only max-w-md is a valid
-            small-panel cap — same token used across the story UI.) */}
-        <div className="w-full max-w-md justify-self-center space-y-5">
+        <div className="mt-8 space-y-5">
           {anyProvider && (
             <section
               aria-labelledby="playground-heading"
