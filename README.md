@@ -147,6 +147,9 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Format     | no Prettier drift           |
   | Typecheck  | strict TypeScript, no `any` |
 
+  Lint also enforces a **cyclomatic-complexity gate**: every function must stay
+  at `≤ 10` (ESLint `complexity` rule, raised from `16` in spec 014).
+
 - **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):
 
