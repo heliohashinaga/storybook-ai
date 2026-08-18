@@ -23,7 +23,7 @@ do ESLint evoluiu de 16 → 10 sem quebrar o CI.
 Antes de qualquer edição, o gate `complexity: ["error", { max: 16 }]` já está comitado
 (`eslint.config.mjs`). A base inteira mede **100 funções** com max=16; há **19 violações** com
 limiar 10 (17 produção/scripts + 2 testes). O backlog de dados está em
-[`docs/diagnostics/cyclomatic-complexity-backlog.md`](../../../docs/diagnostics/cyclomatic-complexity-backlog.md).
+[`cyclomatic-complexity-backlog.md`](cyclomatic-complexity-backlog.md).
 
 ## Como validar a feature (cenários)
 
@@ -124,6 +124,6 @@ pnpm build               # build de produção passa
 
 - Modelo de dados (sem mudança): [`data-model.md`](data-model.md)
 - Contratos (sem delta): [`contracts/no-contract-delta.md`](contracts/no-contract-delta.md)
-- Backlog de medição: [`docs/diagnostics/cyclomatic-complexity-backlog.md`](../../../docs/diagnostics/cyclomatic-complexity-backlog.md)
+- Backlog de medição: [`cyclomatic-complexity-backlog.md`](cyclomatic-complexity-backlog.md)
 - Tasks de implementação por story: [`tasks.md`](tasks.md)
 - Plano (decisões de clarificação): [`plan.md`](plan.md)

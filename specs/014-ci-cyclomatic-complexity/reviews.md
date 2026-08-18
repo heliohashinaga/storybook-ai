@@ -1,7 +1,7 @@
 # Reviews — Redução da Complexidade Ciclomática (gate 16 → 10)
 
 **2026-08-17** — Convergência da feature. Spec, plano e tarefas criados a partir do backlog
-`docs/diagnostics/cyclomatic-complexity-backlog.md` (medição base-wide com limiar 10: 19 violações,
+`cyclomatic-complexity-backlog.md` (medição base-wide com limiar 10: 19 violações,
 sendo 17 em produção/scripts + 2 em arquivos de teste).
 
 ## Decisões registradas

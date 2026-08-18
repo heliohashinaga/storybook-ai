@@ -115,7 +115,7 @@ pelos `resolveDeps` de `openrouter-story-generation-provider` (16), `opencode-st
 
 - **19 violações** (ground truth JSON sobre a base inteira com limiar 10): 17 em código de
   produção/scripts + 2 em arquivos de teste.
-- O backlog textual em `docs/diagnostics/cyclomatic-complexity-backlog.md` lista 11 funções de
+- O backlog textual em `cyclomatic-complexity-backlog.md` lista 11 funções de
   produção; o `plan.md` e o `tasks.md` expandem para as 19 totais (US1–US6), incluindo
   `generateStory` (16) em `tests/fixtures/story-generation/provider-fixtures.ts` e o `deepMerge`
   local em `tests/unit/i18n-localized-catalog.test.ts`.

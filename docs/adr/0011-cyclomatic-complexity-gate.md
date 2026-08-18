@@ -4,7 +4,7 @@
 - Decisores: manutenção do `storybook-ai`
 - Data: 2026-08-17
 - Contextos relacionados: spec `014-ci-cyclomatic-complexity`; documento
-  `docs/diagnostics/cyclomatic-complexity-backlog.md`; ADR 0008 (extração de `provider-core`).
+  `../../specs/014-ci-cyclomatic-complexity/cyclomatic-complexity-backlog.md`; ADR 0008 (extração de `provider-core`).
 
 > O ADR é **Accepted** e registra a evolução do guard-rail de complexidade ciclomática do ESLint
 > de `max: 16` para `max: 10`, **após** a redução das 19 violações (17 em produção/scripts + 2 em
@@ -15,7 +15,7 @@
 O `eslint.config.mjs` mantinha `complexity: ["error", { max: 16 }]` como um **guard-rail**: o
 limiar era o máximo global atual (16) e o comentário deixava explícito que ele **não deveria ser
 baixado** até que as funções acima de 10 fossem decompostas. O backlog em
-`docs/diagnostics/cyclomatic-complexity-backlog.md` media 19 funções que ultrapassavam 10 em uma
+`../../specs/014-ci-cyclomatic-complexity/cyclomatic-complexity-backlog.md` media 19 funções que ultrapassavam 10 em uma
 medição base-wide com limiar 10.
 
 Essas funções concentravam-se em camadas sensíveis:
