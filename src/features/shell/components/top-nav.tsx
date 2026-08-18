@@ -10,12 +10,12 @@ import { LangToggle } from "./lang-toggle";
  * Top bar (blossom-design §7.1): home brand mark + language + theme.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
- * - Left: a home button (primary, BookOpenText mark + display name + tagline)
- *   that navigates to the login gate `/`. When an authenticated visitor lands
- *   on `/`, the server redirects to the playground `/form` (Spec 015); an
- *   anonymous visitor sees the login/demo screen. On the playground routes
- *   (`/form`, `/reader`) a **Sign out** action appears and home still goes to
- *   `/`.
+ * - Left: a home button (primary, BookOpenText mark + display name + tagline).
+ *   Home is route-aware: on the anonymous demo routes (`/demo`, `/demo/reader`)
+ *   it navigates back to the demo form `/demo`; everywhere else it navigates to
+ *   the login gate `/` (which the server redirects to `/form` when authed — Spec
+ *   015). On the playground routes (`/form`, `/reader`) a **Sign out** action
+ *   appears.
  * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
  *
  * All state is in-memory only: language and theme pickers drive `useLocaleContext`
@@ -33,7 +33,11 @@ export function TopNav() {
   // header/nav — the brand is already presented by the login hero itself.
   // Return after all hooks so hook order stays stable across renders.
   if (pathname === "/") return null;
-  const onHome = pathname === "/";
+  // Home is route-aware: on the demo routes the brand returns to the demo form
+  // (/demo); everywhere else it returns to the login gate `/`.
+  const isDemo = pathname === "/demo" || pathname.startsWith("/demo/");
+  const homePath = isDemo ? "/demo" : "/";
+  const onHome = pathname === homePath;
   // Sign out is meaningful only on the protected playground routes.
   const isPlayground = pathname === "/form" || pathname === "/reader";
 
@@ -41,7 +45,7 @@ export function TopNav() {
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
       <button
         type="button"
-        onClick={() => router.push("/")}
+        onClick={() => router.push(homePath)}
         aria-label={t("home")}
         aria-current={onHome ? "page" : undefined}
         className="flex items-center gap-3 rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"

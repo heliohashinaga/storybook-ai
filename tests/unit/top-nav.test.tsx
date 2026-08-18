@@ -68,6 +68,22 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     expect(navState.push).toHaveBeenCalledWith("/");
   });
 
+  it("returns to the demo form /demo when the brand mark is clicked on a demo route", () => {
+    navState.setPath("/demo/reader");
+    renderTopNav();
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar ao início" }));
+    expect(navState.push).toHaveBeenCalledWith("/demo");
+  });
+
+  it("marks the home button as current on the /demo form", () => {
+    navState.setPath("/demo");
+    renderTopNav();
+
+    const home = screen.getByRole("button", { name: "Voltar ao início" });
+    expect(home).toHaveAttribute("aria-current", "page");
+  });
+
   it("also renders the language and theme toggles without identifiers", () => {
     renderTopNav();
 
