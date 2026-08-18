@@ -1,5 +1,5 @@
 <p align="center">
-<img src="docs/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
+<img src="docs/img/header.png" alt="Girl reading a book in an enchanted kingdom with a dragon, rabbit, and squirrel" width="100%">
 </p>
 
 # Storybook AI
