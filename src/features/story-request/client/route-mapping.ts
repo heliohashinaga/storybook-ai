@@ -9,9 +9,11 @@ export type ScreenMode = "form" | "reader";
  *
  * - `/form` (or bare `/`) → `form`
  * - `/reader` → `reader`
+ * - `/demo` → `form` (anonymous demo, spec 015)
+ * - `/demo/reader` → `reader`
  * - any other path → `form` (unknown destinations fall back to the form)
  */
 export function deriveScreenFromPath(path: string): ScreenMode {
   const normalized = path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
-  return normalized === "/reader" ? "reader" : "form";
+  return normalized === "/reader" || normalized === "/demo/reader" ? "reader" : "form";
 }

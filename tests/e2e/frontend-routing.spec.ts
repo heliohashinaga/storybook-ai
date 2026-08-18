@@ -2,21 +2,22 @@ import { test, expect, type Page, type Response as RouteResponse } from "@playwr
 import { switchToPortuguese } from "./helpers";
 
 /**
- * Spec 009 frontend-routes contract (T313): exercises the routing state machine
+ * Spec 015 frontend-routes contract: exercises the routing state machine
  * end-to-end against the production build with the deterministic dev provider.
  *
- * The contract (contracts/frontend-routing.md) requires:
- *   1. `/` redirects to `/form`; `/form` renders the clean request form.
- *   2. `form→reader` uses `router.replace`: a single browser `history.back()`
- *      LEAVES the app (it does not return to a stale `/form`).
- *   3. Returning to the clean `/form` is the app's internal navigation
- *      (top-nav / "Nova história"), never the browser history.
- *   4. Deep-link `/reader` without a session redirects to `/form`.
- *   5. During `POST /api/stories` the URL stays `/form` (no `/steps`).
- *   6. Navigation between already-created stories lives in `/reader` only
+ * The spec 015 contract (contracts/auth-flow.md + specs/015) changes the routing:
+ *   1. `/` is the LOGIN GATE (no more implicit redirect to `/form`). The
+ *      anonymous playground lives at `/demo` (mirrors the old `/form`) and its
+ *      reader at `/demo/reader` (mirrors the old `/reader`). Both are cookie-less.
+ *   2. `/form` and `/reader` are the authenticated playground and redirect to
+ *      `/` when no session cookie is present.
+ *   3. `demo→demo/reader` uses `router.replace`: a single browser `history.back()`
+ *      LEAVES the app (it does not return to a stale `/demo`).
+ *   4. During `POST /api/stories` the URL stays `/demo` (no `/steps`).
+ *   5. Navigation between already-created stories lives in `/demo/reader` only
  *      (no `?story=` in the URL).
- *   7. The active locale survives `form↔reader` navigation.
- *   8. `aria-busy` while submitting; `aria-current` on the active nav home.
+ *   6. The active locale survives `demo↔demo/reader` navigation.
+ *   7. `aria-busy` while submitting; `aria-current` on the home nav on `/`.
  *
  * The app defaults to English, so tests that assert pt-BR labels call
  * `switchToPortuguese`; tests that only assert routes use locale-agnostic
@@ -26,7 +27,7 @@ import { switchToPortuguese } from "./helpers";
  * provider dependence.
  */
 
-/** Fills the pt-BR form (age 6 + courage) and returns the POST response promise. */
+/** Fills the pt-BR demo form (age 6 + courage) and returns the POST response promise. */
 async function startPtBrSubmission(page: Page): Promise<RouteResponse> {
   const response = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
@@ -37,39 +38,46 @@ async function startPtBrSubmission(page: Page): Promise<RouteResponse> {
   return response;
 }
 
-test("/ redirects to /form and the form is a clean, identifier-free screen", async ({ page }) => {
+test("/ renders the login gate and never redirects anonymous visitors to /form", async ({
+  page,
+}) => {
   await page.goto("/");
-  await expect(page).toHaveURL(/\/form$/);
-  // The clean form has no name/direct-identifier input (privacy invariant).
+  await expect(page).toHaveURL(/\/$/);
+  // The login gate (spec 015) is shown, with the anonymous demo entry point.
+  await expect(
+    page.getByRole("heading", { name: /Create magical stories with AI/i })
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: /Explore the Demo/i })).toBeVisible();
+  // The clean login gate has no name/direct-identifier input (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Criar história|Create story/i })).toBeVisible();
 });
 
-test("form→reader uses replace: a single history.back() leaves the app", async ({ page }) => {
-  await page.goto("/form");
+test("demo→demo/reader uses replace: a single history.back() leaves the app", async ({ page }) => {
+  await page.goto("/demo");
   await switchToPortuguese(page);
   const response = startPtBrSubmission(page);
   await response;
-  // Landed on /reader via replace.
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  // Landed on /demo/reader via replace.
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
   await expect(page.getByLabel("Sua história")).toBeVisible();
 
-  // One "back" must NOT return to a stale /form: it leaves the app (the entry
-  // navigation replaced the form entry, so back goes to the previous page).
+  // One "back" must NOT return to a stale /demo: it leaves the app (the entry
+  // navigation replaced the demo entry, so back goes to the previous page).
   await page.goBack();
-  // The app cannot be on /form after a single back (replace policy).
-  await expect(page).not.toHaveURL(/\/form$/);
+  await expect(page).not.toHaveURL(/\/demo$/);
 });
 
-test("deep-link /reader without a session redirects to the clean /form", async ({ page }) => {
+test("deep-link /reader without a session redirects to the login gate /", async ({ page }) => {
   await page.goto("/reader");
-  await expect(page).toHaveURL(/\/form$/, { timeout: 20_000 });
-  await expect(page.getByRole("button", { name: /Criar história|Create story/i })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/, { timeout: 20_000 });
+  await expect(
+    page.getByRole("heading", { name: /Create magical stories with AI/i })
+  ).toBeVisible();
 });
 
-test("during submission the URL stays /form (no /steps route)", async ({ page }) => {
+test("during submission the URL stays /demo (no /steps route)", async ({ page }) => {
   // Defer the server response so the request stays in flight while we assert
-  // the URL; release it to let the app navigate to /reader.
+  // the URL; release it to let the app navigate to /demo/reader.
   let releaseFetch!: () => void;
   await page.route("**/api/stories", async (route) => {
     await new Promise<void>((resolve) => {
@@ -78,41 +86,41 @@ test("during submission the URL stays /form (no /steps route)", async ({ page })
     await route.continue();
   });
 
-  await page.goto("/form");
+  await page.goto("/demo");
   await switchToPortuguese(page);
   await page.getByRole("slider", { name: /Idade/i }).fill("6");
   await page.getByRole("button", { name: /^Coragem/i }).click();
   await page.getByRole("button", { name: /Criar história/i }).click();
 
-  // While the request is in flight the URL remains /form and the panel is busy.
+  // While the request is in flight the URL remains /demo and the panel is busy.
   await expect(page.getByRole("progressbar")).toBeVisible();
-  await expect(page).toHaveURL(/\/form$/);
+  await expect(page).toHaveURL(/\/demo$/);
   await expect(page).not.toHaveURL(/steps|progress/i);
 
-  // Release the request; the app then navigates to /reader.
+  // Release the request; the app then navigates to /demo/reader.
   releaseFetch();
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
 });
 
-test("navigation between already-created stories happens in /reader without ?story=", async ({
+test("navigation between already-created stories happens in /demo/reader without ?story=", async ({
   page,
 }) => {
-  await page.goto("/form");
+  await page.goto("/demo");
   await switchToPortuguese(page);
   const first = startPtBrSubmission(page);
   await first;
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
   await expect(page.getByLabel("Sua história")).toBeVisible();
 
-  // Append a second story via "Nova história" → clean /form → submit.
+  // Append a second story via "Nova história" → clean /demo → submit.
   const second = page.waitForResponse(
     (res) => res.url().includes("/api/stories") && res.request().method() === "POST"
   );
   await page.getByRole("button", { name: /Nova história/i }).click();
-  await expect(page).toHaveURL(/\/form$/);
+  await expect(page).toHaveURL(/\/demo$/);
   await page.getByRole("button", { name: /Criar história/i }).click();
   await second;
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
 
   // The switcher lists both stories; switching is via the in-session context
   // (no ?story= query is ever present).
@@ -122,30 +130,35 @@ test("navigation between already-created stories happens in /reader without ?sto
   expect(page.url()).not.toMatch(/\?story=/);
 });
 
-test("the active locale survives form↔reader navigation", async ({ page }) => {
-  await page.goto("/form");
+test("the active locale survives demo↔demo/reader navigation", async ({ page }) => {
+  await page.goto("/demo");
   await switchToPortuguese(page);
 
-  // Locale is pt-BR on the form (pt-BR label visible).
+  // Locale is pt-BR on the demo form (pt-BR label visible).
   await expect(page.getByRole("slider", { name: /Idade/i })).toBeVisible();
 
   // Generate a story: the reader stays pt-BR (same locale provider, one level
   // above the routes).
   const response = startPtBrSubmission(page);
   await response;
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
   await expect(page.getByLabel("Sua história")).toBeVisible();
 
-  // Back to the clean form via internal nav: still pt-BR.
+  // Back to the clean demo form via internal nav: still pt-BR.
   await page.getByRole("button", { name: /Nova história/i }).click();
-  await expect(page).toHaveURL(/\/form$/);
+  await expect(page).toHaveURL(/\/demo$/);
   await expect(page.getByRole("slider", { name: /Idade/i })).toBeVisible();
 });
 
-test("aria-busy is set while submitting and aria-current marks the active home nav", async ({
+test("aria-busy is set while submitting and aria-current marks the home nav on /", async ({
   page,
 }) => {
-  // Defer the server response so the submitting panel stays visible.
+  // On the login gate `/` the home nav button carries aria-current (active route).
+  await page.goto("/");
+  const home = page.getByRole("button", { name: /voltar ao início|back to home/i });
+  await expect(home).toHaveAttribute("aria-current", "page");
+
+  // Then verify the submitting panel is busy on the anonymous demo form.
   let releaseFetch!: () => void;
   await page.route("**/api/stories", async (route) => {
     await new Promise<void>((resolve) => {
@@ -154,19 +167,15 @@ test("aria-busy is set while submitting and aria-current marks the active home n
     await route.continue();
   });
 
-  await page.goto("/form");
+  await page.goto("/demo");
   await switchToPortuguese(page);
   await page.getByRole("slider", { name: /Idade/i }).fill("6");
   await page.getByRole("button", { name: /^Coragem/i }).click();
-
-  // On /form the home nav button carries aria-current (active route).
-  const home = page.getByRole("button", { name: /voltar ao início|back to home/i });
-  await expect(home).toHaveAttribute("aria-current", "page");
-
   await page.getByRole("button", { name: /Criar história/i }).click();
+
   // The progress panel is busy.
   await expect(page.getByRole("progressbar")).toHaveAttribute("aria-busy", "true");
 
   releaseFetch();
-  await expect(page).toHaveURL(/\/reader$/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/demo\/reader$/, { timeout: 20_000 });
 });

@@ -17,6 +17,20 @@ with illustrations.
 - 🔊 **Read-aloud** of the current scene.
 - 📄 **PDF export**.
 - 🌓 **Dark mode**.
+- 🔐 **Optional Google/GitHub login** that gates the real-LLM playground
+  (`/form`, `/reader`) — anonymous visitors can still explore via `/demo`.
+
+## Access & demo
+
+- **`/`** — the **login gate**: sign in with Google or GitHub, or click
+  **Explore the Demo**.
+- **`/demo`** 🧪 — the anonymous playground (mirrors the form): deterministic
+  fake stories, zero cookies, no login.
+- **`/form` / `/reader`** 🔐 — the authenticated playground: uses the real
+  multi-agent LLM pipeline and requires login.
+
+The demo and playground render the **same** story UI; only the generation
+backend (fake catalog vs. real LLMs) and the session requirement differ.
 
 ## How story generation works
 
@@ -87,6 +101,28 @@ different provider/model with the fitting capability.
 | `STORY_RATE_LIMIT_WINDOW_MS`    | `60000` | rate-limit window for story generation |
 | `TTS_RATE_LIMIT_MAX_REQUESTS`   | `30`    | max narration requests / window        |
 | `TTS_RATE_LIMIT_WINDOW_MS`      | `60000` | rate-limit window for narration        |
+
+#### 🔐 Authentication (optional — Google / GitHub)
+
+With no `AUTH_*` set, the app runs in **demo-only** mode: `/` shows a login screen
+with disabled OAuth buttons and only **Explore the Demo** works (no session, no
+cookie). Set `AUTH_SECRET` to enable login; add provider credentials to enable
+their buttons.
+
+| Variable                | Purpose                                                        |
+| ----------------------- | -------------------------------------------------------------- |
+| `AUTH_SECRET`           | required to enable auth (any value; `openssl rand -base64 32`) |
+| `AUTH_GOOGLE_ID`        | Google OAuth client id (both id + secret enable the button)    |
+| `AUTH_GOOGLE_SECRET`    | Google OAuth client secret                                     |
+| `AUTH_GITHUB_ID`        | GitHub OAuth client id (both id + secret enable the button)    |
+| `AUTH_GITHUB_SECRET`    | GitHub OAuth client secret                                     |
+| `AUTH_URL`              | canonical URL (local dev: `http://localhost:3000`)             |
+| `AUTH_TRUST_HOST`       | `true` when not behind a reverse proxy                         |
+| `AUTH_ALLOWLIST_EMAILS` | comma-separated email allowlist (optional access control)      |
+
+Sessions are **stateless JWTs** (24 h) in an httpOnly cookie on the playground
+path only — the `/demo` path stays cookie-less and the app never stores or logs
+any identity.
 
 > Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
 > deterministic dev run — no AI calls are made.

@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { signOut } from "next-auth/react";
+import { useLocale, useTranslations } from "next-intl";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { LangToggle } from "./lang-toggle";
 
@@ -10,30 +11,33 @@ import { LangToggle } from "./lang-toggle";
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
  * - Left: a home button (primary, BookOpenText mark + display name + tagline)
- *   that navigates to the clean `/form` route — market-standard "logo → home"
- *   using the app's internal navigation (Spec 009). The app home is `/form`;
- *   `/` redirects there. No event bus is needed because `/form` is a real,
- *   navigable route, so a client-side `router.push("/form")` always lands the
- *   clean empty form (Clarifications Q2/Q3).
- *   (The header is not sticky, so no scroll-to-top is needed.)
+ *   that navigates to the login gate `/`. When an authenticated visitor lands
+ *   on `/`, the server redirects to the playground `/form` (Spec 015); an
+ *   anonymous visitor sees the login/demo screen. On the playground routes
+ *   (`/form`, `/reader`) a **Sign out** action appears and home still goes to
+ *   `/`.
  * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
  *
  * All state is in-memory only: language and theme pickers drive `useLocaleContext`
- * / `useColorScheme` and nothing is persisted. Strings come from next-intl.
+ * / `useColorScheme` and nothing is persisted. `signOut` from `next-auth/react`
+ * works without a `SessionProvider` (it posts to `/api/auth/signout` directly).
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
+  const tAuth = useTranslations("auth");
+  const locale = useLocale();
   const router = useRouter();
-  // Single nav destination: the clean `/form` (home). Mark it current when the
-  // active route is `/form` (Spec 009 / a11y: `aria-current` on the active nav).
+  // Navigation home is the login gate `/`; it redirects to `/form` when authed.
   const pathname = usePathname();
-  const onHome = pathname === "/form";
+  const onHome = pathname === "/";
+  // Sign out is meaningful only on the protected playground routes.
+  const isPlayground = pathname === "/form" || pathname === "/reader";
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
       <button
         type="button"
-        onClick={() => router.push("/form")}
+        onClick={() => router.push("/")}
         aria-label={t("home")}
         aria-current={onHome ? "page" : undefined}
         className="flex items-center gap-3 rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -47,6 +51,16 @@ export function TopNav() {
         </span>
       </button>
       <div className="flex items-center gap-3">
+        {isPlayground && (
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/" })}
+            lang={locale}
+            className="rounded-2xl border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {tAuth("nav.logout")}
+          </button>
+        )}
         <LangToggle />
         <ThemeToggle />
       </div>

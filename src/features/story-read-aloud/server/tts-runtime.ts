@@ -3,6 +3,7 @@ import { createFixedTtsProvider } from "./fixed-tts-provider";
 import { createOpenRouterTtsProvider } from "./openrouter-tts-provider";
 import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
 import { TtsProviderError } from "./tts-provider";
+import type { GenerationMode } from "../../story-generation/server/generation-runtime";
 
 /**
  * Server runtime for AI narration (spec 004, T010).
@@ -39,13 +40,20 @@ export interface TtsRuntimeDeps {
   provider?: TtsProvider;
   /** Provider selector mirroring `STORIES_TEST_MODE` (`fake` → offline dev). */
   storiesProvider?: string;
+  /**
+   * Optional generation mode (spec 015). When `demo`, narration always uses
+   * the deterministic offline provider (the anonymous demo path never calls a
+   * live TTS service), mirroring the generation runtime.
+   */
+  mode?: GenerationMode;
 }
 
-/** Resolves the real provider from env (never used by tests directly). */
-function resolveDefaultProvider(): TtsProvider {
-  // Production default is OpenRouter; `fake` selects the deterministic offline
-  // dev provider so e2e/visual runs never call a live TTS service.
-  return process.env.STORIES_TEST_MODE === "fake"
+/** Resolves the real provider from env/mode (never used by tests directly). */
+function resolveDefaultProvider(mode?: GenerationMode): TtsProvider {
+  // Demo path and `STORIES_TEST_MODE=fake` select the deterministic offline
+  // dev provider so the anonymous demo / e2e / visual runs never call a live
+  // TTS service; the authenticated playground uses the real OpenRouter adapter.
+  return mode === "demo" || process.env.STORIES_TEST_MODE === "fake"
     ? createFixedTtsProvider()
     : createOpenRouterTtsProvider();
 }
@@ -66,7 +74,7 @@ function resolveEnabled(deps: TtsRuntimeDeps): boolean {
 
 export function createTtsRuntime(deps: TtsRuntimeDeps = {}): TtsRuntime {
   const enabled = resolveEnabled(deps);
-  const provider = deps.provider ?? resolveDefaultProvider();
+  const provider = deps.provider ?? resolveDefaultProvider(deps.mode);
 
   return {
     enabled,
@@ -92,4 +100,12 @@ export function createTtsRuntime(deps: TtsRuntimeDeps = {}): TtsRuntime {
       }
     },
   };
+}
+
+/**
+ * Always-offline demo TTS runtime (spec 015): mirrors the generation demo
+ * runtime so the anonymous `/demo` path never synthesizes with a live model.
+ */
+export function createDemoTtsRuntime(): TtsRuntime {
+  return createTtsRuntime({ mode: "demo" });
 }

@@ -60,6 +60,9 @@ async function initialJsChunks(page: Page): Promise<string[]> {
 }
 
 async function fillAndSubmit(page: Page): Promise<Response> {
+  // spec 015: the generation form is the anonymous /demo playground (the
+  // /form route is session-gated), so drive the flow there.
+  await page.goto("/demo");
   // The app defaults to en (defaultLocale "en"); switch the UI to pt-BR so the
   // interaction labels match the approved spec (same pattern as
   // accessibility.spec.ts), then fill the age slider.
@@ -94,7 +97,7 @@ test.describe("performance budgets (T060)", () => {
   });
 
   test("LCP is within 2.5s and scene navigation is within 100ms p75", async ({ page }) => {
-    await page.goto("/");
+    // fillAndSubmit navigates to /demo and generates; LCP reflects the reader.
     await fillAndSubmit(page);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
@@ -145,7 +148,7 @@ test.describe("performance budgets (T060)", () => {
   });
 
   test("full generation completes within 120s end-to-end", async ({ page }) => {
-    await page.goto("/");
+    // fillAndSubmit navigates to /demo and starts the generation.
     const startedAt = Date.now();
     const response = await fillAndSubmit(page);
     expect(response.status()).toBe(200);

@@ -1,5 +1,9 @@
 import "server-only";
-import { createGenerationRuntime } from "../../../features/story-generation/server/generation-runtime";
+import {
+  createRuntimeForMode,
+  resolveGenerationMode,
+} from "../../../features/story-generation/server/generation-runtime";
+import { isAuthenticated } from "../../../features/auth/server/session";
 import { generateStory } from "../../../features/story-generation/server/generate-story";
 import {
   generateRequestSchema,
@@ -126,6 +130,17 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
   };
 }
 
-const runtime = createGenerationRuntime();
+const realRuntime = createRuntimeForMode("playground");
+const demoRuntime = createRuntimeForMode("demo");
 
-export const POST = createStoriesHandler(runtime);
+/**
+ * Mode-aware `POST /api/stories` (spec 015). The mode is derived **per request**
+ * from the session: authenticated → real playground runtime; anonymous → the
+ * deterministic demo runtime (never a live model, no credentials needed). The
+ * wire contract (`ageBand|locale|theme|sceneCount`) is identical in both modes.
+ */
+export async function POST(request: Request): Promise<Response> {
+  const mode = resolveGenerationMode(await isAuthenticated());
+  const runtime = mode === "playground" ? realRuntime : demoRuntime;
+  return createStoriesHandler(runtime)(request);
+}

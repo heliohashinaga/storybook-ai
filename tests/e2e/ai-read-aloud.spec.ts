@@ -13,7 +13,9 @@ import { switchToPortuguese } from "./helpers";
  * journeys switch the UI to pt-BR explicitly (the app defaults to English).
  */
 async function fillAndSubmit(page: Page) {
-  await page.goto("/form");
+  // spec 015: the anonymous form lives on /demo (the playground /form is
+  // session-gated); /demo uses the same StoryRequestApp with isFake=true.
+  await page.goto("/demo");
   await switchToPortuguese(page);
   await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
@@ -47,8 +49,8 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
   await fillAndSubmit(page);
   await responsePromise;
 
-  // Spec 009: successful generation lands on /reader.
-  await expect(page).toHaveURL(/\/reader$/);
+  // Spec 015: successful generation lands on /demo/reader.
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   // Reader is up with the narration control (pt-BR idle label).
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   const listen = page.getByRole("button", { name: /^Ouvir$/i });
@@ -113,7 +115,7 @@ test("AI narration failure shows an accessible error and never falls back to Web
   await fillAndSubmit(page);
   await responsePromise;
 
-  await expect(page).toHaveURL(/\/reader$/);
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
   await page.getByRole("button", { name: /^Ouvir$/i }).click();
 
@@ -150,7 +152,7 @@ test("narration is on-demand with zero persistence (no prefetch, no storage)", a
   await fillAndSubmit(page);
   await responsePromise;
 
-  await expect(page).toHaveURL(/\/reader$/);
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
 
   // US3: nothing hit /narrate before the user asked to listen (no prefetch).

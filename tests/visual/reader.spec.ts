@@ -21,7 +21,9 @@ test.setTimeout(180_000);
  */
 test.describe("reader visual regression", () => {
   test("reader scenes render consistently across all three positions", async ({ page }) => {
-    const res = await page.goto("/");
+    // spec 015: the anonymous form is the /demo playground (the /form route is
+    // session-gated); the reader renders at /demo/reader.
+    const res = await page.goto("/demo");
     expect(res?.status()).toBe(200);
 
     // The form defaults to en (defaultLocale "en"); switch the UI to pt-BR so
@@ -38,7 +40,7 @@ test.describe("reader visual regression", () => {
     );
     await page.getByRole("button", { name: /criar história/i }).click();
     await response;
-    await expect(page).toHaveURL(/\/reader$/);
+    await expect(page).toHaveURL(/\/demo\/reader$/);
 
     const reader = page.getByRole("region", { name: /sua história/i });
     await expect(reader).toBeVisible();
@@ -70,7 +72,8 @@ test.describe("reader visual regression", () => {
    * longer story exercises mid-arc navigation and the final forward bound.
    */
   test("a five-scene story renders consistently across every position", async ({ page }) => {
-    const res = await page.goto("/");
+    // spec 015: the anonymous form is the /demo playground; reader at /demo/reader.
+    const res = await page.goto("/demo");
     expect(res?.status()).toBe(200);
 
     // Same pt-BR switch as above (baselines are approved in pt-BR).
@@ -86,7 +89,7 @@ test.describe("reader visual regression", () => {
     );
     await page.getByRole("button", { name: /criar história/i }).click();
     await response;
-    await expect(page).toHaveURL(/\/reader$/);
+    await expect(page).toHaveURL(/\/demo\/reader$/);
 
     const reader = page.getByRole("region", { name: /sua história/i });
     await expect(reader).toBeVisible();

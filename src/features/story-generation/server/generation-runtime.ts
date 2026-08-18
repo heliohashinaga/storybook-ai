@@ -210,8 +210,12 @@ function createRealIllustration(seams: RealAdapterSeams) {
  * pre-split composite behavior and keeps the module-load path free of env
  * requirements).
  */
-export function createRealRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): GenerationRuntime {
-  const useFake = process.env.STORIES_TEST_MODE === "fake";
+/**
+ * Builds a runtime given the `useFake` flag. Shared by
+ * {@link createRealRuntime} (fake iff `STORIES_TEST_MODE=fake`) and
+ * {@link createRuntimeForMode} (`useFake` chosen from the resolved mode).
+ */
+function buildRuntime(useFake: boolean, seams: RealAdapterSeams): GenerationRuntime {
   const rateLimitMax = Number(process.env.STORY_RATE_LIMIT_MAX_REQUESTS ?? 10);
   const rateLimitWindowMs = Number(process.env.STORY_RATE_LIMIT_WINDOW_MS ?? 60_000);
 
@@ -250,6 +254,51 @@ export function createRealRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): Gene
   };
 }
 
+export function createRealRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): GenerationRuntime {
+  return buildRuntime(process.env.STORIES_TEST_MODE === "fake", seams);
+}
+
+/** Always-offline demo runtime (spec 015): the fixed deterministic provider. */
+export function createDemoRuntime(seams: RealAdapterSeams = DEFAULT_SEAMS): GenerationRuntime {
+  return buildRuntime(true, seams);
+}
+
 export function createGenerationRuntime(): GenerationRuntime {
   return createRealRuntime();
+}
+
+/**
+ * The two runtime modes the product exposes (spec 015):
+ * - `playground` — authenticated real-LLM generation (`/form` → `/reader`);
+ * - `demo` — anonymous offline generation from the fixed deterministc catalog
+ *   (`/` → `/demo`).
+ * A mode is never stored: it is derived **per request** from the session and
+ * the test override, so the same server (and the same `POST /api/stories`
+ * contract) serves both without any identity in the payload.
+ */
+export type GenerationMode = "playground" | "demo";
+
+/**
+ * Derives the generation mode from the auth state. `STORIES_TEST_MODE=fake`
+ * forces the demo runtime for every caller (e2e/visual/dev determinism);
+ * otherwise only an authenticated session enters the playground. Always
+ * returns demo for anonymous callers — the anonymous path never runs a live
+ * model.
+ */
+export function resolveGenerationMode(authenticated: boolean): GenerationMode {
+  if (process.env.STORIES_TEST_MODE === "fake") return "demo";
+  return authenticated ? "playground" : "demo";
+}
+
+/**
+ * Builds the runtime for a specific {@link GenerationMode}. The demo runtime is
+ * always the deterministic offline provider (never calls a live AI service,
+ * never requires credentials); the playground runtime uses the real adapters
+ * (or the offline provider under `STORIES_TEST_MODE=fake`).
+ */
+export function createRuntimeForMode(
+  mode: GenerationMode,
+  seams: RealAdapterSeams = DEFAULT_SEAMS
+): GenerationRuntime {
+  return buildRuntime(mode === "demo" || process.env.STORIES_TEST_MODE === "fake", seams);
 }

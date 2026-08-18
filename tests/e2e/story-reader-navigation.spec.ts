@@ -8,7 +8,9 @@ import { switchToPortuguese } from "./helpers";
  * provider). The app defaults to English, so the UI is switched to pt-BR first.
  */
 async function fillAndSubmit(page: Page) {
-  await page.goto("/form");
+  // spec 015: the anonymous form lives on /demo (the playground /form is
+  // session-gated); /demo uses the same StoryRequestApp with isFake=true.
+  await page.goto("/demo");
   await switchToPortuguese(page);
   await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
@@ -43,8 +45,8 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
   await fillAndSubmit(page);
   await responsePromise;
 
-  // Spec 009: successful generation lands on /reader.
-  await expect(page).toHaveURL(/\/reader$/);
+  // Spec 015: successful generation lands on /demo/reader.
+  await expect(page).toHaveURL(/\/demo\/reader$/);
 
   // ---- Opens on the first scene: previous disabled, next enabled --------
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
@@ -107,8 +109,8 @@ test("reader keyboard journey navigates bounds with progress, focus, and in-sess
   await expect(page.getByText("Cena 1 de 5")).toBeVisible();
 
   // ---- Privacy: nothing is persisted across sessions -----------------------
-  // A reload on /reader loses the in-memory session; the session gate
-  // redirects to the clean /form.
+  // A reload on /demo/reader loses the in-memory story entirely; the demo
+  // route stays anonymous and shows the clean form shell again.
   await page.reload();
   await expect(page.getByRole("heading", { name: /storybook ai/i })).toBeVisible();
   await expect(page.getByText("Sua história")).toHaveCount(0);
