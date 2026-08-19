@@ -32,7 +32,7 @@
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
   "dependencies": {
-    "@react-pdf/renderer": "^4.6.0",
+    "@react-pdf/renderer": "^4.6.1",
     "next": "^16.3.1",
     "next-auth": "5.0.0-beta.32",
     "next-intl": "^4.13.6",
