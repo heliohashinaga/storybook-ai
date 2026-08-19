@@ -62,16 +62,17 @@ export function NarrationControl({
       aria-busy={active || undefined}
       role="group"
       aria-label={t("control")}
-      className="flex w-full flex-col"
+      className="flex flex-col items-center"
     >
       <Button
         variant="secondary"
         aria-pressed={active}
+        aria-label={buttonLabel}
+        title={buttonLabel}
         onClick={onToggle}
-        className="w-full rounded-2xl! bg-secondary! text-secondary-foreground! font-bold! hover:brightness-95!"
+        className="min-h-12 min-w-12 justify-center! rounded-2xl! bg-secondary! text-secondary-foreground! hover:brightness-95!"
       >
         {active ? <PauseIcon className="size-5" /> : <Volume2Icon className="size-5" />}
-        {buttonLabel}
       </Button>
       <span aria-live="polite" className="sr-only">
         {status === "speaking" || status === "busy" ? buttonLabel : ""}

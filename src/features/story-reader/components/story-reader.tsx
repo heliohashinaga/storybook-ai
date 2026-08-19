@@ -210,19 +210,21 @@ export function StoryReader({
 
           <nav
             aria-label={t("navigationLabel")}
-            className="mt-lg grid gap-sm sm:grid-cols-[auto_1fr_auto]"
+            className="mt-lg flex flex-wrap items-center justify-center gap-sm"
           >
             <Button
               variant="secondary"
               onClick={() => goTo(currentIndex - 1)}
               disabled={currentIndex === 0}
+              aria-label={t("previous")}
+              title={t("previous")}
+              className="min-h-12 min-w-12 justify-center! rounded-2xl!"
             >
               <ChevronLeftIcon className="size-5" />
-              {t("previous")}
             </Button>
 
             {readAloud.supported && (
-              <div className="sm:w-full">
+              <div className="flex items-center justify-center">
                 <NarrationControl
                   status={readAloud.status}
                   mode={readAloud.mode}
@@ -236,8 +238,10 @@ export function StoryReader({
               variant="primary"
               onClick={() => goTo(currentIndex + 1)}
               disabled={currentIndex === total - 1}
+              aria-label={t("next")}
+              title={t("next")}
+              className="min-h-12 min-w-12 justify-center! rounded-2xl!"
             >
-              {t("next")}
               <ChevronRightIcon className="size-5" />
             </Button>
           </nav>
