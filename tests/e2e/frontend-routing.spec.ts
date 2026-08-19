@@ -17,7 +17,9 @@ import { switchToPortuguese } from "./helpers";
  *   5. Navigation between already-created stories lives in `/demo/reader` only
  *      (no `?story=` in the URL).
  *   6. The active locale survives `demo↔demo/reader` navigation.
- *   7. `aria-busy` while submitting; `aria-current` on the home nav on `/`.
+ *   7. `aria-busy` while submitting; `aria-current` on the route-aware home
+ *      nav on the demo route (`/` is a standalone login gate without the app
+ *      nav).
  *
  * The app defaults to English, so tests that assert pt-BR labels call
  * `switchToPortuguese`; tests that only assert routes use locale-agnostic
@@ -146,11 +148,13 @@ test("the active locale survives demo↔demo/reader navigation", async ({ page }
   await expect(page.getByRole("slider", { name: /Idade/i })).toBeVisible();
 });
 
-test("aria-busy is set while submitting and aria-current marks the home nav on /", async ({
+test("aria-busy is set while submitting and aria-current marks the home nav on the demo", async ({
   page,
 }) => {
-  // On the login gate `/` the home nav button carries aria-current (active route).
-  await page.goto("/");
+  // The login gate `/` is a standalone screen: the top-nav (and its home button)
+  // returns null there, so the route-aware home carries aria-current on the demo
+  // playground routes (`/demo` → home, `/demo/reader` → `/demo`).
+  await page.goto("/demo");
   const home = page.getByRole("button", { name: /voltar ao início|back to home/i });
   await expect(home).toHaveAttribute("aria-current", "page");
 

@@ -34,7 +34,7 @@ test("an email outside the allowlist is denied: localized message, no session", 
 }) => {
   // Auth.js redirects to `/?error=AccessDenied` when the sign-in callback
   // rejects the account (allowlist miss).
-  await page.route("**/api/auth/signin/google", (route) =>
+  await page.route("**/api/auth/signin/google*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -58,7 +58,7 @@ test("other sign-in errors surface the generic localized message without a sessi
   page,
   context,
 }) => {
-  await page.route("**/api/auth/signin/google", (route) =>
+  await page.route("**/api/auth/signin/google*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -70,7 +70,7 @@ test("other sign-in errors surface the generic localized message without a sessi
   await page.getByRole("button", { name: /Continue with Google/i }).click();
 
   await expect(page.getByRole("alert")).toHaveText(
-    "We couldn't complete that sign-in. Please try again or use a different account."
+    "We couldn’t complete that sign-in. Please try again or use a different account."
   );
   const cookies = await context.cookies();
   expect(cookies.some((c) => c.name === AUTH_COOKIE_NAME)).toBe(false);

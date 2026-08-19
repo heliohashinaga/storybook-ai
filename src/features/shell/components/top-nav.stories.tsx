@@ -28,6 +28,13 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
+  // The top-nav intentionally returns null on the login gate `/` (standalone
+  // screen) — render it on a demo route so the nav (brand + widgets) is visible.
+  parameters: {
+    nextjs: {
+      navigation: { pathname: "/demo" },
+    },
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText(/storybook ai/i)).toBeInTheDocument();
@@ -37,6 +44,11 @@ export const Default: Story = {
 
 export const English: Story = {
   decorators: [withLocalizedI18n("en")],
+  parameters: {
+    nextjs: {
+      navigation: { pathname: "/demo" },
+    },
+  },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText(/storybook ai/i)).toBeInTheDocument();

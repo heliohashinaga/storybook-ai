@@ -120,8 +120,8 @@ test("clicking Continue with Google issues the sign-in POST (no live provider na
   // Fulfil the OAuth initiation with the same JSON contract the Auth.js server
   // returns for `X-Auth-Return-Redirect` requests; the client then navigates to
   // the returned URL. Pointing it back at `/` keeps the flow local.
-  const signInRequest = page.waitForRequest("**/api/auth/signin/google");
-  await page.route("**/api/auth/signin/google", (route) =>
+  const signInRequest = page.waitForRequest("**/api/auth/signin/google*");
+  await page.route("**/api/auth/signin/google*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",

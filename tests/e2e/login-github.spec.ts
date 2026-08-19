@@ -71,8 +71,8 @@ test("clicking Continue with GitHub issues the sign-in POST (no live provider na
     "AUTH_GITHUB_ID/_SECRET required for the server to expose the button"
   );
 
-  const signInRequest = page.waitForRequest("**/api/auth/signin/github");
-  await page.route("**/api/auth/signin/github", (route) =>
+  const signInRequest = page.waitForRequest("**/api/auth/signin/github*");
+  await page.route("**/api/auth/signin/github*", (route) =>
     route.fulfill({
       status: 200,
       contentType: "application/json",
