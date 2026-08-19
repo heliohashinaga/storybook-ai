@@ -151,7 +151,7 @@ export function StoryReader({
         {/* Story title cap: a persistent "cover" band that stays fixed while
             scenes change. The story title is the card's `h1`; the per-scene
             heading below is the `h2` focus target. */}
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-lg py-sm">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-6 py-md sm:px-8">
           <h1 className="min-w-0 truncate font-display text-title font-extrabold leading-title tracking-tight">
             {story.title}
           </h1>
