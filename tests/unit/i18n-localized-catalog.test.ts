@@ -5,6 +5,8 @@ import ptBR from "../../src/features/story-request/locales/pt-BR.json";
 import en from "../../src/features/story-request/locales/en.json";
 import ptBRNarration from "../../src/features/story-read-aloud/locales/pt-BR.json";
 import enNarration from "../../src/features/story-read-aloud/locales/en.json";
+import ptBRAuth from "../../src/features/auth/locales/pt-BR.json";
+import enAuth from "../../src/features/auth/locales/en.json";
 
 /** Recursively collect the full leaf-key path set of a catalog. */
 function leafPaths(node: unknown, prefix = ""): string[] {
@@ -54,8 +56,10 @@ function mergeRecords(
   return out;
 }
 
-const mergedPt = deepMerge(ptBR, ptBRNarration);
-const mergedEn = deepMerge(en, enNarration);
+// Merge feature catalogs exactly like i18n/config does: story-request first,
+// then story-read-aloud, then the spec 015 auth (login/nav) catalogs.
+const mergedPt = deepMerge(deepMerge(ptBR, ptBRNarration), ptBRAuth);
+const mergedEn = deepMerge(deepMerge(en, enNarration), enAuth);
 
 describe("i18n message catalog (EN + pt-BR)", () => {
   it("exposes a complete catalog (base + narration) for every supported locale", () => {
@@ -63,6 +67,10 @@ describe("i18n message catalog (EN + pt-BR)", () => {
       const catalog = getMessages(locale);
       expect(catalog).toBeDefined();
       expect(catalog.story.narration).toBeDefined();
+      // spec 015: the auth/login + nav catalogs ride along in the same merge.
+      // top-nav reads `auth.nav.logout` via useTranslations("auth").
+      expect(catalog.login).toBeDefined();
+      expect(catalog.auth.nav.logout).toBeTypeOf("string");
     }
   });
 
@@ -89,6 +97,13 @@ describe("i18n message catalog (EN + pt-BR)", () => {
     expect(story.form?.submit).toBeTypeOf("string");
     expect(story.reader?.sceneLabel).toBeTypeOf("string");
     expect(story.narration?.reading).not.toBe(ptBRNarration.story.narration.reading);
+    // spec 015: the auth catalog is genuinely translated, not a copy. The
+    // `login.heading` is the brand name (identical across locales), so check
+    // genuinely-localized keys instead.
+    expect(getMessages("en").login.playgroundDescription).not.toBe(
+      ptBRAuth.login.playgroundDescription
+    );
+    expect(getMessages("en").auth.nav.logout).not.toBe(ptBRAuth.auth.nav.logout);
   });
 
   it("contains every messageKey referenced by the typed HTTP errors (en)", () => {

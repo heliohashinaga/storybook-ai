@@ -244,3 +244,67 @@ describe("env server validation", () => {
     expect(pipeline.success).toBe(false);
   });
 });
+
+describe("auth env whitelist (spec 015)", () => {
+  const AUTH_KEYS = [
+    "AUTH_SECRET",
+    "AUTH_GOOGLE_ID",
+    "AUTH_GOOGLE_SECRET",
+    "AUTH_GITHUB_ID",
+    "AUTH_GITHUB_SECRET",
+    "AUTH_URL",
+    "AUTH_TRUST_HOST",
+    "AUTH_ALLOWLIST_EMAILS",
+  ];
+
+  beforeEach(() => {
+    for (const key of AUTH_KEYS) delete process.env[key];
+  });
+
+  it("returns an empty object when no AUTH_* var is set (demo-only deploy)", async () => {
+    const { getAuthEnv } = await loadEnv();
+    expect(getAuthEnv()).toEqual({});
+  });
+
+  it("parses the full AUTH_* credential set", async () => {
+    process.env.AUTH_SECRET = "s3cret";
+    process.env.AUTH_GOOGLE_ID = "google-id";
+    process.env.AUTH_GOOGLE_SECRET = "google-secret";
+    process.env.AUTH_GITHUB_ID = "github-id";
+    process.env.AUTH_GITHUB_SECRET = "github-secret";
+    process.env.AUTH_URL = "http://localhost:3000";
+    process.env.AUTH_TRUST_HOST = "true";
+    process.env.AUTH_ALLOWLIST_EMAILS = "one@example.com, TWO@example.com";
+    const { getAuthEnv, allowlistEmails } = await loadEnv();
+    const auth = getAuthEnv();
+    expect(auth.AUTH_SECRET).toBe("s3cret");
+    expect(auth.AUTH_GOOGLE_ID).toBe("google-id");
+    expect(auth.AUTH_GOOGLE_SECRET).toBe("google-secret");
+    expect(auth.AUTH_GITHUB_ID).toBe("github-id");
+    expect(auth.AUTH_GITHUB_SECRET).toBe("github-secret");
+    // Boolean-enum knob rejects anything that is not literally "true"/"false".
+    expect(auth.AUTH_TRUST_HOST).toBe("true");
+    const allow = allowlistEmails(auth);
+    expect([...allow]).toEqual(["one@example.com", "two@example.com"]);
+  });
+
+  it("accepts only the whitelisted keys (never exposes AUTH_* to the client)", async () => {
+    process.env.AUTH_SECRET = "s3cret";
+    process.env.AUTH_EXTRA = "should-be-rejected";
+    const { getAuthEnv } = await loadEnv();
+    const auth = getAuthEnv();
+    expect(auth.AUTH_SECRET).toBe("s3cret");
+    expect(auth).not.toHaveProperty("AUTH_EXTRA");
+  });
+
+  it("rejects an invalid AUTH_TRUST_HOST value (returns {} — UI stays disabled)", async () => {
+    process.env.AUTH_TRUST_HOST = "yes";
+    const { getAuthEnv } = await loadEnv();
+    expect(getAuthEnv()).toEqual({});
+  });
+
+  it("allowlist returns an empty set when unset (access control off)", async () => {
+    const { allowlistEmails } = await loadEnv();
+    expect(allowlistEmails({}).size).toBe(0);
+  });
+});

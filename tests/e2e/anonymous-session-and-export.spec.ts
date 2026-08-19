@@ -85,7 +85,9 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
 }) => {
   const payloads = await captureStoryCalls(page);
 
-  await page.goto("/form");
+  // spec 015: the anonymous form lives on /demo (the playground /form is
+  // session-gated); /demo uses the same StoryRequestApp with isFake=true.
+  await page.goto("/demo");
   await switchToPortuguese(page);
 
   // No name / direct-identifier field exists on the form (privacy invariant).
@@ -99,8 +101,8 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   await page.getByRole("button", { name: /Criar história/i }).click();
   const firstResponse = await first;
 
-  // Spec 009: successful generation lands on /reader.
-  await expect(page).toHaveURL(/\/reader$/);
+  // Spec 015: successful generation lands on /demo/reader.
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByLabel("Sua história")).toBeVisible();
   await expect(page.getByText("Cena 1 de 3")).toBeVisible();
   expect(payloads).toHaveLength(1);
@@ -117,14 +119,14 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
     const response = waitForStoryResponse(page);
     // Internal navigation to the clean /form (Clarifications Q3).
     await newStory.click();
-    await expect(page).toHaveURL(/\/form$/);
+    await expect(page).toHaveURL(/\/demo$/);
     await expect(page.getByRole("button", { name: /Criar história/i })).toBeVisible();
     // The form reuses the session's defaults (age 6 → band 5-7, courage) and
     // the UI is still pt-BR, so generating again appends without re-asking.
     await page.getByRole("button", { name: /Criar história/i }).click();
     responses.push(await response);
-    // Lands back on /reader with the appended story.
-    await expect(page).toHaveURL(/\/reader$/);
+    // Lands back on /demo/reader with the appended story.
+    await expect(page).toHaveURL(/\/demo\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
   }
 
@@ -159,7 +161,7 @@ test("anonymous multi-story session: reuse, no cap, clear-on-reload, no persiste
   await expect(page.getByRole("slider", { name: /Idade|Age/i })).toHaveValue("5");
 
   // ---- URL carries no age / theme / story data ---------------------------
-  expect(page.url()).toBe(new URL("/form", page.url()).toString());
+  expect(page.url()).toBe(new URL("/demo", page.url()).toString());
   expect(page.url()).not.toMatch(/age|theme|courage|story|pref/i);
 });
 
@@ -167,7 +169,8 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   const payloads = await captureStoryCalls(page);
 
   // The app defaults to English; the form's EN story locale is pre-selected.
-  await page.goto("/form");
+  // spec 015: anonymous form lives on /demo; the playground /form is gated.
+  await page.goto("/demo");
 
   // No name / direct-identifier field exists on the form (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
@@ -179,8 +182,8 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   await page.getByRole("button", { name: "Create story" }).click();
   const firstResponse = await first;
 
-  // Spec 009: lands on /reader with the EN reader.
-  await expect(page).toHaveURL(/\/reader$/);
+  // Spec 015: lands on /demo/reader with the EN reader.
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByLabel("Your story")).toBeVisible();
   await expect(page.getByText(/Scene 1 of 3/i)).toBeVisible();
   expect(firstResponse.status()).toBe(200);
@@ -192,11 +195,11 @@ test("no direct identifier is ever sent in an English multi-story session", asyn
   await expect(newStory).toBeVisible();
   const second = waitForStoryResponse(page);
   await newStory.click();
-  await expect(page).toHaveURL(/\/form$/);
+  await expect(page).toHaveURL(/\/demo$/);
   await page.getByRole("button", { name: "Create story" }).click();
   const secondResponse = await second;
 
-  await expect(page).toHaveURL(/\/reader$/);
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByText(/Scene 1 of 3/i)).toBeVisible();
   expect(secondResponse.status()).toBe(200);
 

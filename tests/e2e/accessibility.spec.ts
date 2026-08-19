@@ -29,7 +29,9 @@ async function expectNoViolations(page: Page): Promise<void> {
 }
 
 async function fillAndSubmit(page: Page): Promise<void> {
-  await page.goto("/form");
+  // spec 015: the anonymous form lives on /demo (the playground /form is
+  // session-gated); /demo uses the same StoryRequestApp with isFake=true.
+  await page.goto("/demo");
   await switchToPortuguese(page);
   await page.getByRole("slider", { name: /Idade/i }).fill("6");
   // Theme is a visual ChoiceCard group (FR-UX-001): select by clicking the card.
@@ -39,7 +41,8 @@ async function fillAndSubmit(page: Page): Promise<void> {
 
 test.describe("application accessibility (T059)", () => {
   test("landing form has no WCAG A/AA violations", async ({ page }) => {
-    await page.goto("/form");
+    // spec 015: the anonymous request form is the /demo playground.
+    await page.goto("/demo");
     await switchToPortuguese(page);
     await expect(page.getByRole("heading", { name: /storybook ai/i }).first()).toBeVisible();
     await expectNoViolations(page);
@@ -51,7 +54,7 @@ test.describe("application accessibility (T059)", () => {
     );
     await fillAndSubmit(page);
     await response;
-    await expect(page).toHaveURL(/\/reader$/);
+    await expect(page).toHaveURL(/\/demo\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
     // Reader scene controls plus the export button are on screen and reachable
@@ -72,16 +75,16 @@ test.describe("application accessibility (T059)", () => {
     await expect(page).toHaveURL(/\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
-    // Append a second story: "Nova história" returns to the clean /form, then
+    // Append a second story: "Nova história" returns to the clean demo form, then
     // submit again so the in-session switcher shows both stories.
     const second = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"
     );
     await page.getByRole("button", { name: /Nova história/i }).click();
-    await expect(page).toHaveURL(/\/form$/);
+    await expect(page).toHaveURL(/\/demo$/);
     await page.getByRole("button", { name: /Criar história/i }).click();
     await second;
-    await expect(page).toHaveURL(/\/reader$/);
+    await expect(page).toHaveURL(/\/demo\/reader$/);
     await expect(page.getByText("Cena 1 de 3")).toBeVisible();
 
     // The accessible switcher group exposes the active story via a pressed state.
@@ -108,7 +111,8 @@ test.describe("application accessibility (T059)", () => {
       })
     );
 
-    await page.goto("/form");
+    // spec 015: the anonymous form lives on /demo.
+    await page.goto("/demo");
     await switchToPortuguese(page);
     const response = page.waitForResponse(
       (r) => r.url().includes("/api/stories") && r.request().method() === "POST"

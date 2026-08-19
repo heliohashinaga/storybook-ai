@@ -64,6 +64,12 @@ export default defineConfig({
     // STORIES_TEST_MODE in their environment; default here is the fake.
     env: {
       ...(process.env.STORIES_TEST_MODE ? {} : { STORIES_TEST_MODE: "fake" }),
+      // Auth.js must trust and rotate the suite's own origin: the specs drive
+      // the browser against 127.0.0.1, so a localhost AUTH_URL (as in
+      // .env.local) breaks cookie/CSRF host matching (MissingCSRF redirects)
+      // and makes the sign-out journey flaky.
+      AUTH_URL: `http://127.0.0.1:${PORT}`,
+      ...(process.env.AUTH_TRUST_HOST ? {} : { AUTH_TRUST_HOST: "true" }),
       // E2E/visual/perf run against a production `next start` server, where the
       // dev-only fake load provides no UX value. Zero it here so suites stay fast
       // and deterministic: the multi-story E2E (4 generations) and the perf

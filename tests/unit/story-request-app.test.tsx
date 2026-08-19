@@ -203,7 +203,9 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
     await goToReaderAfterSuccess(navigate);
-    expect(await screen.findByText("The Dream of the Star")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "The Dream of the Star" })
+    ).toBeInTheDocument();
     const body = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
     expect(body).toEqual({ ageBand: "5-7", locale: "en", theme: "friendship", sceneCount: 3 });
   });
@@ -230,7 +232,9 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
     );
     await submitValidForm();
     await goToReaderAfterSuccess(navigate);
-    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "O segredo da floresta" })
+    ).toBeInTheDocument();
     const secondBody = JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body));
     expect(secondBody).toEqual({
       ageBand: "5-7",
@@ -343,14 +347,18 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
     );
     await submitValidForm();
     await goToReaderAfterSuccess(navigate);
-    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "O segredo da floresta" })
+    ).toBeInTheDocument();
 
     const switcher = screen.getByLabelText(/suas histórias/i);
     expect(switcher).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /A missão da estrelinha/ })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^História — A missão da estrelinha$/ }));
-    expect(await screen.findByText("A missão da estrelinha")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "A missão da estrelinha" })
+    ).toBeInTheDocument();
   });
 
   it("runs the elapsed-clock interval while submitting and clears it on success", async () => {
@@ -419,6 +427,8 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
       resolveSecond(new Response(JSON.stringify(secondStory()), { status: 200 }));
     });
     await goToReaderAfterSuccess(navigate);
-    expect(await screen.findByText("O segredo da floresta")).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "O segredo da floresta" })
+    ).toBeInTheDocument();
   });
 });

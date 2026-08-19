@@ -28,6 +28,12 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   (`courage | friendship | kindness | curiosity | perseverance | empathy`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
   cache. Exact age and generated stories live in React in-memory state only.
+  **RATIFIED EXCEPTION (ADR 0012, spec 015):** one httpOnly JWT session cookie
+  (`authjs.session-token`, SameSite=Lax, Secure, TTL 24h) is allowed **only** on
+  the authenticated playground path (`/form`, `/reader`) to gate real-LLM
+  generation. The demo path (`/`, `/demo`) stays 100% cookie-less; no identity
+  (email/name/tokens) is ever persisted, logged, exposed to the client, or sent
+  to AI providers; story payloads remain `ageBand|locale|theme|sceneCount`.
 - All AI-vendor calls stay behind a **server-only provider adapter**
   (`story-generation/server`); UI never sees raw provider output. Modules importing
   the provider/OpenAI SDK/sharp must be `server-only`.

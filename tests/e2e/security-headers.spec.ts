@@ -69,3 +69,49 @@ test("pages load without CSP console violations (default, error, reader)", async
     page.off("console", onConsole);
   }
 });
+
+test("spec 015 surfaces keep the full security header set (login gate, demo, form, auth API)", async ({
+  request,
+}) => {
+  // Spec 015 added the login gate `/`, the anonymous `/demo` mirror, and the
+  // `/api/auth/*` surface. None of them may relax the header set configured in
+  // next.config.ts — assert the full set on each new document surface.
+  for (const path of ["/", "/demo"]) {
+    const response = await request.get(path);
+    expect(response.ok()).toBe(true);
+    for (const [name, pattern] of Object.entries(SECURITY_HEADERS)) {
+      expect(response.headers()[name], `missing or invalid header ${name} on ${path}`).toMatch(
+        pattern
+      );
+    }
+  }
+
+  // The playground form deep link without a session redirects to the gate; the
+  // final document must also carry the full header set (no relaxation on the
+  // authenticated surface even when it redirects).
+  const form = await request.get("/form");
+  expect(form.ok()).toBe(true);
+  for (const [name, pattern] of Object.entries(SECURITY_HEADERS)) {
+    expect(form.headers()[name], `missing or invalid header ${name} on /form`).toMatch(pattern);
+  }
+
+  // Auth API responses carry the full header set too, and stay uncached
+  // (handlers are wrapped with the rate-limiter's `Cache-Control: no-store`).
+  // In a demo-only e2e (no AUTH_SECRET) these routes are safe 401 stubs and
+  // the no-store wrapper is not mounted — so assert the authenticated surface
+  // only when the server actually has credentials configured.
+  if (process.env.AUTH_SECRET) {
+    for (const path of ["/api/auth/session", "/api/auth/csrf"]) {
+      const response = await request.get(path);
+      expect(response.ok()).toBe(true);
+      for (const [name, pattern] of Object.entries(SECURITY_HEADERS)) {
+        expect(response.headers()[name], `missing or invalid header ${name} on ${path}`).toMatch(
+          pattern
+        );
+      }
+      expect(response.headers()["cache-control"], `${path} must not be cached`).toContain(
+        "no-store"
+      );
+    }
+  }
+});

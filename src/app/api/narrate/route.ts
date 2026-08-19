@@ -2,8 +2,11 @@ import "server-only";
 import { z } from "zod";
 import {
   createTtsRuntime,
+  createDemoTtsRuntime,
   type TtsRuntime,
 } from "../../../features/story-read-aloud/server/tts-runtime";
+import { resolveGenerationMode } from "../../../features/story-generation/server/generation-runtime";
+import { isAuthenticated } from "../../../features/auth/server/session";
 import type { TtsProviderError } from "../../../features/story-read-aloud/server/tts-provider";
 import {
   narrateInvalidInput,
@@ -156,7 +159,8 @@ export function createNarrateHandler(deps: NarrateRouteDeps) {
 const TTS_RATE_LIMIT_MAX_REQUESTS = Number(process.env.TTS_RATE_LIMIT_MAX_REQUESTS ?? 30);
 const TTS_RATE_LIMIT_WINDOW_MS = Number(process.env.TTS_RATE_LIMIT_WINDOW_MS ?? 60_000);
 
-const runtime = createTtsRuntime();
+const realRuntime = createTtsRuntime();
+const demoRuntime = createDemoTtsRuntime();
 
 const salt = generateSalt();
 const rateLimiter = new InMemoryRateLimiter({
@@ -164,9 +168,19 @@ const rateLimiter = new InMemoryRateLimiter({
   windowMs: TTS_RATE_LIMIT_WINDOW_MS,
 });
 
-export const POST = createNarrateHandler({
-  runtime,
-  rateLimiter,
-  salt,
-  trustForwardedFor: trustForwardedForEnv(),
-});
+/**
+ * Mode-aware `POST /api/narrate` (spec 015). Mirrors the generation runtime:
+ * the anonymous demo path always synthesizes with the deterministic offline
+ * provider (never a live model), while the authenticated playground may use the
+ * real TTS adapter. The contract (anonymous `sceneText`|`locale`) is unchanged.
+ */
+export async function POST(request: Request): Promise<Response> {
+  const mode = resolveGenerationMode(await isAuthenticated());
+  const runtime = mode === "playground" ? realRuntime : demoRuntime;
+  return createNarrateHandler({
+    runtime,
+    rateLimiter,
+    salt,
+    trustForwardedFor: trustForwardedForEnv(),
+  })(request);
+}

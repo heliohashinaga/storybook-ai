@@ -40,6 +40,12 @@ function FormScreen({ isFake }: { isFake: boolean }) {
   const submitting = status === "submitting";
   const [elapsed, setElapsed] = useState(0);
 
+  // spec 015: the anonymous demo mounts the same app at /demo (/demo/reader),
+  // while the authenticated playground uses /form (/reader). The generation
+  // target must follow the mount path, or an anonymous journey would land on
+  // the session-gated /reader and bounce back to the login gate.
+  const readerPath = isFake ? "/demo/reader" : "/reader";
+
   // Tick the elapsed clock that drives the localized progress copy while an
   // anonymous request is in flight. Cleared once submission ends.
   useEffect(() => {
@@ -69,7 +75,7 @@ function FormScreen({ isFake }: { isFake: boolean }) {
         theme: request.theme,
         sceneCount: request.sceneCount,
       });
-      router.replace("/reader");
+      router.replace(readerPath);
       return { ok: true };
     }
     fail(result.error);
@@ -115,18 +121,22 @@ function FormScreen({ isFake }: { isFake: boolean }) {
 }
 
 /** The `/reader` screen: the active story + in-session history switcher. */
-function ReaderScreen({ isFake: _isFake }: { isFake: boolean }) {
+function ReaderScreen({ isFake }: { isFake: boolean }) {
   const router = useRouter();
   const { story, stories, activeId, accessStory, hasSession } = useStorySession();
+
+  // spec 015: mirror the mount path ("/demo" vs "/form") so the anonymous demo
+  // stays on /demo(/reader) and only the playground touches the session gate.
+  const formPath = isFake ? "/demo" : "/form";
 
   // Session gate: `/reader` without a session (deep-link / reload) redirects
   // to the clean `/form`. Check after mount so the initial render has a stable
   // snapshot of the in-memory session, then redirect once.
   useEffect(() => {
     if (!hasSession()) {
-      router.replace("/form");
+      router.replace(formPath);
     }
-  }, [hasSession, router]);
+  }, [hasSession, router, formPath]);
 
   // Spec 009 / Clarifications Q4: on `<h1>`/heading of the `/reader` screen
   // gets focus when it mounts. `StoryReader` already moves focus to the story's
@@ -134,10 +144,11 @@ function ReaderScreen({ isFake: _isFake }: { isFake: boolean }) {
   // here beyond landing on the reader with that focus in place.
 
   const onNewStory = useCallback(() => {
-    // "New story": go to the clean `/form` via the app's internal navigation
-    // (the browser history does not carry a stale `/form`; see Clarifications Q3).
-    router.replace("/form");
-  }, [router]);
+    // "New story": go to the clean form via the app's internal navigation
+    // (the browser history does not carry a stale form; see Clarifications Q3).
+    // The target follows the mount path (demo vs playground).
+    router.replace(formPath);
+  }, [router, formPath]);
 
   if (!story) {
     // No story (still hydrating / redirecting): render an empty live region so

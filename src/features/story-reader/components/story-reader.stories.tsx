@@ -100,6 +100,12 @@ export const FiveScenes: Story = {
   args: { story: base },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
+    // The persistent story title cap is the card's `h1`; the theme badge shows
+    // the localized theme name (courage → "Coragem" in pt-BR).
+    await expect(
+      canvas.getByRole("heading", { level: 1, name: "A missão da estrelinha" })
+    ).toBeVisible();
+    await expect(canvas.getByText("Coragem")).toBeVisible();
     await expect(canvas.getByText("Cena 1 de 5")).toBeVisible();
     await userEvent.click(canvas.getByRole("button", { name: /próxima/i }));
     await expect(canvas.getByText("Cena 2 de 5")).toBeVisible();

@@ -35,7 +35,9 @@ interface RequestPayload {
 
 /** Fills the form with age 9 + friendship and selects the English locale. */
 async function fillAndSubmitEnglish(page: Page): Promise<void> {
-  await page.goto("/form");
+  // spec 015: the anonymous form lives on /demo (the playground /form is
+  // session-gated); /demo uses the same StoryRequestApp with isFake=true.
+  await page.goto("/demo");
 
   // No name / direct-identifier field exists on the form (privacy invariant).
   await expect(page.getByLabel(/nome|child|filho|name/i)).toHaveCount(0);
@@ -104,10 +106,10 @@ test("en journey sends only ageBand/locale/theme and renders a safe English stor
   expect(body.scenes).toHaveLength(3);
 
   // ---- Reader view assertions --------------------------------------------
-  // Spec 009: generation navigates to `/reader` (replace). The reader (T040)
+  // Spec 015: generation navigates to `/demo/reader` (replace). The reader (T040)
   // shows exactly one scene at a time and navigates with the previous/next
   // buttons; every scene is reached and asserted in order.
-  await expect(page).toHaveURL(/\/reader$/);
+  await expect(page).toHaveURL(/\/demo\/reader$/);
   const reader = page.getByRole("region", { name: "Your story" });
   // The scene image lives inside the reader region; the in-session history
   // sidebar also shows a webp thumbnail, so scope the count to the reader.

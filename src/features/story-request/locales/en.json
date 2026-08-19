@@ -63,8 +63,7 @@
       "showMore": "Show more",
       "showLess": "Show less",
       "navigationLabel": "Scene navigation",
-      "showMore": "Show more",
-      "showLess": "Show less"
+      "themeLabel": "Theme"
     },
     "storySwitcher": {
       "label": "Your stories",
