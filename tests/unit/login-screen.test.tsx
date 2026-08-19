@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import {
   LoginScreenView,
-  GITHUB_REPO_URL,
   type LoginCredentials,
 } from "../../src/features/auth/components/login-screen-view";
 import { getMessages } from "../../src/i18n/config";
@@ -187,17 +186,6 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
         "Não foi possível concluir o acesso. Tente novamente ou use outra conta."
       );
     });
-  });
-
-  it("shows the GitHub portfolio repo link in the always-visible footer", () => {
-    renderLogin(WITH_PROVIDERS);
-
-    const source = screen.getByRole("link", { name: "Ver código no GitHub" });
-    expect(source).toHaveAttribute("href", GITHUB_REPO_URL);
-    expect(source).toHaveAttribute("target", "_blank");
-    expect(source).toHaveAttribute("rel", expect.stringContaining("noopener"));
-    expect(source).toHaveAttribute("rel", expect.stringContaining("noreferrer"));
-    expect(source).toBeVisible();
   });
 
   it("shows no alert without an error callback", () => {

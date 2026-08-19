@@ -5,7 +5,7 @@ import { signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
-import { OAuthProviderButton, GitHubIcon, type OAuthProvider } from "./oauth-provider-button";
+import { OAuthProviderButton, type OAuthProvider } from "./oauth-provider-button";
 import { LangToggle } from "../../shell/components/lang-toggle";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { StarField } from "./star-field";
@@ -14,12 +14,6 @@ export interface LoginCredentials {
   google: boolean;
   github: boolean;
 }
-
-/**
- * Public portfolio repository (hardcoded — the project is published for
- * portfolio review only, see README disclaimer; not an identifier or secret).
- */
-export const GITHUB_REPO_URL = "https://github.com/heliohashinaga/storybook-ai";
 
 type SignInError = "accessDenied" | "generic" | null;
 
@@ -221,22 +215,6 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
             />
           )}
         </div>
-
-        {/* Footer: discreet, always-visible link to the public portfolio repo.
-            Kept outside the Playground/demo card so it never reads as a third
-            sign-in action (the OAuth GitHub button is “Continue with GitHub”). */}
-        <footer className="mt-10">
-          <a
-            href={GITHUB_REPO_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            lang={locale}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-          >
-            <GitHubIcon className="size-3.5" />
-            {t("viewSource")}
-          </a>
-        </footer>
       </div>
     </main>
   );

@@ -12,8 +12,7 @@
     "demoHint": "Experimente histórias pré-geradas — sem precisar de conta.",
     "noCredentials": "O acesso ainda não está configurado nesta instância. Explore a demo no lugar.",
     "signInError": "Não foi possível concluir o acesso. Tente novamente ou use outra conta.",
-    "accessDenied": "Esta conta não tem permissão para entrar aqui.",
-    "viewSource": "Ver código no GitHub"
+    "accessDenied": "Esta conta não tem permissão para entrar aqui."
   },
   "auth": {
     "nav": {

@@ -4,6 +4,7 @@ import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import { LocaleProvider } from "../i18n/locale-provider";
 import { TopNav } from "../features/shell/components/top-nav";
+import { SiteFooter } from "../features/shell/components/site-footer";
 import { StorySessionProvider } from "../features/story-request/client/story-session-context";
 
 // Self-hosted identity fonts ported from story-blossom-room (design-system §3).
@@ -54,6 +55,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <StorySessionProvider>
             <TopNav />
             <main className="pb-xl">{children}</main>
+            <SiteFooter />
           </StorySessionProvider>
         </LocaleProvider>
       </body>
