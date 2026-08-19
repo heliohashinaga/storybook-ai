@@ -207,7 +207,7 @@ describe("StoryRequestForm — submission states", () => {
     fireEvent.change(ageSlider(), { target: { value: "7" } });
     await user.click(screen.getByRole("button", { name: /criar história/i }));
 
-    expect(await screen.findByText(/gerador de histórias está indisponível/i)).toHaveRole("alert");
+    expect(await screen.findByText(/gerador de histórias indisponível/i)).toHaveRole("alert");
     expect(onSubmit).toHaveBeenCalledTimes(1);
 
     await user.click(screen.getByRole("button", { name: /criar história/i }));

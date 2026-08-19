@@ -10,8 +10,8 @@
     "or": "OU",
     "demo": "Explorar a Demo",
     "demoHint": "Experimente histórias pré-geradas — sem precisar de conta.",
-    "noCredentials": "O acesso ainda não está configurado nesta instância. Explore a demo no lugar.",
-    "signInError": "Não foi possível concluir o acesso. Tente novamente ou use outra conta.",
+    "noCredentials": "Acesso ainda não configurado. Explore a demo.",
+    "signInError": "Não deu para entrar. Tente de novo ou use outra conta.",
     "accessDenied": "Esta conta não tem permissão para entrar aqui."
   },
   "auth": {

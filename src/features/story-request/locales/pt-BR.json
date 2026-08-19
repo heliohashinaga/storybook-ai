@@ -2,7 +2,7 @@
   "story": {
     "form": {
       "title": "Storybook AI",
-      "subtitle": "Dê ao fim do dia um momento mágico: uma história só do seu filho, para lerem juntos.",
+      "subtitle": "Um momento mágico: uma história só do seu filho, para lerem juntos.",
       "age": {
         "label": "Idade",
         "placeholder": "Digite a idade (2 a 9)",
@@ -25,8 +25,8 @@
       "submitting": "Criando sua história…"
     },
     "progress": {
-      "timeout": "Isso está demorando mais que o esperado. Obrigado pela paciência — sua história continua sendo criada.",
-      "safetyRetry": "Estamos revisando mais uma vez para garantir que tudo fique seguro. Quase lá!",
+      "timeout": "Está demorando mais que o esperado. Sua história ainda está sendo criada.",
+      "safetyRetry": "Revisando de novo para garantir a segurança. Quase lá!",
       "stagePlanning": "Preparando sua história…",
       "stageWriting": "Escrevendo sua história…",
       "stageIllustrating": "Ilustrando suas cenas…",
@@ -36,10 +36,10 @@
     },
     "error": {
       "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
-      "unsupportedLocale": "Idioma não suportado. Escolha entre português (Brasil) e inglês.",
+      "unsupportedLocale": "Idioma não suportado. Escolha português ou inglês.",
       "safeAlternativeUnavailable": "Não foi possível gerar uma história segura. Tente novamente.",
       "tryAgainLater": "Muitas solicitações. Aguarde um pouco e tente novamente.",
-      "generationUnavailable": "O gerador de histórias está indisponível no momento. Tente novamente.",
+      "generationUnavailable": "Gerador de histórias indisponível. Tente de novo.",
       "generationTimeout": "A geração da história demorou demais. Tente novamente."
     },
     "reader": {
@@ -80,12 +80,12 @@
         "empathy": "Empatia"
       },
       "themeDescription": {
-        "courage": "Enfrentar o medo e fazer a coisa certa.",
-        "friendship": "Gentileza, partilha e ser um bom amigo.",
-        "kindness": "Cuidar dos outros e ajudar.",
-        "curiosity": "Fazer perguntas e descobrir o desconhecido.",
-        "perseverance": "Tentar de novo e não desistir nunca.",
-        "empathy": "Entender como os outros se sentem."
+        "courage": "Enfrentar o medo.",
+        "friendship": "Ser um bom amigo.",
+        "kindness": "Cuidar e ajudar.",
+        "curiosity": "Descobrir o desconhecido.",
+        "perseverance": "Não desistir nunca.",
+        "empathy": "Sentir com o outro."
       }
     },
     "brand": {

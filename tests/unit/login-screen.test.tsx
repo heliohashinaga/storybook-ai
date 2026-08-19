@@ -86,7 +86,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     // No providers configured → playground card is hidden, a notice explains why.
     expect(screen.queryByRole("heading", { name: "Playground" })).not.toBeInTheDocument();
     expect(screen.getByRole("note")).toHaveTextContent(
-      "O acesso ainda não está configurado nesta instância."
+      "Acesso ainda não configurado. Explore a demo."
     );
   });
 
@@ -120,7 +120,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     // the Explore-the-Demo button and the hint all live in the same card.
     const card = screen.getByRole("region", { name: "Explorar a Demo" });
     expect(within(card).getByRole("note")).toHaveTextContent(
-      "O acesso ainda não está configurado nesta instância."
+      "Acesso ainda não configurado. Explore a demo."
     );
     expect(within(card).getByRole("link", { name: "Explorar a Demo" })).toBeVisible();
     expect(
@@ -171,7 +171,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     renderLogin(WITH_PROVIDERS);
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Não foi possível concluir o acesso. Tente novamente ou use outra conta."
+      "Não deu para entrar. Tente de novo ou use outra conta."
     );
   });
 
@@ -183,7 +183,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     await user.click(screen.getByRole("button", { name: "Continuar com o Google" }));
     await waitFor(() => {
       expect(screen.getByRole("alert")).toHaveTextContent(
-        "Não foi possível concluir o acesso. Tente novamente ou use outra conta."
+        "Não deu para entrar. Tente de novo ou use outra conta."
       );
     });
   });

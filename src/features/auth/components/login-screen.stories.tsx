@@ -68,7 +68,7 @@ export const NoCredentials: Story = {
     await expect(
       canvas.queryByRole("button", { name: /continuar com o github/i })
     ).not.toBeInTheDocument();
-    await expect(canvas.getByRole("note")).toHaveTextContent(/não está configurado/i);
+    await expect(canvas.getByRole("note")).toHaveTextContent(/não configurado/i);
     await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
   },
 };
