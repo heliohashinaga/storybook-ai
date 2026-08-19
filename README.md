@@ -34,17 +34,20 @@ backend (fake catalog vs. real LLMs) and the session requirement differ.
 
 ## Screenshots
 
-<p align="center">
-  <img src="docs/img/print_form.jpeg" alt="Story request form with age band, language, positive-theme cards, and scene count" width="70%">
-  <br>
-  <em>The story request form</em>
-</p>
-
-<p align="center">
-  <img src="docs/img/print_reader.jpeg" alt="Story reader showing a generated scene with the story title, theme badge, illustration, and scene navigation" width="70%">
-  <br>
-  <em>The story reader</em>
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/img/print_form.jpeg" alt="Story request form with age band, language, positive-theme cards, and scene count" width="100%">
+      <br>
+      <em>The story request form</em>
+    </td>
+    <td align="center">
+      <img src="docs/img/print_reader.jpeg" alt="Story reader showing a generated scene with the story title, theme badge, illustration, and scene navigation" width="100%">
+      <br>
+      <em>The story reader</em>
+    </td>
+  </tr>
+</table>
 
 ## How story generation works
 
