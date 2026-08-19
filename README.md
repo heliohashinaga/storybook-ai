@@ -32,6 +32,20 @@ with illustrations.
 The demo and playground render the **same** story UI; only the generation
 backend (fake catalog vs. real LLMs) and the session requirement differ.
 
+## Screenshots
+
+<p align="center">
+  <img src="docs/img/print_form.jpeg" alt="Story request form with age band, language, positive-theme cards, and scene count" width="70%">
+  <br>
+  <em>The story request form</em>
+</p>
+
+<p align="center">
+  <img src="docs/img/print_reader.jpeg" alt="Story reader showing a generated scene with the story title, theme badge, illustration, and scene navigation" width="70%">
+  <br>
+  <em>The story reader</em>
+</p>
+
 ## How story generation works
 
 You pick an age range, a language, and a theme.
