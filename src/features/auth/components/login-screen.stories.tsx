@@ -42,6 +42,7 @@ export const Default: Story = {
       canvas.getByRole("button", { name: /continuar com o github/i })
     ).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
+    await expect(canvas.getByRole("link", { name: /ver código no github/i })).toBeInTheDocument();
   },
 };
 
@@ -52,6 +53,7 @@ export const English: Story = {
     await expect(canvas.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
     await expect(canvas.getByRole("button", { name: /continue with github/i })).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /explore the demo/i })).toBeInTheDocument();
+    await expect(canvas.getByRole("link", { name: /view source on github/i })).toBeInTheDocument();
   },
 };
 
@@ -70,6 +72,7 @@ export const NoCredentials: Story = {
     ).not.toBeInTheDocument();
     await expect(canvas.getByRole("note")).toHaveTextContent(/não está configurado/i);
     await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
+    await expect(canvas.getByRole("link", { name: /ver código no github/i })).toBeInTheDocument();
   },
 };
 

@@ -65,7 +65,7 @@ function GoogleIcon({ className }: { className?: string }) {
   );
 }
 
-function GitHubIcon({ className }: { className?: string }) {
+export function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
