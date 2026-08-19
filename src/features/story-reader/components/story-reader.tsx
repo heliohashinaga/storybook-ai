@@ -13,9 +13,11 @@ import { SceneView } from "./scene-view";
 /**
  * Scene-by-scene reader (T040, extended by spec 004) — blossom layout (spec 007).
  *
- * Shows one scene at a time inside a single reading card: a full-bleed scene
- * illustration (with theme badge), a scene-progress row ("Cena X de Y" + dots),
- * the scene title and body, and a button row (previous / read aloud / next).
+ * Shows one scene at a time inside a single reading card: a persistent story
+ * title cap (story title + localized theme badge) above a full-bleed scene
+ * illustration, a scene-progress row ("Cena X de Y" + dots), the scene title
+ * and body, and a button row (previous / read aloud / next). The story title
+ * is the card's `h1`; the per-scene heading is an `h2` it moves focus to.
  * A footer bar hosts "New story" and the PDF export action.
  *
  * Navigation is ordered with next/previous; bounds are enforced (previous
@@ -40,6 +42,7 @@ export function StoryReader({
 }) {
   const t = useTranslations("story.reader");
   const tn = useTranslations("story.narration");
+  const tc = useTranslations("story.catalog");
   const scenes = story.scenes;
   const [currentIndex, setCurrentIndex] = useState(0);
   const regionRef = useRef<HTMLElement>(null);
@@ -145,6 +148,19 @@ export function StoryReader({
         onKeyDown={handleKeyDown}
         className="overflow-hidden rounded-4xl border border-border bg-card shadow-lift"
       >
+        {/* Story title cap: a persistent "cover" band that stays fixed while
+            scenes change. The story title is the card's `h1`; the per-scene
+            heading below is the `h2` focus target. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-lg py-sm">
+          <h1 className="min-w-0 truncate font-display text-title font-extrabold leading-title tracking-tight">
+            {story.title}
+          </h1>
+          <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-sm py-xs text-caption font-bold leading-caption text-text-subtle">
+            <span className="sr-only">{t("themeLabel")}: </span>
+            {tc(`theme.${story.theme}`)}
+          </span>
+        </div>
+
         <SceneView scene={current} />
 
         <div className="p-6 sm:p-8">
@@ -161,14 +177,14 @@ export function StoryReader({
             </div>
           </div>
 
-          <h1
+          <h2
             data-scene-heading
             id={`scene-heading-${current.ordinal}`}
             tabIndex={-1}
             className="mt-2 font-display text-display font-extrabold leading-display tracking-tight sm:text-3xl"
           >
             {current.title}
-          </h1>
+          </h2>
 
           <p
             ref={bodyRef}
