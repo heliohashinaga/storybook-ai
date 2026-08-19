@@ -41,6 +41,36 @@ pnpm test:visual     # com baselines atualizados intencionalmente (--update-snap
 pnpm test:e2e        # Playwright pt-BR + EN, provider fake
 ```
 
+## Matriz de dispositivos / viewport (mobile)
+
+Validação de layout em telas pequenas via projetos do Playwright (opt-in, feature 016):
+
+| Largura×Altura (px) | Projeto | Engine | Representa |
+|---------------------|---------|--------|------------|
+| 320×568 | `mobile-small` | Chromium | piso — SC-001/002 (feature 016) |
+| 390×844 | `mobile-main` | Chromium | iPhone 13–16 / Android moderno |
+| 430×932 | `mobile-large` | Chromium | Pro Max / grande |
+| 768×1024 | `tablet-portrait` | Chromium | iPad retrato |
+| 390×664 | `mobile-main-webkit` | WebKit | iOS Safari (390) |
+| 375×667 | `mobile-small-webkit` | WebKit | iOS Safari (SE) |
+
+Como rodar (a matriz é escopada a `tests/visual/**`):
+
+```bash
+# Chrome em 320/390/430/768 (visual/layout) — build de produção via pretest:visual:
+E2E_MOBILE=1 pnpm test:visual
+
+# + WebKit (engine do Safari) — instalar o navegador uma vez:
+pnpm exec playwright install webkit
+E2E_MOBILE=1 E2E_WEBKIT=1 pnpm test:visual
+
+# Criar/atualizar os baselines visuais da matriz (após mudança intencional):
+E2E_MOBILE=1 sh scripts/run-with-chromium.sh pnpm exec playwright test tests/visual --update-snapshots
+```
+
+> `E2E_MOBILE` é **opt-in**: sem ele a suíte roda somente no desktop Chromium (verde como
+desde sempre). Os projetos WebKit só entram quando `E2E_WEBKIT=1` também está setado.
+
 ## Resultado esperado
 
 - Nenhum texto volta a estourar/cortar em mobile (FR-001..003; SC-001,002,004).
