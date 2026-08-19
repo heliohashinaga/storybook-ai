@@ -200,9 +200,7 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Format     | no Prettier drift                                           |
   | Typecheck  | strict TypeScript, no `any`                                 |
 
-  This **cyclomatic-complexity gate** is part of the Lint check above and is therefore
-  validated by the pre-commit hook on every commit: a function crossing `≤ 10` blocks the
-  commit.
+  Cyclomatic complexity `≤ 10` is enforced by the pre-commit Lint check.
 
 - **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):
