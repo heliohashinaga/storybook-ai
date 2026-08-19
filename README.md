@@ -200,8 +200,6 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
   | Format     | no Prettier drift                                           |
   | Typecheck  | strict TypeScript, no `any`                                 |
 
-  Cyclomatic complexity `≤ 10` is enforced by the pre-commit Lint check.
-
 - **Per push/PR to `main`** (CI, run automatically, on top of the
   per-commit gate):
 
