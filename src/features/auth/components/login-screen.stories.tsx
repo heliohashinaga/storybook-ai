@@ -82,7 +82,7 @@ export const OAuthDenied: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/não tem permissão/i);
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/não pode entrar/i);
   },
 };
 

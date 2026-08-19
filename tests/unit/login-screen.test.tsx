@@ -75,7 +75,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
 
     const playground = screen.getByRole("heading", { level: 2, name: "Playground" });
     expect(playground).toBeVisible();
-    expect(screen.getByText("Gere histórias usando modelos de IA reais.")).toBeVisible();
+    expect(screen.getByText("Gere histórias com IA real.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Continuar com o Google" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Continuar com o GitHub" })).toBeEnabled();
   });
@@ -123,9 +123,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
       "Acesso ainda não configurado. Explore a demo."
     );
     expect(within(card).getByRole("link", { name: "Explorar a Demo" })).toBeVisible();
-    expect(
-      within(card).getByText("Experimente histórias pré-geradas — sem precisar de conta.")
-    ).toBeVisible();
+    expect(within(card).getByText("Histórias prontas — sem precisar de conta.")).toBeVisible();
   });
 
   it("does not call signIn when a disabled provider button is clicked", async () => {
@@ -163,7 +161,7 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
 
     const alert = screen.getByRole("alert");
     expect(alert).toHaveAttribute("aria-live", "assertive");
-    expect(alert).toHaveTextContent("Esta conta não tem permissão para entrar aqui.");
+    expect(alert).toHaveTextContent("Esta conta não pode entrar aqui.");
   });
 
   it("maps any other OAuth callback error to the generic sign-in message", () => {

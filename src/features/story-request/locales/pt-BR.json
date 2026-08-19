@@ -7,7 +7,7 @@
         "label": "Idade",
         "placeholder": "Digite a idade (2 a 9)",
         "errorRange": "Informe uma idade entre 2 e 9 anos.",
-        "hint": "Ajuste a idade para personalizar o tom da história.",
+        "hint": "Ajuste a idade para personalizar o tom.",
         "years": "anos"
       },
       "locale": {
@@ -19,7 +19,7 @@
       "scenes": {
         "label": "Quantidade de cenas",
         "scene-unit": "cenas",
-        "hint": "Escolha quantas cenas ilustradas a história terá."
+        "hint": "Escolha quantas cenas a história terá."
       },
       "submit": "Criar história",
       "submitting": "Criando sua história…"
@@ -31,16 +31,16 @@
       "stageWriting": "Escrevendo sua história…",
       "stageIllustrating": "Ilustrando suas cenas…",
       "stageReviewing": "Verificando que está tudo seguro…",
-      "providerFailure": "Não foi possível criar sua história no momento.",
+      "providerFailure": "Não deu para criar sua história agora.",
       "retry": "Tentar novamente"
     },
     "error": {
-      "invalidInput": "Dados inválidos. Verifique os campos e tente novamente.",
+      "invalidInput": "Dados inválidos. Confira os campos e tente de novo.",
       "unsupportedLocale": "Idioma não suportado. Escolha português ou inglês.",
-      "safeAlternativeUnavailable": "Não foi possível gerar uma história segura. Tente novamente.",
-      "tryAgainLater": "Muitas solicitações. Aguarde um pouco e tente novamente.",
+      "safeAlternativeUnavailable": "Não foi possível gerar uma história segura. Tente de novo.",
+      "tryAgainLater": "Muitas solicitações. Aguarde e tente de novo.",
       "generationUnavailable": "Gerador de histórias indisponível. Tente de novo.",
-      "generationTimeout": "A geração da história demorou demais. Tente novamente."
+      "generationTimeout": "A geração da história demorou demais. Tente de novo."
     },
     "reader": {
       "title": "Sua história",

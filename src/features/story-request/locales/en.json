@@ -7,7 +7,7 @@
         "label": "Age",
         "placeholder": "Enter the age (2 to 9)",
         "errorRange": "Please enter an age between 2 and 9.",
-        "hint": "Adjust the age to personalize the story's tone.",
+        "hint": "Adjust the age to personalize the tone.",
         "years": "years old"
       },
       "locale": {
@@ -19,7 +19,7 @@
       "scenes": {
         "label": "Number of scenes",
         "scene-unit": "scenes",
-        "hint": "Choose how many illustrated scenes the story will have."
+        "hint": "Choose how many scenes the story will have."
       },
       "submit": "Create story",
       "submitting": "Creating your story…"
@@ -31,16 +31,16 @@
       "stageWriting": "Writing your story…",
       "stageIllustrating": "Illustrating your scenes…",
       "stageReviewing": "Checking that everything is safe…",
-      "providerFailure": "We couldn't create your story right now.",
+      "providerFailure": "Couldn't create your story right now.",
       "retry": "Try again"
     },
     "error": {
-      "invalidInput": "Invalid input. Please check the fields and try again.",
+      "invalidInput": "Invalid input. Check the fields and try again.",
       "unsupportedLocale": "Language not supported. Choose Portuguese or English.",
-      "safeAlternativeUnavailable": "We couldn't generate a safe story. Please try again.",
-      "tryAgainLater": "Too many requests. Please wait a moment and try again.",
+      "safeAlternativeUnavailable": "Couldn't generate a safe story. Try again.",
+      "tryAgainLater": "Too many requests. Wait a moment and retry.",
       "generationUnavailable": "Story generator unavailable. Try again.",
-      "generationTimeout": "Story generation took too long. Please try again."
+      "generationTimeout": "Story generation took too long. Try again."
     },
     "reader": {
       "title": "Your story",
