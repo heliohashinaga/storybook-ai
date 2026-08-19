@@ -61,22 +61,19 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     authState.signIn.mockResolvedValue(undefined);
   });
 
-  it("renders the page title, brand headline and subtitle", () => {
+  it("renders the page title and brand headline (tagline)", () => {
     renderLogin(WITH_PROVIDERS);
 
-    // Brand title (Storybook AI) + the storytelling tagline + the description
-    // stay as page content below the icon.
+    // Brand title (Storybook AI) + the storytelling tagline stay as page
+    // content below the icon (single supporting line, no second paragraph).
     expect(screen.getByRole("heading", { level: 1, name: "Storybook AI" })).toBeVisible();
     expect(screen.getByText("Crie histórias mágicas com IA.")).toBeVisible();
-    expect(
-      screen.getByText("Crie histórias infantis personalizadas com belas ilustrações.")
-    ).toBeVisible();
   });
 
-  it("renders the AI Playground card with both provider buttons when credentials exist", () => {
+  it("renders the Playground card with both provider buttons when credentials exist", () => {
     renderLogin(WITH_PROVIDERS);
 
-    const playground = screen.getByRole("heading", { level: 2, name: "AI Playground" });
+    const playground = screen.getByRole("heading", { level: 2, name: "Playground" });
     expect(playground).toBeVisible();
     expect(screen.getByText("Gere histórias usando modelos de IA reais.")).toBeVisible();
     expect(screen.getByRole("button", { name: "Continuar com o Google" })).toBeEnabled();
@@ -87,19 +84,23 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
     renderLogin(WITHOUT_PROVIDERS);
 
     // No providers configured → playground card is hidden, a notice explains why.
-    expect(screen.queryByRole("heading", { name: "AI Playground" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Playground" })).not.toBeInTheDocument();
     expect(screen.getByRole("note")).toHaveTextContent(
       "O acesso ainda não está configurado nesta instância."
     );
   });
 
-  it('separates the sign-in card from the demo entry with an "or" divider', () => {
+  it('merges the "or" divider and the demo entry into the Playground card', () => {
     renderLogin(WITH_PROVIDERS);
 
-    // Blossom-style divider: OAuth card … — ou — … Explore the Demo.
-    expect(screen.getByText("— ou —")).toBeVisible();
-    // The demo entry remains a separate section (not merged into the sign-in card).
-    expect(screen.getByRole("region", { name: "Explorar a Demo" })).toBeVisible();
+    // The OAuth card (region named from the "Playground" heading) now also
+    // holds the blossom-style divider (bare "ou", no em-dashes) and the demo
+    // entry — they are no longer a separate section beside the card.
+    const card = screen.getByRole("region", { name: "Playground" });
+    expect(within(card).getByText("OU")).toBeVisible();
+    expect(within(card).getByRole("link", { name: "Explorar a Demo" })).toBeVisible();
+    // No standalone demo region next to the sign-in card anymore.
+    expect(screen.queryByRole("region", { name: "Explorar a Demo" })).not.toBeInTheDocument();
   });
 
   it("keeps the demo entry always enabled and pointing at /demo", () => {
@@ -190,12 +191,5 @@ describe("LoginScreenView — anonymous login gate (spec 015)", () => {
   it("shows no alert without an error callback", () => {
     renderLogin(WITH_PROVIDERS);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-  });
-
-  it("renders the localizable privacy note (anonymous by design)", () => {
-    renderLogin(WITHOUT_PROVIDERS);
-    expect(
-      screen.getByText("Anônimo por design — nenhum dado de conta ou história é armazenado.")
-    ).toBeVisible();
   });
 });

@@ -25,54 +25,49 @@ function messageFor(error: SignInError, accessDenied: string, signInError: strin
 }
 
 /**
- * The "Explore the Demo" entry. On demo-only deploys (no providers) the
- * not-configured notice, the button and the hint share one card; when providers
- * exist it renders as a plain section below the sign-in card (spec 015).
+ * The "Explore the Demo" entry button. Client-side navigation into `/demo`
+ * (not a full reload) so the in-memory language / theme chosen on the login
+ * screen carries into the demo (spec 015).
+ */
+function DemoLink({ locale, label }: { locale: string; label: string }) {
+  return (
+    <Link
+      href="/demo"
+      lang={locale}
+      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+    >
+      <SparklesIcon className="size-4" />
+      {label}
+    </Link>
+  );
+}
+
+/**
+ * The demo-only entry card shown when no OAuth provider is configured (zero
+ * `AUTH_*`): the not-configured notice, the demo button and its hint share one
+ * card (spec 015).
  */
 function DemoPanel({
-  combined,
   locale,
   demoLabel,
   demoHint,
   note,
 }: {
-  combined: boolean;
   locale: string;
   demoLabel: string;
   demoHint: string;
   note: string;
 }) {
-  const link = (
-    <Link
-      href="/demo"
-      lang={locale}
-      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
-      // Client-side navigation (not a full reload) so the in-memory language /
-      // theme chosen on the login screen carries into the demo.
-    >
-      <SparklesIcon className="size-4" />
-      {demoLabel}
-    </Link>
-  );
-  const hint = <p className="text-center text-xs text-muted-foreground">{demoHint}</p>;
-  if (combined) {
-    return (
-      <section
-        aria-label={demoLabel}
-        className="space-y-4 rounded-3xl border border-border bg-card p-5"
-      >
-        <p role="note" className="text-center text-sm text-muted-foreground">
-          {note}
-        </p>
-        {link}
-        {hint}
-      </section>
-    );
-  }
   return (
-    <section aria-label={demoLabel} className="space-y-2">
-      {link}
-      {hint}
+    <section
+      aria-label={demoLabel}
+      className="space-y-4 rounded-3xl border border-border bg-card p-5"
+    >
+      <p role="note" className="text-center text-sm text-muted-foreground">
+        {note}
+      </p>
+      <DemoLink locale={locale} label={demoLabel} />
+      <p className="text-center text-xs text-muted-foreground">{demoHint}</p>
     </section>
   );
 }
@@ -144,7 +139,7 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
         <LangToggle />
         <ThemeToggle />
       </div>
-      {/* Story-blossom style: one centered column — icon, then heading, subtitle,
+      {/* Story-blossom style: one centered column — icon, then heading + tagline,
           then the sign-in + demo actions below. (max-w-md, not max-w-sm: this design
           system maps size max-widths to spacing tokens, so max-w-sm = 8px.) */}
       <div className="relative z-10 w-full max-w-md text-center">
@@ -155,15 +150,14 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
           {t("heading")}
         </h1>
         <p className="mt-2 text-lg font-semibold text-foreground">{t("tagline")}</p>
-        <p className="mt-1 text-base text-muted-foreground">{t("subtitle")}</p>
 
         <div className="mt-8 space-y-5">
-          {anyProvider && (
+          {anyProvider ? (
             <section
               aria-labelledby="playground-heading"
               className="space-y-3 rounded-3xl border border-border bg-card p-5"
             >
-              <div className="text-center">
+              <div className="text-left">
                 <h2
                   id="playground-heading"
                   className="font-display text-lg font-bold text-foreground"
@@ -199,29 +193,27 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
                   {errorMessage}
                 </p>
               )}
+
+              <div
+                aria-hidden="true"
+                className="flex items-center gap-3 text-xs text-muted-foreground"
+              >
+                <span className="h-px flex-1 bg-border" />
+                <span>{t("or")}</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+
+              <DemoLink locale={locale} label={t("demo")} />
+              <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
             </section>
+          ) : (
+            <DemoPanel
+              locale={locale}
+              demoLabel={t("demo")}
+              demoHint={t("demoHint")}
+              note={t("noCredentials")}
+            />
           )}
-
-          {anyProvider && (
-            <div
-              aria-hidden="true"
-              className="flex items-center gap-3 text-xs text-muted-foreground"
-            >
-              <span className="h-px flex-1 bg-border" />
-              <span>— {t("or")} —</span>
-              <span className="h-px flex-1 bg-border" />
-            </div>
-          )}
-
-          <DemoPanel
-            combined={!anyProvider}
-            locale={locale}
-            demoLabel={t("demo")}
-            demoHint={t("demoHint")}
-            note={t("noCredentials")}
-          />
-
-          <p className="text-center text-[11px] text-muted-foreground">{t("privacyNote")}</p>
         </div>
       </div>
     </main>

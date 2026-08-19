@@ -59,20 +59,41 @@ export function TopNav() {
         </span>
       </button>
       <div className="flex items-center gap-3">
+        <LangToggle />
+        <ThemeToggle />
         {isPlayground && (
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/" })}
             lang={locale}
-            className="rounded-2xl border border-border px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            aria-label={tAuth("nav.logout")}
+            title={tAuth("nav.logout")}
+            className="flex size-11 items-center justify-center rounded-2xl border border-border bg-card text-text shadow-soft transition-all duration-base hover:shadow-lift hover:-translate-y-0.5"
           >
-            {tAuth("nav.logout")}
+            <LogOutIcon className="size-5" aria-hidden="true" />
           </button>
         )}
-        <LangToggle />
-        <ThemeToggle />
       </div>
     </header>
+  );
+}
+
+/** Inline log-out icon (blossom-style presentational mark). */
+function LogOutIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
   );
 }
 
