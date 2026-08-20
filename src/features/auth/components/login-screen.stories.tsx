@@ -99,6 +99,6 @@ export const OAuthGenericError: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/não foi possível concluir/i);
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/não deu para entrar/i);
   },
 };
