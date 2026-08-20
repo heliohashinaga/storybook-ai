@@ -164,7 +164,7 @@ export function StoryGenerationProgress({
       role="status"
       aria-busy="true"
       aria-live="polite"
-      className="flex min-h-[60vh] items-center justify-center p-4"
+      className="flex min-h-[70vh] items-center justify-center p-4"
     >
       <div className="w-full max-w-3xl rounded-4xl border border-border bg-card p-8 text-center shadow-lift">
         <div
