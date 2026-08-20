@@ -203,7 +203,7 @@ export function StoryRequestForm({
                 className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors ${
                   on
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-secondary text-text hover:bg-secondary"
+                    : "border-border bg-secondary text-text hover:border-primary/50"
                 }`}
               >
                 {option === "pt-BR" ? t("brand.ptLabel") : t("brand.enLabel")}
