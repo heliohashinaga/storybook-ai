@@ -18,7 +18,7 @@ export interface ChoiceCardProps extends Omit<
 
 const base =
   "flex w-full flex-col items-center justify-center gap-sm rounded-3xl border-2 bg-card px-md py-md text-center " +
-  "transition-all duration-base ease-[var(--motion-ease-standard)] active:shadow-[inset_0_0_0_999px_var(--state-layer-hover)] disabled:cursor-not-allowed disabled:opacity-50 " +
+  "transition-all duration-base ease-[var(--motion-ease-standard)] active:border-primary disabled:cursor-not-allowed disabled:opacity-50 " +
   "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 /**
