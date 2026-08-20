@@ -34,15 +34,15 @@ backend (fake catalog vs. real LLMs) and the session requirement differ.
 
 ## Screenshots
 
-<table>
-  <tr>
-    <td align="center">
-      <img src="docs/img/print_form.jpeg" alt="Story request form with age band, language, positive-theme cards, and scene count" width="100%">
+<table style="border: none; border-collapse: collapse;">
+  <tr style="border: none;">
+    <td align="center" style="border: none;">
+      <img src="docs/img/print_form.jpeg" alt="Story request form with age band, language, positive-theme cards, and scene count" width="100%" style="border: none;">
       <br>
       <em>The story request form</em>
     </td>
-    <td align="center">
-      <img src="docs/img/print_reader.jpeg" alt="Story reader showing a generated scene with the story title, theme badge, illustration, and scene navigation" width="100%">
+    <td align="center" style="border: none;">
+      <img src="docs/img/print_reader.jpeg" alt="Story reader showing a generated scene with the story title, theme badge, illustration, and scene navigation" width="100%" style="border: none;">
       <br>
       <em>The story reader</em>
     </td>
