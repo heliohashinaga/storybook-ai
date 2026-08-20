@@ -12,15 +12,15 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  "inline-flex items-center justify-center gap-xs rounded-xl font-title transition-all duration-base " +
+  "inline-flex items-center justify-center gap-xs rounded-xl font-title transition-all duration-base ease-[var(--motion-ease-standard)] " +
   "disabled:pointer-events-none disabled:opacity-60";
 
 const variants: Record<ButtonVariant, string> = {
   primary:
     "bg-primary text-primary-foreground shadow-soft hover:shadow-lift hover:-translate-y-0.5",
-  secondary: "bg-surface text-text border border-border hover:bg-secondary",
+  secondary: "bg-surface text-text border border-border hover:bg-secondary hover:-translate-y-0.5",
   danger: "bg-danger text-destructive-foreground hover:opacity-90",
-  ghost: "bg-transparent text-text hover:bg-secondary",
+  ghost: "bg-transparent text-text hover:bg-secondary hover:-translate-y-0.5",
 };
 
 const sizes: Record<ButtonSize, string> = {

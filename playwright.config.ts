@@ -24,6 +24,53 @@ if (
   process.env.LD_LIBRARY_PATH = DEFAULT_NATIVE_LIBRARY_PATH;
 }
 
+// Mobile-layout test matrix (feature 016, mobile-ux-refinements). Opt-in via
+// `E2E_MOBILE=1` so the default desktop suite stays green and no extra browser
+// is required unless asked. Scoped to the layout/visual specs (testMatch).
+// When `E2E_WEBKIT=1` is ALSO set, WebKit (iOS Safari engine) viewports are
+// added on top — requires `pnpm exec playwright install webkit`.
+const E2E_MOBILE = process.env.E2E_MOBILE === "1";
+const E2E_WEBKIT = process.env.E2E_WEBKIT === "1";
+
+// 2026 mobile viewport matrix. Width is what drives layout (a device model is
+// only a proxy for width × engine); heights are representative portrait sizes.
+const MOBILE_VISUAL_MATCH = "tests/visual/**/*.spec.ts";
+const MOBILE_VIEWPORTS = [
+  { name: "mobile-small", width: 320, height: 568 }, // piso (feature 016 SC-001)
+  { name: "mobile-main", width: 390, height: 844 }, // iPhone 13/14/15/16 (390)
+  { name: "mobile-large", width: 430, height: 932 }, // Pro Max / grande
+  { name: "tablet-portrait", width: 768, height: 1024 }, // iPad retrato
+];
+
+const mobileProjects = E2E_MOBILE
+  ? [
+      ...MOBILE_VIEWPORTS.map(({ name, width, height }) => ({
+        name,
+        testMatch: MOBILE_VISUAL_MATCH,
+        use: {
+          browserName: "chromium" as const,
+          viewport: { width, height },
+          isMobile: true,
+          hasTouch: true,
+        },
+      })),
+      ...(E2E_WEBKIT
+        ? [
+            {
+              name: "mobile-main-webkit",
+              testMatch: MOBILE_VISUAL_MATCH,
+              use: { ...devices["iPhone 14"], browserName: "webkit" as const },
+            },
+            {
+              name: "mobile-small-webkit",
+              testMatch: MOBILE_VISUAL_MATCH,
+              use: { ...devices["iPhone SE"], browserName: "webkit" as const },
+            },
+          ]
+        : []),
+    ]
+  : [];
+
 export default defineConfig({
   testDir: "./tests",
   // Playwright specs only — Vitest unit tests use `.test.ts(x)` and live
@@ -47,6 +94,7 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    ...mobileProjects,
   ],
   // E2E runs against a production build (`next start`), not `next dev`: no
   // on-demand cold-compile in the test window, deterministic and fast.

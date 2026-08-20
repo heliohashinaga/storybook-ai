@@ -27,7 +27,7 @@ export function ThemeSelector({ value, onSelect, disabled = false }: ThemeSelect
   return (
     <fieldset disabled={disabled} aria-label={formT("theme.label")} className="flex flex-col">
       <legend className="font-display text-lg font-bold">{formT("theme.label")}</legend>
-      <div className="mt-3 grid grid-cols-2 gap-md lg:grid-cols-3">
+      <div className="mt-3 grid min-w-0 grid-cols-2 gap-md lg:grid-cols-3">
         {themeCatalog.map((entry) => (
           <ChoiceCard
             key={entry.value}
@@ -36,6 +36,7 @@ export function ThemeSelector({ value, onSelect, disabled = false }: ThemeSelect
             description={t(`themeDescription.${entry.value}`)}
             selected={value === entry.value}
             disabled={disabled}
+            className="p-md"
             onSelect={() => onSelect(entry.value as Theme)}
           />
         ))}

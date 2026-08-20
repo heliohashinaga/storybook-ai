@@ -2,12 +2,12 @@
   "story": {
     "form": {
       "title": "Storybook AI",
-      "subtitle": "Make bedtime a little more magical with a story that is only theirs \u2014 to read together.",
+      "subtitle": "A magical story that is only theirs — to read together.",
       "age": {
         "label": "Age",
         "placeholder": "Enter the age (2 to 9)",
         "errorRange": "Please enter an age between 2 and 9.",
-        "hint": "Adjust the age to personalize the story's tone.",
+        "hint": "Adjust the age to personalize the tone.",
         "years": "years old"
       },
       "locale": {
@@ -19,28 +19,28 @@
       "scenes": {
         "label": "Number of scenes",
         "scene-unit": "scenes",
-        "hint": "Choose how many illustrated scenes the story will have."
+        "hint": "Choose how many scenes the story will have."
       },
       "submit": "Create story",
       "submitting": "Creating your story…"
     },
     "progress": {
-      "timeout": "This is taking longer than expected. Thanks for your patience — your story is still being created.",
-      "safetyRetry": "We're reviewing once more to make sure everything is safe. Almost there!",
+      "timeout": "This is taking longer than expected. Your story is still being created.",
+      "safetyRetry": "Reviewing once more to keep it safe. Almost there!",
       "stagePlanning": "Planning your story…",
       "stageWriting": "Writing your story…",
       "stageIllustrating": "Illustrating your scenes…",
       "stageReviewing": "Checking that everything is safe…",
-      "providerFailure": "We couldn't create your story right now.",
+      "providerFailure": "Couldn't create your story right now.",
       "retry": "Try again"
     },
     "error": {
-      "invalidInput": "Invalid input. Please check the fields and try again.",
-      "unsupportedLocale": "Language not supported. Please choose between Portuguese (Brazil) and English.",
-      "safeAlternativeUnavailable": "We couldn't generate a safe story. Please try again.",
-      "tryAgainLater": "Too many requests. Please wait a moment and try again.",
-      "generationUnavailable": "The story generator is unavailable right now. Please try again.",
-      "generationTimeout": "Story generation took too long. Please try again."
+      "invalidInput": "Invalid input. Check the fields and try again.",
+      "unsupportedLocale": "Language not supported. Choose Portuguese or English.",
+      "safeAlternativeUnavailable": "Couldn't generate a safe story. Try again.",
+      "tryAgainLater": "Too many requests. Wait a moment and retry.",
+      "generationUnavailable": "Story generator unavailable. Try again.",
+      "generationTimeout": "Story generation took too long. Try again."
     },
     "reader": {
       "title": "Your story",
@@ -80,12 +80,12 @@
         "empathy": "Empathy"
       },
       "themeDescription": {
-        "courage": "Overcoming fear and doing the right thing.",
-        "friendship": "Kindness, sharing, and being a good friend.",
-        "kindness": "Caring for others and lending a hand.",
-        "curiosity": "Asking questions and discovering the unknown.",
-        "perseverance": "Trying again and never giving up.",
-        "empathy": "Understanding how others feel."
+        "courage": "Facing your fears.",
+        "friendship": "Being a good friend.",
+        "kindness": "Caring for others.",
+        "curiosity": "Discovering the unknown.",
+        "perseverance": "Never giving up.",
+        "empathy": "Feeling with others."
       }
     },
     "brand": {

@@ -151,8 +151,8 @@ export function StoryReader({
         {/* Story title cap: a persistent "cover" band that stays fixed while
             scenes change. The story title is the card's `h1`; the per-scene
             heading below is the `h2` focus target. */}
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-lg py-sm">
-          <h1 className="min-w-0 truncate font-display text-title font-extrabold leading-title tracking-tight">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-6 py-md sm:px-8">
+          <h1 className="line-clamp-2 min-w-0 font-display text-title font-extrabold leading-title tracking-tight">
             {story.title}
           </h1>
           <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-sm py-xs text-caption font-bold leading-caption text-text-subtle">
@@ -210,19 +210,21 @@ export function StoryReader({
 
           <nav
             aria-label={t("navigationLabel")}
-            className="mt-lg grid gap-sm sm:grid-cols-[auto_1fr_auto]"
+            className="mt-lg flex flex-wrap items-center justify-center gap-sm"
           >
             <Button
               variant="secondary"
               onClick={() => goTo(currentIndex - 1)}
               disabled={currentIndex === 0}
+              aria-label={t("previous")}
+              title={t("previous")}
+              className="min-h-12 min-w-12 justify-center! rounded-2xl!"
             >
               <ChevronLeftIcon className="size-5" />
-              {t("previous")}
             </Button>
 
             {readAloud.supported && (
-              <div className="sm:w-full">
+              <div className="flex items-center justify-center">
                 <NarrationControl
                   status={readAloud.status}
                   mode={readAloud.mode}
@@ -236,8 +238,10 @@ export function StoryReader({
               variant="primary"
               onClick={() => goTo(currentIndex + 1)}
               disabled={currentIndex === total - 1}
+              aria-label={t("next")}
+              title={t("next")}
+              className="min-h-12 min-w-12 justify-center! rounded-2xl!"
             >
-              {t("next")}
               <ChevronRightIcon className="size-5" />
             </Button>
           </nav>

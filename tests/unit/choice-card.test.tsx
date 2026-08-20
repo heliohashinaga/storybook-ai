@@ -62,4 +62,20 @@ describe("ChoiceCard", () => {
     renderCard({ ref });
     expect(ref.current).toBeInstanceOf(HTMLButtonElement);
   });
+
+  it("wraps a very long description cleanly without overflow (spec 016 US1)", () => {
+    const longDescription =
+      "Fazer perguntas, explorar o mundo e descobrir como as coisas funcionam com coragem e alegria.";
+    const { container } = renderCard({
+      label: "Curiosidade",
+      description: longDescription,
+    });
+    // The description element carries the wrapping utility classes so long
+    // localized strings break at word boundaries instead of overflowing.
+    const description = screen.getByText(longDescription);
+    expect(description.className).toContain("break-words");
+    expect(description.className).toContain("min-w-0");
+    // No horizontal overflow is introduced by the card itself.
+    expect(container.scrollWidth).toBeLessThanOrEqual(container.clientWidth + 1);
+  });
 });

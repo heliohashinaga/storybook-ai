@@ -105,7 +105,7 @@ function FormScreen({ isFake }: { isFake: boolean }) {
         </h1>
         <p className="mx-auto mt-3 max-w-3xl text-muted-foreground">{t("form.subtitle")}</p>
       </div>
-      <div className="mx-auto w-full max-w-md lg:max-w-2xl">
+      <div className="mx-auto w-full max-w-md px-4 sm:px-6 lg:max-w-2xl lg:px-12">
         {/* `/form` is always a clean draft: a fresh, unfilled form, no history
             tab. Session prefs are reused for default values, not drafts. */}
         <StoryRequestForm

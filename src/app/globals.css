@@ -100,8 +100,12 @@
   --radius-full: 9999px;
 
   /* Shadow (design-system.md §5) */
-  --shadow-soft: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
-  --shadow-lift: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
+  /* M3 elevation scale (single source; shadow-soft/lift are derived aliases) */
+  --elevation-1: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
+  --elevation-2: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
+  --shadow-soft: var(--elevation-1);
+  --shadow-lift: var(--elevation-2);
+  --state-layer-hover: oklch(0 0 0 / 0.06);
 
   /* Legacy shadows retained during migration. */
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.06);
@@ -112,6 +116,8 @@
   --motion-fast: 100ms;
   --motion-base: 200ms;
   --motion-slow: 400ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
 }
 
 /*
@@ -155,8 +161,12 @@
     --color-disabled: oklch(0.34 0.03 55);
     color-scheme: dark;
 
-    --shadow-soft: 0 2px 10px -4px oklch(0 0 0 / 0.5);
-    --shadow-lift: 0 18px 40px -18px oklch(0 0 0 / 0.6);
+    /* M3 elevation scale (single source; shadow-soft/lift are derived aliases) */
+    --elevation-1: 0 2px 10px -4px oklch(0 0 0 / 0.5);
+    --elevation-2: 0 18px 40px -18px oklch(0 0 0 / 0.6);
+    --shadow-soft: var(--elevation-1);
+    --shadow-lift: var(--elevation-2);
+    --state-layer-hover: oklch(1 1 1 / 0.12);
   }
 }
 
@@ -193,8 +203,12 @@
   --color-disabled: oklch(0.34 0.03 55);
   color-scheme: dark;
 
-  --shadow-soft: 0 2px 10px -4px oklch(0 0 0 / 0.5);
-  --shadow-lift: 0 18px 40px -18px oklch(0 0 0 / 0.6);
+  /* M3 elevation scale (single source; shadow-soft/lift are derived aliases) */
+  --elevation-1: 0 2px 10px -4px oklch(0 0 0 / 0.5);
+  --elevation-2: 0 18px 40px -18px oklch(0 0 0 / 0.6);
+  --shadow-soft: var(--elevation-1);
+  --shadow-lift: var(--elevation-2);
+  --state-layer-hover: oklch(1 1 1 / 0.12);
 }
 
 /* Manual override to light (used when the user chooses light even on a dark system). */
@@ -230,8 +244,12 @@
   --color-disabled: oklch(0.93 0.02 82);
   color-scheme: light;
 
-  --shadow-soft: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
-  --shadow-lift: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
+  /* M3 elevation scale (single source; shadow-soft/lift are derived aliases) */
+  --elevation-1: 0 2px 10px -4px oklch(0.4 0.06 45 / 0.18);
+  --elevation-2: 0 18px 40px -18px oklch(0.4 0.08 45 / 0.35);
+  --shadow-soft: var(--elevation-1);
+  --shadow-lift: var(--elevation-2);
+  --state-layer-hover: oklch(0 0 0 / 0.06);
 }
 
 @layer base {
