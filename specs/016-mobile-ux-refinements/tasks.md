@@ -61,7 +61,7 @@ enfoque compartilhado que todas as stories seguem.
 cenas) estoura o contêiner, corta, ou quebra em meio de palavra em viewport estreito — nas duas
 línguas.
 
-**Independent Test**: Viewport 360px — inspecionar cards de tema (descrição longa pt-BR/en),
+**Independent Test**: Viewport 320px e 360px — inspecionar cards de tema (descrição longa pt-BR/en),
 botão "Português (Brasil)" e unidade "cenas"; nenhuma rolagem horizontal, nenhum corte, quebra em
 palavra limpa (quickstart cenários 1–2).
 
@@ -82,8 +82,8 @@ palavra limpa (quickstart cenários 1–2).
   `src/features/story-request/components/story-request-form.tsx`
 - [ ] T009 [US1] Add `whitespace-nowrap` to the scene-count unit so number+unit never split in
   `src/features/story-request/components/story-request-form.tsx`
-- [ ] T010 [US1] Update `theme-selector.stories.tsx`, `story-request-form.stories.tsx` and
-  `choice-card.stories.tsx` to cover the new wrapping states (Storybook = app)
+- [ ] T010 [US1] Criar `theme-selector.stories.tsx` (ainda inexistente) e atualizar
+  `story-request-form.stories.tsx` e `choice-card.stories.tsx` para cobrir os novos estados de quebra (Storybook = app)
 
 **Checkpoint**: US1 funciona e é testável de forma independente.
 
@@ -94,7 +94,7 @@ palavra limpa (quickstart cenários 1–2).
 **Goal**: Controles (cenas, cartões de tema, idioma, OAuth, CTA) mantêm alvo acessível `≥44px` com
 densidade visual proporcional no mobile, sem regressão em desktop (≥640px).
 
-**Independent Test**: Viewport 360px — inspecionar altura/padding dos controles; cada alvo ≥44px;
+**Independent Test**: Viewport 320px e 360px — inspecionar altura/padding dos controles; cada alvo ≥44px;
 desktop (≥640px) inalterado. (R-01, R-04; quickstart cenário 4)
 
 > **Nota de dependência**: US1 e US2 tocam arquivos compartilhados (`story-request-form.tsx`,
@@ -130,7 +130,7 @@ desktop (≥640px) inalterado. (R-01, R-04; quickstart cenário 4)
 
 **Goal**: Título do reader permanece legível no mobile — quebra em até 2 linhas em vez de cortar.
 
-**Independent Test**: História com título longo no reader a 360px — título visível em até 2 linhas,
+**Independent Test**: História com título longo no reader a 320px e 360px — título visível em até 2 linhas,
 sem corte/elipse de linha única (R-03; quickstart cenário 3).
 
 **Tests & Stories ⚠️**
@@ -158,9 +158,10 @@ sem corte/elipse de linha única (R-03; quickstart cenário 3).
 - [ ] T022 [P] Re-approve/regenerate all affected visual baselines (`tests/visual/`) intentionally
   (the reader baseline is already covered by T021 in US3) via `pnpm build` + `--update-snapshots`
   and commit (SC-005)
-- [ ] T023 [P] Run full validation suite per `specs/016-mobile-ux-refinements/quickstart.md`
+- [ ] T023 [P] Rodar a suíte completa de validação conforme `specs/016-mobile-ux-refinements/quickstart.md`
   (`pnpm lint`, `format:check`, `typecheck`, `pnpm test`, `storybook:test`, `test:visual`,
-  `test:e2e`)
+  `test:e2e`); validar também o piso de 320px (E-001/SC-001) e o zoom de fonte do sistema (E-003)
+  sem introduzir novo overflow/corte
 - [ ] T024 Update docs if any drift in `specs/016-mobile-ux-refinements/` and README; run
   `format:check` on all new/changed docs
 - [ ] T025 Re-run quality gates **after the last edit** (lint/format/typecheck), verify no
@@ -221,7 +222,7 @@ Task: "Regenerate reader visual baseline (reader.spec.ts)"
 
 1. Phase 1–2 (baseline + enfoque)
 2. Phase 3: User Story 1 (texto do formulário)
-3. **STOP and VALIDATE**: viewport 360px nos componentes do form; `storybook:test` + unit verdes
+3. **STOP and VALIDATE**: viewport 320px e 360px nos componentes do form; `storybook:test` + unit verdes
 4. Deploy/demo do MVP
 
 ### Incremental Delivery

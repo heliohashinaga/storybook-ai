@@ -123,7 +123,7 @@ existentes (formulário de pedido, login e reader). Nenhuma mudança em dados ou
   idioma, unidade de cenas — renderizam sem quebra em meio de palavra nem corte em viewport de
   360px.
 - **SC-003**: 100% dos controles interativos atendem ao tamanho acessível mínimo de alvo
-  (toque/teclado) e nenhum deles excede esse mínimo.
+  (toque/teclado) e nenhum deles domina a tela com padding/altura excessivos (ver FR-004).
 - **SC-004**: Títulos de história com comprimento de até ~2 linhas permanecem completamente
   legíveis no reader em tela móvel.
 - **SC-005**: A suíte de testes automatizados (unitária, de componentes e de acessibilidade em
