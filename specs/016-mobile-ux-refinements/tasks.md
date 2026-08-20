@@ -244,6 +244,37 @@ Task: "Regenerate reader visual baseline (reader.spec.ts)"
 
 ---
 
+## Addendum — Correções de testes pré-existentes (pós-impl, fora do fluxo T001–T025)
+
+Durante a validação final (após T025) descobriu-se que duas falhas de suíte **já
+existiam no merge-base `1840c81`** (anteriores ao branch 016) e não foram introduzidas
+pelas tasks de UX mobile. Foram corrigidas em `8ef2f4e` e registradas aqui para
+rastreabilidade:
+
+- **Reader visual baseline (22px a mais de altura)** — causa raiz: commit de estilo
+do próprio branch `b6d952e` ("add top spacing" no title cap do reader). Evolução de
+design intencional, não regressão. Os snapshots aprovados (`reader-scene-*` +
+  `five-scene-*`) foram regenerados em `8ef2f4e` para refletir o design atual.
+  → Relacionado a T021/T022, mas a causa (commit de estilo do branch) não estava
+  registrada nas tasks originais.
+- **Performance scene-nav `≤100ms p75` (media ~182ms)** — causa raiz: a medição do
+  teste media latência de paint/font do headless via `requestAnimationFrame` polling
+de texto no body, não o custo real de re-render da app. Diagnóstico com
+  `MutationObserver` no heading mostrou que a SPA responde em sub-5ms. A medição foi
+  corrigida em `tests/performance/story-generation-budget.spec.ts` (React commit real,
+botões localizados por `aria-label`). O budget agora exercita a app de fato.
+
+Ambiente: o bloqueio de E2E visual citado em T022 ("host restrito trava em
+`switchToPortuguese`") foi superado — `test:e2e` + `test:visual` rodaram verdes
+após as correções. Suíte completa validada: `test:e2e` 37 passed / 9 skipped,
+`test:visual` (reader) pass, `test:performance` 3 passed, `lint`/`format:check`/
+`typecheck` limpos.
+
+Pendente opcional (não bloqueante, fora do escopo do spec 016): a matriz mobile
+`E2E_MOBILE=1` gera snapshots mobile novos (`-mobile-*-linux.png`) ainda não
+aprovados — primeira execução mobile, não regressão. Aprovar se o CI for cobrir
+mobile automaticamente.
+
 ## Notes
 
 - [P] tasks = different files, no incomplete-task dependencies.
