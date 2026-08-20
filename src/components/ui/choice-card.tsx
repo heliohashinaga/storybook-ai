@@ -50,12 +50,18 @@ export const ChoiceCard = forwardRef<HTMLButtonElement, ChoiceCardProps>(functio
       {...rest}
     >
       {icon ? (
-        <span aria-hidden="true" className="text-3xl">
+        <span aria-hidden="true" className="text-2xl sm:text-3xl">
           {icon}
         </span>
       ) : null}
-      <span className="text-title font-display font-bold">{label}</span>
-      {description ? <span className="text-caption text-text-subtle">{description}</span> : null}
+      <span className="min-w-0 break-words text-title font-display font-bold leading-snug">
+        {label}
+      </span>
+      {description ? (
+        <span className="min-w-0 break-words text-caption leading-snug text-text-subtle">
+          {description}
+        </span>
+      ) : null}
       <span
         aria-hidden="true"
         className={`h-1.5 w-10 rounded-full ${selected ? "bg-primary" : "bg-border"}`}

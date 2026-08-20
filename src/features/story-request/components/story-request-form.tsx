@@ -200,7 +200,7 @@ export function StoryRequestForm({
                 type="button"
                 aria-pressed={on}
                 onClick={() => setLocale(option)}
-                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
+                className={`flex min-w-0 items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-center text-sm font-bold leading-snug transition-all hover:-translate-y-0.5 ${
                   on
                     ? "border-primary bg-primary text-primary-foreground shadow-lift"
                     : "border-border bg-background text-text hover:border-primary/50"
@@ -233,14 +233,16 @@ export function StoryRequestForm({
                 onClick={() => setSceneCount(count)}
                 aria-pressed={on}
                 aria-describedby="story-request-scenes-hint"
-                className={`min-h-14 rounded-2xl border-2 font-display text-lg font-bold transition-all hover:-translate-y-0.5 ${
+                className={`min-h-12 rounded-2xl border-2 font-display text-lg font-bold transition-all hover:-translate-y-0.5 sm:min-h-14 ${
                   on
                     ? "border-primary bg-primary text-primary-foreground shadow-lift"
                     : "border-border bg-background text-text hover:border-primary/50"
                 }`}
               >
                 {count}
-                <span className="ml-1 text-sm font-bold">{t("form.scenes.scene-unit")}</span>
+                <span className="ml-1 whitespace-nowrap text-sm font-bold">
+                  {t("form.scenes.scene-unit")}
+                </span>
               </button>
             );
           })}
@@ -261,7 +263,12 @@ export function StoryRequestForm({
         </div>
       ) : null}
 
-      <Button type="submit" size="lg" loading={submitting} className="w-full !rounded-3xl">
+      <Button
+        type="submit"
+        size="md"
+        loading={submitting}
+        className="w-full !rounded-3xl sm:px-lg sm:py-md"
+      >
         <SparklesIcon className="size-5" />
         {submitting ? t("form.submitting") : t("form.submit")}
       </Button>

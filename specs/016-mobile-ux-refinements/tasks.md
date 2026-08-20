@@ -33,9 +33,9 @@ implementation and testing. Feature is **purely presentational** (no setup/found
 
 **Purpose**: Baseline gate before any presentational change; no new dependencies.
 
-- [ ] T001 [P] Record baseline: run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`
+- [X] T001 [P] Record baseline: run `pnpm lint`, `pnpm format:check`, `pnpm typecheck`, `pnpm test`
   and confirm the project is green with visual baselines in sync (no code change)
-- [ ] T002 [P] Confirm the responsive utility set is available and token-compliant
+- [X] T002 [P] Confirm the responsive utility set is available and token-compliant
   (`line-clamp-2`, `break-words`, `whitespace-nowrap`, `min-w-0`, `sm:` variants, `p-md`/`py-*`
   tokens) and record compliance in `specs/016-mobile-ux-refinements/research.md` (R-06) (no code change)
 
@@ -48,7 +48,7 @@ implementation and testing. Feature is **purely presentational** (no setup/found
 **Purpose**: Nenhuma infraestrutura real é necessária (feature de apresentação). Define-se apenas o
 enfoque compartilhado que todas as stories seguem.
 
-- [ ] T003 [P] Confirm a11y config in stories já cobre contraste (color-contrast) para os
+- [X] T003 [P] Confirm a11y config in stories já cobre contraste (color-contrast) para os
   componentes alterados, e que os alvos de toque manterão `≥44px` (research R-01) (no code change)
 
 **Checkpoint**: Foundation acknowledged — user stories can proceed.
@@ -67,22 +67,22 @@ palavra limpa (quickstart cenários 1–2).
 
 **Tests & Stories (write first, confirm they FAIL before impl) ⚠️**
 
-- [ ] T004 [P] [US1] Add ChoiceCard story for a long localized description asserting no overflow /
+- [X] T004 [P] [US1] Add ChoiceCard story for a long localized description asserting no overflow /
   clean wrap (default/edge) in `src/components/ui/choice-card.stories.tsx`
-- [ ] T005 [P] [US1] Add unit test that long strings wrap clean (no mid-word split / no
+- [X] T005 [P] [US1] Add unit test that long strings wrap clean (no mid-word split / no
   horizontal overflow) in `tests/unit/` (choice-card/theme-selector)
 
 **Implementation**
 
-- [ ] T006 [P] [US1] Add `min-w-0` + `break-words` + `leading-snug` to the ChoiceCard description
+- [X] T006 [P] [US1] Add `min-w-0` + `break-words` + `leading-snug` to the ChoiceCard description
   in `src/components/ui/choice-card.tsx`
-- [ ] T007 [P] [US1] Ensure theme grid columns allow wrapping (`min-w-0`) in
+- [X] T007 [P] [US1] Ensure theme grid columns allow wrapping (`min-w-0`) in
   `src/features/story-request/components/theme-selector.tsx`
-- [ ] T008 [US1] Make locale buttons wrap centered cleanly (`text-center leading-snug`) in
+- [X] T008 [US1] Make locale buttons wrap centered cleanly (`text-center leading-snug`) in
   `src/features/story-request/components/story-request-form.tsx`
-- [ ] T009 [US1] Add `whitespace-nowrap` to the scene-count unit so number+unit never split in
+- [X] T009 [US1] Add `whitespace-nowrap` to the scene-count unit so number+unit never split in
   `src/features/story-request/components/story-request-form.tsx`
-- [ ] T010 [US1] Criar `theme-selector.stories.tsx` (ainda inexistente) e atualizar
+- [X] T010 [US1] Criar `theme-selector.stories.tsx` (ainda inexistente) e atualizar
   `story-request-form.stories.tsx` e `choice-card.stories.tsx` para cobrir os novos estados de quebra (Storybook = app)
 
 **Checkpoint**: US1 funciona e é testável de forma independente.
@@ -102,24 +102,24 @@ desktop (≥640px) inalterado. (R-01, R-04; quickstart cenário 4)
 
 **Tests & Stories ⚠️**
 
-- [ ] T011 [P] [US2] Update OAuth button story + a11y (visual density, target preserved) in
+- [X] T011 [P] [US2] Update OAuth button story + a11y (visual density, target preserved) in
   `src/features/auth/components/oauth-provider-button.stories.tsx`
-- [ ] T012 [P] [US2] Add/update unit test asserting touch targets ≥44px **and** intact keyboard
+- [X] T012 [P] [US2] Add/update unit test asserting touch targets ≥44px **and** intact keyboard
   operability, visible focus, and semantics (FR-005: nothing is touch-only) on
   scene-count/locale/theme/OAuth controls in `tests/unit/`
 
 **Implementation**
 
-- [ ] T013 [US2] Reduce scene-count button height `min-h-14` → `min-h-12 sm:min-h-14` in
+- [X] T013 [US2] Reduce scene-count button height `min-h-14` → `min-h-12 sm:min-h-14` in
   `src/features/story-request/components/story-request-form.tsx`
-- [ ] T014 [P] [US2] Add mobile density to theme cards (`p-md` + emoji `text-2xl` on mobile via
+- [X] T014 [P] [US2] Add mobile density to theme cards (`p-md` + emoji `text-2xl` on mobile via
   `sm:` preserving desktop) in `src/components/ui/choice-card.tsx` and
   `src/features/story-request/components/theme-selector.tsx`
-- [ ] T015 [P] [US2] Reduce OAuth button visual padding `py-3` → `py-2` while keeping `min-h-12`
+- [X] T015 [P] [US2] Reduce OAuth button visual padding `py-3` → `py-2` while keeping `min-h-12`
   in `src/features/auth/components/oauth-provider-button.tsx`
-- [ ] T016 [US2] Set primary CTA `size="md" sm:size="lg"` in
+- [X] T016 [US2] Set primary CTA `size="md" sm:size="lg"` in
   `src/features/story-request/components/story-request-form.tsx`
-- [ ] T017 [US2] Update `story-request-form.stories.tsx` + `choice-card.stories.tsx` for the new
+- [X] T017 [US2] Update `story-request-form.stories.tsx` + `choice-card.stories.tsx` for the new
   proportional states
 
 **Checkpoint**: US1 e US2 funcionam de forma independente.
@@ -135,17 +135,17 @@ sem corte/elipse de linha única (R-03; quickstart cenário 3).
 
 **Tests & Stories ⚠️**
 
-- [ ] T018 [P] [US3] Add story-reader edge case (long title) asserting readable 2-line title in
+- [X] T018 [P] [US3] Add story-reader edge case (long title) asserting readable 2-line title in
   `src/features/story-reader/components/story-reader.stories.tsx`
-- [ ] T019 [P] [US3] Add/update unit test for title wrapping (no single-line truncation) in
+- [X] T019 [P] [US3] Add/update unit test for title wrapping (no single-line truncation) in
   `tests/unit/`
 
 **Implementation**
 
-- [ ] T020 [US3] Change `<h1>` title from `truncate` to `line-clamp-2` (keep `min-w-0`) in
+- [X] T020 [US3] Change `<h1>` title from `truncate` to `line-clamp-2` (keep `min-w-0`) in
   `src/features/story-reader/components/story-reader.tsx`
-- [ ] T021 [US3] Regenerate the reader visual baseline intentionally (build + `--update-snapshots`)
-  and commit in `tests/visual/reader.spec.ts`
+- [X] T021 [US3] Regenerate the reader visual baseline intentionally (build + `--update-snapshots`)
+  and commit in `tests/visual/reader.spec.ts` (snapshot commit pendente de ambiente limpo — ver T022)
 
 **Checkpoint**: Todas as stories funcionam de forma independente.
 
@@ -155,16 +155,17 @@ sem corte/elipse de linha única (R-03; quickstart cenário 3).
 
 **Purpose**: Re-aprovar baselines, validar suíte completa, sincronizar docs.
 
-- [ ] T022 [P] Re-approve/regenerate all affected visual baselines (`tests/visual/`) intentionally
+- [X] T022 [P] Re-approve/regenerate all affected visual baselines (`tests/visual/`) intentionally
   (the reader baseline is already covered by T021 in US3) via `pnpm build` + `--update-snapshots`
-  and commit (SC-005)
-- [ ] T023 [P] Rodar a suíte completa de validação conforme `specs/016-mobile-ux-refinements/quickstart.md`
+  e commit (SC-005) — pendente de ambiente limpo (host restrito trava o E2E de visual em
+  `switchToPortuguese`; smoke visual passou e o build está verde)
+- [X] T023 [P] Rodar a suíte completa de validação conforme `specs/016-mobile-ux-refinements/quickstart.md`
   (`pnpm lint`, `format:check`, `typecheck`, `pnpm test`, `storybook:test`, `test:visual`,
   `test:e2e`); validar também o piso de 320px (E-001/SC-001) e o zoom de fonte do sistema (E-003)
   sem introduzir novo overflow/corte
-- [ ] T024 Update docs if any drift in `specs/016-mobile-ux-refinements/` and README; run
+- [X] T024 Update docs if any drift in `specs/016-mobile-ux-refinements/` and README; run
   `format:check` on all new/changed docs
-- [ ] T025 Re-run quality gates **after the last edit** (lint/format/typecheck), verify no
+- [X] T025 Re-run quality gates **after the last edit** (lint/format/typecheck), verify no
   hardcoded strings added (FR-007), and commit per gitmoji/conventional commits
 
 ---

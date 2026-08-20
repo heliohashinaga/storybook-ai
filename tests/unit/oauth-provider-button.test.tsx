@@ -69,3 +69,28 @@ describe("OAuthProviderButton — blossom OAuth action (spec 015)", () => {
     );
   });
 });
+
+// --- spec 016 US2: accessible touch target + nothing touch-only ---
+describe("OAuthProviderButton — accessible touch target (spec 016 US2)", () => {
+  it("preserves a >=44px touch target whether idle, busy, or disabled", () => {
+    for (const state of [{}, { busy: true }, { disabled: true }] as const) {
+      const { container } = renderButton({ label: "Continue with Google", ...state });
+      const button = container.querySelector("button") as HTMLButtonElement;
+      // The button keeps min-h-12 (48px token) in all states; jsdom does not
+      // compute layout, so we assert the responsive height utility is present
+      // rather than measuring pixels. min-h-12 >= the 44px accessible minimum
+      // and never reduces the target below it.
+      expect(button.className).toContain("min-h-12");
+      expect(button.className).not.toContain("min-h-8");
+    }
+  });
+
+  it("remains fully operable by keyboard (not touch-only)", async () => {
+    const user = userEvent.setup();
+    const { onClick } = renderButton({ label: "Continue with GitHub" });
+    const button = screen.getByRole("button", { name: "Continue with GitHub" });
+    button.focus();
+    await user.keyboard("{Enter}");
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+});

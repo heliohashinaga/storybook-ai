@@ -121,6 +121,30 @@ export const FourScenes: Story = {
   },
 };
 
+/**
+ * Edge (spec 016 US3): a very long story title must stay fully legible on
+ * mobile — wrapping up to two lines via line-clamp-2 instead of being clipped
+ * by a single-line ellipsis. The full title text remains in the DOM.
+ */
+export const LongTitleMobile: Story = {
+  args: {
+    story: {
+      ...base,
+      title: "A longa e corajosa jornada da pequena estrelinha que queria conhecer o fundo do mar",
+    },
+  },
+  parameters: { viewport: { defaultViewport: "mobile1" } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(
+      canvas.getByRole("heading", {
+        level: 1,
+        name: /A longa e corajosa jornada da pequena estrelinha que queria conhecer o fundo do mar/,
+      })
+    ).toBeVisible();
+  },
+};
+
 /** Edge: the reader clamps at bounds and never navigates past the last scene. */
 export const LastSceneBound: Story = {
   play: async ({ canvasElement }) => {

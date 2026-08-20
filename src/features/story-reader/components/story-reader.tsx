@@ -152,7 +152,7 @@ export function StoryReader({
             scenes change. The story title is the card's `h1`; the per-scene
             heading below is the `h2` focus target. */}
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-md border-b border-border bg-secondary/40 px-6 py-md sm:px-8">
-          <h1 className="min-w-0 truncate font-display text-title font-extrabold leading-title tracking-tight">
+          <h1 className="line-clamp-2 min-w-0 font-display text-title font-extrabold leading-title tracking-tight">
             {story.title}
           </h1>
           <span className="inline-flex shrink-0 items-center rounded-full bg-muted px-sm py-xs text-caption font-bold leading-caption text-text-subtle">

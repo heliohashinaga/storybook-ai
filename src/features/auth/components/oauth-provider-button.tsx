@@ -30,7 +30,7 @@ export function OAuthProviderButton({
       onClick={onClick}
       disabled={disabled || busy}
       aria-busy={busy || undefined}
-      className="flex min-h-12 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-50"
+      className="flex min-h-12 w-full items-center justify-center gap-3 rounded-2xl border border-border bg-background px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:bg-secondary/80 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {provider === "google" ? (
         <GoogleIcon className="size-5" />
