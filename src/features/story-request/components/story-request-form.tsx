@@ -200,10 +200,10 @@ export function StoryRequestForm({
                 type="button"
                 aria-pressed={on}
                 onClick={() => setLocale(option)}
-                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-colors ${
+                className={`flex items-center justify-center gap-2 rounded-2xl border-2 px-4 py-3 text-sm font-bold transition-all hover:-translate-y-0.5 ${
                   on
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-secondary text-text hover:border-primary/50"
+                    ? "border-primary bg-primary text-primary-foreground shadow-lift"
+                    : "border-border bg-background text-text hover:border-primary/50"
                 }`}
               >
                 {option === "pt-BR" ? t("brand.ptLabel") : t("brand.enLabel")}
