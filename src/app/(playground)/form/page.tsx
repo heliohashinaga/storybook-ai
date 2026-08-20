@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic";
  */
 export default async function FormPage() {
   await requireSession();
-  const isFake = process.env.STORIES_TEST_MODE === "fake";
-  return <StoryRequestApp isFake={isFake} />;
+  // `isFake` is derived from the mount path (`/form` ⇒ playground), so local
+  // `STORIES_TEST_MODE=fake` only switches the LLM provider, never the route.
+  return <StoryRequestApp />;
 }

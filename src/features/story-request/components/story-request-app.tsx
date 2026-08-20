@@ -24,10 +24,17 @@ import {
  * across routes. Only `ageBand`/`locale`/`theme`/`sceneCount` are ever submitted;
  * the approved 3–5 scene story stays locally in memory (never persisted).
  */
-export function StoryRequestApp({ isFake = false }: { isFake?: boolean }) {
+export function StoryRequestApp({ isFake }: { isFake?: boolean }) {
   const pathname = usePathname();
   const mode = deriveScreenFromPath(pathname);
-  return mode === "reader" ? <ReaderScreen isFake={isFake} /> : <FormScreen isFake={isFake} />;
+  // Route-aware fake flag: the demo mounts at `/demo`/`/demo/reader`, the
+  // authenticated playground at `/form`/`/reader`. Deriving `isFake` from the
+  // mount path (not `STORIES_TEST_MODE`) keeps an authed playground session
+  // from being routed to the cookie-less demo reader just because the server
+  // runs in fake-provider mode locally. An explicit prop still overrides
+  // (Storybook stories force the demo).
+  const fake = isFake ?? pathname.startsWith("/demo");
+  return mode === "reader" ? <ReaderScreen isFake={fake} /> : <FormScreen isFake={fake} />;
 }
 
 /** The `/form` screen: anonymous request form + inline generation progress. */
