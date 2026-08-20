@@ -46,7 +46,7 @@ test("an email outside the allowlist is denied: localized message, no session", 
   await page.getByRole("button", { name: /Continue with Google/i }).click();
 
   // Localized denial message (default UI locale is en).
-  await expect(page.getByRole("alert")).toHaveText("This account isn't allowed to sign in here.");
+  await expect(page.getByRole("alert")).toHaveText("This account can't sign in here.");
   // The consumed error marker is cleaned from the URL (no ?error= residue).
   await expect.poll(() => new URL(page.url()).searchParams.has("error")).toBe(false);
   // No session was ever created.

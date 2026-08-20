@@ -251,6 +251,28 @@ describe("scene view — standalone illustration header", () => {
   });
 });
 
+describe("story reader — US3 title legibility (spec 016)", () => {
+  it("renders a long title in full (wraps up to two lines) instead of truncating", () => {
+    const longTitleStory: GeneratedStory = {
+      ...story,
+      title: "A longa e corajosa jornada da pequena estrelinha que queria conhecer o fundo do mar",
+    };
+    render(
+      <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
+        <StoryReader story={longTitleStory} />
+      </NextIntlClientProvider>
+    );
+    const title = screen.getByRole("heading", { level: 1 });
+    // The reader title uses line-clamp-2 (not truncate), so the full text is
+    // present in the DOM and the single-line ellipsis class is absent.
+    expect(title).toHaveTextContent(
+      "A longa e corajosa jornada da pequena estrelinha que queria conhecer o fundo do mar"
+    );
+    expect(title.className).toContain("line-clamp-2");
+    expect(title.className).not.toContain("truncate");
+  });
+});
+
 describe("story reader — US4 show more / show less (accessible body collapse)", () => {
   const longBody =
     "Era uma vez uma estrelinha muito curiosa que queria conhecer o mar. " +

@@ -50,3 +50,18 @@ export const Busy: Story = {
     busy: true,
   },
 };
+
+/**
+ * Edge (spec 016 US2): on mobile the button keeps its >=44px touch target
+ * while presenting proportional (reduced) vertical padding. The touch target
+ * must never fall below the accessible minimum.
+ */
+export const MobileDensity: Story = {
+  args: {
+    provider: "google",
+    label: "Continuar com o Google",
+  },
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+};

@@ -28,3 +28,20 @@ export const WithIcon: Story = {
 export const Disabled: Story = {
   args: { disabled: true, selected: false },
 };
+
+/**
+ * Edge (spec 016 US1): a very long localized description must wrap cleanly at
+ * word boundaries instead of overflowing or clipping mid-word. The card keeps
+ * its column width and the description breaks on spaces.
+ */
+export const LongDescription: Story = {
+  args: {
+    icon: "🌟",
+    label: "Curiosidade",
+    description:
+      "Fazer perguntas, explorar o mundo e descobrir como as coisas funcionam com coragem e alegria.",
+  },
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+  },
+};

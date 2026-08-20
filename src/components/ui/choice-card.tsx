@@ -17,8 +17,8 @@ export interface ChoiceCardProps extends Omit<
 }
 
 const base =
-  "flex w-full flex-col items-start gap-sm rounded-3xl border-2 bg-card px-lg py-lg text-left " +
-  "transition-all duration-base disabled:cursor-not-allowed disabled:opacity-50 " +
+  "flex w-full flex-col items-center justify-center gap-sm rounded-3xl border-2 bg-card px-md py-md text-center " +
+  "transition-all duration-base ease-[var(--motion-ease-standard)] active:border-primary disabled:cursor-not-allowed disabled:opacity-50 " +
   "focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 /**
@@ -50,12 +50,18 @@ export const ChoiceCard = forwardRef<HTMLButtonElement, ChoiceCardProps>(functio
       {...rest}
     >
       {icon ? (
-        <span aria-hidden="true" className="text-3xl">
+        <span aria-hidden="true" className="text-2xl sm:text-3xl">
           {icon}
         </span>
       ) : null}
-      <span className="text-title font-display font-bold">{label}</span>
-      {description ? <span className="text-caption text-text-subtle">{description}</span> : null}
+      <span className="min-w-0 break-words text-title font-display font-bold leading-snug">
+        {label}
+      </span>
+      {description ? (
+        <span className="min-w-0 break-words text-caption leading-snug text-text-subtle">
+          {description}
+        </span>
+      ) : null}
       <span
         aria-hidden="true"
         className={`h-1.5 w-10 rounded-full ${selected ? "bg-primary" : "bg-border"}`}

@@ -4,15 +4,15 @@
     "heading": "Storybook AI",
     "tagline": "Create magical stories with AI.",
     "playgroundHeading": "Playground",
-    "playgroundDescription": "Generate stories using real AI models.",
+    "playgroundDescription": "Generate stories with real AI.",
     "google": "Continue with Google",
     "github": "Continue with GitHub",
     "or": "OR",
     "demo": "Explore the Demo",
-    "demoHint": "Try pre-generated stories — no account required.",
-    "noCredentials": "Sign-in isn’t configured on this instance yet. Explore the demo instead.",
-    "signInError": "We couldn’t complete that sign-in. Please try again or use a different account.",
-    "accessDenied": "This account isn't allowed to sign in here."
+    "demoHint": "Ready-made stories — no account needed.",
+    "noCredentials": "Sign-in isn't set up yet. Try the demo instead.",
+    "signInError": "Couldn't sign you in. Try again or use a different account.",
+    "accessDenied": "This account can't sign in here."
   },
   "auth": {
     "nav": {

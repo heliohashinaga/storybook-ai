@@ -176,3 +176,32 @@ export const EnSafeRetry: Story = {
     await waitFor(() => expect(alert.parentElement).toHaveFocus());
   },
 };
+
+// ---------------------------------------------------------------------------
+// spec 016 US1/US2 — mobile density + wrapping edge cases (Storybook = app).
+// ---------------------------------------------------------------------------
+
+/**
+ * Edge (spec 016): at a narrow mobile viewport, localized text (theme
+ * descriptions, the "Português (Brasil)" language button, and the "cenas"
+ * scene unit) must wrap cleanly without overflow, and the controls keep their
+ * proportional mobile density. Mirrors the real app at 320px.
+ */
+export const MobileDensity: Story = {
+  parameters: { viewport: { defaultViewport: "mobile1" } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Language button label is long in pt-BR and must not overflow its column.
+    const langButton = canvas.getByRole("button", { name: /português/i });
+    await expect(langButton).toBeVisible();
+    // Scene-count unit stays attached to the number (whitespace-nowrap); scope
+    // the query to the unit span so it does not also match the legend/label.
+    const unit = canvasElement.querySelector(
+      "#story-request-scenes-label + div span"
+    ) as HTMLElement;
+    await expect(unit).toHaveTextContent(/cenas/i);
+    // The form itself introduces no horizontal overflow at this width.
+    const form = canvasElement.querySelector("form") as HTMLElement;
+    expect(form.scrollWidth).toBeLessThanOrEqual(form.clientWidth + 1);
+  },
+};

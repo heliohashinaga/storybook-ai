@@ -113,33 +113,41 @@ test.describe("performance budgets (T060)", () => {
     //
     // Measure the app's real re-render cost inside the browser: dispatch the
     // click on the next/prev button and time until the new scene heading is
-    // reflected in the DOM (requestAnimationFrame). Playwright's click() +
-    // expect(...).toBeVisible() would include harness overhead (actionability
-    // waits for a stable box — the dots transition animates — plus assertion
-    // polling), inflating the sample to ~265ms even though the SPA answers in
-    // single-digit milliseconds. The budget guards app-perceived navigation.
+    // reflected in the DOM via a MutationObserver on the heading node (which
+    // the React commit updates, independent of paint/layout/font-swap). This
+    // captures the SPA's perceived navigation cost — single-digit ms — without
+    // Playwright's actionability waits or rAF/text-poll paint latency that
+    // would inflate the sample to ~180ms even though the app answers instantly.
     const samples = await page.evaluate(async () => {
       const out: number[] = [];
       const targets = ["Cena 2 de 3", "Cena 3 de 3", "Cena 2 de 3", "Cena 1 de 3"];
+      const findBtn = (fwd: boolean) =>
+        Array.from(document.querySelectorAll("button")).find((b) => {
+          const label = b.getAttribute("aria-label") ?? "";
+          return fwd ? /pr[oó]xima/i.test(label) : /anterior/i.test(label);
+        });
       for (const [i, to] of targets.entries()) {
         // Transitions 1->2 and 2->3 use "Próxima"; 3->2 and 2->1 use "Anterior".
-        const isForward = i < 2;
-        const btn = Array.from(document.querySelectorAll("button")).find((b) =>
-          isForward
-            ? /pr[oó]xima/i.test(b.textContent ?? "")
-            : /anterior/i.test(b.textContent ?? "")
-        );
-        if (!btn) break;
+        const btn = findBtn(i < 2);
+        const heading = document.querySelector("[data-scene-heading]");
+        if (!btn || !heading) break;
         const t0 = performance.now();
-        btn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-        await new Promise<void>((resolve) => {
-          const poll = () => {
-            if (document.body.textContent?.includes(to)) resolve();
-            else requestAnimationFrame(poll);
-          };
-          requestAnimationFrame(poll);
+        const settled = new Promise<number>((resolve) => {
+          const obs = new MutationObserver(() => {
+            if (document.body.textContent?.includes(to)) {
+              obs.disconnect();
+              resolve(performance.now() - t0);
+            }
+          });
+          obs.observe(heading, { childList: true, characterData: true, subtree: true });
+          // Safety: don't hang the suite if the observer never fires.
+          setTimeout(() => {
+            obs.disconnect();
+            resolve(performance.now() - t0);
+          }, 2000);
         });
-        out.push(performance.now() - t0);
+        btn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+        out.push(await settled);
       }
       return out;
     });

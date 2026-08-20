@@ -6,7 +6,7 @@
       "stopping": "Parando a leitura…",
       "stop": "Parar leitura",
       "error": "Não foi possível reproduzir o áudio. Tente novamente.",
-      "unavailable": "A narração por voz de IA está indisponível no momento. A cena continua legível.",
+      "unavailable": "Narração por voz indisponível no momento. A cena continua legível.",
       "retry": "Tentar novamente",
       "busy": "Obtendo o áudio…",
       "control": "Controle de narração"

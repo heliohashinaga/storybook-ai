@@ -6,6 +6,8 @@ import ptBRNarration from "../features/story-read-aloud/locales/pt-BR.json";
 import enNarration from "../features/story-read-aloud/locales/en.json";
 import ptBRAuth from "../features/auth/locales/pt-BR.json";
 import enAuth from "../features/auth/locales/en.json";
+import ptBRShell from "../features/shell/locales/pt-BR.json";
+import enShell from "../features/shell/locales/en.json";
 
 export { routing };
 
@@ -51,8 +53,8 @@ function mergeRecords(
   return out;
 }
 
-const ptBRFull = deepMerge(deepMerge(ptBR, ptBRNarration), ptBRAuth);
-const enFull = deepMerge(deepMerge(en, enNarration), enAuth);
+const ptBRFull = deepMerge(deepMerge(deepMerge(ptBR, ptBRNarration), ptBRAuth), ptBRShell);
+const enFull = deepMerge(deepMerge(deepMerge(en, enNarration), enAuth), enShell);
 
 /** Application-wide message catalog (base + per-feature narration keys). */
 export type Messages = typeof ptBRFull;

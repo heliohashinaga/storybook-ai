@@ -66,7 +66,7 @@ export const ProviderFailure: Story = {
   },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("alert")).toHaveTextContent(/não foi possível/i);
+    await expect(canvas.getByRole("alert")).toHaveTextContent(/não deu para criar/i);
     await userEvent.click(canvas.getByRole("button", { name: /tentar novamente/i }));
   },
 };
