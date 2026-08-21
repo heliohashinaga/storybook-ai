@@ -7,7 +7,7 @@ import { fakeSynthesize, fakeNarrateRequest } from "./tts/fake";
 /**
  * Deterministic provider tests (spec 004, T007/T008). No live TTS: the
  * OpenRouter adapter is driven through an injected fake transport returning
- * canned responses, mirroring the story-generation provider tests.
+ * canned audio/JSON responses, mirroring the story-generation provider tests.
  */
 
 interface FetchCall {
@@ -45,20 +45,21 @@ function jsonResponse(payload: unknown, status = 200): Response {
   });
 }
 
-/** A valid OpenRouter audio completion envelope (MP3 base64 inside). */
-function audioCompletion(base64Audio: string): Response {
-  return jsonResponse({ choices: [{ message: { audio: { data: base64Audio } } }] });
+/** A valid OpenRouter /audio/speech response (raw MP3 bytes). */
+function audioResponse(bytes: Uint8Array = Uint8Array.from([1, 2, 3, 4])): Response {
+  return new Response(bytes as unknown as BodyInit, {
+    status: 200,
+    headers: { "content-type": "audio/mpeg" },
+  });
 }
 
 const SCENE_TEXT = "Era uma vez uma estrelinha no céu.";
-const BASE64_AUDIO = Buffer.from("fake-mp3-tone").toString("base64");
-const AUDIO_BYTES = Uint8Array.from(Buffer.from(BASE64_AUDIO, "base64"));
+const AUDIO_BYTES = Uint8Array.from([1, 2, 3, 4]);
 
 const deps = {
   apiKey: "sk-test",
   model: "test/tts-model",
   baseUrl: "https://openrouter.test/api/v1",
-  maxRetries: 0,
 };
 
 function headerOf(call: FetchCall, name: string): string | null {
@@ -85,7 +86,7 @@ describe("TtsProvider fake fixtures (T007)", () => {
 
 describe("createOpenRouterTtsProvider (T008)", () => {
   it("synthesize returns MP3 bytes and sends only the anonymous scene text", async () => {
-    const { fetchImpl, calls } = createFakeFetch(() => audioCompletion(BASE64_AUDIO));
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
     const provider = createOpenRouterTtsProvider({ ...deps, fetchImpl });
 
     const result = await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
@@ -93,44 +94,90 @@ describe("createOpenRouterTtsProvider (T008)", () => {
     expect(result.format).toBe("audio/mpeg");
     expect(result.audio).toEqual(AUDIO_BYTES);
 
-    const chat = calls.find((c) => c.url.endsWith("/chat/completions"));
-    expect(chat).toBeDefined();
-    expect(chat!.body).toMatchObject({ model: "test/tts-model" });
-    expect(headerOf(chat!, "authorization")).toBe("Bearer sk-test");
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect(speech).toBeDefined();
+    // The openrouter/ prefix is stripped before reaching the API.
+    expect(speech!.body).toMatchObject({ model: "tts-model", input: SCENE_TEXT });
+    expect(headerOf(speech!, "authorization")).toBe("Bearer sk-test");
 
     // Privacy invariant: the provider payload carries only the anonymous scene
-    // text in the user message — never a name or identifier.
-    const userMessage = (chat!.body as { messages: { role: string; content: string }[] })
-      .messages[0]!;
-    expect(userMessage.content).toBe(SCENE_TEXT);
-    expect(JSON.stringify(chat!.body)).not.toContain("name");
-    expect(JSON.stringify(chat!.body)).not.toContain("childName");
+    // text — never a name or identifier.
+    expect(JSON.stringify(speech!.body)).not.toContain("name");
+    expect(JSON.stringify(speech!.body)).not.toContain("childName");
   });
 
-  it("uses the en voice profile for the en locale", async () => {
-    const { fetchImpl, calls } = createFakeFetch(() => audioCompletion(BASE64_AUDIO));
-    const provider = createOpenRouterTtsProvider({ ...deps, fetchImpl });
+  it("uses the pt-BR Kokoro voice for the pt-BR locale and omits voice for non-Kokoro models", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({
+      ...deps,
+      model: "hexgrad/kokoro-82m",
+      fetchImpl,
+    });
+
+    await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
+
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { voice?: string }).voice).toBe("af_heart");
+  });
+
+  it("uses the en Kokoro voice for the en locale", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({
+      ...deps,
+      model: "hexgrad/kokoro-82m",
+      fetchImpl,
+    });
 
     await provider.synthesize("Once upon a time.", { locale: "en" });
 
-    const chat = calls.find((c) => c.url.endsWith("/chat/completions"));
-    expect(chat!.body).toMatchObject({ audio: { voice: "verse", format: "mp3" } });
-    expect((chat!.body as { modalities?: string[] }).modalities).toContain("audio");
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { voice?: string }).voice).toBe("am_michael");
   });
 
-  it("rejects with a typed invalid error when the response has no audio", async () => {
-    const { fetchImpl } = createFakeFetch(() =>
-      jsonResponse({ choices: [{ message: { content: "nothing to hear" } }] })
-    );
-    const provider = createOpenRouterTtsProvider({ ...deps, fetchImpl });
-
-    await expect(provider.synthesize(SCENE_TEXT, { locale: "pt-BR" })).rejects.toMatchObject({
-      name: "TtsProviderError",
-      kind: "invalid",
+  it("omits the voice field for non-Kokoro models (e.g. Fish Audio)", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({
+      ...deps,
+      model: "fish-audio/s2.1-pro-free:free",
+      fetchImpl,
     });
+
+    await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
+
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { voice?: string }).voice).toBeUndefined();
   });
 
-  it("rejects with a typed invalid error when the response is not JSON-shaped audio", async () => {
+  it("uses env-overridden voices when READER_VOICE_* is set (Kokoro only)", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({
+      ...deps,
+      model: "hexgrad/kokoro-82m",
+      voicePtBr: "bf_emma",
+      voiceEn: "ef_dora",
+      fetchImpl,
+    });
+
+    await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { voice?: string }).voice).toBe("bf_emma");
+  });
+
+  it("strips an openrouter/ prefix from the model id", async () => {
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({
+      ...deps,
+      model: "openrouter/hexgrad/kokoro-82m",
+      fetchImpl,
+    });
+
+    await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
+
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { model: string }).model).toBe("hexgrad/kokoro-82m");
+  });
+
+  it("rejects with a typed invalid error when the response is not audio", async () => {
     const { fetchImpl } = createFakeFetch(
       () =>
         new Response("<html>not audio</html>", {
@@ -146,6 +193,20 @@ describe("createOpenRouterTtsProvider (T008)", () => {
     );
     expect(error).toBeInstanceOf(TtsProviderError);
     expect((error as TtsProviderError).kind).toBe("invalid");
+  });
+
+  it("rejects with a typed unavailable error on a JSON provider error", async () => {
+    const { fetchImpl } = createFakeFetch(() =>
+      jsonResponse({ error: { message: "provider rejected" } }, 400)
+    );
+    const provider = createOpenRouterTtsProvider({ ...deps, fetchImpl });
+
+    const error = await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" }).then(
+      () => null,
+      (e: unknown) => e
+    );
+    expect(error).toBeInstanceOf(TtsProviderError);
+    expect((error as TtsProviderError).kind).toBe("unavailable");
   });
 
   it("rejects with a typed unavailable error on a network failure", async () => {
@@ -174,6 +235,18 @@ describe("createOpenRouterTtsProvider (T008)", () => {
     });
   });
 
+  it("rejects with a typed invalid error on a 422", async () => {
+    const { fetchImpl } = createFakeFetch(() =>
+      jsonResponse({ error: { message: "invalid request" } }, 422)
+    );
+    const provider = createOpenRouterTtsProvider({ ...deps, fetchImpl });
+
+    await expect(provider.synthesize(SCENE_TEXT, { locale: "pt-BR" })).rejects.toMatchObject({
+      name: "TtsProviderError",
+      kind: "invalid",
+    });
+  });
+
   it("maps a request timeout to a typed timeout error", async () => {
     const fetchImpl: typeof fetch = (_input, init) =>
       new Promise((_resolve, reject) => {
@@ -193,7 +266,7 @@ describe("createOpenRouterTtsProvider (T008)", () => {
 });
 
 describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
-  it("uses the env READER_MODEL when no model is injected", async () => {
+  it("uses the env READER_MODEL (prefix stripped) when no model is injected", async () => {
     vi.stubEnv("OPENROUTER_API_KEY", "sk-env");
     vi.stubEnv("OPENCODE_GO_API_KEY", "sk-opencode-env");
     vi.stubEnv("PLANNER_MODEL", "opencode-go/env/text-model");
@@ -203,15 +276,15 @@ describe("createOpenRouterTtsProvider — env-based model (T018 seam)", () => {
     vi.stubEnv("READER_MODEL", "openrouter/env/reader-model");
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
 
-    const { fetchImpl, calls } = createFakeFetch(() => audioCompletion(BASE64_AUDIO));
-    const provider = createOpenRouterTtsProvider({ fetchImpl, maxRetries: 0 });
+    const { fetchImpl, calls } = createFakeFetch(() => audioResponse(AUDIO_BYTES));
+    const provider = createOpenRouterTtsProvider({ fetchImpl });
 
     const result = await provider.synthesize(SCENE_TEXT, { locale: "pt-BR" });
     expect(result.format).toBe("audio/mpeg");
 
-    const chat = calls.find((c) => c.url.endsWith("/chat/completions"));
-    expect(chat!.body).toMatchObject({ model: "openrouter/env/reader-model" });
-    expect(headerOf(chat!, "authorization")).toBe("Bearer sk-env");
+    const speech = calls.find((c) => c.url.endsWith("/audio/speech"));
+    expect((speech!.body as { model: string }).model).toBe("env/reader-model");
+    expect(headerOf(speech!, "authorization")).toBe("Bearer sk-env");
 
     vi.unstubAllEnvs();
   });
