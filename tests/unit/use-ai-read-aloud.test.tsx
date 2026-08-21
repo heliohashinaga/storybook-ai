@@ -111,13 +111,12 @@ function installFetchMock(scenario: FetchScenario) {
 function renderAiReadAloud(props: { text?: string; locale?: string; errorLabel?: string } = {}) {
   // The callback consumes `p` so RTL's `rerender(newProps)` injects the
   // updated props (used to simulate a locale switch while an error is shown).
-  return renderHook(
-    (p: { text?: string; locale?: string; errorLabel?: string } = props) =>
-      useAiReadAloud({
-        text: p.text ?? SCENE_TEXT,
-        locale: p.locale ?? "pt-BR",
-        errorLabel: p.errorLabel ?? ERROR_LABEL,
-      })
+  return renderHook((p: { text?: string; locale?: string; errorLabel?: string } = props) =>
+    useAiReadAloud({
+      text: p.text ?? SCENE_TEXT,
+      locale: p.locale ?? "pt-BR",
+      errorLabel: p.errorLabel ?? ERROR_LABEL,
+    })
   );
 }
 
