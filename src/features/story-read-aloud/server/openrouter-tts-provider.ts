@@ -5,6 +5,7 @@ import {
 } from "../../story-generation/server/provider-core/env-deps";
 import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
 import { TtsProviderError, type TtsProviderErrorKind } from "./tts-provider";
+import { getEnv } from "../../../lib/env";
 
 /**
  * Server-only OpenRouter TTS adapter (spec 004, T008).
@@ -32,6 +33,8 @@ export interface OpenRouterTtsDeps {
   /** Optional per-locale voice overrides (env-driven; see READER_VOICE_*). */
   voicePtBr?: string;
   voiceEn?: string;
+  /** Audio format for TTS output (env-driven; see TTS_AUDIO_FORMAT). */
+  audioFormat?: string;
   /** Replaceable transport; defaults to global fetch. */
   fetchImpl?: typeof fetch;
 }
@@ -54,6 +57,7 @@ function resolveDeps(deps: OpenRouterTtsDeps) {
     model: envOrDefault(deps.model, env?.READER_MODEL, ""),
     voicePtBr: envOrDefault(deps.voicePtBr, env?.READER_VOICE_PT_BR, "af_heart"),
     voiceEn: envOrDefault(deps.voiceEn, env?.READER_VOICE_EN, "am_michael"),
+    audioFormat: envOrDefault(deps.audioFormat, env?.TTS_AUDIO_FORMAT, "mp3"),
     baseUrl: envOrDefault(deps.baseUrl, undefined, DEFAULT_BASE_URL),
     timeoutMs: envOrDefault(deps.timeoutMs, undefined, DEFAULT_TIMEOUT_MS),
     fetchImpl: envOrDefault(deps.fetchImpl, undefined, fetch),
@@ -95,12 +99,27 @@ function classifyResponseError(response: Response, contentType: string): TtsProv
   });
 }
 
-async function validateSpeechResponse(response: Response): Promise<Uint8Array> {
+async function validateSpeechResponse(response: Response, expectedFormat?: string): Promise<Uint8Array> {
   const contentType = response.headers.get("content-type") ?? "";
   const isAudio = contentType.startsWith("audio/");
   if (!response.ok || !isAudio) {
     throw classifyResponseError(response, contentType);
   }
+  
+  // Validate that the returned content type matches the expected format if specified
+  if (expectedFormat) {
+    const expectedMimeType = expectedFormat === "wav" ? "audio/wav" : 
+                           expectedFormat === "ogg" ? "audio/ogg" : 
+                           "audio/mpeg";
+    if (!contentType.includes(expectedMimeType.split('/')[1])) {
+      // Some providers might return generic audio content-type, so we'll allow it
+      // but log a warning in development
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`Expected ${expectedMimeType} but got ${contentType}`);
+      }
+    }
+  }
+  
   const audio = new Uint8Array(await response.arrayBuffer());
   if (audio.length === 0) {
     throw new TtsProviderError({ kind: "invalid", message: "TTS provider returned empty audio." });
@@ -123,7 +142,7 @@ export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsPr
 
       const body: Record<string, unknown> = { model: bareModel, input: text };
       if (voice) body.voice = voice;
-      body.response_format = "mp3";
+      body.response_format = audioFormat;
 
       let response: Response;
       try {
@@ -146,8 +165,16 @@ export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsPr
         toTtsProviderError(error, "unavailable");
       }
 
-      const audio = await validateSpeechResponse(response);
-      return { format: "audio/mpeg", audio };
+      const audio = await validateSpeechResponse(response, audioFormat);
+      // Map the audio format to the appropriate MIME type
+      const mimeType = audioFormat === "wav" ? "audio/wav" : 
+                      audioFormat === "ogg" ? "audio/ogg" : 
+                      "audio/mpeg";
+      return { format: mimeType, audio };
+    },
+  };
+}
+
     },
   };
 }
