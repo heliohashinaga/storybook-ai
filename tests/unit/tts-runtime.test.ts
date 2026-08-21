@@ -95,20 +95,38 @@ describe("createTtsRuntime (T022 — controlled failure, no fallback, no retry)"
 });
 
 describe("createTtsRuntime (T010 — default provider resolution)", () => {
-  it("resolves the deterministic offline provider when STORIES_TEST_MODE=fake", async () => {
-    vi.stubEnv("STORIES_TEST_MODE", "fake");
+  // The TTS provider follows `AI_NARRATION_ENABLED` (not `STORIES_TEST_MODE`),
+  // so a fake-generation run can still exercise real AI narration. The demo
+  // path is always offline regardless of that flag.
+  it("resolves the deterministic offline provider for the demo mode", async () => {
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
-    // The fake provider path never requires credentials or `getEnv()`, so no
-    // model/API-key env is needed here (no legacy `OPENROUTER_*` residue).
-
-    const runtime = createTtsRuntime();
-
+    const runtime = createTtsRuntime({ mode: "demo", enabled: true });
     expect(runtime.enabled).toBe(true);
     const result = await runtime.synthesize(SCENE_TEXT, LOCALE);
-    expect(result.mode).toBe("ai");
     expect(result.format).toBe("audio/mpeg");
-    expect(result.audio).toBeInstanceOf(Uint8Array);
-    // Fixed provider audio is the deterministic MP3 fixture, never empty.
     expect(result.audio.length).toBeGreaterThan(0);
+  });
+
+  it("resolves the deterministic offline provider when AI narration is off (playground)", async () => {
+    vi.stubEnv("AI_NARRATION_ENABLED", "false");
+    vi.stubEnv("STORIES_TEST_MODE", "fake");
+    const runtime = createTtsRuntime();
+    expect(runtime.enabled).toBe(false);
+    // Disabled runtime answers off; the client delegates to Web Speech.
+    await expect(runtime.synthesize(SCENE_TEXT, LOCALE)).rejects.toMatchObject({
+      kind: "unavailable",
+    });
+  });
+
+  it("selects the real OpenRouter adapter for the playground when AI narration is on", async () => {
+    vi.stubEnv("AI_NARRATION_ENABLED", "true");
+    vi.stubEnv("STORIES_TEST_MODE", "fake");
+    // No `READER_MODEL`/credential stubbed → the real adapter fails lazily,
+    // proving the playground no longer falls back to the fixed provider.
+    const runtime = createTtsRuntime();
+    expect(runtime.enabled).toBe(true);
+    await expect(runtime.synthesize(SCENE_TEXT, LOCALE)).rejects.toMatchObject({
+      name: "TtsProviderError",
+    });
   });
 });
