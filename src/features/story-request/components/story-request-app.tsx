@@ -14,7 +14,6 @@ import {
   type GenerateStoryRequest,
   type SubmitResult,
 } from "./story-request-form";
-
 /**
  * Request → story container (T033) generalized to route-aware screens (Spec 009).
  * The anonymous app now has two navigable routes, `/form` and `/reader`; both
@@ -33,7 +32,7 @@ export function StoryRequestApp({ isFake }: { isFake?: boolean }) {
   // from being routed to the cookie-less demo reader just because the server
   // runs in fake-provider mode locally. An explicit prop still overrides
   // (Storybook stories force the demo).
-  const fake = isFake ?? pathname.startsWith("/demo");
+  const fake = isFake !== undefined ? isFake : pathname.startsWith("/demo");
   return mode === "reader" ? <ReaderScreen isFake={fake} /> : <FormScreen isFake={fake} />;
 }
 
@@ -57,9 +56,13 @@ function FormScreen({ isFake }: { isFake: boolean }) {
   // anonymous request is in flight. Cleared once submission ends.
   useEffect(() => {
     if (!submitting) return;
-    const id = setInterval(() => setElapsed((seconds) => seconds + 1), 1000);
+    // In fake mode, we want the progress to move at a pace that matches the backend
+    // The fakeStepDelaySeconds() function returns the duration of each step in seconds
+    const intervalMs = isFake ? 250 : 1000; // Update more frequently in fake mode for smoother animation
+    const incrementAmount = isFake ? 0.25 : 1; // Increment by smaller amounts in fake mode
+    const id = setInterval(() => setElapsed((seconds) => seconds + incrementAmount), intervalMs);
     return () => clearInterval(id);
-  }, [submitting]);
+  }, [submitting, isFake]);
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
@@ -99,7 +102,7 @@ function FormScreen({ isFake }: { isFake: boolean }) {
     return (
       <StoryGenerationProgress
         elapsedSeconds={elapsed}
-        stepDurationSeconds={isFake ? 3 : undefined}
+        stepDurationSeconds={isFake ? 1 : undefined}
       />
     );
   }

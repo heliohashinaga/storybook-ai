@@ -18,5 +18,7 @@ export default async function FormPage() {
   await requireSession();
   // `isFake` is derived from the mount path (`/form` ⇒ playground), so local
   // `STORIES_TEST_MODE=fake` only switches the LLM provider, never the route.
-  return <StoryRequestApp />;
+  // However, we want to pass the server's fake mode to the client for consistent UI behavior.
+  const isServerFake = process.env.STORIES_TEST_MODE === "fake";
+  return <StoryRequestApp isFake={isServerFake} />;
 }
