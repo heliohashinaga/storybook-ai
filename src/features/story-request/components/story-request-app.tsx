@@ -26,18 +26,24 @@ import {
 export function StoryRequestApp({ isFake }: { isFake?: boolean }) {
   const pathname = usePathname();
   const mode = deriveScreenFromPath(pathname);
-  // Route-aware fake flag: the demo mounts at `/demo`/`/demo/reader`, the
-  // authenticated playground at `/form`/`/reader`. Deriving `isFake` from the
-  // mount path (not `STORIES_TEST_MODE`) keeps an authed playground session
-  // from being routed to the cookie-less demo reader just because the server
-  // runs in fake-provider mode locally. An explicit prop still overrides
-  // (Storybook stories force the demo).
-  const fake = isFake !== undefined ? isFake : pathname.startsWith("/demo");
-  return mode === "reader" ? <ReaderScreen isFake={fake} /> : <FormScreen isFake={fake} />;
+  // Route-aware flag: the anonymous demo mounts at `/demo`/`/demo/reader`, the
+  // authenticated playground at `/form`/`/reader`. Navigation paths MUST follow
+  // the mount path (never `STORIES_TEST_MODE`): an authed playground session
+  // running locally with fake provider must stay on `/form`→`/reader`, not be
+  // shunted to the cookie-less demo routes. `isFake` only boosts the fake
+  // progress bar speed (and lets Storybook stories force it); it never changes
+  // where we navigate.
+  const isDemo = pathname.startsWith("/demo");
+  const fakeProgress = isFake !== undefined ? isFake : isDemo;
+  return mode === "reader" ? (
+    <ReaderScreen isDemo={isDemo} />
+  ) : (
+    <FormScreen isDemo={isDemo} fakeProgress={fakeProgress} />
+  );
 }
 
 /** The `/form` screen: anonymous request form + inline generation progress. */
-function FormScreen({ isFake }: { isFake: boolean }) {
+function FormScreen({ isDemo, fakeProgress }: { isDemo: boolean; fakeProgress: boolean }) {
   const t = useTranslations("story");
   const router = useRouter();
   const { status, begin, succeed, fail, lastPreferences } = useStorySession();
@@ -48,21 +54,21 @@ function FormScreen({ isFake }: { isFake: boolean }) {
 
   // spec 015: the anonymous demo mounts the same app at /demo (/demo/reader),
   // while the authenticated playground uses /form (/reader). The generation
-  // target must follow the mount path, or an anonymous journey would land on
-  // the session-gated /reader and bounce back to the login gate.
-  const readerPath = isFake ? "/demo/reader" : "/reader";
+  // target follows the mount path (never STORIES_TEST_MODE), so an authed
+  // playground session running locally with a fake provider stays on the
+  // session-gated /reader instead of bouncing to the cookie-less demo reader.
+  const readerPath = isDemo ? "/demo/reader" : "/reader";
 
-  // Tick the elapsed clock that drives the localized progress copy while an
-  // anonymous request is in flight. Cleared once submission ends.
+  // Tick the elapsed clock that drives the localized progress copy while a
+  // generation request is in flight. In fake mode the backend returns quickly,
+  // so the bar animates faster to match. Cleared once submission ends.
   useEffect(() => {
     if (!submitting) return;
-    // In fake mode, we want the progress to move at a pace that matches the backend
-    // The fakeStepDelaySeconds() function returns the duration of each step in seconds
-    const intervalMs = isFake ? 250 : 1000; // Update more frequently in fake mode for smoother animation
-    const incrementAmount = isFake ? 0.25 : 1; // Increment by smaller amounts in fake mode
+    const intervalMs = fakeProgress ? 250 : 1000; // smoother animation in fake mode
+    const incrementAmount = fakeProgress ? 0.25 : 1; // smaller increments in fake mode
     const id = setInterval(() => setElapsed((seconds) => seconds + incrementAmount), intervalMs);
     return () => clearInterval(id);
-  }, [submitting, isFake]);
+  }, [submitting, fakeProgress]);
 
   async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
     setElapsed(0);
@@ -102,7 +108,7 @@ function FormScreen({ isFake }: { isFake: boolean }) {
     return (
       <StoryGenerationProgress
         elapsedSeconds={elapsed}
-        stepDurationSeconds={isFake ? 1 : undefined}
+        stepDurationSeconds={fakeProgress ? 1 : undefined}
       />
     );
   }
@@ -131,13 +137,13 @@ function FormScreen({ isFake }: { isFake: boolean }) {
 }
 
 /** The `/reader` screen: the active story + in-session history switcher. */
-function ReaderScreen({ isFake }: { isFake: boolean }) {
+function ReaderScreen({ isDemo }: { isDemo: boolean }) {
   const router = useRouter();
   const { story, stories, activeId, accessStory, hasSession } = useStorySession();
 
   // spec 015: mirror the mount path ("/demo" vs "/form") so the anonymous demo
   // stays on /demo(/reader) and only the playground touches the session gate.
-  const formPath = isFake ? "/demo" : "/form";
+  const formPath = isDemo ? "/demo" : "/form";
 
   // Session gate: `/reader` without a session (deep-link / reload) redirects
   // to the clean `/form`. Check after mount so the initial render has a stable
