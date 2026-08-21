@@ -72,7 +72,13 @@ export function NarrationControl({
         onClick={onToggle}
         className="min-h-12 min-w-12 justify-center! rounded-2xl! bg-secondary! text-secondary-foreground! hover:brightness-95!"
       >
-        {active ? <PauseIcon className="size-5" /> : <Volume2Icon className="size-5" />}
+        {status === "busy" ? (
+          <SpinnerIcon className="size-5" />
+        ) : active ? (
+          <PauseIcon className="size-5" />
+        ) : (
+          <Volume2Icon className="size-5" />
+        )}
       </Button>
       <span aria-live="polite" className="sr-only">
         {status === "speaking" || status === "busy" ? buttonLabel : ""}
@@ -87,6 +93,24 @@ export function NarrationControl({
         </span>
       ) : null}
     </span>
+  );
+}
+
+/** Inline spinner shown while the audio is being synthesized (`busy`).
+ * Animates only when the user has not requested reduced motion. */
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      className={`motion-safe:animate-spin ${className ?? ""}`}
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-6.2-8.56" />
+    </svg>
   );
 }
 
