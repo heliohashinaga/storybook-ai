@@ -92,7 +92,7 @@ different provider/model with the fitting capability.
 | `WRITER_MODEL`      | story narrative generation (text, req)   | `opencode-go/deepseek-v4-flash`               |
 | `MODERATOR_MODEL`   | safety moderation (text + image prompts) | `opencode-go/deepseek-v4-flash`               |
 | `ILLUSTRATOR_MODEL` | illustration generation (WebP, req)      | `openrouter/bytedance-seed/seedream-5-0-lite` |
-| `READER_MODEL`      | AI narration voice (TTS, req)            | `openrouter/hexgrad/kokoro-82m`               |
+| `READER_MODEL`      | AI narration voice (TTS, req)            | `openrouter/fish-audio/s2.1-pro-free:free`    |
 
 #### ⚙️ Mode
 
@@ -101,6 +101,8 @@ different provider/model with the fitting capability.
 | `STORIES_TEST_MODE`        | unset   | `fake` → deterministic offline dev provider, no AI calls |
 | `STORY_FAKE_STEP_DELAY_MS` | `1000`  | per-step fake latency in `fake` mode (0 = fastest)       |
 | `AI_NARRATION_ENABLED`     | `false` | enable the AI neural voice (uses `READER_MODEL`)         |
+| `READER_VOICE_PT_BR`       | unset   | pt-BR voice id for Kokoro-style models (e.g. `af_heart`) |
+| `READER_VOICE_EN`          | unset   | en voice id for Kokoro-style models (e.g. `am_michael`)  |
 
 #### ⏱️ Timeouts & retries (all optional)
 
