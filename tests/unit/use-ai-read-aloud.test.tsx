@@ -109,12 +109,15 @@ function installFetchMock(scenario: FetchScenario) {
 }
 
 function renderAiReadAloud(props: { text?: string; locale?: string; errorLabel?: string } = {}) {
-  return renderHook(() =>
-    useAiReadAloud({
-      text: props.text ?? SCENE_TEXT,
-      locale: props.locale ?? "pt-BR",
-      errorLabel: props.errorLabel ?? ERROR_LABEL,
-    })
+  // The callback consumes `p` so RTL's `rerender(newProps)` injects the
+  // updated props (used to simulate a locale switch while an error is shown).
+  return renderHook(
+    (p: { text?: string; locale?: string; errorLabel?: string } = props) =>
+      useAiReadAloud({
+        text: p.text ?? SCENE_TEXT,
+        locale: p.locale ?? "pt-BR",
+        errorLabel: p.errorLabel ?? ERROR_LABEL,
+      })
   );
 }
 
@@ -270,6 +273,26 @@ describe("useAiReadAloud — 204 delegates to Web Speech (AI disabled)", () => {
 });
 
 describe("useAiReadAloud — US2 controlled error (no Web Speech fallback)", () => {
+  it("updates the error message when the locale changes after the error (no frozen string)", async () => {
+    const speech = mockSpeech();
+    const fetchMock = installFetchMock("error");
+    const EN_ERROR_LABEL = "We couldn't play the audio. Please try again.";
+    const { result, rerender } = renderAiReadAloud({ errorLabel: ERROR_LABEL });
+
+    act(() => result.current.toggle());
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(result.current.errorMessage).toBe(ERROR_LABEL);
+
+    // User switches language (pt-BR → en) while the error is still shown.
+    // The error label is re-derived from the new locale, not frozen at failure.
+    rerender({ errorLabel: EN_ERROR_LABEL, text: SCENE_TEXT, locale: "en" });
+    expect(result.current.errorMessage).toBe(EN_ERROR_LABEL);
+    expect(result.current.status).toBe("error");
+    // US2 invariant preserved: no Web Speech fallback on locale switch.
+    expect(speech.speak).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("enters an accessible error state on 502 and never falls back to Web Speech", async () => {
     const speech = mockSpeech();
     const fetchMock = installFetchMock("error");

@@ -78,7 +78,11 @@ export function NarrationControl({
         {status === "speaking" || status === "busy" ? buttonLabel : ""}
       </span>
       {status === "error" && errorMessage ? (
-        <span role="alert" aria-live="assertive" className="text-body text-danger">
+        <span
+          role="alert"
+          aria-live="assertive"
+          className="absolute top-full left-1/2 z-10 mt-1 -translate-x-1/2 whitespace-nowrap text-body text-danger"
+        >
           {errorMessage}
         </span>
       ) : null}

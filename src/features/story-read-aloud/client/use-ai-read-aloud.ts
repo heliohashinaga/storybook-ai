@@ -62,7 +62,6 @@ export function useAiReadAloud({
   });
   const [status, setStatus] = useState<NarrationStatus>("idle");
   const [mode, setMode] = useState<NarrationMode>("ai");
-  const [errorMessage, setErrorMessage] = useState("");
   const objectUrlRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
@@ -122,7 +121,6 @@ export function useAiReadAloud({
     }
 
     setMode("ai");
-    setErrorMessage("");
     setStatus("busy");
 
     fetch("/api/narrate", {
@@ -146,10 +144,9 @@ export function useAiReadAloud({
       .catch(() => {
         // Accessible error, never a Web Speech retry (US2).
         setMode("ai");
-        setErrorMessage(errorLabel);
         setStatus("error");
       });
-  }, [text, locale, status, system, stop, playAiAudio, errorLabel]);
+  }, [text, locale, status, system, stop, playAiAudio]);
 
   // On unmount, revoke any transient object URL (zero persistence, US3).
   useEffect(() => {
@@ -168,6 +165,11 @@ export function useAiReadAloud({
   // available whenever there is text; `system.supported` only gates the Web
   // Speech fallback (204) path.
   const supported = Boolean(text);
+
+  // Derive the error message from the current locale (errorLabel) instead of
+  // freezing a translated string at failure time, so switching language
+  // updates the visible error (ponytaic: no stale-state bug).
+  const errorMessage = status === "error" ? errorLabel : "";
 
   return { speaking, supported, status, mode, errorMessage, toggle, stop };
 }
