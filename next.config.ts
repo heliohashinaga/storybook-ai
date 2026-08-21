@@ -34,6 +34,11 @@ const securityHeaders: { key: string; value: string }[] = [
       "img-src 'self' data:", // reader shows provider data: images
       "font-src 'self' data:",
       "connect-src 'self' data:", // self API + @react-pdf fetches its WASM yoga binary as a data: URI
+      // RELAXATION (signed off): the AI read-aloud client plays transient audio
+      // via a blob: URL, and Chromium resolves media blobs under `media-src`.
+      // Without it, default-src 'self' blocks the blob and the <audio> element
+      // reports "no supported source". Scoped to media only.
+      "media-src 'self' blob:",
       "worker-src 'self' blob:", // @react-pdf spawns a layout Web Worker from a blob: URL
       "frame-ancestors 'none'", // anti-clickjacking
       "base-uri 'none'",

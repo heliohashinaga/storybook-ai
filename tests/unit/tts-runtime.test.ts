@@ -100,6 +100,15 @@ describe("createTtsRuntime (T010 — default provider resolution)", () => {
   // path is always offline regardless of that flag.
   it("resolves the deterministic offline provider for the demo mode", async () => {
     vi.stubEnv("AI_NARRATION_ENABLED", "true");
+    // The fixed offline provider goes through `getEnv()`, which validates the
+    // full server env set. Stub the schema-required keys so synthesis succeeds.
+    vi.stubEnv("OPENROUTER_API_KEY", "sk-test");
+    vi.stubEnv("OPENCODE_GO_API_KEY", "sk-test");
+    vi.stubEnv("PLANNER_MODEL", "openrouter/qwen/qwen3.7-flash");
+    vi.stubEnv("WRITER_MODEL", "openrouter/qwen/qwen3.7-flash");
+    vi.stubEnv("MODERATOR_MODEL", "openrouter/qwen/qwen3.7-flash");
+    vi.stubEnv("ILLUSTRATOR_MODEL", "openrouter/qwen/qwen3.7-flash");
+    vi.stubEnv("READER_MODEL", "openrouter/fish-audio/s2.1-pro-free:free");
     const runtime = createTtsRuntime({ mode: "demo", enabled: true });
     expect(runtime.enabled).toBe(true);
     const result = await runtime.synthesize(SCENE_TEXT, LOCALE);

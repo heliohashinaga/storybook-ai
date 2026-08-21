@@ -3,9 +3,13 @@ import {
   envOrDefault,
   readEnvIfNeeded,
 } from "../../story-generation/server/provider-core/env-deps";
-import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
+import type {
+  SynthesizedAudio,
+  TtsAudioFormat,
+  TtsSynthesisOptions,
+  TtsProvider,
+} from "./tts-provider";
 import { TtsProviderError, type TtsProviderErrorKind } from "./tts-provider";
-import { getEnv } from "../../../lib/env";
 
 /**
  * Server-only OpenRouter TTS adapter (spec 004, T008).
@@ -99,27 +103,43 @@ function classifyResponseError(response: Response, contentType: string): TtsProv
   });
 }
 
-async function validateSpeechResponse(response: Response, expectedFormat?: string): Promise<Uint8Array> {
+/** Maps a TTS output-format token (`mp3`/`wav`/`ogg`) to its MIME type. */
+function mimeForFormat(format: string): TtsAudioFormat {
+  if (format === "wav") return "audio/wav";
+  if (format === "ogg") return "audio/ogg";
+  return "audio/mpeg";
+}
+
+/**
+ * Maps the provider `content-type` to a TTS output format based on the expected
+ * format variable and ensures it matches what the client expects. Some providers
+ * return a generic audio content-type, which is tolerated (dev-only warning).
+ */
+function audioMimeFromContentType(contentType: string, expectedFormat?: string): string | null {
+  if (!expectedFormat) return null;
+  const expectedMimeType = mimeForFormat(expectedFormat);
+  const subtype = expectedMimeType.split("/")[1] ?? "";
+  if (contentType.includes(subtype)) return null;
+  if (process.env.NODE_ENV === "development") {
+    console.warn(`Expected ${expectedMimeType} but got ${contentType}`);
+  }
+  return null;
+}
+
+async function validateSpeechResponse(
+  response: Response,
+  expectedFormat?: string
+): Promise<Uint8Array> {
   const contentType = response.headers.get("content-type") ?? "";
   const isAudio = contentType.startsWith("audio/");
   if (!response.ok || !isAudio) {
     throw classifyResponseError(response, contentType);
   }
-  
-  // Validate that the returned content type matches the expected format if specified
-  if (expectedFormat) {
-    const expectedMimeType = expectedFormat === "wav" ? "audio/wav" : 
-                           expectedFormat === "ogg" ? "audio/ogg" : 
-                           "audio/mpeg";
-    if (!contentType.includes(expectedMimeType.split('/')[1])) {
-      // Some providers might return generic audio content-type, so we'll allow it
-      // but log a warning in development
-      if (process.env.NODE_ENV === "development") {
-        console.warn(`Expected ${expectedMimeType} but got ${contentType}`);
-      }
-    }
-  }
-  
+
+  // Tolerate a provider `content-type` that doesn't exactly carry the expected
+  // subtype; the audio bytes are what matter, not the header (dev warning).
+  audioMimeFromContentType(contentType, expectedFormat);
+
   const audio = new Uint8Array(await response.arrayBuffer());
   if (audio.length === 0) {
     throw new TtsProviderError({ kind: "invalid", message: "TTS provider returned empty audio." });
@@ -135,7 +155,7 @@ async function validateSpeechResponse(response: Response, expectedFormat?: strin
 export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsProvider {
   return {
     async synthesize(text: string, opts: TtsSynthesisOptions): Promise<SynthesizedAudio> {
-      const { apiKey, model, voicePtBr, voiceEn, baseUrl, timeoutMs, fetchImpl } =
+      const { apiKey, model, voicePtBr, voiceEn, audioFormat, baseUrl, timeoutMs, fetchImpl } =
         resolveDeps(deps);
       const bareModel = stripModelPrefix(model);
       const voice = voiceFor(bareModel, opts.locale, voicePtBr, voiceEn);
@@ -166,15 +186,7 @@ export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsPr
       }
 
       const audio = await validateSpeechResponse(response, audioFormat);
-      // Map the audio format to the appropriate MIME type
-      const mimeType = audioFormat === "wav" ? "audio/wav" : 
-                      audioFormat === "ogg" ? "audio/ogg" : 
-                      "audio/mpeg";
-      return { format: mimeType, audio };
-    },
-  };
-}
-
+      return { format: mimeForFormat(audioFormat), audio };
     },
   };
 }
