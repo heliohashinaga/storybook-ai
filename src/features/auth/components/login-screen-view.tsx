@@ -150,10 +150,10 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
         <div className="mb-4 flex justify-center">
           <BrandMark />
         </div>
-        <h1 className="font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-balance font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
           {t("heading")}
         </h1>
-        <p className="mt-2 text-lg font-semibold text-foreground">{t("tagline")}</p>
+        <p className="mt-2 text-balance text-lg font-semibold text-foreground">{t("tagline")}</p>
 
         <div className="mt-8 space-y-5">
           {anyProvider ? (
