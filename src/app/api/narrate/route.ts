@@ -5,7 +5,6 @@ import {
   createDemoTtsRuntime,
   type TtsRuntime,
 } from "../../../features/story-read-aloud/server/tts-runtime";
-import { resolveGenerationMode } from "../../../features/story-generation/server/generation-runtime";
 import { isAuthenticated } from "../../../features/auth/server/session";
 import type { TtsProviderError } from "../../../features/story-read-aloud/server/tts-provider";
 import {
@@ -175,8 +174,14 @@ const rateLimiter = new InMemoryRateLimiter({
  * real TTS adapter. The contract (anonymous `sceneText`|`locale`) is unchanged.
  */
 export async function POST(request: Request): Promise<Response> {
-  const mode = resolveGenerationMode(await isAuthenticated());
-  const runtime = mode === "playground" ? realRuntime : demoRuntime;
+  // Narration runtime follows auth + `AI_NARRATION_ENABLED` (not
+  // `resolveGenerationMode`, which forces demo under `STORIES_TEST_MODE=fake`
+  // for story generation). This lets a local fake-generation run still exercise
+  // real AI narration on the authenticated playground, while the anonymous
+  // demo stays offline (spec 015). `demoRuntime` answers 204 (Web Speech).
+  const authed = await isAuthenticated();
+  const aiEnabled = process.env.AI_NARRATION_ENABLED === "true";
+  const runtime = authed && aiEnabled ? realRuntime : demoRuntime;
   return createNarrateHandler({
     runtime,
     rateLimiter,

@@ -62,7 +62,6 @@ export function useAiReadAloud({
   });
   const [status, setStatus] = useState<NarrationStatus>("idle");
   const [mode, setMode] = useState<NarrationMode>("ai");
-  const [errorMessage, setErrorMessage] = useState("");
   const objectUrlRef = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const startedRef = useRef(false);
@@ -73,7 +72,10 @@ export function useAiReadAloud({
       objectUrlRef.current = null;
     }
     const audio = audioRef.current;
-    if (audio) audio.pause();
+    if (audio) {
+      audio.pause();
+      if (audio.parentElement) audio.parentElement.removeChild(audio);
+    }
     audioRef.current = null;
     system.stop();
     startedRef.current = false;
@@ -83,7 +85,10 @@ export function useAiReadAloud({
   const playAiAudio = useCallback(
     async (initiator: Response): Promise<boolean> => {
       if (!initiator.ok) return false;
-      const blob = await initiator.blob();
+      const buffer = await initiator.arrayBuffer();
+      // Explicit MIME so the <audio> element always recognizes the MP3,
+      // regardless of how the Response typed the blob.
+      const blob = new Blob([buffer], { type: "audio/mpeg" });
       // Pause system speech so the two voices never overlap.
       system.stop();
       setMode("ai");
@@ -92,18 +97,40 @@ export function useAiReadAloud({
       const url = URL.createObjectURL(blob);
       objectUrlRef.current = url;
       const audio = new Audio(url);
+      audio.preload = "auto";
+      // Attach to the document so the browser actually loads the blob: URL
+      // (off-DOM audio elements surface "no supported source was found" in
+      // Chromium). Visually hidden; still fully accessible via aria-live.
+      audio.setAttribute("aria-hidden", "true");
+      audio.style.position = "absolute";
+      audio.style.width = "0";
+      audio.style.height = "0";
+      audio.style.opacity = "0";
+      audio.style.pointerEvents = "none";
+      document.body.appendChild(audio);
       audioRef.current = audio;
-      const done = () => {
+      const finish = (finalStatus: NarrationStatus) => {
         if (objectUrlRef.current === url) URL.revokeObjectURL(url);
+        if (audio.parentElement) audio.parentElement.removeChild(audio);
         objectUrlRef.current = null;
         audioRef.current = null;
         startedRef.current = false;
-        setStatus("idle");
+        setStatus(finalStatus);
       };
-      audio.onended = done;
-      audio.onerror = done;
+      audio.onended = () => finish("idle");
+      // A load failure (e.g. malformed audio) returns to idle, matching the
+      // original contract; the accessible error is reserved for play()
+      // rejections (e.g. autoplay policy) below.
+      audio.onerror = () => finish("idle");
       const played = audio.play();
-      if (played && typeof played.catch === "function") played.catch(done);
+      if (played && typeof played.catch === "function") {
+        played.catch((err) => {
+          // Playback was blocked (e.g. autoplay policy). Surface an accessible
+          // error instead of silently returning to idle.
+          console.error("AI narration playback failed", err);
+          finish("error");
+        });
+      }
       return true;
     },
     [system]
@@ -122,7 +149,6 @@ export function useAiReadAloud({
     }
 
     setMode("ai");
-    setErrorMessage("");
     setStatus("busy");
 
     fetch("/api/narrate", {
@@ -146,19 +172,23 @@ export function useAiReadAloud({
       .catch(() => {
         // Accessible error, never a Web Speech retry (US2).
         setMode("ai");
-        setErrorMessage(errorLabel);
         setStatus("error");
       });
-  }, [text, locale, status, system, stop, playAiAudio, errorLabel]);
+  }, [text, locale, status, system, stop, playAiAudio]);
 
-  // On unmount, revoke any transient object URL (zero persistence, US3).
+  // On unmount, revoke any transient object URL and detach the audio (zero
+  // persistence, US3).
   useEffect(() => {
     return () => {
       if (objectUrlRef.current) {
         URL.revokeObjectURL(objectUrlRef.current);
         objectUrlRef.current = null;
       }
-      if (audioRef.current) audioRef.current.pause();
+      const audio = audioRef.current;
+      if (audio) {
+        audio.pause();
+        if (audio.parentElement) audio.parentElement.removeChild(audio);
+      }
       audioRef.current = null;
     };
   }, []);
@@ -168,6 +198,11 @@ export function useAiReadAloud({
   // available whenever there is text; `system.supported` only gates the Web
   // Speech fallback (204) path.
   const supported = Boolean(text);
+
+  // Derive the error message from the current locale (errorLabel) instead of
+  // freezing a translated string at failure time, so switching language
+  // updates the visible error (ponytaic: no stale-state bug).
+  const errorMessage = status === "error" ? errorLabel : "";
 
   return { speaking, supported, status, mode, errorMessage, toggle, stop };
 }

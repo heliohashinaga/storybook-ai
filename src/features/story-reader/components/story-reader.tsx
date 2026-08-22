@@ -210,7 +210,7 @@ export function StoryReader({
 
           <nav
             aria-label={t("navigationLabel")}
-            className="mt-lg flex flex-wrap items-center justify-center gap-sm"
+            className="mt-lg flex flex-nowrap items-center justify-center gap-sm"
           >
             <Button
               variant="secondary"
@@ -224,7 +224,7 @@ export function StoryReader({
             </Button>
 
             {readAloud.supported && (
-              <div className="flex items-center justify-center">
+              <div className="relative flex shrink-0 items-center justify-center">
                 <NarrationControl
                   status={readAloud.status}
                   mode={readAloud.mode}

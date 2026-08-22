@@ -130,11 +130,11 @@ export default defineConfig({
         ? {}
         : { STORY_RATE_LIMIT_MAX_REQUESTS: "100" }),
       ...(process.env.STORY_RATE_LIMIT_WINDOW_MS ? {} : { STORY_RATE_LIMIT_WINDOW_MS: "60000" }),
-      // AI narration is exercised in the ai-read-aloud e2e spec. With
-      // STORIES_TEST_MODE=fake the server uses the offline fixed TTS provider,
-      // so enabling narration is deterministic and needs no credentials; a
-      // caller can override by pre-setting AI_NARRATION_ENABLED.
-      ...(process.env.AI_NARRATION_ENABLED ? {} : { AI_NARRATION_ENABLED: "true" }),
+      // AI narration is exercised in the ai-read-aloud e2e spec. The TTS
+      // provider follows `AI_NARRATION_ENABLED`, so leaving it unset keeps the
+      // server on the deterministic offline provider (no credentials needed).
+      // A caller can force real AI narration by pre-setting AI_NARRATION_ENABLED.
+      ...(process.env.AI_NARRATION_ENABLED ? {} : {}),
     },
   },
   // Visual regression: approved screenshots live next to each spec in its

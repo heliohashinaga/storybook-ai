@@ -22,6 +22,7 @@ const valid: ServerEnv = {
   ILLUSTRATOR_MODEL: "openrouter/qwen/qwen3.7-flash",
   READER_MODEL: "openrouter/qwen/qwen3.7-flash",
   AI_NARRATION_ENABLED: true,
+  TTS_AUDIO_FORMAT: "mp3",
 };
 
 /**
