@@ -95,26 +95,37 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
 });
 
 describe("TopNav — mobile kebab menu (mobile-ux-refinements)", () => {
-  it("collapses the brand actions behind a menu toggle that opens the panel", () => {
+  it("collapses the actions behind a kebab toggle that opens a menu panel", () => {
     navState.setPath("/reader");
     renderTopNav();
 
-    // The kebab trigger is present with the menu label.
+    // The kebab trigger is a menu button with aria-haspopup.
     const trigger = screen.getByRole("button", { name: "Menu" });
-    expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    expect(trigger).toHaveAttribute("aria-haspopup", "menu");
     expect(trigger).toHaveAttribute("aria-expanded", "false");
 
-    // Panel content is not rendered until the menu is opened.
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    // Panel content is not rendered until opened.
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
-    // Language + theme toggles are now available in the panel.
-    // (There is one desktop instance + one mobile instance when open.)
-    expect(screen.getAllByRole("group", { name: "Idioma" })).toHaveLength(2);
-    expect(screen.getAllByRole("button", { name: "Ativar modo escuro" })).toHaveLength(2);
-    // On the playground route there is also a sign-out action.
-    expect(screen.getAllByText("Sair").length).toBeGreaterThan(0);
+
+    // Both locales are listed as menu items.
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /Português/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /English/ })).toBeInTheDocument();
+    // A theme row is present (its text reflects the effective scheme).
+    expect(
+      screen.getByRole("menuitem", { name: /modo escuro|modo claro|dark|light/i })
+    ).toBeInTheDocument();
+  });
+
+  it("shows a sign-out action on the playground route", () => {
+    navState.setPath("/reader");
+    renderTopNav();
+
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
   });
 
   it("closes the kebab menu when pressing Escape", () => {
@@ -122,9 +133,9 @@ describe("TopNav — mobile kebab menu (mobile-ux-refinements)", () => {
     renderTopNav();
 
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("menu")).toBeInTheDocument();
 
     fireEvent.keyDown(document, { key: "Escape" });
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 });

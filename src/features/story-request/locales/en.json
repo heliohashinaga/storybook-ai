@@ -105,6 +105,7 @@
   "theme": {
     "toDark": "Turn on dark mode",
     "toLight": "Turn on light mode",
-    "label": "Toggle theme"
+    "label": "Toggle theme",
+    "menuName": "Theme"
   }
 }

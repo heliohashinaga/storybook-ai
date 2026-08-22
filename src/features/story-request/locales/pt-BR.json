@@ -105,6 +105,7 @@
   "theme": {
     "toDark": "Ativar modo escuro",
     "toLight": "Ativar modo claro",
-    "label": "Alternar tema"
+    "label": "Alternar tema",
+    "menuName": "Tema"
   }
 }

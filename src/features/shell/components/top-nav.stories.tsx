@@ -70,11 +70,13 @@ export const MobileMenu: Story = {
     // The kebab trigger carries the brand menu label ("/").
     const trigger = await canvas.findByRole("button", { name: /menu/i });
     await userEvent.click(trigger);
-    // Language + theme toggles appear in the panel.
-    await expect(canvas.getByRole("group", { name: /idioma|language/i })).toBeInTheDocument();
-    await expect(canvas.getByRole("dialog")).toBeInTheDocument();
+    // The menu panel opens with locale + theme rows.
+    await expect(canvas.getByRole("menu")).toBeInTheDocument();
+    // Locale + theme rows are present as menu items.
+    await expect(canvas.getByRole("menuitem", { name: /Português/ })).toBeInTheDocument();
+    await expect(canvas.getByRole("menuitem", { name: /English/ })).toBeInTheDocument();
     // Escape closes it.
     await userEvent.keyboard("{Escape}");
-    await expect(canvas.queryByRole("dialog")).not.toBeInTheDocument();
+    await expect(canvas.queryByRole("menu")).not.toBeInTheDocument();
   },
 };
