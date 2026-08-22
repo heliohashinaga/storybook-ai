@@ -15,10 +15,11 @@ import "server-only";
  */
 
 /**
- * Provided audio transmission MIME type (MP3 default; `wav`/`ogg` via
- * `TTS_AUDIO_FORMAT` — bodies may stay MP3 for the fixed/test provider).
+ * Provided audio transmission MIME type. MP3 is the canonical format: the
+ * OpenRouter adapter requests `response_format: "mp3"` and the fixed/test
+ * provider emits MP3 bytes, so this is always `audio/mpeg`.
  */
-export type TtsAudioFormat = "audio/mpeg" | "audio/ogg" | "audio/wav";
+export type TtsAudioFormat = "audio/mpeg";
 
 export interface TtsSynthesisOptions {
   /** Active story locale (e.g. "pt-BR" or "en"), used to pick a voice. */
