@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { OAuthProviderButton, type OAuthProvider } from "./oauth-provider-button";
-import { LangToggle } from "../../shell/components/lang-toggle";
-import { ThemeToggle } from "../../theme/components/theme-toggle";
+import { NavMenuContents } from "../../shell/components/nav-menu-contents";
+import { TopNavMenu } from "../../shell/components/top-nav-menu";
 import { StarField } from "./star-field";
 
 export interface LoginCredentials {
@@ -80,6 +80,7 @@ function DemoPanel({
  */
 export function LoginScreenView({ credentials }: { credentials: LoginCredentials }) {
   const t = useTranslations("login");
+  const tBrand = useTranslations("story.brand");
   const locale = useLocale();
   const searchParams = useSearchParams();
 
@@ -130,17 +131,17 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
   const errorMessage = messageFor(error, t("accessDenied"), t("signInError"));
 
   return (
-    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-20 pb-12">
+    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-16 pb-12">
       {/* Blossom-style decorative star field behind the login hero. */}
       <StarField />
-      {/* The login gate has no app header, so the session-only language + theme
-          toggles live here in the top-right corner (ADR 0003, spec 003 US5).
-          They are absolutely positioned; the main's pt-20 (5rem) top padding
-          reserves breathing room so the centered brand/heading never slide
-          underneath them on narrow screens. */}
-      <div className="absolute right-4 top-4 z-10 flex items-center gap-sm">
-        <LangToggle />
-        <ThemeToggle />
+      {/* The login gate has no app header, so the session-only kebab menu lives
+          here in the top-right corner (ADR 0003, spec 003 US5). It's compact
+          (icon-only trigger), so the main's pt-16 reserves just enough room for
+          the centered content to read clearly on narrow screens. */}
+      <div className="absolute right-4 top-4 z-10">
+        <TopNavMenu label={tBrand("menuLabel")}>
+          <NavMenuContents />
+        </TopNavMenu>
       </div>
       {/* Story-blossom style: one centered column — icon, then heading + tagline,
           then the sign-in + demo actions below. (max-w-md, not max-w-sm: this design

@@ -38,7 +38,8 @@ export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByText(/storybook ai/i)).toBeInTheDocument();
-    await expect(canvas.getByRole("group", { name: /idioma|language/i })).toBeInTheDocument();
+    // The actions are tucked behind the kebab trigger.
+    await expect(canvas.getByRole("button", { name: /menu/i })).toBeInTheDocument();
   },
 };
 
@@ -56,8 +57,8 @@ export const English: Story = {
 };
 
 export const MobileMenu: Story = {
-  // The kebab menu is mobile-only (`sm:hidden`). Render in a 360px (Galaxy
-  // S8) viewport so the trigger is visible and can be interacted with.
+  // The kebab is the only nav menu on every breakpoint; render in a 360px
+  // (Galaxy S8) viewport to exercise the compact trigger + panel.
   parameters: {
     viewport: { defaultViewport: "mobile1" },
     nextjs: {

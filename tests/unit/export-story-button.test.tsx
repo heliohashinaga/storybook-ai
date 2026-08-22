@@ -74,6 +74,7 @@ describe("ExportStoryButton (T043)", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response());
     renderButton();
 
+    // The trigger is an icon-only button addressed by its accessible label.
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
 
     expect(buildStoryPdf).toHaveBeenCalledTimes(1);
@@ -82,14 +83,18 @@ describe("ExportStoryButton (T043)", () => {
     fetchSpy.mockRestore();
   });
 
-  it("shows an error and keeps the button enabled after a failed generation", async () => {
+  it("shows an error below the trigger and keeps the button enabled after a failure", async () => {
     const user = userEvent.setup();
     buildStoryPdf.mockRejectedValueOnce(new Error("boom"));
     renderButton();
 
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
 
-    expect(await screen.findByText(/não foi possível baixar o pdf/i)).toBeInTheDocument();
+    // Error surfaces as a plain alert (no retry link); retry is done by
+    // clicking the download trigger again.
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(/não foi possível baixar o pdf/i);
+    expect(alert.querySelector("button")).toBeNull();
     expect(screen.getByRole("button", { name: /baixar pdf/i })).toBeEnabled();
   });
 });
@@ -99,29 +104,30 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     buildStoryPdf.mockClear();
   });
 
-  it("sets aria-busy while exporting, then announces success on completion", async () => {
+  it("announces success via a status live region without changing the trigger label", async () => {
     const user = userEvent.setup();
     buildStoryPdf.mockResolvedValueOnce(new Blob(["pdf"], { type: "application/pdf" }));
     renderButton();
 
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
-    // On completion the button shows the localized success label.
-    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+
+    // The trigger label stays static; success is announced separately.
+    expect(await screen.findByRole("status")).toHaveTextContent(/pdf baixado/i);
+    expect(screen.getByRole("button", { name: /baixar pdf/i })).toBeInTheDocument();
   });
 
-  it("retries the export after a failure via the localized retry action", async () => {
+  it("retries the export when clicking the download trigger again after a failure", async () => {
     const user = userEvent.setup();
     buildStoryPdf.mockRejectedValueOnce(new Error("first failure"));
     renderButton();
 
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
-    const retry = await screen.findByRole("button", { name: /tentar novamente/i });
-    expect(retry).toBeInTheDocument();
+    await screen.findByRole("alert");
 
-    // The retry re-runs the export and succeeds this time.
-    await user.click(retry);
+    // Retry is the trigger itself: clicking it once more retries the export.
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
     expect(buildStoryPdf).toHaveBeenCalledTimes(2);
-    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toHaveTextContent(/pdf baixado/i);
   });
 
   it("downloads the blob via a temporary anchor (browserDownload) — no network", async () => {
@@ -130,13 +136,34 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     renderButton();
 
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
-    await screen.findByRole("button", { name: /pdf baixado/i });
+    await screen.findByRole("status");
 
     // The rendered blob is handed to the real browserDownload helper.
     expect(URL.createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     expect(anchorClick).toHaveBeenCalled();
     expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:mock");
     anchorClick.mockRestore();
+  });
+
+  it("shows only the spinner (no download icon) while exporting", async () => {
+    const user = userEvent.setup();
+    let release!: (blob: Blob) => void;
+    buildStoryPdf.mockImplementationOnce(() => new Promise<Blob>((resolve) => (release = resolve)));
+    renderButton();
+
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
+
+    // While exporting the button is disabled and shows an inline spinner
+    // (arc svg) instead of the download glyph. The spinner arc is the path
+    // `M21 12a9...`; the download icon's polyline is absent.
+    const trigger = screen.getByRole("button", { name: /baixar pdf/i });
+    expect(trigger).toBeDisabled();
+    const spinner = trigger.querySelector("svg[aria-hidden='true'] path");
+    expect(spinner).not.toBeNull();
+    expect(trigger.querySelector("polyline")).toBeNull();
+
+    release(new Blob(["pdf"], { type: "application/pdf" }));
+    await screen.findByRole("status");
   });
 
   it("ignores a second click while an export is already in flight", async () => {
@@ -146,13 +173,15 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     renderButton();
 
     await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
-    // While exporting the button re-labels to "baixando". A raw click on the
-    // disabled element triggers handleExport, whose guard returns early — the
-    // PDF builder is never called a second time.
-    fireEvent.click(screen.getByRole("button", { name: /gerando pdf/i }));
+
+    // While exporting the button is disabled (loading), so a second activation
+    // is a no-op — the PDF builder is never called a second time.
+    const trigger = screen.getByRole("button", { name: /baixar pdf/i });
+    expect(trigger).toBeDisabled();
+    fireEvent.click(trigger);
     expect(buildStoryPdf).toHaveBeenCalledTimes(1);
 
     release(new Blob(["pdf"], { type: "application/pdf" }));
-    expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toHaveTextContent(/pdf baixado/i);
   });
 });

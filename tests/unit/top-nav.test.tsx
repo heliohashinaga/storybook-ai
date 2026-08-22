@@ -82,19 +82,9 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     const home = screen.getByRole("button", { name: "Voltar ao início" });
     expect(home).toHaveAttribute("aria-current", "page");
   });
-
-  it("also renders the language and theme toggles without identifiers", () => {
-    renderTopNav();
-
-    // Segmented locale picker group.
-    const lang = screen.getByRole("group", { name: "Idioma" });
-    expect(lang).toBeVisible();
-    // Theme toggle (light system default).
-    expect(screen.getByRole("button", { name: "Ativar modo escuro" })).toBeVisible();
-  });
 });
 
-describe("TopNav — mobile kebab menu (mobile-ux-refinements)", () => {
+describe("TopNav — kebab menu (all breakpoints)", () => {
   it("collapses the actions behind a kebab toggle that opens a menu panel", () => {
     navState.setPath("/reader");
     renderTopNav();

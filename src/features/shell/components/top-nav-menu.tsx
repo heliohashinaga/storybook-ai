@@ -11,9 +11,9 @@ import {
 } from "react";
 
 /**
- * Accessible "kebab" (⋮) menu — mobile only (`sm:hidden`).
+ * Accessible "kebab" (⋮) menu.
  *
- * Collapses the top-bar actions behind this icon button; pressing it toggles a
+ * Collapses the top-bar actions behind an icon button; pressing it toggles a
  * right-aligned panel of full-row menu items. Compose it from `TopNavMenu.Item`
  * rows, optionally separated by `TopNavMenu.Divider`.
  *
@@ -79,7 +79,7 @@ export function TopNavMenu({
 
   return (
     <MenuCloseCtx.Provider value={close}>
-      <div ref={rootRef} className="relative sm:hidden">
+      <div ref={rootRef} className="relative">
         <button
           type="button"
           aria-expanded={open}
