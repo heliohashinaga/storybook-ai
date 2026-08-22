@@ -247,12 +247,12 @@ export function StoryReader({
           </nav>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-sm border-t border-border bg-secondary/60 px-lg py-md">
+        <div className="flex flex-wrap items-center justify-between gap-x-md gap-y-sm overflow-hidden border-t border-border bg-secondary/60 px-lg py-md">
           {onNewStory ? (
             <button
               type="button"
               onClick={onNewStory}
-              className="justify-self-start rounded-2xl px-sm py-xs text-sm font-bold text-text-subtle transition-colors hover:text-text"
+              className="whitespace-nowrap rounded-2xl px-sm py-xs text-sm font-bold text-text-subtle transition-colors hover:text-text"
             >
               ← {t("footerNewStory")}
             </button>
