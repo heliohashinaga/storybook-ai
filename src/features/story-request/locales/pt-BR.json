@@ -51,7 +51,7 @@
       "previous": "Anterior",
       "next": "Próxima",
       "sceneCount": "Cena {current} de {total}",
-      "exportPdf": "Baixar como PDF",
+      "exportPdf": "Baixar PDF",
       "exporting": "Gerando PDF…",
       "exportError": "Não foi possível baixar o PDF. Tente de novo.",
       "generateAnother": "Gerar outra história",

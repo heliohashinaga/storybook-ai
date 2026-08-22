@@ -51,7 +51,7 @@
       "previous": "Previous",
       "next": "Next",
       "sceneCount": "Scene {current} of {total}",
-      "exportPdf": "Download as PDF",
+      "exportPdf": "Download PDF",
       "exporting": "Generating PDF…",
       "exportError": "Couldn't download the PDF. Try again.",
       "generateAnother": "Generate another",
