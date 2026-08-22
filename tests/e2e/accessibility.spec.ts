@@ -59,7 +59,7 @@ test.describe("application accessibility (T059)", () => {
 
     // Reader scene controls plus the export button are on screen and reachable
     // by keyboard, with the focused control clearly indicated.
-    await expect(page.getByRole("button", { name: /Baixar como PDF/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Baixar PDF/i })).toBeVisible();
     await page.getByRole("button", { name: /^Próxima$/i }).focus();
     await expect(page.getByRole("button", { name: /^Próxima$/i })).toBeFocused();
 

@@ -10,7 +10,7 @@ import { LangToggle } from "./lang-toggle";
  * Top bar (blossom-design §7.1): home brand mark + language + theme.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
- * - Left: a home button (primary, BookOpenText mark + display name + tagline).
+ * - Left: a home button (primary, BookOpenText mark + display name).
  *   Home is route-aware: on the anonymous demo routes (`/demo`, `/demo/reader`)
  *   it navigates back to the demo form `/demo`; everywhere else it navigates to
  *   the login gate `/` (which the server redirects to `/form` when authed — Spec
@@ -42,20 +42,19 @@ export function TopNav() {
   const isPlayground = pathname === "/form" || pathname === "/reader";
 
   return (
-    <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-3 px-4 py-5 sm:px-6 lg:px-12">
+    <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-3 py-4 sm:gap-3 sm:px-6 sm:py-5 lg:px-12">
       <button
         type="button"
         onClick={() => router.push(homePath)}
         aria-label={t("home")}
         aria-current={onHome ? "page" : undefined}
-        className="flex items-center gap-3 rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="flex min-w-0 items-center gap-2 whitespace-nowrap rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring sm:gap-3"
       >
-        <span className="flex size-11 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft">
-          <BookOpenText className="size-6" aria-hidden="true" />
+        <span className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft sm:size-11">
+          <BookOpenText className="size-5 sm:size-6" aria-hidden="true" />
         </span>
-        <span className="flex flex-col items-start">
-          <span className="font-display text-lg leading-title font-bold">{t("name")}</span>
-          <span className="text-xs leading-caption text-text-subtle">{t("tagline")}</span>
+        <span className="min-w-0 truncate font-display text-base font-bold sm:text-lg">
+          {t("name")}
         </span>
       </button>
       <div className="flex items-center gap-3">

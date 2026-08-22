@@ -59,7 +59,7 @@ type Story = StoryObj<typeof ExportStoryButton>;
 export const Default: Story = {
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
-    await expect(canvas.getByRole("button", { name: /baixar como pdf/i })).toBeVisible();
-    await expect(canvas.getByRole("button", { name: /baixar como pdf/i })).toBeEnabled();
+    await expect(canvas.getByRole("button", { name: /baixar pdf/i })).toBeVisible();
+    await expect(canvas.getByRole("button", { name: /baixar pdf/i })).toBeEnabled();
   },
 };

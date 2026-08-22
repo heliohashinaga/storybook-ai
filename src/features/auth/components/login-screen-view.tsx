@@ -130,11 +130,14 @@ export function LoginScreenView({ credentials }: { credentials: LoginCredentials
   const errorMessage = messageFor(error, t("accessDenied"), t("signInError"));
 
   return (
-    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 py-12">
+    <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-20 pb-12">
       {/* Blossom-style decorative star field behind the login hero. */}
       <StarField />
       {/* The login gate has no app header, so the session-only language + theme
-          toggles live here in the top-right corner (ADR 0003, spec 003 US5). */}
+          toggles live here in the top-right corner (ADR 0003, spec 003 US5).
+          They are absolutely positioned; the main's pt-20 (5rem) top padding
+          reserves breathing room so the centered brand/heading never slide
+          underneath them on narrow screens. */}
       <div className="absolute right-4 top-4 z-10 flex items-center gap-sm">
         <LangToggle />
         <ThemeToggle />

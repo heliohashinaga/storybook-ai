@@ -15,7 +15,7 @@ type ExportStatus = "idle" | "exporting" | "success" | "error";
  *  - `aria-busy` on the region while generating,
  *  - an `aria-live="polite"` region announcing success/error,
  *  - a localized retry action after a failure (the export is re-runnable).
- * On success the "Download as PDF" label returns with a transient success note.
+ * On success the "Download PDF" label returns with a transient success note.
  *
  * Download happens purely client-side (dynamic import of @react-pdf/renderer);
  * nothing is sent over the network or persisted.

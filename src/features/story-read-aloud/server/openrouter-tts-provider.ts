@@ -3,12 +3,7 @@ import {
   envOrDefault,
   readEnvIfNeeded,
 } from "../../story-generation/server/provider-core/env-deps";
-import type {
-  SynthesizedAudio,
-  TtsAudioFormat,
-  TtsSynthesisOptions,
-  TtsProvider,
-} from "./tts-provider";
+import type { SynthesizedAudio, TtsSynthesisOptions, TtsProvider } from "./tts-provider";
 import { TtsProviderError, type TtsProviderErrorKind } from "./tts-provider";
 
 /**
@@ -37,8 +32,6 @@ export interface OpenRouterTtsDeps {
   /** Optional per-locale voice overrides (env-driven; see READER_VOICE_*). */
   voicePtBr?: string;
   voiceEn?: string;
-  /** Audio format for TTS output (env-driven; see TTS_AUDIO_FORMAT). */
-  audioFormat?: string;
   /** Replaceable transport; defaults to global fetch. */
   fetchImpl?: typeof fetch;
 }
@@ -61,7 +54,6 @@ function resolveDeps(deps: OpenRouterTtsDeps) {
     model: envOrDefault(deps.model, env?.READER_MODEL, ""),
     voicePtBr: envOrDefault(deps.voicePtBr, env?.READER_VOICE_PT_BR, "af_heart"),
     voiceEn: envOrDefault(deps.voiceEn, env?.READER_VOICE_EN, "am_michael"),
-    audioFormat: envOrDefault(deps.audioFormat, env?.TTS_AUDIO_FORMAT, "mp3"),
     baseUrl: envOrDefault(deps.baseUrl, undefined, DEFAULT_BASE_URL),
     timeoutMs: envOrDefault(deps.timeoutMs, undefined, DEFAULT_TIMEOUT_MS),
     fetchImpl: envOrDefault(deps.fetchImpl, undefined, fetch),
@@ -103,42 +95,12 @@ function classifyResponseError(response: Response, contentType: string): TtsProv
   });
 }
 
-/** Maps a TTS output-format token (`mp3`/`wav`/`ogg`) to its MIME type. */
-function mimeForFormat(format: string): TtsAudioFormat {
-  if (format === "wav") return "audio/wav";
-  if (format === "ogg") return "audio/ogg";
-  return "audio/mpeg";
-}
-
-/**
- * Maps the provider `content-type` to a TTS output format based on the expected
- * format variable and ensures it matches what the client expects. Some providers
- * return a generic audio content-type, which is tolerated (dev-only warning).
- */
-function audioMimeFromContentType(contentType: string, expectedFormat?: string): string | null {
-  if (!expectedFormat) return null;
-  const expectedMimeType = mimeForFormat(expectedFormat);
-  const subtype = expectedMimeType.split("/")[1] ?? "";
-  if (contentType.includes(subtype)) return null;
-  if (process.env.NODE_ENV === "development") {
-    console.warn(`Expected ${expectedMimeType} but got ${contentType}`);
-  }
-  return null;
-}
-
-async function validateSpeechResponse(
-  response: Response,
-  expectedFormat?: string
-): Promise<Uint8Array> {
+async function validateSpeechResponse(response: Response): Promise<Uint8Array> {
   const contentType = response.headers.get("content-type") ?? "";
   const isAudio = contentType.startsWith("audio/");
   if (!response.ok || !isAudio) {
     throw classifyResponseError(response, contentType);
   }
-
-  // Tolerate a provider `content-type` that doesn't exactly carry the expected
-  // subtype; the audio bytes are what matter, not the header (dev warning).
-  audioMimeFromContentType(contentType, expectedFormat);
 
   const audio = new Uint8Array(await response.arrayBuffer());
   if (audio.length === 0) {
@@ -155,14 +117,21 @@ async function validateSpeechResponse(
 export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsProvider {
   return {
     async synthesize(text: string, opts: TtsSynthesisOptions): Promise<SynthesizedAudio> {
-      const { apiKey, model, voicePtBr, voiceEn, audioFormat, baseUrl, timeoutMs, fetchImpl } =
+      const { apiKey, model, voicePtBr, voiceEn, baseUrl, timeoutMs, fetchImpl } =
         resolveDeps(deps);
       const bareModel = stripModelPrefix(model);
       const voice = voiceFor(bareModel, opts.locale, voicePtBr, voiceEn);
 
-      const body: Record<string, unknown> = { model: bareModel, input: text };
+      // MP3 is the canonical format: we must ask for it explicitly, otherwise the
+      // provider picks its own default (often WAV/OGG) and the client would get
+      // a Blob whose bytes don't match the hardcoded `audio/mpeg` content type
+      // below (NotSupportedError on playback).
+      const body: Record<string, unknown> = {
+        model: bareModel,
+        input: text,
+        response_format: "mp3",
+      };
       if (voice) body.voice = voice;
-      body.response_format = audioFormat;
 
       let response: Response;
       try {
@@ -185,8 +154,8 @@ export function createOpenRouterTtsProvider(deps: OpenRouterTtsDeps = {}): TtsPr
         toTtsProviderError(error, "unavailable");
       }
 
-      const audio = await validateSpeechResponse(response, audioFormat);
-      return { format: mimeForFormat(audioFormat), audio };
+      const audio = await validateSpeechResponse(response);
+      return { format: "audio/mpeg", audio };
     },
   };
 }

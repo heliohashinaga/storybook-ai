@@ -74,7 +74,7 @@ describe("ExportStoryButton (T043)", () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response());
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
 
     expect(buildStoryPdf).toHaveBeenCalledTimes(1);
     expect(buildStoryPdf.mock.calls[0]?.[0]).toBe(story);
@@ -87,10 +87,10 @@ describe("ExportStoryButton (T043)", () => {
     buildStoryPdf.mockRejectedValueOnce(new Error("boom"));
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
 
     expect(await screen.findByText(/não foi possível baixar o pdf/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /baixar como pdf/i })).toBeEnabled();
+    expect(screen.getByRole("button", { name: /baixar pdf/i })).toBeEnabled();
   });
 });
 
@@ -104,7 +104,7 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     buildStoryPdf.mockResolvedValueOnce(new Blob(["pdf"], { type: "application/pdf" }));
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
     // On completion the button shows the localized success label.
     expect(await screen.findByRole("button", { name: /pdf baixado/i })).toBeInTheDocument();
   });
@@ -114,7 +114,7 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     buildStoryPdf.mockRejectedValueOnce(new Error("first failure"));
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
     const retry = await screen.findByRole("button", { name: /tentar novamente/i });
     expect(retry).toBeInTheDocument();
 
@@ -129,7 +129,7 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
     await screen.findByRole("button", { name: /pdf baixado/i });
 
     // The rendered blob is handed to the real browserDownload helper.
@@ -145,7 +145,7 @@ describe("ExportStoryButton — feedback states (US4)", () => {
     buildStoryPdf.mockImplementationOnce(() => new Promise<Blob>((resolve) => (release = resolve)));
     renderButton();
 
-    await user.click(screen.getByRole("button", { name: /baixar como pdf/i }));
+    await user.click(screen.getByRole("button", { name: /baixar pdf/i }));
     // While exporting the button re-labels to "baixando". A raw click on the
     // disabled element triggers handleExport, whose guard returns early — the
     // PDF builder is never called a second time.

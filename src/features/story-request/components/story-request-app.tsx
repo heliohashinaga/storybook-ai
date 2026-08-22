@@ -115,7 +115,7 @@ function FormScreen({ isDemo, fakeProgress }: { isDemo: boolean; fakeProgress: b
 
   return (
     <section className="flex flex-col gap-md">
-      <div className="mt-lg text-center">
+      <div className="mt-6 text-center sm:mt-lg">
         <h1 className="font-title mx-auto w-full max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
           {t("form.title")}
         </h1>

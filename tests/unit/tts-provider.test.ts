@@ -98,6 +98,10 @@ describe("createOpenRouterTtsProvider (T008)", () => {
     expect(speech).toBeDefined();
     // The openrouter/ prefix is stripped before reaching the API.
     expect(speech!.body).toMatchObject({ model: "tts-model", input: SCENE_TEXT });
+    // MP3 must be requested explicitly so the bytes match the audio/mpeg
+    // content type the client uses to build the playable Blob. Without this,
+    // some providers return WAV/OGG and playback throws NotSupportedError.
+    expect(speech!.body).toMatchObject({ response_format: "mp3" });
     expect(headerOf(speech!, "authorization")).toBe("Bearer sk-test");
 
     // Privacy invariant: the provider payload carries only the anonymous scene
