@@ -6,10 +6,10 @@ import { switchToPortuguese } from "./helpers";
  * controlled error without Web Speech fallback, and zero persistence.
  *
  * Runs against the production build whose server was started with
- * `STORIES_TEST_MODE=fake` (deterministic offline provider) and
- * `AI_NARRATION_ENABLED=true` so `/api/narrate` answers with transient audio
- * bytes from the fixed TTS provider — never a live TTS service. Every test
- * blocks non-local hosts so no real provider is ever reached. The pt-BR
+ * `STORIES_TEST_MODE=fake` (deterministic offline generation) and
+ * `AI_NARRATION_ENABLED` left unset, so `/api/narrate` answers with transient
+ * audio bytes from the fixed TTS provider — never a live TTS service. Every
+ * test blocks non-local hosts so no real provider is ever reached. The pt-BR
  * journeys switch the UI to pt-BR explicitly (the app defaults to English).
  */
 async function fillAndSubmit(page: Page) {
@@ -26,20 +26,32 @@ async function fillAndSubmit(page: Page) {
   await page.getByRole("button", { name: /Criar história/i }).click();
 }
 
-test("AI narration plays on demand, sends only anonymous fields, and stops on navigation", async ({
-  page,
-}) => {
-  // Safety net: never touch a live AI / non-local host; the fixed dev
-  // provider on the server answers locally (US3 network guard).
+test("demo narration uses native Web Speech on demand (no LLM call)", async ({ page }) => {
+  // Safety net: never touch a live AI / non-local host; the demo answers 204
+  // and delegates to the browser's native Web Speech (US3 network guard).
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
     route.abort("failed")
   );
 
-  // Capture every POST /api/narrate payload the hook issues.
-  const narrateBodies: string[] = [];
+  // The demo must never call a TTS LLM: no POST /api/narrate is expected.
+  let narratePosts = 0;
   page.on("request", (request) => {
     if (request.url().includes("/api/narrate") && request.method() === "POST") {
-      narrateBodies.push(request.postData() ?? "");
+      narratePosts += 1;
+    }
+  });
+
+  // Spy on speechSynthesis.speak: the demo uses the OS-native Web Speech.
+  await page.addInitScript(() => {
+    const win = window as Window & { __speechCalled?: boolean };
+    win.__speechCalled = false;
+    const synth = window.speechSynthesis;
+    if (synth) {
+      const originalSpeak = synth.speak.bind(synth);
+      synth.speak = (utterance) => {
+        win.__speechCalled = true;
+        return originalSpeak(utterance);
+      };
     }
   });
 
@@ -60,13 +72,13 @@ test("AI narration plays on demand, sends only anonymous fields, and stops on na
   await listen.focus();
   await page.keyboard.press("Enter");
 
-  // The server received exactly one anonymous payload: sceneText + locale
-  // only — never a name/identifier/exact age (privacy invariant).
-  await expect.poll(() => narrateBodies.length).toBe(1);
-  const payload = JSON.parse(narrateBodies[0]!) as Record<string, unknown>;
-  expect(Object.keys(payload).sort()).toEqual(["locale", "sceneText"]);
-  expect(payload.locale).toBe("pt-BR");
-  expect(typeof payload.sceneText).toBe("string");
+  // The client POSTs /api/narrate, but the demo server answers 204 (no LLM
+  // synthesis) and the client delegates to native Web Speech — no AI audio.
+  await expect.poll(() => narratePosts).toBe(1);
+  const speechCalled = await page.evaluate(
+    () => (window as Window & { __speechCalled?: boolean }).__speechCalled
+  );
+  expect(speechCalled).toBe(true);
 
   // Navigate away: the in-flight narration is stopped (object URL revoked)
   // and the control is reachable again for the new scene (US1/US3).
@@ -134,7 +146,9 @@ test("AI narration failure shows an accessible error and never falls back to Web
   expect(speechCalled).toBe(false);
 });
 
-test("narration is on-demand with zero persistence (no prefetch, no storage)", async ({ page }) => {
+test("narration is on-demand with zero persistence (no prefetch, no storage, Web Speech)", async ({
+  page,
+}) => {
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
     route.abort("failed")
   );
@@ -143,6 +157,20 @@ test("narration is on-demand with zero persistence (no prefetch, no storage)", a
   page.on("request", (request) => {
     if (request.url().includes("/api/narrate") && request.method() === "POST") {
       narrateRequests += 1;
+    }
+  });
+
+  // Spy on speechSynthesis.speak: demo narration is OS-native Web Speech.
+  await page.addInitScript(() => {
+    const win = window as Window & { __speechCalled?: boolean };
+    win.__speechCalled = false;
+    const synth = window.speechSynthesis;
+    if (synth) {
+      const originalSpeak = synth.speak.bind(synth);
+      synth.speak = (utterance) => {
+        win.__speechCalled = true;
+        return originalSpeak(utterance);
+      };
     }
   });
 
@@ -166,9 +194,15 @@ test("narration is on-demand with zero persistence (no prefetch, no storage)", a
   expect(storage.cookies).toBe("");
   expect(storage.localStorageEntries).toBe(0);
 
-  // On-demand: only a user gesture triggers narration.
+  // On-demand: only a user gesture triggers narration. The client POSTs
+  // /api/narrate, the demo server answers 204 (no LLM), and native Web Speech
+  // reads the scene.
   await page.getByRole("button", { name: /^Ouvir$/i }).click();
   await expect.poll(() => narrateRequests).toBe(1);
+  const speechCalled = await page.evaluate(
+    () => (window as Window & { __speechCalled?: boolean }).__speechCalled
+  );
+  expect(speechCalled).toBe(true);
 
   // Reload: the in-memory story (and any transient audio) is gone entirely.
   await page.reload();

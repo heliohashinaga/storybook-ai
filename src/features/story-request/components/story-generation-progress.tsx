@@ -59,7 +59,7 @@ export interface StoryGenerationProgressProps {
   /**
    * Override the equal, per-step duration (default `STEP_DURATION_SECONDS`).
    * Squeezing every step to speed up the whole pipeline while keeping them
-   * evenly spaced (e.g. `3` in fake mode so the four steps complete fast).
+   * evenly spaced (e.g. `1` in fake mode so the four steps complete fast).
    */
   stepDurationSeconds?: number;
 }

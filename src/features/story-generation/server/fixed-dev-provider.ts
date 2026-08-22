@@ -12,6 +12,28 @@ import {
 } from "./fake-content-catalog";
 
 /**
+ * Resolve `STORY_FAKE_STEP_DELAY_MS` (ms) com o mesmo contrat da entrada
+ * original: `0` (ou inválido) significa **sem delay artificial** (usado pelo
+ * e2e, spec 012); qualquer positivo é o atraso por fase fake. `fakeStepDelaySeconds()`
+ * disponibiliza o equivalente em segundos para o progresso client, com fallback
+ * de 1s (default da env) quando o delay está desabilitado.
+ */
+export function fakeStepDelayMs(): number {
+  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "1000");
+  if (!Number.isFinite(ms) || ms <= 0) return 0;
+  return ms;
+}
+
+/**
+ * Duração (em segundos) de cada step fake no client de progresso, derivada de
+ * `STORY_FAKE_STEP_DELAY_MS`. Quando o delay está desabilitado (0/inválido)
+ * cai num passo padrão de 1s — coerente com o default de 1000ms da env.
+ */
+export function fakeStepDelaySeconds(): number {
+  return fakeStepDelayMs() / 1000 || 1;
+}
+
+/**
  * Optional artificial latency so the story-request loading/progress screen is
  * visible during local fake-mode runs (`STORIES_TEST_MODE=fake` + `pnpm dev`).
  *
@@ -25,9 +47,8 @@ import {
  */
 function fakeModeDelay(): Promise<void> {
   if (process.env.NODE_ENV === "test") return Promise.resolve();
-  const ms = Number(process.env.STORY_FAKE_STEP_DELAY_MS ?? "1000");
-  if (!Number.isFinite(ms) || ms <= 0) return Promise.resolve();
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  const ms = fakeStepDelayMs();
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
 }
 
 /**

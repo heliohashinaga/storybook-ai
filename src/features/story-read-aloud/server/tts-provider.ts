@@ -14,8 +14,11 @@ import "server-only";
  * and the audio is transient (zero persistence).
  */
 
-/** Provided audio transmission (e.g. `audio/mpeg` for MP3). */
-export type TtsAudioFormat = "audio/mpeg";
+/**
+ * Provided audio transmission MIME type (MP3 default; `wav`/`ogg` via
+ * `TTS_AUDIO_FORMAT` — bodies may stay MP3 for the fixed/test provider).
+ */
+export type TtsAudioFormat = "audio/mpeg" | "audio/ogg" | "audio/wav";
 
 export interface TtsSynthesisOptions {
   /** Active story locale (e.g. "pt-BR" or "en"), used to pick a voice. */

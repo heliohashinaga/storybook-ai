@@ -41,6 +41,21 @@ const envSchema = z
       message: "READER_MODEL must name a provider via its first segment (opencode-go|openrouter).",
     }),
     /**
+     * Optional per-locale TTS voice ids for the reader model (spec 004). When
+     * unset the provider adapter uses a sensible default per model/locale. Only
+     * consumed by Kokoro-style models that accept a `voice` field; other speech
+     * models ignore it. Optional so demo/fake runs need no voice config.
+     */
+    READER_VOICE_PT_BR: z.string().min(1).optional(),
+    READER_VOICE_EN: z.string().min(1).optional(),
+    /**
+     * Audio format for TTS output. Controls the response_format parameter sent to
+     * the TTS provider and the Content-Type header in the response.
+     * Supported values: mp3, wav, ogg
+     * Default: mp3
+     */
+    TTS_AUDIO_FORMAT: z.enum(["mp3", "wav", "ogg"]).optional().default("mp3"),
+    /**
      * Test-only mode switch for the generation and TTS runtimes (read by
      * `generation-runtime.ts` and `tts-runtime.ts`). `fake` selects the
      * deterministic offline dev providers for e2e/visual/dev runs and lets the
@@ -145,8 +160,11 @@ const KNOWN_KEYS = [
   "MODERATOR_MODEL",
   "ILLUSTRATOR_MODEL",
   "READER_MODEL",
+  "READER_VOICE_PT_BR",
+  "READER_VOICE_EN",
   "STORIES_TEST_MODE",
   "AI_NARRATION_ENABLED",
+  "TTS_AUDIO_FORMAT",
   // pipeline & per-model-request timeout/retry (in ms / count)
   "MODEL_TIMEOUT_MS",
   "MODEL_MAX_ATTEMPTS",

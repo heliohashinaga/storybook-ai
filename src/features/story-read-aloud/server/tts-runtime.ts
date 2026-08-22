@@ -50,10 +50,12 @@ export interface TtsRuntimeDeps {
 
 /** Resolves the real provider from env/mode (never used by tests directly). */
 function resolveDefaultProvider(mode?: GenerationMode): TtsProvider {
-  // Demo path and `STORIES_TEST_MODE=fake` select the deterministic offline
-  // dev provider so the anonymous demo / e2e / visual runs never call a live
-  // TTS service; the authenticated playground uses the real OpenRouter adapter.
-  return mode === "demo" || process.env.STORIES_TEST_MODE === "fake"
+  // The anonymous demo path never calls a live TTS service (spec 015), so it
+  // always uses the deterministic offline provider. For the authenticated
+  // playground the TTS provider follows `AI_NARRATION_ENABLED` (not
+  // `STORIES_TEST_MODE`): a local fake-generation run can still exercise real
+  // AI narration. `STORIES_TEST_MODE` keeps gating only story generation.
+  return mode === "demo" || !resolveEnabled({})
     ? createFixedTtsProvider()
     : createOpenRouterTtsProvider();
 }
@@ -105,7 +107,11 @@ export function createTtsRuntime(deps: TtsRuntimeDeps = {}): TtsRuntime {
 /**
  * Always-offline demo TTS runtime (spec 015): mirrors the generation demo
  * runtime so the anonymous `/demo` path never synthesizes with a live model.
+ * The demo is anonymous and must not call a TTS LLM, so narration here is
+ * always the browser's native Web Speech — the server answers 204 and the
+ * client delegates to `speechSynthesis`. `enabled` is forced off regardless of
+ * `AI_NARRATION_ENABLED` (which only gates the authenticated playground).
  */
 export function createDemoTtsRuntime(): TtsRuntime {
-  return createTtsRuntime({ mode: "demo" });
+  return createTtsRuntime({ mode: "demo", enabled: false });
 }

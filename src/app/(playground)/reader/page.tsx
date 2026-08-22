@@ -17,11 +17,11 @@ export const dynamic = "force-dynamic";
  */
 export default async function ReaderPage() {
   await requireSession();
-  const isFake = process.env.STORIES_TEST_MODE === "fake";
   return (
     <>
       <ScrollToTop />
-      <StoryRequestApp isFake={isFake} />
+      {/** `isFake` is derived from the mount path (`/reader` ⇒ playground). */}
+      <StoryRequestApp />
     </>
   );
 }

@@ -61,19 +61,22 @@ function mockSpeech(): SpeechMock {
   return speech;
 }
 
-/** Minimal Audio stub so `new Audio(url)` + `play()` work in jsdom. */
-class MockAudio {
-  static instances: MockAudio[] = [];
-  url: string;
-  onended: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  play = vi.fn(() => Promise.resolve());
-  pause = vi.fn();
-  constructor(url: string) {
-    this.url = url;
-    MockAudio.instances.push(this);
-  }
+/** Minimal Audio stub so `new Audio(url)` + `play()` work in jsdom.
+ * Returns a real <audio> element (a valid Node for appendChild) with play()
+ * mocked, so the production path that attaches the element to the DOM is
+ * exercised without a custom-element registry error. */
+const audioInstances: HTMLAudioElement[] = [];
+function createMockAudio(url: string): HTMLAudioElement {
+  const el = document.createElement("audio");
+  el.src = url;
+  el.play = vi.fn(() => Promise.resolve()) as unknown as typeof el.play;
+  el.pause = vi.fn() as unknown as typeof el.pause;
+  audioInstances.push(el);
+  return el;
 }
+// Emulate `new Audio(url)` while keeping the created element a real Node.
+const MockAudio = createMockAudio as unknown as { new (url: string): HTMLAudioElement };
+Object.defineProperty(MockAudio, "instances", { get: () => audioInstances });
 
 type FetchScenario = "ok" | "disabled" | "error";
 
@@ -83,6 +86,7 @@ const ERROR_LABEL = "Não foi possível reproduzir o áudio. Tente novamente.";
 function installAudioMocks() {
   const createObjectUrl = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:mock-narration");
   const revokeObjectUrl = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+  audioInstances.length = 0;
   vi.stubGlobal("Audio", MockAudio);
   return { createObjectUrl, revokeObjectUrl };
 }
@@ -109,11 +113,13 @@ function installFetchMock(scenario: FetchScenario) {
 }
 
 function renderAiReadAloud(props: { text?: string; locale?: string; errorLabel?: string } = {}) {
-  return renderHook(() =>
+  // The callback consumes `p` so RTL's `rerender(newProps)` injects the
+  // updated props (used to simulate a locale switch while an error is shown).
+  return renderHook((p: { text?: string; locale?: string; errorLabel?: string } = props) =>
     useAiReadAloud({
-      text: props.text ?? SCENE_TEXT,
-      locale: props.locale ?? "pt-BR",
-      errorLabel: props.errorLabel ?? ERROR_LABEL,
+      text: p.text ?? SCENE_TEXT,
+      locale: p.locale ?? "pt-BR",
+      errorLabel: p.errorLabel ?? ERROR_LABEL,
     })
   );
 }
@@ -123,7 +129,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   Object.defineProperty(window, "speechSynthesis", { configurable: true, writable: true });
   (globalThis as Record<string, unknown>).SpeechSynthesisUtterance = undefined;
-  MockAudio.instances = [];
+  audioInstances.length = 0;
 });
 
 beforeEach(() => {
@@ -213,8 +219,8 @@ describe("useAiReadAloud — US1 happy path (AI narration)", () => {
 
     // Playback finishes: fire the Audio element's onended callback.
     act(() => {
-      const audio = MockAudio.instances.at(-1);
-      audio?.onended?.call(audio);
+      const audio = audioInstances.at(-1);
+      audio?.onended?.(new Event("ended"));
     });
 
     expect(result.current.status).toBe("idle");
@@ -230,8 +236,8 @@ describe("useAiReadAloud — US1 happy path (AI narration)", () => {
     await waitFor(() => expect(result.current.status).toBe("speaking"));
 
     act(() => {
-      const audio = MockAudio.instances.at(-1);
-      audio?.onerror?.call(audio);
+      const audio = audioInstances.at(-1);
+      audio?.onerror?.(new Event("error"));
     });
 
     expect(result.current.status).toBe("idle");
@@ -270,6 +276,26 @@ describe("useAiReadAloud — 204 delegates to Web Speech (AI disabled)", () => {
 });
 
 describe("useAiReadAloud — US2 controlled error (no Web Speech fallback)", () => {
+  it("updates the error message when the locale changes after the error (no frozen string)", async () => {
+    const speech = mockSpeech();
+    const fetchMock = installFetchMock("error");
+    const EN_ERROR_LABEL = "We couldn't play the audio. Please try again.";
+    const { result, rerender } = renderAiReadAloud({ errorLabel: ERROR_LABEL });
+
+    act(() => result.current.toggle());
+    await waitFor(() => expect(result.current.status).toBe("error"));
+    expect(result.current.errorMessage).toBe(ERROR_LABEL);
+
+    // User switches language (pt-BR → en) while the error is still shown.
+    // The error label is re-derived from the new locale, not frozen at failure.
+    rerender({ errorLabel: EN_ERROR_LABEL, text: SCENE_TEXT, locale: "en" });
+    expect(result.current.errorMessage).toBe(EN_ERROR_LABEL);
+    expect(result.current.status).toBe("error");
+    // US2 invariant preserved: no Web Speech fallback on locale switch.
+    expect(speech.speak).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("enters an accessible error state on 502 and never falls back to Web Speech", async () => {
     const speech = mockSpeech();
     const fetchMock = installFetchMock("error");
