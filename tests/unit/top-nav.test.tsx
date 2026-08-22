@@ -93,3 +93,38 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     expect(screen.getByRole("button", { name: "Ativar modo escuro" })).toBeVisible();
   });
 });
+
+describe("TopNav — mobile kebab menu (mobile-ux-refinements)", () => {
+  it("collapses the brand actions behind a menu toggle that opens the panel", () => {
+    navState.setPath("/reader");
+    renderTopNav();
+
+    // The kebab trigger is present with the menu label.
+    const trigger = screen.getByRole("button", { name: "Menu" });
+    expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+    // Panel content is not rendered until the menu is opened.
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    // Language + theme toggles are now available in the panel.
+    // (There is one desktop instance + one mobile instance when open.)
+    expect(screen.getAllByRole("group", { name: "Idioma" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Ativar modo escuro" })).toHaveLength(2);
+    // On the playground route there is also a sign-out action.
+    expect(screen.getAllByText("Sair").length).toBeGreaterThan(0);
+  });
+
+  it("closes the kebab menu when pressing Escape", () => {
+    navState.setPath("/reader");
+    renderTopNav();
+
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+});

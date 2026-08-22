@@ -5,6 +5,7 @@ import { signOut } from "next-auth/react";
 import { useLocale, useTranslations } from "next-intl";
 import { ThemeToggle } from "../../theme/components/theme-toggle";
 import { LangToggle } from "./lang-toggle";
+import { TopNavMenu } from "./top-nav-menu";
 
 /**
  * Top bar (blossom-design §7.1): home brand mark + language + theme.
@@ -57,7 +58,7 @@ export function TopNav() {
           {t("name")}
         </span>
       </button>
-      <div className="flex items-center gap-3">
+      <div className="hidden items-center gap-3 sm:flex">
         <LangToggle />
         <ThemeToggle />
         {isPlayground && (
@@ -72,6 +73,27 @@ export function TopNav() {
             <LogOutIcon className="size-5" aria-hidden="true" />
           </button>
         )}
+      </div>
+
+      {/* Mobile: collapse the actions behind a kebab menu. */}
+      <div className="sm:hidden">
+        <TopNavMenu label={t("menuLabel")}>
+          <LangToggle />
+          <div className="flex w-full items-center justify-center rounded-2xl border border-border bg-secondary/40 p-1">
+            <ThemeToggle />
+          </div>
+          {isPlayground && (
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              lang={locale}
+              className="flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl border border-border bg-card px-4 py-3 text-sm font-bold text-text shadow-soft transition-colors hover:bg-secondary"
+            >
+              <LogOutIcon className="size-5" aria-hidden="true" />
+              <span>{tAuth("nav.logout")}</span>
+            </button>
+          )}
+        </TopNavMenu>
       </div>
     </header>
   );

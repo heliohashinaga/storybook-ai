@@ -98,7 +98,8 @@
       "ptLabel": "Portuguese (Brazil)",
       "enLabel": "English",
       "ptShort": "BR",
-      "enShort": "EN"
+      "enShort": "EN",
+      "menuLabel": "Menu"
     }
   },
   "theme": {
