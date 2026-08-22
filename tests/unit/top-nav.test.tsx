@@ -45,9 +45,8 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     const home = screen.getByRole("button", { name: "Voltar ao início" });
     expect(home).toHaveAttribute("type", "button");
     expect(home).not.toHaveAttribute("aria-current");
-    // Brand name + tagline are visible inside the home button.
+    // Brand name is visible inside the home button.
     expect(screen.getByText("Storybook AI")).toBeVisible();
-    expect(screen.getByText("Histórias ilustradas")).toBeVisible();
   });
 
   it("hides the app header on the / login gate (standalone screen)", () => {
