@@ -191,14 +191,6 @@ A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:ch
   `@react-pdf/renderer` only on export — never in the initial bundle).
 - Scene navigation ≤100 ms p75 after assets load.
 
-## Legal & Licensing
-
-This is a **personal, non-commercial** project. Copyright and all rights are
-reserved (no open-source license is granted; the repository is published for
-portfolio review only, so there is no `LICENSE` file). The `README` contains
-a disclaimer covering AI-generated content, caregiver responsibility, and the
-anonymous design. Do not remove, weaken, or bypass these notices.
-
 ## Definition of Done
 
 Before a PR/commit: all required checks pass; coverage gates met; no direct
