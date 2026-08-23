@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { userEvent, within, expect } from "storybook/test";
+import { userEvent, within, expect, fireEvent } from "storybook/test";
 import { LocaleProvider } from "../../../i18n/locale-provider";
 import type { GeneratedStory } from "../../../features/story-generation/server/schemas";
 import { StoryReader } from "./story-reader";
@@ -322,5 +322,56 @@ export const ShortBodyNoOverflow: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByText("Era uma vez uma estrelinha.")).toBeVisible();
     await expect(canvas.queryByRole("button", { name: /mostrar mais|mostrar menos/i })).toBeNull();
+  },
+};
+
+/**
+ * SW1 — gesto de arrastar para trocar de cena em telas touch.
+ *
+ * Simula o arraste horizontal do card para a esquerda até superar o limiar e
+ * soltar, o que deve navegar para a cena seguinte (de "Cena 1 de 5" para
+ * "Cena 2 de 5"). O gesto fica habilitado apenas em telas de toque
+ * (`pointer: coarse` sem redução de movimento); aqui exercitamos o fluxo de
+ * pointer events que o `use-swipe-to-change-scene` conecta ao artigo.
+ */
+export const SwipeToChangeScene: Story = {
+  args: { story: base },
+  parameters: { viewport: { defaultViewport: "mobile1" } },
+  // Simula um dispositivo de toque sem redução de movimento ANTES de o
+  // StoryReader montar (jsdom/Storybook roda em desktop/mouse por padrão),
+  // para o hook de ativação habilitar o gesto.
+  decorators: [
+    (StoryComponent) => {
+      // jsdom/Storybook roda em desktop/mouse por padrão; força um alvo de
+      // toque para o hook de ativação habilitar o gesto.
+      const mql = {
+        matches: true,
+        media: "",
+        onchange: null,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        addListener: () => {},
+        removeListener: () => {},
+        dispatchEvent: () => false,
+      } as unknown as MediaQueryList;
+      window.matchMedia = (() => mql) as typeof window.matchMedia;
+      return <StoryComponent />;
+    },
+  ],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const article = canvasElement.querySelector("article");
+    expect(article).not.toBeNull();
+    if (!article) return;
+
+    await expect(canvas.getByText("Cena 1 de 5")).toBeVisible();
+
+    // Arrasta o dedo (pointer) para a esquerda por mais que o limiar (30% da
+    // largura) e solta.
+    fireEvent.pointerDown(article, { pointerId: 1, clientX: 320, clientY: 200 });
+    fireEvent.pointerMove(article, { pointerId: 1, clientX: 120, clientY: 200 });
+    fireEvent.pointerUp(article, { pointerId: 1, clientX: 100, clientY: 200 });
+
+    await expect(canvas.getByText("Cena 2 de 5")).toBeVisible();
   },
 };
