@@ -2,12 +2,12 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useLocale, useTranslations } from "next-intl";
-import { ThemeToggle } from "../../theme/components/theme-toggle";
-import { LangToggle } from "./lang-toggle";
+import { useTranslations } from "next-intl";
+import { NavMenuContents } from "./nav-menu-contents";
+import { TopNavMenu } from "./top-nav-menu";
 
 /**
- * Top bar (blossom-design §7.1): home brand mark + language + theme.
+ * Top bar: home brand mark + a kebab (⋮) menu.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
  * - Left: a home button (primary, BookOpenText mark + display name).
@@ -16,16 +16,18 @@ import { LangToggle } from "./lang-toggle";
  *   the login gate `/` (which the server redirects to `/form` when authed — Spec
  *   015). On the playground routes (`/form`, `/reader`) a **Sign out** action
  *   appears.
- * - Right: segmented `LangToggle` (aria-pressed) + icon `ThemeToggle` (Sun/Moon).
+ * - Right: the actions (language, theme and, on the playground, Sign out)
+ *   live behind a single kebab menu (`TopNavMenu`) on **every** breakpoint —
+ *   mobile and desktop share the exact same compact menu experience.
  *
- * All state is in-memory only: language and theme pickers drive `useLocaleContext`
- * / `useColorScheme` and nothing is persisted. `signOut` from `next-auth/react`
- * works without a `SessionProvider` (it posts to `/api/auth/signout` directly).
+ * All state is in-memory only: language and theme pickers drive
+ * `useLocaleContext` / `useColorScheme` and nothing is persisted. `signOut`
+ * from `next-auth/react` works without a `SessionProvider` (it posts to
+ * `/api/auth/signout` directly).
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
   const tAuth = useTranslations("auth");
-  const locale = useLocale();
   const router = useRouter();
   // Navigation home is the login gate `/`; it redirects to `/form` when authed.
   const pathname = usePathname();
@@ -57,27 +59,33 @@ export function TopNav() {
           {t("name")}
         </span>
       </button>
-      <div className="flex items-center gap-3">
-        <LangToggle />
-        <ThemeToggle />
-        {isPlayground && (
-          <button
-            type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
-            lang={locale}
-            aria-label={tAuth("nav.logout")}
-            title={tAuth("nav.logout")}
-            className="flex size-11 items-center justify-center rounded-2xl border border-border bg-card text-text shadow-soft transition-all duration-base hover:shadow-lift hover:-translate-y-0.5"
-          >
-            <LogOutIcon className="size-5" aria-hidden="true" />
-          </button>
-        )}
-      </div>
+
+      {/* Actions: collapsed behind a kebab menu of rows on every breakpoint, so
+          mobile and desktop share the exact same menu experience. */}
+      <TopNavMenu label={t("menuLabel")}>
+        <NavMenuContents
+          trailing={
+            isPlayground ? (
+              <TopNavMenu.Item
+                icon={<LogOutIcon className="size-5" />}
+                tone="danger"
+                onPress={() => signOut({ callbackUrl: "/" })}
+              >
+                {tAuth("nav.logout")}
+              </TopNavMenu.Item>
+            ) : undefined
+          }
+        />
+      </TopNavMenu>
     </header>
   );
 }
 
-/** Inline log-out icon (blossom-style presentational mark). */
+/* ---------------------------------------------------------------------------
+ * Icons (inline, blossom-style presentational marks).
+ * ------------------------------------------------------------------------- */
+
+/** Inline log-out icon. */
 function LogOutIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -96,7 +104,7 @@ function LogOutIcon({ className }: { className?: string }) {
   );
 }
 
-/** Inline open-book brand mark (presentation only — no identifiers). */
+/** Inline open-book brand mark. */
 function BookOpenText({ className }: { className?: string }) {
   return (
     <svg

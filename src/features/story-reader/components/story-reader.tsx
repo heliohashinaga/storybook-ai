@@ -7,6 +7,8 @@ import type { GeneratedStory } from "../../story-generation/server/schemas";
 import { ExportStoryButton } from "../../story-export/components/export-story-button";
 import { useAiReadAloud } from "../../story-read-aloud/client/use-ai-read-aloud";
 import { NarrationControl } from "../../story-read-aloud/components/narration-control";
+import { useSwipeEnabled } from "../client/use-swipe-enabled";
+import { useSwipeToChangeScene } from "../client/use-swipe-to-change-scene";
 import { SceneProgress } from "./scene-progress";
 import { SceneView } from "./scene-view";
 
@@ -114,6 +116,16 @@ export function StoryReader({
     setCurrentIndex(Math.min(Math.max(index, 0), total - 1));
   }
 
+  // SW1 — swipe para trocar de cena em telas touch. O gesto só fica ativo em
+  // aparelhos de toque (`pointer: coarse`) sem redução de movimento; no resto
+  // (desktop/mouse) os botões e as setas do teclado continuam sendo o caminho.
+  const swipeEnabled = useSwipeEnabled();
+  const swipe = useSwipeToChangeScene({
+    enabled: swipeEnabled,
+    onSwipeLeft: () => goTo(currentIndex + 1),
+    onSwipeRight: () => goTo(currentIndex - 1),
+  });
+
   function handleKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key === "ArrowRight") {
       event.preventDefault();
@@ -146,6 +158,8 @@ export function StoryReader({
         ref={regionRef}
         aria-label={t("sceneLabel", { ordinal: current.ordinal })}
         onKeyDown={handleKeyDown}
+        {...swipe.handlers}
+        style={swipe.style}
         className="overflow-hidden rounded-4xl border border-border bg-card shadow-lift"
       >
         {/* Story title cap: a persistent "cover" band that stays fixed while
@@ -247,12 +261,12 @@ export function StoryReader({
           </nav>
         </div>
 
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-sm border-t border-border bg-secondary/60 px-lg py-md">
+        <div className="flex flex-wrap items-center justify-between gap-x-md gap-y-sm overflow-hidden border-t border-border bg-secondary/60 px-lg py-md">
           {onNewStory ? (
             <button
               type="button"
               onClick={onNewStory}
-              className="justify-self-start rounded-2xl px-sm py-xs text-sm font-bold text-text-subtle transition-colors hover:text-text"
+              className="whitespace-nowrap rounded-2xl px-sm py-xs text-sm font-bold text-text-subtle transition-colors hover:text-text"
             >
               ← {t("footerNewStory")}
             </button>

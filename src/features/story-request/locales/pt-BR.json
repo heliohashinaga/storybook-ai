@@ -2,7 +2,7 @@
   "story": {
     "form": {
       "title": "Storybook AI",
-      "subtitle": "Um momento mágico: uma história só do seu filho, para lerem juntos.",
+      "subtitle": "A história acaba. A memória fica.",
       "age": {
         "label": "Idade",
         "placeholder": "Digite a idade (2 a 9)",
@@ -52,14 +52,12 @@
       "next": "Próxima",
       "sceneCount": "Cena {current} de {total}",
       "exportPdf": "Baixar PDF",
-      "exporting": "Gerando PDF…",
-      "exportError": "Não foi possível baixar o PDF. Tente de novo.",
+      "exportError": "Não foi possível baixar o PDF.",
       "generateAnother": "Gerar outra história",
       "readAloud": "Ouvir",
       "stopReading": "Parar leitura",
       "reading": "Lendo a cena",
       "exportSuccess": "PDF baixado",
-      "retryExport": "Tentar novamente",
       "showMore": "Mostrar mais",
       "showLess": "Mostrar menos",
       "navigationLabel": "Navegação de cenas",
@@ -98,12 +96,14 @@
       "ptLabel": "Português (Brasil)",
       "enLabel": "Inglês",
       "ptShort": "BR",
-      "enShort": "EN"
+      "enShort": "EN",
+      "menuLabel": "Menu"
     }
   },
   "theme": {
     "toDark": "Ativar modo escuro",
     "toLight": "Ativar modo claro",
-    "label": "Alternar tema"
+    "label": "Alternar tema",
+    "menuName": "Tema"
   }
 }

@@ -2,7 +2,7 @@
   "story": {
     "form": {
       "title": "Storybook AI",
-      "subtitle": "A magical story that is only theirs — to read together.",
+      "subtitle": "The story ends. The memory stays.",
       "age": {
         "label": "Age",
         "placeholder": "Enter the age (2 to 9)",
@@ -52,14 +52,12 @@
       "next": "Next",
       "sceneCount": "Scene {current} of {total}",
       "exportPdf": "Download PDF",
-      "exporting": "Generating PDF…",
-      "exportError": "Couldn't download the PDF. Try again.",
+      "exportError": "Couldn't download the PDF.",
       "generateAnother": "Generate another",
       "readAloud": "Listen",
       "stopReading": "Stop reading",
       "reading": "Reading the scene",
       "exportSuccess": "PDF downloaded",
-      "retryExport": "Try again",
       "showMore": "Show more",
       "showLess": "Show less",
       "navigationLabel": "Scene navigation",
@@ -98,12 +96,14 @@
       "ptLabel": "Portuguese (Brazil)",
       "enLabel": "English",
       "ptShort": "BR",
-      "enShort": "EN"
+      "enShort": "EN",
+      "menuLabel": "Menu"
     }
   },
   "theme": {
     "toDark": "Turn on dark mode",
     "toLight": "Turn on light mode",
-    "label": "Toggle theme"
+    "label": "Toggle theme",
+    "menuName": "Theme"
   }
 }

@@ -9,25 +9,37 @@ import { buildStoryPdf } from "../client/build-story-pdf";
 type ExportStatus = "idle" | "exporting" | "success" | "error";
 
 /**
- * Export-to-PDF button with clear feedback states (spec 003, US4).
+ * Export-to-PDF icon button with clear feedback states (spec 003, US4).
  *
- * Exposes `idle → exporting → success | error` with:
- *  - `aria-busy` on the region while generating,
- *  - an `aria-live="polite"` region announcing success/error,
- *  - a localized retry action after a failure (the export is re-runnable).
- * On success the "Download PDF" label returns with a transient success note.
+ * Renders as a compact icon-only trigger (consistent on mobile and desktop)
+ * that downloads the story as a PDF entirely client-side. The export runs
+ * through `idle → exporting → success | error` with:
+ *  - `idle` — a plain download glyph;
+ *  - `exporting` — an inline spinner (delegated to `Button`'s `loading`), the
+ *    trigger is disabled and `aria-busy` so the action can't be re-triggered;
+ *  - `success` — announced to assistive tech via `aria-live="polite"` (the
+ *    trigger label doesn't change, keeping the layout stable);
+ *  - `error` — a localized message rendered below the trigger (`role="alert"`);
+ *    retry is done by clicking the trigger itself again.
  *
- * Download happens purely client-side (dynamic import of @react-pdf/renderer);
+ * The trigger keeps a **static accessible label** ("Download PDF") so the
+ * button never jumps or re-labels mid-flow; state is communicated by the
+ * spinner, the busy state and the `aria-live`/`alert` regions.
+ *
+ * Download is purely client-side (dynamic import of @react-pdf/renderer);
  * nothing is sent over the network or persisted.
  */
 export function ExportStoryButton({ story }: { story: GeneratedStory }) {
   const t = useTranslations("story.reader");
+
   const [status, setStatus] = useState<ExportStatus>("idle");
 
   const exporting = status === "exporting";
+  const success = status === "success";
+  const error = status === "error";
 
   const handleExport = async () => {
-    if (exporting) return;
+    // Reset any previous error/success so the button is always re-runnable.
     setStatus("exporting");
     try {
       await buildStoryPdf(story, { download: browserDownload });
@@ -37,30 +49,55 @@ export function ExportStoryButton({ story }: { story: GeneratedStory }) {
     }
   };
 
+  const label = t("exportPdf");
+
   return (
-    <div className="flex flex-col gap-xs" aria-busy={exporting} aria-live="polite">
+    <span className="flex flex-col items-end gap-xs" aria-busy={exporting || undefined}>
       <Button
-        variant={status === "error" ? "danger" : "secondary"}
+        variant="secondary"
         onClick={handleExport}
         disabled={exporting}
-        className="gap-2!"
+        aria-label={label}
+        aria-busy={exporting || undefined}
+        className="size-12 justify-center! rounded-2xl! bg-secondary! p-0! text-secondary-foreground! hover:brightness-95!"
       >
-        <DownloadIcon className="size-4" />
-        {status === "success" ? t("exportSuccess") : exporting ? t("exporting") : t("exportPdf")}
+        {exporting ? <SpinnerIcon className="size-5" /> : <DownloadIcon className="size-5" />}
       </Button>
-      {status === "error" ? (
-        <p className="text-caption text-error">
-          {t("exportError")}{" "}
-          <button
-            type="button"
-            className="text-text underline underline-offset-2 hover:text-accent"
-            onClick={handleExport}
-          >
-            {t("retryExport")}
-          </button>
-        </p>
+      {/* Success is announced to screen readers; the trigger label is static. */}
+      {success ? (
+        <span role="status" aria-live="polite" className="sr-only">
+          {t("exportSuccess")}
+        </span>
       ) : null}
-    </div>
+      {
+        /* Error feedback only — retry is done by clicking the download trigger
+           itself (the same action that started it), so there's no separate
+           retry link to keep it a single predictable control. */
+        error ? (
+          <span role="alert" aria-live="assertive" className="text-right text-body text-danger">
+            {t("exportError")}
+          </span>
+        ) : null
+      }
+    </span>
+  );
+}
+
+/** Inline spinner (ring arc) shown while exporting — matches NarrationControl's
+ *  spinner so the reader controls feel consistent. */
+function SpinnerIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      className={`motion-safe:animate-spin ${className ?? ""}`}
+      aria-hidden="true"
+    >
+      <path d="M21 12a9 9 0 1 1-6.2-8.56" />
+    </svg>
   );
 }
 

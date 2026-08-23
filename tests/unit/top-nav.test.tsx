@@ -82,14 +82,50 @@ describe("TopNav — brand home + lang/theme toggles (Spec 009 / a11y)", () => {
     const home = screen.getByRole("button", { name: "Voltar ao início" });
     expect(home).toHaveAttribute("aria-current", "page");
   });
+});
 
-  it("also renders the language and theme toggles without identifiers", () => {
+describe("TopNav — kebab menu (all breakpoints)", () => {
+  it("collapses the actions behind a kebab toggle that opens a menu panel", () => {
+    navState.setPath("/reader");
     renderTopNav();
 
-    // Segmented locale picker group.
-    const lang = screen.getByRole("group", { name: "Idioma" });
-    expect(lang).toBeVisible();
-    // Theme toggle (light system default).
-    expect(screen.getByRole("button", { name: "Ativar modo escuro" })).toBeVisible();
+    // The kebab trigger is a menu button with aria-haspopup.
+    const trigger = screen.getByRole("button", { name: "Menu" });
+    expect(trigger).toHaveAttribute("aria-haspopup", "menu");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+    // Panel content is not rendered until opened.
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    fireEvent.click(trigger);
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+
+    // Both locales are listed as menu items.
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /Português/ })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /English/ })).toBeInTheDocument();
+    // A theme row is present (its text reflects the effective scheme).
+    expect(
+      screen.getByRole("menuitem", { name: /modo escuro|modo claro|dark|light/i })
+    ).toBeInTheDocument();
+  });
+
+  it("shows a sign-out action on the playground route", () => {
+    navState.setPath("/reader");
+    renderTopNav();
+
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+  });
+
+  it("closes the kebab menu when pressing Escape", () => {
+    navState.setPath("/reader");
+    renderTopNav();
+
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 });

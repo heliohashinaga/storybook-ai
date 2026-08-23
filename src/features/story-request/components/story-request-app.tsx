@@ -116,10 +116,12 @@ function FormScreen({ isDemo, fakeProgress }: { isDemo: boolean; fakeProgress: b
   return (
     <section className="flex flex-col gap-md">
       <div className="mt-6 text-center sm:mt-lg">
-        <h1 className="font-title mx-auto w-full max-w-3xl text-4xl font-extrabold tracking-tight sm:text-5xl">
+        <h1 className="font-title mx-auto w-full max-w-3xl text-balance text-4xl font-extrabold tracking-tight sm:text-5xl">
           {t("form.title")}
         </h1>
-        <p className="mx-auto mt-3 max-w-3xl text-muted-foreground">{t("form.subtitle")}</p>
+        <p className="mx-auto mt-3 max-w-3xl text-pretty text-muted-foreground">
+          {t("form.subtitle")}
+        </p>
       </div>
       <div className="mx-auto w-full max-w-md px-4 sm:px-6 lg:max-w-2xl lg:px-12">
         {/* `/form` is always a clean draft: a fresh, unfilled form, no history
