@@ -6,8 +6,9 @@ import { encode } from "next-auth/jwt";
  *
  * The app defaults to English (layout `defaultLocale="en"`), so pt-BR journeys
  * must explicitly switch to pt-BR first. Two independent controls exist:
- *   - the header `LangToggle` switches the whole UI locale (stable
- *     `aria-label="Português (Brasil)"` in both locales);
+ *   - the header kebab ("Menu") holds a `LangToggle` that switches the whole
+ *     UI locale (stable label "Português (Brasil)" in both locales). The
+ *     header actions are collapsed behind the kebab on every breakpoint;
  *   - the form's story-locale selector drives the generation payload
  *     (`locale`), independent of the UI locale.
  * A pt-BR journey needs BOTH switched, so the reader assertions (pt-BR labels)
@@ -16,8 +17,14 @@ import { encode } from "next-auth/jwt";
 
 /** Switches the UI and the form's story-locale to pt-BR. */
 export async function switchToPortuguese(page: Page): Promise<void> {
-  // 1. Header LangToggle → pt-BR UI (aria-label is stable across locales).
-  await page.locator("header").getByRole("button", { name: "Português (Brasil)" }).click();
+  // 1. Header LangToggle → pt-BR UI. The header actions live behind the kebab
+  //    ("Menu") menu on every breakpoint, so open it and pick the language.
+  const header = page.locator("header");
+  await header.getByRole("button", { name: "Menu" }).click();
+  await header
+    .getByRole("menuitem", { name: /português/i })
+    .first()
+    .click();
   // 2. Form story-locale selector → pt-BR (drives the generation payload).
   await page.locator("form").getByRole("button", { name: "Português (Brasil)" }).click();
   // The UI re-renders in pt-BR; wait for a pt-BR label to be present.
