@@ -1,6 +1,7 @@
 # ADR 0013 — Migração do playground para Clerk (usuários + senha + autoCadastro)
 
-- Status: **Proposto** (aguardando aprovação do dono do projeto / humana)
+- Status: **Ratificado** (aprovação do dono do projeto, 2026-08-19 — implícita na
+  direção de implementação da feature 018)
 - Decisores: manutenção do `storybook-ai` (dono do projeto)
 - Data: 2026-08-19
 - Contextos relacionados: AGENTS.md ("Non-Negotiable Privacy Rules"); ADR 0012
