@@ -73,7 +73,10 @@ invariants; a regression here is a failed definition of done.
   `POST /api/narrate` (`sceneText` max 2000, `locale`), both Zod `.strict()`.
   Don't widen the surface (no free-text identity, no resource ids/UUIDs/tokens
   in path/query/body, no `NEXT_PUBLIC_*`). Any new server route stays
-  `Cache-Control: no-store`.
+  `Cache-Control: no-store`. RATIFIED EXCEPTION (ADR 0013, spec 018):
+  `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is allowed as an auth config value — it is a
+  non-secret, client-exposed publishable key required by the Clerk SDK; the
+  server secret `CLERK_SECRET_KEY` stays server-only and is never exposed.
 - **HTTP headers:** keep the security header set (CSP, HSTS,
   `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) in
   `next.config.ts`. If one is removed or a policy loosened, call it out in the
