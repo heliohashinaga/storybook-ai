@@ -1,4 +1,4 @@
-# Feature Specification: Playground com login por usuário e senha + autoCadastro (Clerk)
+# Feature Specification: Playground com login por e-mail+senha + autoCadastro (Clerk)
 
 **Feature Branch**: `018-clerk-session-playground`
 
@@ -14,13 +14,27 @@ se permitido) e reset de senha sozinho. Aceito dependência externa para autenti
 Hoje o acesso ao playground (`/form`, `/reader` — geração com LLM real) é gateado por login
 OAuth (Google/GitHub) com autorização por allowlist de e-mails em variável de ambiente. O dono
 quer evoluir isso para um modelo de **contas de usuário**: continuar com login via Google, **adicionar
-login por usuário/senha**, permitir que a pessoa **crie a própria conta** (mas **somente se
+login por e-mail+senha**, permitir que a pessoa **crie a própria conta** (mas **somente se
 autorizada** — só o dono e familiares), e **recuperar a senha sozinha** quando esquecer.
 
 O que **não** muda (invariantes fundamentais): o **anonimato da criança** e a superfície de
 privacidade. A conta é a identidade do **adulto** que faz o gate de acesso ao LLM real; a história
 gerada permanece anônima (apenas faixa etária + idioma + tema + nº de cenas), nunca associada a
 usuário, nunca persistida.
+
+## Clarifications
+
+### Session 2026-08-19
+
+- Q: O identificador de login por "usuário e senha" é o e-mail ou um nome de usuário separado? →
+  A: **e-mail + senha** — o e-mail é o identificador de login; não há campo de "usuário" separado
+  (o e-mail também serve à conta e ao reset).
+- Q: A tela de login/cadastro/reset deve ser customizada ou usar o componente pronto do Clerk?
+  (revisitada) → A: **Clerk Components** (`<SignIn>`/`<SignUp>`, incluindo verificação de e-mail e
+  reset) — auth robusta do Clerk com menos código; aceita-se alguma divergência de visual/i18n/
+  Storybook. E-mail é o identificador; política ≥8 + letra e número configurada no Clerk.
+- Q: Qual política de senha para o cadastro? → A: **mínimo 8 caracteres + exigir letra e número**
+  (complexidade moderada), com validação localizada na UI.
 
 ## Contexto / Estado atual
 
@@ -34,20 +48,21 @@ e-mail** — incompatível com "credencial em env" e com o desenho stateless atu
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Login por usuário e senha (Priority: P1)
+### User Story 1 - Login por e-mail e senha (Priority: P1)
 
-O dono/familiar abre o app no `/(playground)` e faz login com **e-mail/usuario e senha** em vez de
-(ou além de) Google.
+O dono/familiar abre o app no `/(playground)` e faz login com **e-mail e senha** em vez de
+(ou além de) Google. O e-mail é o **identificador de login** (sem campo de "usuário" 
+separado).
 
 **Why this priority**: É o objetivo principal da mudança — alternativa de acesso independente de
 provedor OAuth.
 
-**Independent Test**: Logar com credenciais de usuário/senha válidas e acessar `/form`; logar com
+**Independent Test**: Logar com credenciais de e-mail/senha válidas e acessar `/form`; logar com
 senha errada e ver erro localizado sem vazar detalhes.
 
 **Acceptance Scenarios**:
 
-1. **Given** uma conta válida (email/senha), **When** o usuário informa as credenciais corretas,
+1. **Given** uma conta válida (e-mail/senha), **When** o usuário informa as credenciais corretas,
    **Then** ele é autenticado e redirecionado para o playground (`/form`).
 2. **Given** credenciais inválidas, **When** o usuário tenta logar, **Then** é exibido um erro
    localizado genérico ("credenciais inválidas") e **nenhuma** informação identifica o motivo
@@ -57,7 +72,7 @@ senha errada e ver erro localizado sem vazar detalhes.
 
 ### User Story 2 - AutoCadastro, mas só se permitido (Priority: P1)
 
-Uma pessoa **sem conta** pode criar a própria conta (escolhendo usuário/senha), **porém** o
+Uma pessoa **sem conta** pode criar a própria conta (com e-mail/senha), **porém** o
 cadastro só é aceito se a pessoa for **autorizada** (convidada pelo dono). Ninguém se cadastra sem
 permissão.
 
@@ -74,8 +89,8 @@ consegue e recebe feedback localizado de acesso negado.
 2. **Given** um e-mail **não** convidado, **When** a pessoa tenta se cadastrar, **Then** o cadastro
    é recusado com feedback localizado ("acesso restrito"), sem expor o motivo em detalhe.
 3. **Given** cadastro em modo autoCadastro, **When** o usuário escolhe senha, **Then** a senha é
-   aceita apenas se atender à política de senha configurada (comprimento mínimo), com validação
-   localizada.
+   aceita apenas se atender à política: **mínimo 8 caracteres e conter letra e número**, com
+   validação localizada.
 
 ### User Story 3 - Reset de senha self-service (Priority: P1)
 
@@ -141,13 +156,16 @@ aceita nem transporta identificador de criança, e que nenhuma história é grav
 
 - Mantém login **Google**; remove login **GitHub** (não é mais requisito — a conta
   passa a ser via Google **ou** usuário/senha).
-- Adiciona login por usuário/senha.
+- Adiciona login por **e-mail+senha** (e-mail é o identificador; sem campo de usuário separado).
 - AutoCadastro self-service, **apenas** para usuários autorizados (convidados).
+- Política de senha: **≥8 caracteres + letra + número** (validação localizada na UI).
 - Reset de senha self-service (via e-mail).
 - Demo e acesso anônimo permanecem sem cookie e sem conta.
 - Playground só acessível autenticado (nenhum bypass).
 - Invariante: anonimato da criança e payload fechado preservados.
 - Erros de auth genéricos/localizados (anti-enumeração).
+- A experiência de login, cadastro, verificação de e-mail e recuperação de senha (e-mail+senha e
+  Google) é consistente e acessível — ver **Clarifications** (decisão de UI).
 
 ## Key Entities (resumo)
 
@@ -169,7 +187,7 @@ aceita nem transporta identificador de criança, e que nenhuma história é grav
 ## Open Questions
 
 - **Provedor de auth**: decidido como gerenciado (Clerk) — ver ADR 0013/plan.
-- **Política de senha**: definir comprimento mínimo/enforque (default razoável, ex. ≥8).
+- **Política de senha**: **resolvida** (≥8 + letra e número) — ver Clarifications.
 - **Domínio customizado de e-mail do Clerk**: opcional; precisa comprar domínio + verificação DNS.
 
 ## Dependencies / Assumptions

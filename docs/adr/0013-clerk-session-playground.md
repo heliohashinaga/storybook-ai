@@ -94,6 +94,12 @@ Adotar **Clerk** (auth gerenciada SaaS) para o **playground**, com:
 - **Testes**: testes Auth.js (session/cookie/oauth-guards/allowlist/rate-limit)
   reescritos para **mockar** `@clerk/nextjs/server` e `@clerk/clerk-react` via
   MSW — sem chamadas live. Invariantes de privacidade ainda asserts nos testes.
+- **Exceção escopada à Constitution III (Storybook espelha o app)**: por decisão do
+  dono (decisão B), os **internos das Clerk Components** (`<SignIn>`/`<SignUp>`) **não**
+  são cobertos por stories do repo — o visual/i18n é do Clerk (`pt-BR`) e o Storybook
+  cobre os **wrappers do app** (login screen: StarField/DemoLink/layout/estado). Esta é
+  uma **exception aprovada e documentada** (não diluição silenciosa) ao MUST de stories;
+  os wrappers do app continuam obrigatoriamente com `.stories.tsx` + a11y.
 
 ## Referências
 

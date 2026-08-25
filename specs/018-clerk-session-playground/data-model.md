@@ -24,6 +24,8 @@ type AuthState = { userId: string | null } | null; // presença/ausência de log
 
 - `isAuthenticated()` retorna `boolean` (userId presente).
 - `requireSession()` redireciona para `/` quando não autenticado.
+- **Identificador de login = e-mail** (sem campo de "usuário" separado); senha com política
+  **≥8 + letra e número** (regra no painel do Clerk).
 - **Não** persistir, logar ou expor ao cliente: e-mail completo, nome, foto,
   endereço, telefone ou qualquer dado do perfil do usuário além do necessário
   (booleano de autenticação).
@@ -48,6 +50,13 @@ type AuthState = { userId: string | null } | null; // presença/ausência de log
 | Pedido de história | **Não** | Anônimo; payload `ageBand\|locale\|theme\|sceneCount` |
 | História gerada | **Não** | Em memória no React; nunca associada a usuário |
 | Criança | **Nunca** | Sem entidade, sem nome, sem idade exata persistida |
+
+## UI de auth (Clerk Components — decisão B)
+
+- Login, cadastro, verificação de e-mail e reset usam **`<SignIn>`/`<SignUp>`** do
+  `@clerk/nextjs` (visual/i18n do Clerk com `appearance` para tokens; `pt-BR`).
+- `StarField` e `DemoLink` continuam no wrapper do app (login screen).
+- E-mail+senha e Google convivem na mesma instância (multi-estratégia), gerenciados pelo Clerk.
 
 ## Env do app (contrato)
 
