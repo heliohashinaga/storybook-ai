@@ -39,7 +39,11 @@ const securityHeaders: { key: string; value: string }[] = [
       "default-src 'self'",
       cspScriptSrc + " " + clerkOrigins, // Next inline; + Clerk JS runtime (accounts.dev / .accounts)
       "style-src 'self' 'unsafe-inline' " + clerkOrigins, // next/font + legit inline styles + Clerk CSS
-      "img-src 'self' data: " + clerkOrigins, // reader shows provider data: images + Clerk avatars
+      // RELAXATION (signed off): Clerk serves OAuth provider logos (Google "G",
+      // etc.) from its image CDN `https://img.clerk.com`, not the FAPI accounts
+      // domain — without it, img-src blocks the logo and the button renders
+      // icon-less. Scoped to img-src only.
+      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com", // reader data: images + Clerk avatars + Clerk provider logos
       "font-src 'self' data:",
       "connect-src 'self' data: " + clerkOrigins, // self API + @react-pdf WASM + Clerk API
       // RELAXATION (signed off): the AI read-aloud client plays transient audio
