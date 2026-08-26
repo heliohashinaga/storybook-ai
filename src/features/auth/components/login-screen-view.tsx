@@ -7,7 +7,6 @@ import type { ClerkLocalization } from "../client/clerk-localization";
 import { ClerkProviderGate } from "../client/clerk-provider";
 import { NavMenuContents } from "../../shell/components/nav-menu-contents";
 import { TopNavMenu } from "../../shell/components/top-nav-menu";
-import { SignOutButton } from "../../shell/components/sign-out-button";
 import { BrandLogo } from "../../../components/ui/brand-logo";
 import { StarField } from "./star-field";
 
@@ -59,9 +58,12 @@ export function LoginScreenView() {
 
       {isClerkConfigured ? (
         <ClerkProviderGate localization={localization}>
-          {/* Right-aligned kebab (compact, icon-only trigger). Inside the
-              provider so the Sign out action can use `useClerk()`. */}
-          <ScreenKebab label={tBrand("menuLabel")} showSignOut />
+          {/* Right-aligned kebab (compact, icon-only trigger): lang/theme only.
+              No Sign out here — on the login gate you're starting a session, not
+              ending one; signing out only makes sense in the app header (top-nav),
+              which renders it inside its own scoped provider. `SignIn` embeds via
+              `useClerk()` internally under this provider. */}
+          <ScreenKebab label={tBrand("menuLabel")} />
           <ScreenHero heading={t("heading")} tagline={t("tagline")}>
             <div className="flex flex-col items-center gap-4">
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
@@ -92,12 +94,12 @@ export function LoginScreenView() {
   );
 }
 
-/** Right-aligned session kebab menu (top-right corner). */
-function ScreenKebab({ label, showSignOut }: { label: string; showSignOut?: boolean }) {
+/** Right-aligned session kebab menu (top-right corner): lang/theme only. */
+function ScreenKebab({ label }: { label: string }) {
   return (
     <div className="absolute right-4 top-4 z-10">
       <TopNavMenu label={label}>
-        <NavMenuContents trailing={showSignOut ? <SignOutButton /> : undefined} />
+        <NavMenuContents />
       </TopNavMenu>
     </div>
   );
