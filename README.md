@@ -216,6 +216,20 @@ routed per capability. Tests: Vitest + Testing Library, Storybook, Playwright.
 
   See `package.json` scripts and `.github/workflows/ci.yml`.
 
+## Branding
+
+- `public/brand/logo.webp` — the app's **circular logo** (WebP with alpha,
+  512×512): terracotta disc with the open-book mark and a golden sparkle.
+- `src/app/favicon.ico` — the **site favicon**, same logo as a multi-size `.ico`
+  (16, 24, 32, 48, 64) so it stays sharp in every tab size.
+
+The logo is rendered by the shared **`BrandLogo`** primitive
+(`src/components/ui/brand-logo.tsx`), used decoratively in the top nav and the
+login hero. It serves the WebP `unoptimized` to preserve the transparent circle
+(next/image's optimizer would otherwise flatten it to an opaque JPEG). Swap the
+asset in `public/brand/` (and regenerate `src/app/favicon.ico`) to rebrand
+app-wide.
+
 ## Disclaimer
 
 AI-generated content and caregiver responsibility are covered in the
