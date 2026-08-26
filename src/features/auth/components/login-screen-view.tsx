@@ -13,9 +13,26 @@ import { StarField } from "./star-field";
 /** True when Clerk keys are present (playground enabled). */
 const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
-/** Map the active locale to a Clerk localization resource. */
+/** Map the active locale to a Clerk localization resource.
+ *
+ *  The app's own hero (brand + tagline) already renders above the `<SignIn>`,
+ *  so Clerk's default header (`title`/`subtitle`, e.g. "Sign in to
+ *  Storybook AI" / "Welcome back! Please sign in to continue") is redundant.
+ *  We blank those two strings out to avoid the duplication (decision: option B
+ *  — remove, not re-copy). */
 function clerkLocalizationFor(locale: string): ClerkLocalization {
-  return locale === "pt-BR" ? ptBR : enUS;
+  const base = locale === "pt-BR" ? ptBR : enUS;
+  const signIn = base.signIn;
+  // enUS/ptBR always ship `signIn`, but the Clerk type marks it optional; guard
+  // so we don't spread `undefined` (and keep the return type intact).
+  if (!signIn) return base;
+  return {
+    ...base,
+    signIn: {
+      ...signIn,
+      start: { ...signIn.start, title: "", subtitle: "" },
+    },
+  };
 }
 
 /**
