@@ -60,9 +60,11 @@ export function LoginScreenView() {
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
                   são gerenciados pelo Clerk (decisão B). A localização vem do
                   ClerkProvider (prop acima); `appearance` faz o possível para
-                  casar o design. */}
+                  casar o design. `routing="hash"` evita exigir que `/` seja
+                  catch-all (Clerk navega via hash, sem esbarrar no middleware). */}
               <div className="min-h-[20rem]">
                 <SignIn
+                  routing="hash"
                   appearance={{
                     variables: {
                       borderRadius: "1rem",
