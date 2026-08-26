@@ -25,10 +25,14 @@ vi.mock("next/navigation", () => ({
 }));
 
 // TopNav calls `useClerk()` for sign-out; the playground always mounts a
-// ClerkProvider at runtime, but this isolated unit test doesn't, so we stub it.
+// ClerkProvider at runtime, but this isolated unit test doesn't, so we stub
+// the hook AND make `ClerkProvider` a pass-through (the kebab wraps its sign
+// out action in a scoped ClerkProviderGate). Stubbing avoids booting real
+// Clerk JS in JSDOM; we only assert TopNav's behavior.
 vi.mock("@clerk/nextjs", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@clerk/nextjs")>()),
   useClerk: () => ({ signOut: vi.fn() }),
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 function renderTopNav() {

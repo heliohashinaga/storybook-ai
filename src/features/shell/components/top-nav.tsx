@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
 import { SignOutButton } from "./sign-out-button";
+import { ClerkProviderGate } from "../../auth/client/clerk-provider";
 import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
@@ -63,7 +64,18 @@ export function TopNav() {
           mobile and desktop share the exact same menu experience. */}
       <TopNavMenu label={t("menuLabel")}>
         <NavMenuContents
-          trailing={isPlayground && isClerkConfigured ? <SignOutButton /> : undefined}
+          // The top nav lives in the root layout, outside the playground
+          // layout's <ClerkProvider>. Sign out calls `useClerk()`, so it needs
+          // a provider too. We mount a scoped `ClerkProviderGate` just for the
+          // action (never on /demo, which stays cookie/anon-free), consistent
+          // with the app's pattern of conditional providers (ADR 0013).
+          trailing={
+            isPlayground && isClerkConfigured ? (
+              <ClerkProviderGate>
+                <SignOutButton />
+              </ClerkProviderGate>
+            ) : undefined
+          }
         />
       </TopNavMenu>
     </header>
