@@ -63,8 +63,11 @@ export function LoginScreenView() {
               ending one; signing out only makes sense in the app header (top-nav),
               which renders it inside its own scoped provider. `SignIn` embeds via
               `useClerk()` internally under this provider. */}
-          <ScreenKebab label={tBrand("menuLabel")} />
-          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
+          <ScreenHero
+            heading={t("heading")}
+            tagline={t("tagline")}
+            kebab={<ScreenKebab label={tBrand("menuLabel")} />}
+          >
             <div className="flex flex-col items-center gap-4">
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
                   são gerenciados pelo Clerk (decisão B). A localização vem do
@@ -84,8 +87,11 @@ export function LoginScreenView() {
       ) : (
         <>
           {/* Anonymous demo path: kebab without Sign out (no provider). */}
-          <ScreenKebab label={tBrand("menuLabel")} />
-          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
+          <ScreenHero
+            heading={t("heading")}
+            tagline={t("tagline")}
+            kebab={<ScreenKebab label={tBrand("menuLabel")} />}
+          >
             <DemoPanel locale={locale} demoLabel={t("demo")} note={t("noCredentials")} />
           </ScreenHero>
         </>
@@ -94,14 +100,12 @@ export function LoginScreenView() {
   );
 }
 
-/** Right-aligned session kebab menu (top-right corner): lang/theme only. */
+/** Right-aligned session kebab menu, anchored by the caller (top-right of the hero card). */
 function ScreenKebab({ label }: { label: string }) {
   return (
-    <div className="absolute right-4 top-4 z-40">
-      <TopNavMenu label={label}>
-        <NavMenuContents />
-      </TopNavMenu>
-    </div>
+    <TopNavMenu label={label}>
+      <NavMenuContents />
+    </TopNavMenu>
   );
 }
 
@@ -110,13 +114,17 @@ function ScreenHero({
   heading,
   tagline,
   children,
+  kebab,
 }: {
   heading: string;
   tagline: string;
   children: React.ReactNode;
+  /** Optional kebab anchored to the hero card's top-right (all breakpoints). */
+  kebab?: React.ReactNode;
 }) {
   return (
     <div className="relative z-10 w-full max-w-md text-center">
+      {kebab ? <div className="absolute right-2 top-2 z-40">{kebab}</div> : null}
       <div className="mb-4 flex justify-center">
         <BrandMark />
       </div>
