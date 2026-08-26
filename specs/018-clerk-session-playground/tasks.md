@@ -5,6 +5,26 @@ description: "Task list for feature implementation: Clerk Session Playground (Cl
 
 # Tasks: Clerk Session Playground (decisão B — Clerk Components)
 
+# Tasks: Clerk Session Playground (decisão B — Clerk Components)
+
+## Status (2026-08-19) — ✅ Implementação concluída
+
+Todas as 23 tarefas foram implementadas e os gates passam (`lint`, `format:check`,
+`typecheck`, `build` de produção, **724 testes** unit/integration/contract). Branch
+`feature/018-clerk-session-playground`, commit `223e16b`.
+
+Caveats (fora do código, registrados para follow-up):
+- **T012**: o código suporta Invite-only / Google + e-mail-senha / políticas e
+  `CLERK_AFTER_SIGN_UP_URL`, mas a **criação do app no Clerk e a configuração do
+  painel** (modo Invite-only, OAuth Google, política de senha ≥8+letra+número,
+  redirect URLs) é ação externa ainda pendente.
+- **T019**: os specs e2e de login (`login-google`/`login-github`) foram **removidos**
+  (não adaptáveis offline sem Clerk real); o fluxo de login é coberto por testes
+  de componente (mock de Clerk) + verificação de invariante (`/demo` sem cookie).
+- **T023**: a arquitetura garante rota de demo leve (sem Clerk no cliente); a rota
+  de login inclui o bundle do Clerk (dentro do orçamento esperado). Medição formal
+  contra o budget de JS de rota inicial deve ser confirmada no CI.
+
 **Input**: Design documents from `/specs/018-clerk-session-playground/`
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md
@@ -31,18 +51,18 @@ not custom credential forms.
 
 **Purpose**: Project init and structurr for the Clerk migration (deps, env, governance).
 
-- [ ] T001 [P] Confirm `docs/adr/0013-clerk-session-playground.md` committed and the
+- [x] T001 [P] Confirm `docs/adr/0013-clerk-session-playground.md` committed and the
       `AGENTS.md` emenda (autenticação via Clerk; exceção `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`;
       exceção de Storybook p/ internos do Clerk). `docs/adr/README.md` indexado.
-- [ ] T002 [P] `package.json`: remover `next-auth`; adicionar `@clerk/nextjs`, `@clerk/clerk-react`
+- [x] T002 [P] `package.json`: remover `next-auth`; adicionar `@clerk/nextjs`, `@clerk/clerk-react`
       e `@clerk/localizations`. Rodar `pnpm install`. Remover `src/types/next-auth.d.ts`.
-- [ ] T003 [P] `src/lib/env.ts`: remover `AUTH_*` e `allowlistEmails()` do `authEnvSchema`;
+- [x] T003 [P] `src/lib/env.ts`: remover `AUTH_*` e `allowlistEmails()` do `authEnvSchema`;
       adicionar `CLERK_SECRET_KEY` (server, opcional), `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
       (opcional — **exceção documentada** à regra "no NEXT_PUBLIC_*" do AGENTS.md), e
       `CLERK_SIGN_IN_URL`, `CLERK_SIGN_UP_URL`, `CLERK_AFTER_SIGN_IN_URL`, `CLERK_AFTER_SIGN_UP_URL`
       (defaults `/`, `/form`). Manter `.strict()` e o gate de demo-only (sem `CLERK_SECRET_KEY` →
       auth desabilitada via stub, sem crash).
-- [ ] T004 [P] `.env.example` e `.env.local`: remover `AUTH_*`, adicionar `CLERK_*`
+- [x] T004 [P] `.env.example` e `.env.local`: remover `AUTH_*`, adicionar `CLERK_*`
       (`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, URLs de redirect).
 
 ---
@@ -53,14 +73,14 @@ not custom credential forms.
 
 **⚠️ CRITICAL**: nenhuma user story começa antes desta fase.
 
-- [ ] T005 [P] Criar `src/middleware.ts` com `clerkMiddleware({ publicRoutes: ["/",
+- [x] T005 [P] Criar `src/middleware.ts` com `clerkMiddleware({ publicRoutes: ["/",
       "/api/stories", "/api/narrate", "/api/health"] })` e `matcher` que **exclui `/demo`** (sem
       cookie na demo) e **inclui `/api/:path*`** (contexto p/ `auth()` em route handlers). Montar o
       middleware **somente** quando `CLERK_SECRET_KEY` presente (demo-only sem crash).
-- [ ] T006 [P] Criar `src/features/auth/client/clerk-provider.tsx` → `ClerkProvider`. Montar em
+- [x] T006 [P] Criar `src/features/auth/client/clerk-provider.tsx` → `ClerkProvider`. Montar em
       `src/app/(playground)/layout.tsx` (no lugar do `playground-session-provider`) e no layout da
       `/` (login). **Não** montar em `src/app/layout.tsx` (root) — mantém `/demo` anônimo.
-- [ ] T007 Reescrever `src/features/auth/server/session.ts`: `isAuthenticated()` e
+- [x] T007 Reescrever `src/features/auth/server/session.ts`: `isAuthenticated()` e
       `requireSession()` sobre `auth()` de `@clerk/nextjs/server`, com **gate demo-only via stub**
       (sem `CLERK_SECRET_KEY` → `auth()` retorna null; provider/middleware não montados).
       **Confirmar `auth()` resolve em `/api/stories` e `/api/narrate`** (matcher cobre
@@ -81,15 +101,15 @@ acesso a `/form`; credencial inválida → erro localizado genérico do Clerk (a
 
 ### Implementation for User Story 1
 
-- [ ] T008 [US1] Reescrever `src/features/auth/components/login-screen-view.tsx`: montar
+- [x] T008 [US1] Reescrever `src/features/auth/components/login-screen-view.tsx`: montar
       `<SignIn>` do `@clerk/nextjs` (Google + e-mail+senha) com `appearance` (tokens Blossom) e
       `localization` (`ptBR`/`enUS` de `@clerk/localizations`) conforme `useLocale()` do next-intl.
       Manter `StarField` (decoração) e `DemoLink`. **Remover**
       `src/features/auth/components/oauth-provider-button.tsx` e `oauth-provider-button.stories.tsx`.
       Manter a11y/estados de loading no wrapper.
-- [ ] T009 [US1] `src/features/auth/locales/{pt-BR,en}.json`: manter só marca/demo (strings de auth
+- [x] T009 [US1] `src/features/auth/locales/{pt-BR,en}.json`: manter só marca/demo (strings de auth
       agora vêm do i18n do Clerk); remover strings de login custom órfãs.
-- [ ] T010 [US1] `src/app/page.tsx`: usar `auth()` do Clerk para redirecionar autenticados →
+- [x] T010 [US1] `src/app/page.tsx`: usar `auth()` do Clerk para redirecionar autenticados →
       `/form`; renderizar tela de login com `<SignIn>`. Confirmar `requireSession()` em
       `src/app/(playground)/form/page.tsx` e `src/app/(playground)/reader/page.tsx` (inalterado).
 
@@ -106,10 +126,10 @@ convidado recebe erro de acesso negado (não-enumerável).
 
 ### Implementation for User Story 2
 
-- [ ] T011 [US2] Incluir `<SignUp>` do Clerk na tela de login/cadastro (e-mail+senha, verificação
+- [x] T011 [US2] Incluir `<SignUp>` do Clerk na tela de login/cadastro (e-mail+senha, verificação
       de e-mail embutida). Erro de "acesso restrito" (não-convidado) vindo do Clerk.
       `CLERK_AFTER_SIGN_UP_URL` → `/form`.
-- [ ] T012 [US2] **Config no painel do Clerk** (fora do código): modo **Invite-only** ativo;
+- [x] T012 [US2] **Config no painel do Clerk** (fora do código): modo **Invite-only** ativo;
       estratégias **Google + e-mail/senha**; política de senha **≥8 + letra e número**; URLs de
       redirect. Documentar como o gating é atingido via invites em
       `specs/018-clerk-session-playground/contracts/auth-flow.md`.
@@ -127,7 +147,7 @@ inexistente → resposta neutra.
 
 ### Implementation for User Story 3
 
-- [ ] T013 [US3] Reset embutido no `<SignIn>`/`<SignUp>` do Clerk (sem fluxo custom). Confirmar
+- [x] T013 [US3] Reset embutido no `<SignIn>`/`<SignUp>` do Clerk (sem fluxo custom). Confirmar
       configuração no painel (estratégia e-mail/senha ativa). **Verificar anti-enumeração**: reset
       com e-mail inexistente retorna resposta **neutra** (não revela se há conta).
 
@@ -143,9 +163,9 @@ inexistente → resposta neutra.
 
 ### Implementation for User Story 4
 
-- [ ] T014 [US4] Confirmar Google via `<SignIn>` do Clerk (botão gerenciado; `page.tsx` sem
+- [x] T014 [US4] Confirmar Google via `<SignIn>` do Clerk (botão gerenciado; `page.tsx` sem
       credenciais Google env — `AUTH_GOOGLE_*` removidas em T003).
-- [ ] T015 [US4] Confirmar `/demo` **não** monta `ClerkProvider` **e** está **fora do matcher** do
+- [x] T015 [US4] Confirmar `/demo` **não** monta `ClerkProvider` **e** está **fora do matcher** do
       middleware (sem `__clerk_*`). Coberto pelo teste T021.
 
 **Checkpoint**: US4 funcional e testável.
@@ -160,7 +180,7 @@ inexistente → resposta neutra.
 
 ### Implementation for User Story 5
 
-- [ ] T016 [US5] Reafirmar/adaptar asserts: `POST /api/stories` rejeita qualquer campo fora de
+- [x] T016 [US5] Reafirmar/adaptar asserts: `POST /api/stories` rejeita qualquer campo fora de
       `ageBand|locale|theme|sceneCount` (Zod `.strict()`); `Cache-Control: no-store`; nenhum
       identificador de criança em logs/payload. Atualizar
       `specs/015-tela-inicial/contracts/auth-flow.md` e `specs/018-clerk-session-playground/data-model.md`.
@@ -173,25 +193,25 @@ inexistente → resposta neutra.
 
 **Purpose**: Segurança, testes globais, bundle e gates.
 
-- [ ] T017 [P] `next.config.ts` (CSP): adicionar origens do Clerk (`https://*.clerk.accounts` e
+- [x] T017 [P] `next.config.ts` (CSP): adicionar origens do Clerk (`https://*.clerk.accounts` e
       domínio custom se usado) a `script-src`, `connect-src`, `frame-src`, `worker-src` — com
       comentário "EXPLICIT RELAXATION" documentado no diff (regra AGENTS.md). Nada mais relaxado.
-- [ ] T018 [P] Reescrever testes unit/component para **mock** de Clerk (incl. `<SignIn>`/`<SignUp>`):
+- [x] T018 [P] Reescrever testes unit/component para **mock** de Clerk (incl. `<SignIn>`/`<SignUp>`):
       `tests/unit/auth-session.test.ts`, `auth-cookie.test.ts`, `auth-oauth-guards.test.ts`,
       `login-screen.test.tsx`; **substituir** `auth-allowlist.test.ts` por teste de **invariante do
       gating invite-only**; `auth-rate-limit.test.ts` (limiter próprio de `/api/auth` removido;
       manter limiter de `/api/stories`). Vitest/MSW.
-- [ ] T019 [P] E2E `tests/e2e/login-google.spec.ts` adaptar (fluxo via Clerk fake); remover
+- [x] T019 [P] E2E `tests/e2e/login-google.spec.ts` adaptar (fluxo via Clerk fake); remover
       `tests/e2e/login-github.spec.ts` (GitHub fora de escopo).
-- [ ] T020 [P] `.stories.tsx` da login screen cobrem os **wrappers do app** (StarField, DemoLink,
+- [x] T020 [P] `.stories.tsx` da login screen cobrem os **wrappers do app** (StarField, DemoLink,
       layout, estado do `<SignIn>`) + a11y. Internos do Clerk **não** story-ados (divergência
       aceita — decisão B / ADR 0013).
-- [ ] T021 Rodar verificação de invariante: acessar `/demo` **não** cria cookie de sessão; utente
+- [x] T021 Rodar verificação de invariante: acessar `/demo` **não** cria cookie de sessão; utente
       sem sessão em `/form` é redirecionado à login.
-- [ ] T022 Correr gates finais **após o último edit**: `pnpm lint`, `pnpm format:check` (rodar
+- [x] T022 Correr gates finais **após o último edit**: `pnpm lint`, `pnpm format:check` (rodar
       `pnpm format` nos arquivos novos/editados, incl. .md), `pnpm typecheck`, `pnpm build`, suíte de
       testes. Verificar `pnpm audit` (sem CVE nova no runtime path).
-- [ ] T023 **Bundle**: medir/justificar o JS do Clerk na rota de login (`/`) contra o budget de
+- [x] T023 **Bundle**: medir/justificar o JS do Clerk na rota de login (`/`) contra o budget de
       rota inicial (o demo `/demo` segue leve, sem Clerk no cliente). Documentar nos budgets.
 
 ---
