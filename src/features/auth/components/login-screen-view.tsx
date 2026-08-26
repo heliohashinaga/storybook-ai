@@ -109,15 +109,17 @@ function ScreenHero({
   );
 }
 
-/** The "Explore the Demo" entry link (client-side nav into `/demo`). */
+/** The "Explore the Demo" entry link (client-side nav into `/demo`).
+    Styled as a prominent CTA pill so it draws attention next to the Clerk
+    sign-in. */
 function DemoLink({ locale, label }: { locale: string; label: string }) {
   return (
     <a
       href="/demo"
       lang={locale}
-      className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="inline-flex items-center gap-2 rounded-2xl border border-primary/50 bg-primary/10 px-5 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      <SparklesIcon className="size-3.5" />
+      <SparklesIcon className="size-4" />
       {label}
     </a>
   );
