@@ -45,36 +45,19 @@ export function LoginScreenView() {
               provider so the Sign out action can use `useClerk()`. */}
           <ScreenKebab label={tBrand("menuLabel")} showSignOut />
           <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h2
-                  id="playground-heading"
-                  className="font-display text-lg font-bold text-foreground"
-                >
-                  {t("playgroundHeading")}
-                </h2>
-                <p className="text-sm text-muted-foreground">{t("playgroundDescription")}</p>
-              </div>
-
+            <div className="flex flex-col items-center gap-4">
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
                   são gerenciados pelo Clerk (decisão B). A localização vem do
-                  ClerkProvider (prop acima); `appearance` faz o possível para
-                  casar o design. `routing="hash"` evita exigir que `/` seja
-                  catch-all (Clerk navega via hash, sem esbarrar no middleware). */}
-              <div className="min-h-[20rem]">
-                <SignIn
-                  routing="hash"
-                  appearance={{
-                    variables: {
-                      borderRadius: "1rem",
-                      colorPrimary: "hsl(var(--primary))",
-                    },
-                  }}
-                />
+                  ClerkProvider (prop acima). `routing="hash"` evita exigir que `/`
+                  seja catch-all (Clerk navega via hash, sem esbarrar no middleware).
+                  Sem `appearance` custom: o tema padrão do Clerk é usado (ADR 0013
+                  aceita a divergência de estilo interno) e evita quebrar o CSS do
+                  próprio botão primário. */}
+              <div className="flex min-h-[20rem] w-full justify-center">
+                <SignIn routing="hash" />
               </div>
 
               <DemoLink locale={locale} label={t("demo")} />
-              <p className="text-xs text-muted-foreground">{t("demoHint")}</p>
             </div>
           </ScreenHero>
         </ClerkProviderGate>
@@ -83,12 +66,7 @@ export function LoginScreenView() {
           {/* Anonymous demo path: kebab without Sign out (no provider). */}
           <ScreenKebab label={tBrand("menuLabel")} />
           <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            <DemoPanel
-              locale={locale}
-              demoLabel={t("demo")}
-              demoHint={t("demoHint")}
-              note={t("noCredentials")}
-            />
+            <DemoPanel locale={locale} demoLabel={t("demo")} note={t("noCredentials")} />
           </ScreenHero>
         </>
       )}
@@ -137,9 +115,9 @@ function DemoLink({ locale, label }: { locale: string; label: string }) {
     <a
       href="/demo"
       lang={locale}
-      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/90 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="inline-flex items-center gap-1 text-sm text-primary underline-offset-4 transition-colors hover:text-primary/80 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
-      <SparklesIcon className="size-4" />
+      <SparklesIcon className="size-3.5" />
       {label}
     </a>
   );
@@ -149,12 +127,10 @@ function DemoLink({ locale, label }: { locale: string; label: string }) {
 function DemoPanel({
   locale,
   demoLabel,
-  demoHint,
   note,
 }: {
   locale: string;
   demoLabel: string;
-  demoHint: string;
   note: string;
 }) {
   return (
@@ -166,7 +142,6 @@ function DemoPanel({
         {note}
       </p>
       <DemoLink locale={locale} label={demoLabel} />
-      <p className="text-center text-xs text-muted-foreground">{demoHint}</p>
     </section>
   );
 }
