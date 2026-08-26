@@ -5,12 +5,13 @@ import { useTranslations } from "next-intl";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
 import { SignOutButton } from "./sign-out-button";
+import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
  * Top bar: home brand mark + a kebab (⋮) menu.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
- * - Left: a home button (primary, BookOpenText mark + display name).
+ * - Left: a home button (BrandLogo tile mark + display name).
  *   Home is route-aware: on the anonymous demo routes (`/demo`, `/demo/reader`)
  *   it navigates back to the demo form `/demo`; everywhere else it navigates to
  *   the login gate `/` (which the server redirects to `/form` when authed — Spec
@@ -52,9 +53,7 @@ export function TopNav() {
         aria-current={onHome ? "page" : undefined}
         className="flex min-w-0 items-center gap-2 whitespace-nowrap rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring sm:gap-3"
       >
-        <span className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft sm:size-11">
-          <BookOpenText className="size-5 sm:size-6" aria-hidden="true" />
-        </span>
+        <BrandLogo className="size-9 shrink-0 rounded-2xl object-contain shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft sm:size-11" />
         <span className="min-w-0 truncate font-display text-base font-bold sm:text-lg">
           {t("name")}
         </span>
@@ -68,28 +67,5 @@ export function TopNav() {
         />
       </TopNavMenu>
     </header>
-  );
-}
-
-/* ---------------------------------------------------------------------------
- * Icons (inline, presentational marks).
- * ------------------------------------------------------------------------- */
-
-/** Inline open-book brand mark. */
-function BookOpenText({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-      <path d="M12 7v14" />
-    </svg>
   );
 }

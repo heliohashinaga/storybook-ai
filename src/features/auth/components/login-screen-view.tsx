@@ -8,6 +8,7 @@ import { ClerkProviderGate } from "../client/clerk-provider";
 import { NavMenuContents } from "../../shell/components/nav-menu-contents";
 import { TopNavMenu } from "../../shell/components/top-nav-menu";
 import { SignOutButton } from "../../shell/components/sign-out-button";
+import { BrandLogo } from "../../../components/ui/brand-logo";
 import { StarField } from "./star-field";
 
 /** True when Clerk keys are present (playground enabled). */
@@ -166,27 +167,8 @@ function DemoPanel({
 
 function BrandMark() {
   return (
-    <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
-      <BookOpenIcon className="size-7" />
+    <div className="mb-3 flex justify-center">
+      <BrandLogo className="size-14 object-contain" />
     </div>
-  );
-}
-
-function BookOpenIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-    </svg>
   );
 }
