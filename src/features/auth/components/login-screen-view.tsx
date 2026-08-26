@@ -97,7 +97,7 @@ export function LoginScreenView() {
 /** Right-aligned session kebab menu (top-right corner): lang/theme only. */
 function ScreenKebab({ label }: { label: string }) {
   return (
-    <div className="absolute right-4 top-4 z-10">
+    <div className="absolute right-4 top-4 z-40">
       <TopNavMenu label={label}>
         <NavMenuContents />
       </TopNavMenu>
