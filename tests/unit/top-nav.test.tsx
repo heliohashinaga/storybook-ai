@@ -24,6 +24,13 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navState.push }),
 }));
 
+// TopNav calls `useClerk()` for sign-out; the playground always mounts a
+// ClerkProvider at runtime, but this isolated unit test doesn't, so we stub it.
+vi.mock("@clerk/nextjs", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@clerk/nextjs")>()),
+  useClerk: () => ({ signOut: vi.fn() }),
+}));
+
 function renderTopNav() {
   return render(
     <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
@@ -110,12 +117,14 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a sign-out action on the playground route", () => {
+  it("shows a sign-out action on the playground route when Clerk is configured", () => {
     navState.setPath("/reader");
+    // Sign out only mounts when Clerk is configured (anonymous demo has none).
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test";
     renderTopNav();
-
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   });
 
   it("closes the kebab menu when pressing Escape", () => {

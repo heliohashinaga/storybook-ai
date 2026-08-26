@@ -1,35 +1,35 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "../features/auth/server/session";
-import { getAuthEnv } from "../lib/env";
+import { auth } from "@clerk/nextjs/server";
 import { LoginScreenView } from "../features/auth/components/login-screen-view";
 
+// The login gate is rendered on demand (never statically prerendered) so the
+// Clerk provider is mounted at request time and the anonymous demo path never
+// touches a session cookie (spec 018 / ADR 0013).
+export const dynamic = "force-dynamic";
+
 /**
- * `/` — login screen (spec 015). Renamed from the old anonymous redirect to
- * `/form`: the root is now the auth gate. An authenticated visitor is sent
- * straight to the playground; anonymous visitors get the OAuth buttons (one per
- * configured provider) plus the always-available Demo entry point. Demo-only
- * deploys (no `AUTH_SECRET`) skip `auth()` entirely and render with all buttons
- * disabled.
+ * `/` — login screen (spec 018). Server redirects an authenticated visitor
+ * straight to the playground; anonymous visitors get the Clerk `<SignIn>` (Google
+ * + e-mail/senha) plus the always-available Demo entry point (anonymous, zero
+ * cookies). Demo-only deploys (no `CLERK_SECRET_KEY`) skip `auth()` gracefully
+ * and render the demo-only panel with no Clerk provider/cookie. `LoginScreenView`
+ * mounts its own `ClerkProviderGate` internally (it needs `useLocale` for
+ * localization), so this page must not wrap it again.
  */
 export default async function HomePage() {
-  const env = getAuthEnv();
-
-  if (env.AUTH_SECRET) {
+  let userId: string | null = null;
+  try {
     const session = await auth();
-    if (session?.authenticated) redirect("/form");
+    userId = session.userId;
+  } catch {
+    userId = null;
   }
+  if (userId) redirect("/form");
 
-  const credentials = {
-    google: Boolean(env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET),
-    github: Boolean(env.AUTH_GITHUB_ID && env.AUTH_GITHUB_SECRET),
-  };
-
-  // Client-side `useSearchParams()` in the login view requires a Suspense
-  // boundary during static prerendering of `/`.
   return (
     <Suspense>
-      <LoginScreenView credentials={credentials} />
+      <LoginScreenView />
     </Suspense>
   );
 }

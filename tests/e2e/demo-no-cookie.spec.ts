@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { AUTH_COOKIE_NAME } from "./helpers";
+import { CLERK_SESSION_COOKIE_NAME } from "./helpers";
 
 /**
  * Demo path is cookie-free (spec 015, T039).
@@ -41,5 +41,5 @@ test("browsing the demo leaves the browser context cookie-free", async ({ page, 
   // Still zero cookies — including no auth session cookie.
   const cookies = await context.cookies();
   expect(cookies).toEqual([]);
-  expect(cookies.some((c) => c.name === AUTH_COOKIE_NAME)).toBe(false);
+  expect(cookies.some((c) => c.name === CLERK_SESSION_COOKIE_NAME)).toBe(false);
 });

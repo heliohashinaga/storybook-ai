@@ -16,8 +16,8 @@ export default defineConfig({
       // server-only is a no-op outside the Next.js server boundary; allow
       // server modules (src/lib/env) to be imported by Node tests.
       "server-only": fileURLToPath(new URL("./node_modules/server-only/empty.js", import.meta.url)),
-      // next-auth imports `next/server` at module load; that subpath is not
-      // resolvable in Vitest, so route/contract tests use a shape stub.
+      // Next's `next/server` subpath is not resolvable in Vitest, so
+      // route/contract tests use a shape stub.
       "next/server": fileURLToPath(new URL("./tests/stubs/next-server.ts", import.meta.url)),
     },
   },
@@ -25,13 +25,6 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./tests/setup.ts"],
-    server: {
-      deps: {
-        // Inline next-auth (and @auth/core) so Vite processes them and the
-        // `next/server` alias above resolves their `import { NextRequest }`.
-        inline: ["next-auth", "@auth/core"],
-      },
-    },
     include: ["src/**/*.test.{ts,tsx}", "tests/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",

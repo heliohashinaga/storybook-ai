@@ -1,10 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
+import { SignOutButton } from "./sign-out-button";
 
 /**
  * Top bar: home brand mark + a kebab (⋮) menu.
@@ -21,13 +21,11 @@ import { TopNavMenu } from "./top-nav-menu";
  *   mobile and desktop share the exact same compact menu experience.
  *
  * All state is in-memory only: language and theme pickers drive
- * `useLocaleContext` / `useColorScheme` and nothing is persisted. `signOut`
- * from `next-auth/react` works without a `SessionProvider` (it posts to
- * `/api/auth/signout` directly).
+ * `useLocaleContext` / `useColorScheme` and nothing is persisted. `SignOutButton`
+ * (mounted only on the configured playground) ends the Clerk session.
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
-  const tAuth = useTranslations("auth");
   const router = useRouter();
   // Navigation home is the login gate `/`; it redirects to `/form` when authed.
   const pathname = usePathname();
@@ -40,8 +38,10 @@ export function TopNav() {
   const isDemo = pathname === "/demo" || pathname.startsWith("/demo/");
   const homePath = isDemo ? "/demo" : "/";
   const onHome = pathname === homePath;
-  // Sign out is meaningful only on the protected playground routes.
+  // Sign out is meaningful only on the protected playground routes and only
+  // when Clerk is configured (the demo path has no session to end).
   const isPlayground = pathname === "/form" || pathname === "/reader";
+  const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-3 py-4 sm:gap-3 sm:px-6 sm:py-5 lg:px-12">
@@ -64,17 +64,7 @@ export function TopNav() {
           mobile and desktop share the exact same menu experience. */}
       <TopNavMenu label={t("menuLabel")}>
         <NavMenuContents
-          trailing={
-            isPlayground ? (
-              <TopNavMenu.Item
-                icon={<LogOutIcon className="size-5" />}
-                tone="danger"
-                onPress={() => signOut({ callbackUrl: "/" })}
-              >
-                {tAuth("nav.logout")}
-              </TopNavMenu.Item>
-            ) : undefined
-          }
+          trailing={isPlayground && isClerkConfigured ? <SignOutButton /> : undefined}
         />
       </TopNavMenu>
     </header>
@@ -84,25 +74,6 @@ export function TopNav() {
 /* ---------------------------------------------------------------------------
  * Icons (inline, blossom-style presentational marks).
  * ------------------------------------------------------------------------- */
-
-/** Inline log-out icon. */
-function LogOutIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  );
-}
 
 /** Inline open-book brand mark. */
 function BookOpenText({ className }: { className?: string }) {
