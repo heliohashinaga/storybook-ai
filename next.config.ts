@@ -79,6 +79,17 @@ const nextConfig: NextConfig = {
   // single server entry point. Enforce the server-only boundary so provider /
   // SDK / sharp modules can never leak into client bundles.
   serverExternalPackages: ["sharp", "openai"],
+  env: {
+    // Clerk routing URLs (spec 018). Defaults match the embedded <SignIn>/<SignUp>
+    // on `/` and the post-auth playground `/form`. Without these, Clerk falls back
+    // to its hosted Account Portal (`*.clerk.accounts.dev`), pulling users off
+    // our anonymous-by-design `/` login screen. Overridable via real env /
+    // .env.local (which takes precedence over this block).
+    CLERK_SIGN_IN_URL: "/",
+    CLERK_SIGN_UP_URL: "/",
+    CLERK_AFTER_SIGN_IN_URL: "/form",
+    CLERK_AFTER_SIGN_UP_URL: "/form",
+  },
   async headers() {
     return [
       {
