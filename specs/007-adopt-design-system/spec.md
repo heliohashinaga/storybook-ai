@@ -1,20 +1,20 @@
-# Feature Specification: Adotar o design system e o frontend do story-blossom-room
+# Feature Specification: Adotar o design system e o frontend do protótipo
 
-**Feature Branch**: `007-adopt-blossom-design`
+**Feature Branch**: `007-adopt-design-system`
 
 **Created**: 2026-08-14
 
 **Status**: Draft
 
-**Input**: User description: "quero usar o design system e o frontend do repo story-blossom-room no frontend do repo storybook-ai"
+**Input**: User description: "quero usar o design system e o frontend do repo protótipo no frontend do repo storybook-ai"
 
-**Scope summary**: `story-blossom-room` é o protótipo visual (mockup React/Tailwind) deste mesmo produto anônimo de histórias infantis. Este item transfere a **identidade visual** e o **tratamento de front-end** do protótipo (paleta quente creme/coral/terracota, tipografia Baloo 2 + Nunito, cards arredondados com sombras suaves, telas de formulário/geração/leitor) para o app de produção `storybook-ai`. Há dois eixos de trabalho:**(1)** refatoração visual/UX sobre os fluxos existentes — sistema de design (tokens), primitivas compartilhadas e componentes de `src/features/*`, mantendo a estrutura por features, a i18n por catálogos e o anonimato/ acessibilidade/ validações preservados; e **(2)** expansão do conjunto de **temas narrativos de 3 para 6** (Coragem, Amizade, Bondade, Curiosidade, Perseverança e Empatia), alinhando o front-end ao protótipo e exigindo correspondente suporte de back-end (schema), prompts de geração e cobertura de segurança para os 3 novos temas. **Nenhum** identificador é introduzido; todas as regras de privacidade e invariantes permanecem.
+**Scope summary**: `protótipo` é o protótipo visual (mockup React/Tailwind) deste mesmo produto anônimo de histórias infantis. Este item transfere a **identidade visual** e o **tratamento de front-end** do protótipo (paleta quente creme/coral/terracota, tipografia Baloo 2 + Nunito, cards arredondados com sombras suaves, telas de formulário/geração/leitor) para o app de produção `storybook-ai`. Há dois eixos de trabalho:**(1)** refatoração visual/UX sobre os fluxos existentes — sistema de design (tokens), primitivas compartilhadas e componentes de `src/features/*`, mantendo a estrutura por features, a i18n por catálogos e o anonimato/ acessibilidade/ validações preservados; e **(2)** expansão do conjunto de **temas narrativos de 3 para 6** (Coragem, Amizade, Bondade, Curiosidade, Perseverança e Empatia), alinhando o front-end ao protótipo e exigindo correspondente suporte de back-end (schema), prompts de geração e cobertura de segurança para os 3 novos temas. **Nenhum** identificador é introduzido; todas as regras de privacidade e invariantes permanecem.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Experiência visual acolhedora no formulário (Priority: P1)
 
-Um responsável abre o app em pt-BR de cara e vê uma tela de formulário redecorada segundo o protótipo: cabeçalho com a marca (`BookOpenText` + nome + tagline), seleção de tema como cards grandes com emoji e descrição, campo de idade claro, seletor de duração (cenas) e botão primário grande "Criar história". Tudo com a paleta quente e a tipografia do story-blossom-room, mantendo contraste AA e foco visível.
+Um responsável abre o app em pt-BR de cara e vê uma tela de formulário redecorada segundo o protótipo: cabeçalho com a marca (`BookOpenText` + nome + tagline), seleção de tema como cards grandes com emoji e descrição, campo de idade claro, seletor de duração (cenas) e botão primário grande "Criar história". Tudo com a paleta quente e a tipografia do protótipo, mantendo contraste AA e foco visível.
 
 **Why this priority**: é a primeira impressão e o ponto de entrada de todo o fluxo; o resto do app herda os tokens e primitivas a partir daqui. Sem isso não há "reestilo" coerente.
 
@@ -22,7 +22,7 @@ Um responsável abre o app em pt-BR de cara e vê uma tela de formulário redeco
 
 **Acceptance Scenarios**:
 
-1. **Given** um responsável abre o app, **When** o formulário renderiza, **Then** a tela usa a identidade visual do story-blossom-room (paleta quente, tipografia Baloo 2/Nunito, cards arredondados com sombras suaves) e exibe marca + tagline, seleção de tema em cards, idade, duração e botão primário.
+1. **Given** um responsável abre o app, **When** o formulário renderiza, **Then** a tela usa a identidade visual do protótipo (paleta quente, tipografia Baloo 2/Nunito, cards arredondados com sombras suaves) e exibe marca + tagline, seleção de tema em cards, idade, duração e botão primário.
 2. **Given** o formulário recarregado, **When** o responsável navega só por teclado, **Then** todos os controles têm foco visível e operação completa por teclado, e todos os textos de rótulos/semântica têm contraste AA ≥ 4.5:1 contra o fundo.
 3. **Given** o formulário, **When** o responsável seleciona tema, idade e cenas e submete, **Then** a solicitação enviada contém apenas idade agregada, idioma, tema e contagem de cenas anônimas — nenhum identificador direto (invariante de privacidade, verificado em teste de contrato).
 
@@ -117,7 +117,7 @@ As peças compartilhadas do app (primitivas de UI e componentes por feature) pas
 
 ### Functional Requirements
 
-- **FR-001**: O app DEVE adotar a paleta de cores quente do story-blossom-room (creme/coral/terracota + acento vivo), em modo claro e escuro, expressa em tokens semânticos (não literais) e mantendo contraste AA ≥ 4.5:1 para texto normal.
+- **FR-001**: O app DEVE adotar a paleta de cores quente do protótipo (creme/coral/terracota + acento vivo), em modo claro e escuro, expressa em tokens semânticos (não literais) e mantendo contraste AA ≥ 4.5:1 para texto normal.
 - **FR-002**: O app DEVE adotar a tipografia do protótipo (fonte display arredondada para títulos e fonte de corpo legível para texto), via tokens.
 - **FR-003**: Os componentes compartilhados DEVEM adotar os padrões geométricos do protótipo — cards grandes com cantos arredondados e sombras suaves, raios e espaçamentos por tokens — refletindo a identidade em formulário, geração e leitor; a cor nominal é coberta por FR-001 (paleta).
 - **FR-004**: O formulário DEVE exibir a seleção de tema como cards com emoji/ícone, nome e frase curta de descrição, mantendo acessibilidade (aria-pressed, foco visível, navegação por teclado) e i18n por catálogos.
@@ -140,7 +140,7 @@ As peças compartilhadas do app (primitivas de UI e componentes por feature) pas
 
 ### Measurable Outcomes
 
-- **SC-001**: 100% das superfícies visíveis (formulário, geração, leitor, alternância de tema, barra do topo com marca e botão de exportação — em modo claro e escuro) usam a identidade do story-blossom-room, verificável por regressão visual aprovada sem diff indesejado.
+- **SC-001**: 100% das superfícies visíveis (formulário, geração, leitor, alternância de tema, barra do topo com marca e botão de exportação — em modo claro e escuro) usam a identidade do protótipo, verificável por regressão visual aprovada sem diff indesejado.
 - **SC-002**: Todos os textos em texto normal mantêm contraste AA (≥4.5:1) na nova paleta clara e escura, sem exceção verificada.
 - **SC-003**: Toda a jornada (formulário → geração → leitor) permanece acessível por teclado e com foco visível; nenhuma story de a11y regressa.
 - **SC-004**: Nenhum identificador direto aparece em payloads, logs, catálogos ou fixtures (invariante verificado por testes de contrato/privação em 100% dos cenários).
@@ -150,7 +150,7 @@ As peças compartilhadas do app (primitivas de UI e componentes por feature) pas
 
 ## Assumptions
 
-- O `story-blossom-room` representa a identidade visual desejada (fonte da verdade do desenho) e o `storybook-ai` é o produto que receberá essa identidade sobre seu back-end, segurança e acessibilidade já existentes.
+- O `protótipo` representa a identidade visual desejada (fonte da verdade do desenho) e o `storybook-ai` é o produto que receberá essa identidade sobre seu back-end, segurança e acessibilidade já existentes.
 - O escopo é de **refatoração visual/UX** sobre os fluxos existentes: os componentes e features atuais são reestilizados/adaptados à linguagem do protótipo, **não** copiados literalmente como telas auto-contidas que duplicariam estado, i18n ou estrutura.
 - A estrutura por features (`src/features/<feat>/{components,client,server,locales}`), a i18n por catálogos pt-BR/en e a API `POST /api/stories` permanecem; catálogos ganham as novas strings/tratamentos do protótipo.
 - Os `story-reader`, `story-request`, `story-read-aloud` e `story-export` já existem; o trabalho adiciona o desenho e os componentes (ex.: cards de tema por emoji) de forma compartilhada, removendo código morto/duplicado.

@@ -1,12 +1,12 @@
-# Implementation Plan: Adotar o design system e o frontend do story-blossom-room
+# Implementation Plan: Adotar o design system e o frontend do protótipo
 
-**Branch**: [`007-adopt-blossom-design`](https://github.com/repos/storybook-ai/tree/007-adopt-blossom-design) | **Date**: 2026-08-14 | **Spec**: [spec.md](spec.md)
+**Branch**: [`007-adopt-design-system`](https://github.com/repos/storybook-ai/tree/007-adopt-design-system) | **Date**: 2026-08-14 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/007-adopt-blossom-design/spec.md`
+**Input**: Feature specification from `specs/007-adopt-design-system/spec.md`
 
 ## Summary
 
-Adotar a **identidade visual** e o **tratamento de front-end** de `story-blossom-room` (protótipo
+Adotar a **identidade visual** e o **tratamento de front-end** de `protótipo` (protótipo
 visual do mesmo produto) sobre o app de produção `storybook-ai`, em dois eixos:
 
 1. **Design system & front-end**: substituir a paleta hex atual por tokens semânticos **oklch**
@@ -89,14 +89,14 @@ acessibilidade, determinismo de testes e catálogo — não em throughput.
 ### Documentation (this feature)
 
 ```text
-specs/007-adopt-blossom-design/
+specs/007-adopt-design-system/
 ├── plan.md              # This file (/speckit-plan command output)
 ├── research.md          # Phase 0 output — decisão de tokens/paleta, fontes e escopo de temas
 ├── data-model.md        # Phase 1 output — entidades: Theme union ampliada, tokens visuais, catálogo
 ├── quickstart.md        # Phase 1 output — guia de validação end-to-end
 ├── contracts/           # Phase 1 output — contrato de temas (schema/catálogo), tokens visuais e o estudo `design-system.md`
 │   ├── design-tokens-and-themes.md   # contrato do enum `theme` + tokens
-│   └── design-system.md              # estudo da identidade visual (valores/uso) extraído do story-blossom-room
+│   └── design-system.md              # estudo da identidade visual (valores/uso) extraído do protótipo
 └── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
 ```
 

@@ -11,7 +11,7 @@ derivação do modo real/fake. **Não altera** o contrato de geração existente
 
 | Rota | Método | Acesso | Comportamento |
 |------|--------|--------|---------------|
-| `/` | GET | público | Tela de login (cópia story-blossom-room). Substitui o redirect → `/form` (spec 009). |
+| `/` | GET | público | Tela de login (cópia protótipo). Substitui o redirect → `/form` (spec 009). |
 | `/demo` | GET | público, **sem cookie** | App em modo demo (dados fake spec 012), anônimo — espelha `/form`. |
 | `/demo/reader` | GET | público, **sem cookie** | Leitor de história da demo — espelha `/reader` (in-memory). |
 | `/form`, `/reader` | GET | **requer sessão** | Playground (LLM real). Sem sessão → `redirect("/")`. |

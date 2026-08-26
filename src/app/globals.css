@@ -252,7 +252,6 @@
 }
 
 @layer base {
-
   *,
   ::before,
   ::after {
@@ -284,7 +283,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-
     *,
     ::before,
     ::after {
@@ -296,10 +294,9 @@
   }
 }
 
-/* Decor: login star field (blossom). The global prefers-reduced-motion override
+/* Decor: login star field. The global prefers-reduced-motion override
    above neutralizes the animation for reduced-motion users (static field). */
 @keyframes twinkle {
-
   0%,
   100% {
     opacity: 1;

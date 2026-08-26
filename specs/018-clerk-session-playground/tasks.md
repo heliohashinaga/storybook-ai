@@ -102,7 +102,7 @@ acesso a `/form`; credencial inválida → erro localizado genérico do Clerk (a
 ### Implementation for User Story 1
 
 - [x] T008 [US1] Reescrever `src/features/auth/components/login-screen-view.tsx`: montar
-      `<SignIn>` do `@clerk/nextjs` (Google + e-mail+senha) com `appearance` (tokens Blossom) e
+      `<SignIn>` do `@clerk/nextjs` (Google + e-mail+senha) com `appearance` (design tokens) e
       `localization` (`ptBR`/`enUS` de `@clerk/localizations`) conforme `useLocale()` do next-intl.
       Manter `StarField` (decoração) e `DemoLink`. **Remover**
       `src/features/auth/components/oauth-provider-button.tsx` e `oauth-provider-button.stories.tsx`.

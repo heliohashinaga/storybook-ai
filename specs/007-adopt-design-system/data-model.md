@@ -1,4 +1,4 @@
-# Data Model: Design system e frontend do story-blossom-room
+# Data Model: Design system e frontend do protótipo
 
 **Phase 1 output** — entidades relevantes para a entrega: o conjunto de temas expandido (dado
 anônimo) e os tokens de identidade visual (contrato de apresentação). Nenhum dado de usuário

@@ -19,7 +19,7 @@ no route group `(playground)` e na `/` (login); `/demo` permanece sem cookie.
 ## Technical Context
 
 **Language/Version**: TypeScript strict; Next.js 16 (App Router); React 19; Tailwind v4 + tokens
-Blossom; next-intl (pt-BR + en).
+design system; next-intl (pt-BR + en).
 
 **Primary Dependencies**:
 - **Adicionar**: `@clerk/nextjs` (server: `auth`/`clerkMiddleware`/`ClerkProvider`; e re-exporta os
@@ -84,7 +84,7 @@ mockado** (MSW/mocks) — nenhuma chamada live em testes.
 - `src/features/auth/components/login-screen-view.tsx`: substituir o botão OAuth custom e o form
   por **Clerk Components** (`<SignIn>` com Google + e-mail/senha; `<SignUp>` p/ cadastro;
   verificação de e-mail e reset embutidos). Manter `StarField` (decoração) e o `DemoLink`; passar
-  `appearance` para alinhar tokens Blossom o quanto couber e **`localization`** passado conforme
+  `appearance` para alinhar design tokens o quanto couber e **`localization`** passado conforme
   o locale ativo do next-intl (`ptBR`/`enUS` de `@clerk/localizations`). Strings de auth vêm do
 i18n do Clerk
   (`pt-BR`); os catalogs do app guardam só marca/demo.

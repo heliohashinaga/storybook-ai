@@ -138,7 +138,7 @@ export function StoryRequestForm({
     >
       <ThemeSelector value={theme} onSelect={setTheme} disabled={disabled} />
 
-      {/* Age — blossom-style range slider (exact age stays in memory only). */}
+      {/* Age — range slider (exact age stays in memory only). */}
       <div className="rounded-3xl border border-border bg-card p-5 shadow-soft">
         <label htmlFor="story-request-age" className="font-display text-lg font-bold">
           {t("form.age.label")}
@@ -213,7 +213,7 @@ export function StoryRequestForm({
         </div>
       </fieldset>
 
-      {/* Scenes — blossom-style selectable cards (3/4/5). */}
+      {/* Scenes — selectable cards (3/4/5). */}
       <fieldset
         disabled={disabled}
         aria-labelledby="story-request-scenes-label"
@@ -276,7 +276,7 @@ export function StoryRequestForm({
   );
 }
 
-/** Inline Sparkles icon (lucide-style) — the blossom core icon for story creation. */
+/** Inline Sparkles icon (lucide-style) — the core icon for story creation. */
 function SparklesIcon({ className }: { className?: string }) {
   return (
     <svg

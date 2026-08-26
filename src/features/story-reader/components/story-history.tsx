@@ -5,7 +5,7 @@ import type { StoryEntry } from "../../story-request/client/story-session-contex
 import { sortByNewest } from "./story-switcher-utils";
 
 /**
- * Accessible story switcher sidebar (US3 / T049), blossom layout (spec 007).
+ * Accessible story switcher sidebar (US3 / T049), layout per spec 007.
  *
  * Renders the in-session stories as a labelled, thumbnail list (newest first).
  * Each row shows a miniature of the story's first scene, its title, and the

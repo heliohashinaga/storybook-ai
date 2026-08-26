@@ -72,7 +72,7 @@ export function TopNav() {
 }
 
 /* ---------------------------------------------------------------------------
- * Icons (inline, blossom-style presentational marks).
+ * Icons (inline, presentational marks).
  * ------------------------------------------------------------------------- */
 
 /** Inline open-book brand mark. */

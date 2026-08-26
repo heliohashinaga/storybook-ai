@@ -1,4 +1,4 @@
-# Contracts — Design system e frontend do story-blossom-room
+# Contracts — Design system e frontend do protótipo
 
 **Phase 1 output** — contratos de interface tocados por esta entrega.
 

@@ -1,4 +1,4 @@
-# Research: Adotar o design system e o frontend do story-blossom-room
+# Research: Adotar o design system e o frontend do protótipo
 
 **Phase 0 output** — resolve os trade-offs do Technical Context e fundamenta o design em
 `data-model.md`, `contracts/` e `quickstart.md`.
@@ -7,7 +7,7 @@
 
 **Unknown**: De onde vêm os valores visuais e como reconciliá-los com o design system atual.
 
-**Decision**: O `story-blossom-room` é a **fonte da verdade visual** (README: "redesenha o mockup"
+**Decision**: O `protótipo` é a **fonte da verdade visual** (README: "redesenha o mockup"
 do `storybook-ai`). Portamos seus tokens **semânticos oklch** (paleta quente creme/coral/terracota +
 acento vivo, com variantes claro e escuro), tipografia **Baloo 2** (display) + **Nunito** (corpo),
 raios largos (`--radius: 1.25rem`), e os **shadows `soft`/`lift`** para a base do app de produção,

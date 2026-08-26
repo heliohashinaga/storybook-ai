@@ -8,7 +8,7 @@
 
 **Input**: "Quero usar o Google e o GitHub como autenticação e quero ter um
 botão demo sem autenticação, copiar a tela de login do
-repos/story-blossom-room. Autenticação redireciona para a aplicação playground
+repos do protótipo. Autenticação redireciona para a aplicação playground
 com o uso de llm real; o botão demo redireciona para o uso dos dados fake."
 
 ## Contexto e Problema
@@ -17,7 +17,7 @@ Hoje `/` **não é uma tela**: `src/app/page.tsx` apenas executa
 `redirect("/form")` (decisão da spec 009). Não existe autenticação, e o modo
 "real vs fake" é decidido por uma variável de ambiente (`STORIES_TEST_MODE`).
 
-O projeto **story-blossom-room** já possui uma tela de login (landing) pronta:
+O projeto **protótipo** já possui uma tela de login (landing) pronta:
 marca, título "Storybook AI", card "AI Playground" com botões **Continue with
 Google** e **Continue with GitHub**, divisor "or" e botão **Explore the Demo**
 (→ demo com histórias pré-geradas, sem conta). Esta spec traz essa tela para o
@@ -64,7 +64,7 @@ implementação — ver `plan.md` → Constitution Check.
 
 ### User Story 1 - Entrar no playground com Google (Priority: P1)
 
-Um visitante chega em `/`, vê a tela de login (copiada de story-blossom-room),
+Um visitante chega em `/`, vê a tela de login (copiada de protótipo),
 clica em **Continue with Google**, autoriza no Google e é redirecionado para o
 playground (geração com LLM real).
 
@@ -164,7 +164,7 @@ dados fake (sem sessão, sem cookie) → reader; verificação de que nenhum coo
 ### Functional Requirements
 
 - **FR-001**: O sistema DEVE exibir em `/` a tela de login copiada de
-  story-blossom-room (`src/routes/index.tsx`): marca, título "Storybook AI",
+  protótipo (`src/routes/index.tsx`): marca, título "Storybook AI",
   card "AI Playground", botões "Continue with Google" e "Continue with GitHub",
   divisor "or" e botão "Explore the Demo" (traduzidos via next-intl).
 - **FR-002**: O sistema DEVE autenticar com Google e GitHub via OAuth 2.0
@@ -262,8 +262,8 @@ dados fake (sem sessão, sem cookie) → reader; verificação de que nenhum coo
   determinístico existente; nenhum LLM é consumido.
 - **Sem mudanças no payload/contrato de geração**: a sessão é uma camada de
   autorização; não altera o schema `.strict()` nem o OpenAPI de geração.
-- **story-blossom-room é referência de UI**: adaptamos a tela para tokens do
-  Blossom (spec 007) e convenções do storybook-ai (RSC/client, next-intl).
+- **protótipo é referência de UI**: adaptamos a tela para os
+  design tokens (spec 007) e convenções do storybook-ai (RSC/client, next-intl).
 
 ## Fora de Escopo / Decisões Adiadas
 
@@ -281,6 +281,6 @@ dados fake (sem sessão, sem cookie) → reader; verificação de que nenhum coo
 - `specs/009-frontend-routes/spec.md` (modelo de rotas: `/`, `/form`, `/reader`;
   `/` hoje redireciona a `/form`).
 - `specs/012-fake-content-catalog/` (catálogo determinístico para o modo demo).
-- `specs/007-adopt-blossom-design/spec.md` (tokens, TopNav, LangToggle).
-- `story-blossom-room/src/routes/index.tsx` (tela de login de referência).
+- `specs/007-adopt-design-system/spec.md` (tokens, TopNav, LangToggle).
+- `protótipo (src/routes/index.tsx` (tela de login de referência).
 - Research: Auth.js v5 + Next 16 (ver `plan.md`/`research.md`).

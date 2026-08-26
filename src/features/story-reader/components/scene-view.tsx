@@ -3,7 +3,7 @@
 import type { GeneratedScene } from "../../story-generation/server/schemas";
 
 /**
- * Accessible scene illustration header (T039), blossom layout (spec 007).
+ * Accessible scene illustration header (T039), layout per spec 007.
  *
  * Renders the full-bleed `4:3` WebP illustration of one scene. The scene
  * heading and body live in `story-reader`, which owns the single reading

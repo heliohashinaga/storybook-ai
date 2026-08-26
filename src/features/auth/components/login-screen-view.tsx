@@ -53,7 +53,7 @@ export function LoginScreenView() {
 
   return (
     <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-16 pb-12">
-      {/* Blossom-style decorative star field behind the login hero. */}
+      {/* Decorative star field behind the login hero. */}
       <StarField />
 
       {isClerkConfigured ? (

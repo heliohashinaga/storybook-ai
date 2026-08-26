@@ -5,7 +5,7 @@ import { useLocaleContext } from "../../../i18n/locale-provider";
 import type { Locale } from "../../story-request/client/story-preferences-schema";
 
 /**
- * Segmented language toggle (blossom-design §7.1).
+ * Segmented language toggle (design system §7.1).
  *
  * Renders the two supported locales as pill buttons; the active one is filled
  * primary. Session-only: toggling calls the in-memory `setLocale` (ADR 0003),

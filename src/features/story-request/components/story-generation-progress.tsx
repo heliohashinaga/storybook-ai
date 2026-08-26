@@ -5,7 +5,7 @@ import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
 
 /**
- * Localized generation status — blossom-design step loading screen (§7.3).
+ * Localized generation status — step loading screen (spec 007 §7.3).
  *
  * Rendered as a full-screen centered card while `POST /api/stories` runs. It
  * shows a spinner, an adaptive title, a progress bar, step badges (✓ / number)

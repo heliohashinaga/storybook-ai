@@ -1,7 +1,7 @@
-# Design System — Identidade visual portada do story-blossom-room
+# Design System — Identidade visual portada do protótipo
 
 **Tipo**: Contrato/estudo de identidade visual (fonte de verdade para o implement do spec 007).
-**Fonte**: `story-blossom-room` (`src/styles.css` + padrões de uso em `src/routes/index.tsx`).
+**Fonte**: `protótipo` (`src/styles.css` + padrões de uso em `src/routes/index.tsx`).
 **Relacionado**: `research.md` (§1/§2/§5), `data-model.md` (§2), `tasks.md` (Phase 2, US1/US3/US5/US6).
 
 Este documento **extrai e fixa os valores concretos** do protótipo para que a implementação em

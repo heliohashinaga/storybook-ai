@@ -7,7 +7,7 @@ import { TopNav } from "../features/shell/components/top-nav";
 import { SiteFooter } from "../features/shell/components/site-footer";
 import { StorySessionProvider } from "../features/story-request/client/story-session-context";
 
-// Self-hosted identity fonts ported from story-blossom-room (design-system §3).
+// Self-hosted identity fonts ported.
 // Baloo 2 (round display) for headings; Nunito (legible body) for copy. Weights
 // are limited to what the prototype uses to keep the font payload modest
 // (initial JS ≤ 250 KiB gzip budget) — see specs/007 plan performance goals.

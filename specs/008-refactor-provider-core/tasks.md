@@ -20,7 +20,7 @@ description: "Lista de tarefas para implementação do recurso"
 
 - [x] T001 Confirmar que a branch `008-refactor-provider-core` está ativa e limpa (scaffold commitado),
   com `pnpm install` íntegro (`pnpm list --depth 0` / `pnpm install`). A criação da branch já foi
-  feita a partir de `007-adopt-blossom-design`; verificação serve como baseline.
+  feita a partir de `007-adopt-design-system`; verificação serve como baseline.
 - [x] T002 Rodar o baseline de qualidade na árvore atual (antes de qualquer edição): `pnpm lint`,
   `pnpm format:check`, `pnpm typecheck`, `pnpm test`, `pnpm test:coverage:check` — registrar o
   resultado (74 arquivos de teste, 501 testes verdes) **e um snapshot das fixtures dos adapters**
@@ -160,7 +160,7 @@ sem-overflow e validar acessibilidade (contraste AA, teclado), incluindo mudanç
 expansão.
 - [x] T034 [US4] Rodar pipeline de leitura + `pnpm typecheck` + `pnpm lint` + `pnpm format:check` na
 árvore suja; ajustar se a borda do `aria-live`/foco de navegação for afetada.
-- [x] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-blossom-design` (ou
+- [x] T035 [US4] Restaurar `.specify/feature.json` para `specs/007-adopt-design-system` (ou
 conforme convenção do workflow) e finalizar `reviews.md`. **Tarefa final do recurso** (após US4).
 
 **Checkpoint**: US4 completo — corpo colapsável acessível no desktop, mobile expande, botão só com

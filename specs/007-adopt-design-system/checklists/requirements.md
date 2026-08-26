@@ -1,8 +1,8 @@
-# Specification Quality Checklist: Adotar o design system e o frontend do story-blossom-room
+# Specification Quality Checklist: Adotar o design system e o frontend do protótipo
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-08-14
-**Feature**: [spec.md](specs/007-adopt-blossom-design/spec.md)
+**Feature**: [spec.md](specs/007-adopt-design-system/spec.md)
 
 ## Content Quality
 
@@ -20,7 +20,7 @@
 - [x] All acceptance scenarios are defined — each user story has Given/When/Then scenarios.
 - [x] Edge cases are identified — dark-mode flash, AA contrast on new palette, narration reset on scene change, visual-regression churn, session reuse.
 - [x] Scope is clearly bounded — visual/UX refactor over existing flows **plus** the 6-theme expansion (schema/provider/catalog/safety); behavior preserved otherwise.
-- [x] Dependencies and assumptions identified — blossom is source of truth; feature structure/i18n/API preserved; dark mode non-persistent; Q1-B (6 themes) recorded with its backend/safety implications.
+- [x] Dependencies and assumptions identified — o protótipo é a fonte da verdade; feature structure/i18n/API preserved; dark mode non-persistent; Q1-B (6 themes) recorded with its backend/safety implications.
 
 ## Feature Readiness
 

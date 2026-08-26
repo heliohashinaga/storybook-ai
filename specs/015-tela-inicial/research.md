@@ -62,12 +62,12 @@
 ## R4 — Rotas e navegação
 
 - **Decision**: `/` deixa de redirecionar a `/form` (spec 009) e vira a **tela
-  de login** (cópia fiel de `story-blossom-room/src/routes/index.tsx`,
-  adaptada a tokens Blossom + next-intl). `/demo` é rota nova (app em modo
+  de login** (cópia fiel de `protótipo (src/routes/index.tsx`,
+  adaptada a design tokens + next-intl). `/demo` é rota nova (app em modo
   fake, anônimo, sem cookie). `/form`/`/reader` viram o **playground**
   (requerem sessão; sem sessão → redirect a `/`). `/api/auth/[...nextauth]`
   handler novo.
-- **Rationale**: espelha a referência (story-blossom-room tem `/` landing e
+- **Rationale**: espelha a referência (protótipo tem `/` landing e
   `/demo`) e mantém o modelo de rotas stateless da spec 009 para `/` e `/demo`.
 - **TopNav**: o botão home (hoje `/form`) passa a apontar para `/` (login) —
   ver FR do shell.

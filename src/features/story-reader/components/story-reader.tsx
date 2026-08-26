@@ -13,7 +13,7 @@ import { SceneProgress } from "./scene-progress";
 import { SceneView } from "./scene-view";
 
 /**
- * Scene-by-scene reader (T040, extended by spec 004) — blossom layout (spec 007).
+ * Scene-by-scene reader (T040, extended by spec 004) — layout per spec 007.
  *
  * Shows one scene at a time inside a single reading card: a persistent story
  * title cap (story title + localized theme badge) above a full-bleed scene
