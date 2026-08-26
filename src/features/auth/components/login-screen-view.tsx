@@ -45,17 +45,16 @@ export function LoginScreenView() {
               provider so the Sign out action can use `useClerk()`. */}
           <ScreenKebab label={tBrand("menuLabel")} showSignOut />
           <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            <section
-              aria-labelledby="playground-heading"
-              className="space-y-3 rounded-3xl border border-border bg-card p-5 text-left"
-            >
-              <h2
-                id="playground-heading"
-                className="font-display text-lg font-bold text-foreground"
-              >
-                {t("playgroundHeading")}
-              </h2>
-              <p className="text-xs text-muted-foreground">{t("playgroundDescription")}</p>
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <h2
+                  id="playground-heading"
+                  className="font-display text-lg font-bold text-foreground"
+                >
+                  {t("playgroundHeading")}
+                </h2>
+                <p className="text-sm text-muted-foreground">{t("playgroundDescription")}</p>
+              </div>
 
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
                   são gerenciados pelo Clerk (decisão B). A localização vem do
@@ -75,8 +74,8 @@ export function LoginScreenView() {
               </div>
 
               <DemoLink locale={locale} label={t("demo")} />
-              <p className="text-center text-xs text-muted-foreground">{t("demoHint")}</p>
-            </section>
+              <p className="text-xs text-muted-foreground">{t("demoHint")}</p>
+            </div>
           </ScreenHero>
         </ClerkProviderGate>
       ) : (
@@ -132,13 +131,13 @@ function ScreenHero({
   );
 }
 
-/** The "Explore the Demo" entry button (client-side nav into `/demo`). */
+/** The "Explore the Demo" entry link (client-side nav into `/demo`). */
 function DemoLink({ locale, label }: { locale: string; label: string }) {
   return (
     <a
       href="/demo"
       lang={locale}
-      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+      className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 transition-colors hover:text-primary/90 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       <SparklesIcon className="size-4" />
       {label}
