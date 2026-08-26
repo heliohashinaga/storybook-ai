@@ -63,11 +63,8 @@ export function LoginScreenView() {
               ending one; signing out only makes sense in the app header (top-nav),
               which renders it inside its own scoped provider. `SignIn` embeds via
               `useClerk()` internally under this provider. */}
-          <ScreenHero
-            heading={t("heading")}
-            tagline={t("tagline")}
-            kebab={<ScreenKebab label={tBrand("menuLabel")} />}
-          >
+          <ScreenKebab label={tBrand("menuLabel")} />
+          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
             <div className="flex flex-col items-center gap-4">
               {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
                   são gerenciados pelo Clerk (decisão B). A localização vem do
@@ -87,11 +84,8 @@ export function LoginScreenView() {
       ) : (
         <>
           {/* Anonymous demo path: kebab without Sign out (no provider). */}
-          <ScreenHero
-            heading={t("heading")}
-            tagline={t("tagline")}
-            kebab={<ScreenKebab label={tBrand("menuLabel")} />}
-          >
+          <ScreenKebab label={tBrand("menuLabel")} />
+          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
             <DemoPanel locale={locale} demoLabel={t("demo")} note={t("noCredentials")} />
           </ScreenHero>
         </>
@@ -100,12 +94,17 @@ export function LoginScreenView() {
   );
 }
 
-/** Right-aligned session kebab menu, anchored by the caller (top-right of the hero card). */
+/** Right-aligned session kebab, placed like the app header (top-right of the
+ *  page) so it lines up with the kebab on `/form` and `/demo`. Mirrors the
+ *  shell `<header>` insets (px-3 py-4 / sm:px-6 sm:py-5 / lg:px-12). `z-40`
+ *  keeps it above the centered hero card. */
 function ScreenKebab({ label }: { label: string }) {
   return (
-    <TopNavMenu label={label}>
-      <NavMenuContents />
-    </TopNavMenu>
+    <div className="absolute right-3 top-4 z-40 sm:right-6 sm:top-5 lg:right-12">
+      <TopNavMenu label={label}>
+        <NavMenuContents />
+      </TopNavMenu>
+    </div>
   );
 }
 
@@ -114,17 +113,13 @@ function ScreenHero({
   heading,
   tagline,
   children,
-  kebab,
 }: {
   heading: string;
   tagline: string;
   children: React.ReactNode;
-  /** Optional kebab anchored to the hero card's top-right (all breakpoints). */
-  kebab?: React.ReactNode;
 }) {
   return (
     <div className="relative z-10 w-full max-w-md text-center">
-      {kebab ? <div className="absolute right-2 top-2 z-40">{kebab}</div> : null}
       <div className="mb-4 flex justify-center">
         <BrandMark />
       </div>
