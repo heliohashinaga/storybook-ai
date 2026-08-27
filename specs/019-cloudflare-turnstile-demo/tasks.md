@@ -262,3 +262,16 @@ Task: "T009 turnstile-verify.test.ts" + "T010 stories-route.turnstile.test.ts" +
 - **Cobertura**: `turnstile-verify.ts` ≥90% (módulo de segurança/validação); coverage global ≥80%.
 - Commit por grupo lógico; validar já para a feature, não para cada linha.
 - Tracker: `.specify/tasks/` deve refletir o progresso conforme concluído.
+---
+
+## Phase 8: Convergence
+
+**Purpose**: gaps detectados pelo `/speckit.converge` (append-only) contra spec/plan/tasks.
+
+- [ ] T021 [US3] Adicionar `.stories.tsx` co-localizado para `src/features/story-request/components/turnstile.tsx`
+      cobrindo estados default/loading/error, e estender `story-request-form.stories.tsx` com os
+      estados do gate anti-bot (widget resolvido / bloqueado) per Constitution III (partial)
+- [ ] T022 [US3] Adicionar teste explícito de que `/demo/reader` permanece read-only e redireciona ao
+      `/demo` form quando não há história em sessão per FR-009 (missing)
+- [ ] T023 Registrar `src/features/story-generation/server/turnstile-verify.ts` na lista de thresholds
+      por módulo (≥90%) de `vitest.config.ts` per SC-006 / plan T004 (missing)
