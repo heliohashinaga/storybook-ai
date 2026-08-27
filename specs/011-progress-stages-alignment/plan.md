@@ -7,7 +7,7 @@
 ## Summary
 
 A tela de progresso (`StoryGenerationProgress`, §7.3 do spec 001) exibe 3 estágios na ordem
-**Writing → Illustrating → Reviewing**, herdada do protótipo blossom (spec 007) — fixada **antes**
+**Writing → Illustrating → Reviewing**, herdada do protótipo (spec 007) — fixada **antes**
 do pipeline multi-agente (spec 006). O pipeline real é **Planner → Writer → Moderator → Illustrator**
 (`coordinator.ts`): falta o passo de planejamento e a ilustração aparece antes da revisão de
 segurança (quando o Illustrator é o **último** estágio, após a aprovação do Moderator).
@@ -107,7 +107,7 @@ tests/unit/
 src/features/story-generation/server/**    # backend/pipeline — intocado
 src/app/api/**                             # rotas — intocadas
 specs/006-multi-agent-story-generation/    # fonte da ordem canônica (referência, não editar)
-specs/007-adopt-blossom-design/            # registro histórico do protótipo (não reescrever)
+specs/007-adopt-design-system/            # registro histórico do protótipo (não reescrever)
 ```
 
 **Structure Decision**: Estrutura unique-project existente mantida. A mudança fica restrita a

@@ -1,16 +1,28 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
+import { ClerkProviderGate } from "../../auth/client/clerk-provider";
+
+/**
+ * `SignOutButton` statically imports `useClerk` from `@clerk/nextjs`, which
+ * pulls in the ~400 KiB clerk-js runtime. It is dynamically imported
+ * (client-only) so clerk-js stays OUT of the initial `/` bundle and the 250 KiB
+ * initial-JS budget holds (AGENTS.md: heavy libs are lazy).
+ */
+const SignOutButton = dynamic(() => import("./sign-out-button").then((m) => m.SignOutButton), {
+  ssr: false,
+});
+import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
  * Top bar: home brand mark + a kebab (⋮) menu.
  *
  * Layout mirrors the reference — `max-w-5xl grid grid-cols-[1fr_auto]`.
- * - Left: a home button (primary, BookOpenText mark + display name).
+ * - Left: a home button (BrandLogo tile mark + display name).
  *   Home is route-aware: on the anonymous demo routes (`/demo`, `/demo/reader`)
  *   it navigates back to the demo form `/demo`; everywhere else it navigates to
  *   the login gate `/` (which the server redirects to `/form` when authed — Spec
@@ -21,13 +33,11 @@ import { TopNavMenu } from "./top-nav-menu";
  *   mobile and desktop share the exact same compact menu experience.
  *
  * All state is in-memory only: language and theme pickers drive
- * `useLocaleContext` / `useColorScheme` and nothing is persisted. `signOut`
- * from `next-auth/react` works without a `SessionProvider` (it posts to
- * `/api/auth/signout` directly).
+ * `useLocaleContext` / `useColorScheme` and nothing is persisted. `SignOutButton`
+ * (mounted only on the configured playground) ends the Clerk session.
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
-  const tAuth = useTranslations("auth");
   const router = useRouter();
   // Navigation home is the login gate `/`; it redirects to `/form` when authed.
   const pathname = usePathname();
@@ -40,8 +50,10 @@ export function TopNav() {
   const isDemo = pathname === "/demo" || pathname.startsWith("/demo/");
   const homePath = isDemo ? "/demo" : "/";
   const onHome = pathname === homePath;
-  // Sign out is meaningful only on the protected playground routes.
+  // Sign out is meaningful only on the protected playground routes and only
+  // when Clerk is configured (the demo path has no session to end).
   const isPlayground = pathname === "/form" || pathname === "/reader";
+  const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-3 py-4 sm:gap-3 sm:px-6 sm:py-5 lg:px-12">
@@ -52,9 +64,7 @@ export function TopNav() {
         aria-current={onHome ? "page" : undefined}
         className="flex min-w-0 items-center gap-2 whitespace-nowrap rounded-2xl text-left focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring sm:gap-3"
       >
-        <span className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft sm:size-11">
-          <BookOpenText className="size-5 sm:size-6" aria-hidden="true" />
-        </span>
+        <BrandLogo className="size-9 shrink-0 rounded-2xl object-contain shadow-soft transition-all duration-base hover:-translate-y-0.5 hover:shadow-lift motion-safe:active:translate-y-0 motion-safe:active:shadow-soft sm:size-11" />
         <span className="min-w-0 truncate font-display text-base font-bold sm:text-lg">
           {t("name")}
         </span>
@@ -64,61 +74,20 @@ export function TopNav() {
           mobile and desktop share the exact same menu experience. */}
       <TopNavMenu label={t("menuLabel")}>
         <NavMenuContents
+          // The top nav lives in the root layout, outside the playground
+          // layout's <ClerkProvider>. Sign out calls `useClerk()`, so it needs
+          // a provider too. We mount a scoped `ClerkProviderGate` just for the
+          // action (never on /demo, which stays cookie/anon-free), consistent
+          // with the app's pattern of conditional providers (ADR 0013).
           trailing={
-            isPlayground ? (
-              <TopNavMenu.Item
-                icon={<LogOutIcon className="size-5" />}
-                tone="danger"
-                onPress={() => signOut({ callbackUrl: "/" })}
-              >
-                {tAuth("nav.logout")}
-              </TopNavMenu.Item>
+            isPlayground && isClerkConfigured ? (
+              <ClerkProviderGate>
+                <SignOutButton />
+              </ClerkProviderGate>
             ) : undefined
           }
         />
       </TopNavMenu>
     </header>
-  );
-}
-
-/* ---------------------------------------------------------------------------
- * Icons (inline, blossom-style presentational marks).
- * ------------------------------------------------------------------------- */
-
-/** Inline log-out icon. */
-function LogOutIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <polyline points="16 17 21 12 16 7" />
-      <line x1="21" y1="12" x2="9" y2="12" />
-    </svg>
-  );
-}
-
-/** Inline open-book brand mark. */
-function BookOpenText({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-      <path d="M12 7v14" />
-    </svg>
   );
 }

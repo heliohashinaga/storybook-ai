@@ -70,7 +70,7 @@ export function NavMenuContents({ trailing }: { trailing?: ReactNode }) {
 }
 
 /* ---------------------------------------------------------------------------
- * Icons (inline, blossom-style presentational marks).
+ * Icons (inline, presentational marks).
  * ------------------------------------------------------------------------- */
 
 /** Globe icon (language rows). */

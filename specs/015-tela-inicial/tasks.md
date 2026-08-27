@@ -91,7 +91,7 @@ Nenhum teste toca Google/GitHub/LLM reais (OAuth simulado via JWT assinado com
 
 ## Phase 3: User Story 1 - Entrar no playground com Google (Priority: P1) 🎯 MVP
 
-**Goal**: Tela de login em `/` (cópia story-blossom-room) com "Continue with
+**Goal**: Tela de login em `/` (cópia protótipo) com "Continue with
 Google"; login OAuth → sessão → `/form` (LLM real); `/form`+`/reader`
 protegidos; logout no TopNav.
 
@@ -123,7 +123,7 @@ identificador; logout remove cookie → `/`.
   `isRedirectError` no try/catch
 - [X] T026 [P] [US1] Criar `src/features/auth/components/login-screen.tsx`
   (Server Component): cópia fiel de
-  `story-blossom-room/src/routes/index.tsx` adaptada a tokens Blossom +
+  `protótipo (src/routes/index.tsx` adaptada a design tokens +
   next-intl (marca, título, card "AI Playground", botões OAuth, divisor "or",
   botão "Explore the Demo" → `/demo`)
 - [X] T027 [P] [US1] Criar `src/features/auth/client/playground-session-provider.tsx`

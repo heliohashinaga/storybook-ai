@@ -118,7 +118,7 @@ const useClose = () => useContext(MenuCloseCtx);
 
 const toneStyles = {
   default: "text-text hover:bg-secondary",
-  danger: "text-error hover:bg-error/10",
+  danger: "text-danger hover:bg-danger hover:text-destructive-foreground",
 } as const;
 
 interface TopNavMenuItemProps {

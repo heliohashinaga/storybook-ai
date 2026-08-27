@@ -82,30 +82,20 @@ const envSchema = z
     MODEL_MAX_ATTEMPTS: z.coerce.number().int().positive().optional(),
     PIPELINE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
     /**
-     * Auth.js (next-auth v5) configuration (spec 015). All of these are
-     * **optional**: demo-only deploys run with none of them, and the login
-     * screen disables the OAuth buttons when credentials are absent. Secrets
-     * are read only via `getAuthEnv()` and injected into `Authorization:
-     * Bearer` — never exposed to the client.
+     * Auth/Clerk configuration (spec 018 / ADR 0013). All optional: demo-only
+     * deploys run with none of them and the Clerk middleware/provider are
+     * mounted conditionally (stub) so the app boots without auth. `CLERK_SECRET_KEY`
+     * is server-only; `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is the publishable key
+     * (non-secret, exposed to the browser by design — exceção à regra "no
+     * NEXT_PUBLIC_*" do AGENTS.md, registrada no ADR 0013). The remaining keys
+     * are redirect/URL configs consumed by `@clerk/nextjs`.
      */
-    AUTH_SECRET: z.string().min(1).optional(),
-    AUTH_GOOGLE_ID: z.string().min(1).optional(),
-    AUTH_GOOGLE_SECRET: z.string().min(1).optional(),
-    AUTH_GITHUB_ID: z.string().min(1).optional(),
-    AUTH_GITHUB_SECRET: z.string().min(1).optional(),
-    AUTH_URL: z.string().min(1).optional(),
-    /**
-     * Whether to trust `AUTH_URL`/host for callback construction. `true` on
-     * local non-Vercel dev (see `.env.example`); absent in production (Vercel
-     * infers the URL via the `VERCEL` env).
-     */
-    AUTH_TRUST_HOST: z.enum(["true", "false"]).optional(),
-    /**
-     * Comma-separated allowlist of OAuth sign-in emails. When set, only those
-     * emails may create a session; everyone else is rejected in the `signIn`
-     * callback (never persisted, never logged).
-     */
-    AUTH_ALLOWLIST_EMAILS: z.string().min(1).optional(),
+    CLERK_SECRET_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
+    CLERK_SIGN_IN_URL: z.string().min(1).optional(),
+    CLERK_SIGN_UP_URL: z.string().min(1).optional(),
+    CLERK_AFTER_SIGN_IN_URL: z.string().min(1).optional(),
+    CLERK_AFTER_SIGN_UP_URL: z.string().min(1).optional(),
   })
   .strict();
 
@@ -161,15 +151,13 @@ const KNOWN_KEYS = [
   "MODEL_TIMEOUT_MS",
   "MODEL_MAX_ATTEMPTS",
   "PIPELINE_TIMEOUT_MS",
-  // auth (spec 015) — optional
-  "AUTH_SECRET",
-  "AUTH_GOOGLE_ID",
-  "AUTH_GOOGLE_SECRET",
-  "AUTH_GITHUB_ID",
-  "AUTH_GITHUB_SECRET",
-  "AUTH_URL",
-  "AUTH_TRUST_HOST",
-  "AUTH_ALLOWLIST_EMAILS",
+  // auth/Clerk (spec 018) — optional; demo-only sem CLERK_SECRET_KEY
+  "CLERK_SECRET_KEY",
+  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
+  "CLERK_SIGN_IN_URL",
+  "CLERK_SIGN_UP_URL",
+  "CLERK_AFTER_SIGN_IN_URL",
+  "CLERK_AFTER_SIGN_UP_URL",
   // removed legacy vars (rejected by .strict() under D5-C: no compat)
   "OPENROUTER_TEXT_MODEL",
   "OPENROUTER_IMAGE_MODEL",
@@ -198,54 +186,4 @@ export function getEnv(): ServerEnv {
   }
   cached = parsed.data;
   return cached;
-}
-
-/**
- * Auth.js configuration surface (spec 015), kept **separate** from
- * {@link getEnv} so the Auth.js modules never require the story-generation
- * provider credentials to be present (a demo-only deploy has neither). All
- * keys are optional and `.strict()` (unknown auth vars are rejected).
- */
-const authEnvSchema = z
-  .object({
-    AUTH_SECRET: z.string().min(1).optional(),
-    AUTH_GOOGLE_ID: z.string().min(1).optional(),
-    AUTH_GOOGLE_SECRET: z.string().min(1).optional(),
-    AUTH_GITHUB_ID: z.string().min(1).optional(),
-    AUTH_GITHUB_SECRET: z.string().min(1).optional(),
-    AUTH_URL: z.string().min(1).optional(),
-    AUTH_TRUST_HOST: z.enum(["true", "false"]).optional(),
-    AUTH_ALLOWLIST_EMAILS: z.string().min(1).optional(),
-  })
-  .strict();
-
-export type AuthEnv = z.infer<typeof authEnvSchema>;
-
-/**
- * Comma-separated allowlist of sign-in emails; parsed to a trimmed set.
- * Returns an empty set when unset (access control off).
- */
-export function allowlistEmails(env: AuthEnv): ReadonlySet<string> {
-  if (!env.AUTH_ALLOWLIST_EMAILS) return new Set<string>();
-  return new Set(
-    env.AUTH_ALLOWLIST_EMAILS.split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean)
-  );
-}
-
-/**
- * Reads and validates the Auth.js environment directly from `process.env`.
- * Returns an empty object when no `AUTH_*` var is set (demo-only mode) and
- * `undefined` values for absent optional keys, so callers can gate UI/routes on
- * credential presence without triggering a full `getEnv()` validation.
- */
-export function getAuthEnv(): AuthEnv {
-  const source: Record<string, string> = {};
-  for (const key of Object.keys(authEnvSchema.shape)) {
-    const value = process.env[key];
-    if (value !== undefined) source[key] = value;
-  }
-  const parsed = authEnvSchema.safeParse(source);
-  return parsed.success ? parsed.data : {};
 }

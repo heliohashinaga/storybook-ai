@@ -87,7 +87,7 @@ pnpm lint && pnpm format:check && pnpm typecheck
 
 | Cenário | Saída esperada |
 |---------|----------------|
-| C1 | Demo sem cookie; dados fake; UI idêntica à referência story-blossom-room (tokens Blossom) |
+| C1 | Demo sem cookie; dados fake; UI idêntica à referência protótipo (design tokens) |
 | C2/C3 | Sessão criada; redirect `/form`; geração real; payload inalterado |
 | C4 | Anônimo nunca aciona LLM real; rotas protegidas redirecionam |
 | C5 | Todas as suítes verdes, sem flakiness, sem rede real |

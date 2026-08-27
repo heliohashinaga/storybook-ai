@@ -16,7 +16,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-/** Default blossom-style scattered star field. */
+/** Default scattered star field. */
 export const Default: Story = {
   render: () => (
     <div className="relative h-dvh">

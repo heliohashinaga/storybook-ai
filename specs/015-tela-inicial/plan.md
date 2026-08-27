@@ -4,13 +4,13 @@
 
 **Input**: Feature specification from `specs/015-tela-inicial/spec.md`
 (redigida a partir do input do usuário: autenticação Google/GitHub + botão demo
-sem auth + cópia da tela de login de `story-blossom-room` + playground com LLM
+sem auth + cópia da tela de login de `protótipo` + playground com LLM
 real vs demo com dados fake).
 
 ## Summary
 
 Transformar `/` (hoje `redirect("/form")`) em uma **tela de login** copiada de
-`story-blossom-room/src/routes/index.tsx`: marca + card "AI Playground" com
+`protótipo (src/routes/index.tsx`: marca + card "AI Playground" com
 **Continue with Google** e **Continue with GitHub** (OAuth via Auth.js v5) e
 **Explore the Demo** (→ `/demo`). Autenticado → **playground** (`/form`,
 `/reader`, LLM real). Demo → **dados fake** (catálogo spec 012), anônimo, sem
@@ -54,7 +54,7 @@ mobile/4G); login e demo dentro do budget; sem asset pesado no caminho crítico.
 - Segurança: CSP existente sem relaxação (fluxo OAuth é same-origin + redirect
   top-level; nenhuma mudança prevista — qualquer mudança DEVE ser rotulada);
   `AUTH_*` só via `getEnv()`.
-- UX: tokens Blossom (spec 007), next-intl pt-BR/en, a11y (AA, teclado, foco,
+- UX: design tokens (spec 007), next-intl pt-BR/en, a11y (AA, teclado, foco,
   `aria-live`, reduced-motion), Storybook = app (Princípio III).
 
 **Scale/Scope**: app pessoal/não comercial; tráfego baixo; 1 instância;
@@ -68,7 +68,7 @@ sem multiusuário real (sessão é apenas porta para o playground).
 |------|--------|-------|
 | I. Code Quality | ✅ PASS | strict TS, lint/format/typecheck, módulos focados, sem dead code |
 | II. Testing Standards | ✅ PASS | test-first; tiers unit/contract/e2e/visual/stories; determinístico (OAuth simulado) |
-| III. UX Consistency | ✅ PASS | tokens Blossom, i18n, a11y, Storybook = app, cópia fiel da referência |
+| III. UX Consistency | ✅ PASS | design tokens, i18n, a11y, Storybook = app, cópia fiel da referência |
 | IV. Performance | ✅ PASS | budgets mantidos; sem dep nova pesada; SVG inline |
 | **Privacy rules (AGENTS.md — "no cookies", "anonymous by design")** | ✅ **PASS — EMENDA RATIFICADA** | ver abaixo |
 
@@ -118,7 +118,7 @@ src/
 │   │   │   ├── session.ts             # auth() helper + requireSession() (redirect /)
 │   │   │   └── auth-rate-limit.ts     # wrapper InMemoryRateLimiter p/ /api/auth/*
 │   │   ├── components/
-│   │   │   ├── login-screen.tsx       # cópia fiel (tokens Blossom + next-intl)
+│   │   │   ├── login-screen.tsx       # cópia fiel (design tokens + next-intl)
 │   │   │   └── oauth-provider-button.tsx # Google/GitHub (signIn cliente, disabled sem env)
 │   │   ├── client/
 │   │   │   └── playground-session-provider.tsx  # SessionProvider (só playground)

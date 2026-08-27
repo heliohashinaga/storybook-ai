@@ -24,6 +24,17 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navState.push }),
 }));
 
+// TopNav calls `useClerk()` for sign-out; the playground always mounts a
+// ClerkProvider at runtime, but this isolated unit test doesn't, so we stub
+// the hook AND make `ClerkProvider` a pass-through (the kebab wraps its sign
+// out action in a scoped ClerkProviderGate). Stubbing avoids booting real
+// Clerk JS in JSDOM; we only assert TopNav's behavior.
+vi.mock("@clerk/nextjs", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@clerk/nextjs")>()),
+  useClerk: () => ({ signOut: vi.fn() }),
+  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 function renderTopNav() {
   return render(
     <NextIntlClientProvider locale="pt-BR" messages={getMessages("pt-BR")}>
@@ -110,12 +121,16 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a sign-out action on the playground route", () => {
+  it("shows a sign-out action on the playground route when Clerk is configured", async () => {
     navState.setPath("/reader");
+    // Sign out only mounts when Clerk is configured (anonymous demo has none).
+    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test";
     renderTopNav();
-
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    // `SignOutButton` is lazily imported via `next/dynamic` (kept out of the
+    // initial bundle), so await the async chunk before asserting.
+    expect(await screen.findByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   });
 
   it("closes the kebab menu when pressing Escape", () => {

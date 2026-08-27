@@ -8,7 +8,7 @@ import type { Config } from "tailwindcss";
  * `src/app/globals.css` via Tailwind's `@config` directive so it is the single
  * source of truth for the design system.
  *
- * Taxonomy (identity ported from the `story-blossom-room` prototype, oklch):
+ * Taxonomy:
  *  - color: core semantic set (background/foreground/card/popover/primary/
  *    secondary/muted/accent/destructive/border/input/ring) plus legacy aliases
  *    (surface/text/text-subtle/focus/success/warning/danger/disabled) kept for

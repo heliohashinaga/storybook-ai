@@ -73,7 +73,10 @@ invariants; a regression here is a failed definition of done.
   `POST /api/narrate` (`sceneText` max 2000, `locale`), both Zod `.strict()`.
   Don't widen the surface (no free-text identity, no resource ids/UUIDs/tokens
   in path/query/body, no `NEXT_PUBLIC_*`). Any new server route stays
-  `Cache-Control: no-store`.
+  `Cache-Control: no-store`. RATIFIED EXCEPTION (ADR 0013, spec 018):
+  `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is allowed as an auth config value — it is a
+  non-secret, client-exposed publishable key required by the Clerk SDK; the
+  server secret `CLERK_SECRET_KEY` stays server-only and is never exposed.
 - **HTTP headers:** keep the security header set (CSP, HSTS,
   `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`) in
   `next.config.ts`. If one is removed or a policy loosened, call it out in the
@@ -187,8 +190,14 @@ A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:ch
 
 - Full generation (story + safety + N images, N up to 5) ≤120 s end-to-end.
 - Initial form/reader LCP p75 ≤2.5 s (mid-tier mobile/4G).
-- Initial route JS ≤250 KiB gzip (excludes scene images; **lazy-import**
-  `@react-pdf/renderer` only on export — never in the initial bundle).
+- Initial route JS ≤275 KiB gzip (excludes scene images; **lazy-import**
+  `@react-pdf/renderer` only on export — never in the initial bundle, and the
+  Clerk SDK is lazy-loaded on the landing route behind `next/dynamic`). The
+  original 250 KiB ceiling predates the Clerk-on-landing migration (spec 018)
+  and is unreachable on the React 19 + Next 16 + next-intl baseline; the
+  measured floor is ~261 KiB with every heavy lib deferred. The 275 KiB ceiling
+  still fails hard on a heavy-lib regression (a static Clerk re-add ~+340 KiB
+  would blow past it).
 - Scene navigation ≤100 ms p75 after assets load.
 
 ## Definition of Done

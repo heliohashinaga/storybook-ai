@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useColorScheme } from "../client/use-color-scheme";
 
 /**
- * Manual session-only light/dark icon toggle (blossom-design §7.1).
+ * Manual session-only light/dark icon toggle (design system §7.1).
  *
  * A `size-11 rounded-2xl border bg-card` button showing a Sun/Moon icon for the
  * *effective* appearance, with `aria-pressed` for the toggle state. Nothing is

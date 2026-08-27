@@ -17,10 +17,9 @@
 /*
  * Design tokens — single source of truth, consumed by the Tailwind theme.
  *
- * Palette and identity ported from the `story-blossom-room` prototype:
+ * Palette:
  * warm cream/coral/terracotta with a fresh teal accent, in oklch, for both
- * light and dark modes (AA ≥ 4.5:1 for body text). See
- * `specs/007-adopt-blossom-design/contracts/design-system.md`.
+ * light and dark modes (AA ≥ 4.5:1 for body text).
  *
  * Taxonomy: the new namespace uses the prototype terms (`primary`, `secondary`,
  * `muted`, `accent`=teal, `destructive`). Legacy aliases (`surface`, `text`,
@@ -295,17 +294,19 @@
   }
 }
 
-/* Decor: login star field (blossom). The global prefers-reduced-motion override
+/* Decor: login star field. The global prefers-reduced-motion override
    above neutralizes the animation for reduced-motion users (static field). */
 @keyframes twinkle {
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.35;
   }
 }
+
 .animate-twinkle {
   animation: twinkle 3s ease-in-out infinite;
 }

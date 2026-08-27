@@ -19,7 +19,7 @@ next-intl existentes. Requer re-aprovação intencional dos baselines visuais af
 ## Technical Context
 
 **Language/Version**: TypeScript strict; Next.js 16 (App Router); React 19; Tailwind v4
-(`@tailwindcss/postcss` + `@config`), design tokens Blossom (semânticos: cor, espaço, tipografia,
+(`@tailwindcss/postcss` + `@config`), design tokens (semânticos: cor, espaço, tipografia,
 raio, sombra, movimento).
 
 **Primary Dependencies**: Nenhuma dependência nova. Primitivas existentes (`ChoiceCard`,

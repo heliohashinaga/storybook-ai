@@ -3,13 +3,10 @@
     "title": "Storybook AI",
     "heading": "Storybook AI",
     "tagline": "Create magical stories with AI.",
-    "playgroundHeading": "Playground",
-    "playgroundDescription": "Generate stories with real AI.",
     "google": "Continue with Google",
     "github": "Continue with GitHub",
     "or": "OR",
     "demo": "Explore the Demo",
-    "demoHint": "Ready-made stories — no account needed.",
     "noCredentials": "Sign-in isn't set up yet. Try the demo instead.",
     "signInError": "Couldn't sign you in. Try again or use a different account.",
     "accessDenied": "This account can't sign in here."

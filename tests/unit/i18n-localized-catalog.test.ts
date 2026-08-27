@@ -100,9 +100,7 @@ describe("i18n message catalog (EN + pt-BR)", () => {
     // spec 015: the auth catalog is genuinely translated, not a copy. The
     // `login.heading` is the brand name (identical across locales), so check
     // genuinely-localized keys instead.
-    expect(getMessages("en").login.playgroundDescription).not.toBe(
-      ptBRAuth.login.playgroundDescription
-    );
+    expect(getMessages("en").login.tagline).not.toBe(ptBRAuth.login.tagline);
     expect(getMessages("en").auth.nav.logout).not.toBe(ptBRAuth.auth.nav.logout);
   });
 

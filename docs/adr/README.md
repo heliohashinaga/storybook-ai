@@ -13,3 +13,4 @@ Decisões de arquitetura deste repo (convenção MADR — 1 decisão por ADR).
 | [0007](0007-tts-ai-openrouter-as-future-improvement.md)  | TTS de IA via OpenRouter (leitura em voz alta natural) — futuro | Proposed   |
 | [0011](0011-cyclomatic-complexity-gate.md)               | Gate de complexidade ciclomática (limiar 16 → 10)               | Accepted   |
 | [0012](0012-auth-session-playground.md)                  | Emenda de privacidade: cookie de sessão OAuth p/ o playground   | Ratificado |
+| [0013](0013-clerk-session-playground.md)                 | Migração do playground p/ Clerk (usuário+senha + autoCadastro)  | Ratificado |

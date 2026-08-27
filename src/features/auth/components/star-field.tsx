@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-/** A single 4-point sparkle (blossom-style decorative star). */
+/** A single 4-point sparkle (decorative star). */
 export function StarIcon({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
     <svg
@@ -34,7 +34,7 @@ const STARS: Star[] = [
 ];
 
 /**
- * Decorative scattered star field for the login background (blossom style).
+ * Decorative scattered star field for the login background.
  * Each star keeps its base opacity on a wrapper and twinkles via a child
  * `animate-twinkle` — so reduced-motion users get the static field (the global
  * CSS override disables the animation). Purely presentational (`aria-hidden`).
