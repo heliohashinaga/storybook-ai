@@ -121,13 +121,15 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a sign-out action on the playground route when Clerk is configured", () => {
+  it("shows a sign-out action on the playground route when Clerk is configured", async () => {
     navState.setPath("/reader");
     // Sign out only mounts when Clerk is configured (anonymous demo has none).
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test";
     renderTopNav();
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-    expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    // `SignOutButton` is lazily imported via `next/dynamic` (kept out of the
+    // initial bundle), so await the async chunk before asserting.
+    expect(await screen.findByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   });
 

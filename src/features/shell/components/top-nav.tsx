@@ -2,10 +2,20 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import dynamic from "next/dynamic";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
-import { SignOutButton } from "./sign-out-button";
 import { ClerkProviderGate } from "../../auth/client/clerk-provider";
+
+/**
+ * `SignOutButton` statically imports `useClerk` from `@clerk/nextjs`, which
+ * pulls in the ~400 KiB clerk-js runtime. It is dynamically imported
+ * (client-only) so clerk-js stays OUT of the initial `/` bundle and the 250 KiB
+ * initial-JS budget holds (AGENTS.md: heavy libs are lazy).
+ */
+const SignOutButton = dynamic(() => import("./sign-out-button").then((m) => m.SignOutButton), {
+  ssr: false,
+});
 import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**

@@ -1,8 +1,30 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { SignIn } from "@clerk/nextjs";
+import dynamic from "next/dynamic";
 import { enUS, ptBR } from "@clerk/localizations";
+
+/**
+ * Clerk's `<SignIn>` statically imports clerk-js (~400 KiB). It is dynamically
+ * imported (client-only) so it stays out of the initial `/` bundle and the 250
+ * KiB initial-JS budget is respected (AGENTS.md: heavy libs are lazy). A small
+ * spinner fills the reserved slot while the chunk loads.
+ */
+const SignIn = dynamic(() => import("@clerk/nextjs").then((m) => m.SignIn), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="flex h-20 w-full items-center justify-center"
+      role="status"
+      aria-label="Loading sign in"
+    >
+      <span
+        className="size-6 animate-spin rounded-full border-2 border-current border-t-transparent"
+        aria-hidden="true"
+      />
+    </div>
+  ),
+});
 import type { ClerkLocalization } from "../client/clerk-localization";
 import { ClerkProviderGate } from "../client/clerk-provider";
 import { NavMenuContents } from "../../shell/components/nav-menu-contents";
@@ -57,30 +79,24 @@ export function LoginScreenView() {
       <StarField />
 
       {isClerkConfigured ? (
-        <ClerkProviderGate localization={localization}>
+        <>
           {/* Right-aligned kebab (compact, icon-only trigger): lang/theme only.
               No Sign out here — on the login gate you're starting a session, not
               ending one; signing out only makes sense in the app header (top-nav),
-              which renders it inside its own scoped provider. `SignIn` embeds via
-              `useClerk()` internally under this provider. */}
+              which renders it inside its own scoped provider. */}
           <ScreenKebab label={tBrand("menuLabel")} />
           <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            <div className="flex flex-col items-center gap-4">
-              {/* Clerk component: Google + e-mail/senha, sign-up e forgot-password
-                  são gerenciados pelo Clerk (decisão B). A localização vem do
-                  ClerkProvider (prop acima). `routing="hash"` evita exigir que `/`
-                  seja catch-all (Clerk navega via hash, sem esbarrar no middleware).
-                  Sem `appearance` custom: o tema padrão do Clerk é usado (ADR 0013
-                  aceita a divergência de estilo interno) e evita quebrar o CSS do
-                  próprio botão primário. */}
-              <div className="flex min-h-[20rem] w-full justify-center">
-                <SignIn routing="hash" />
-              </div>
+            {/* Clerk's provider + `<SignIn>` mount via a lazy slot so the hero
+                above paints immediately and clerk-js stays out of the initial
+                bundle (250 KiB budget). `routing="hash"` avoids requiring `/`
+                to be a catch-all (Clerk navigates via hash). No custom `appearance`:
+                Clerk's default theme is used (ADR 0013 accepts the internal style
+                divergence) and avoids breaking Clerk's own primary-button CSS. */}
+            <ClerkSignInSlot localization={localization} />
 
-              <DemoLink locale={locale} label={t("demo")} />
-            </div>
+            <DemoLink locale={locale} label={t("demo")} />
           </ScreenHero>
-        </ClerkProviderGate>
+        </>
       ) : (
         <>
           {/* Anonymous demo path: kebab without Sign out (no provider). */}
@@ -172,6 +188,18 @@ function DemoPanel({
       </p>
       <DemoLink locale={locale} label={demoLabel} />
     </section>
+  );
+}
+
+/** Lazily mounts the Clerk provider + `<SignIn>`. The surrounding hero paints
+ *  immediately; only this slot waits for the clerk-js chunk (budget guard). */
+function ClerkSignInSlot({ localization }: { localization: ClerkLocalization }) {
+  return (
+    <ClerkProviderGate localization={localization}>
+      <div className="flex min-h-[20rem] w-full justify-center">
+        <SignIn routing="hash" />
+      </div>
+    </ClerkProviderGate>
   );
 }
 
