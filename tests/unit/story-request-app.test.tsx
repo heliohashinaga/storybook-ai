@@ -91,6 +91,26 @@ function renderApp(path = "/form") {
   return { ...view, navigate };
 }
 
+/** Demo variant (feature 019): renders the anonymous `/demo` catalog. */
+function renderDemoApp(path = "/demo") {
+  navState.setPath(path);
+  const tree = (
+    <LocaleProvider defaultLocale="pt-BR">
+      <StorySessionProvider>
+        <StoryRequestApp isFake={true} />
+      </StorySessionProvider>
+    </LocaleProvider>
+  );
+  const view = render(tree);
+  const navigate = (next: string) => {
+    act(() => {
+      navState.setPath(next);
+      view.rerender(tree);
+    });
+  };
+  return { ...view, navigate };
+}
+
 async function submitValidForm() {
   const user = userEvent.setup();
   fireEvent.change(screen.getByRole("slider", { name: /idade/i }), {
@@ -173,6 +193,16 @@ describe("StoryRequestApp — routing (Spec 009)", () => {
   it("/reader without a session redirects to the clean /form (session gate)", () => {
     renderApp("/reader");
     expect(navState.replace).toHaveBeenCalledWith("/form");
+  });
+
+  it("/demo/reader without a session redirects to /demo and never calls the provider (FR-009)", () => {
+    // Deep link into the anonymous demo reader with no in-memory story: the
+    // gate must bounce to /demo and must NOT trigger any story generation.
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+    renderDemoApp("/demo/reader");
+    expect(navState.replace).toHaveBeenCalledWith("/demo");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("the form's language selector sets the story locale independently of the UI (T056)", async () => {
