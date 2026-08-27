@@ -25,13 +25,13 @@ description: "Feature implementation tasks — Proteção anti-bot do /demo (Clo
 
 **Purpose**: infra compartilhada (config, CSP, superfície de erro) antes de qualquer história.
 
-- [ ] T001 Adicionar chaves Turnstile **opcionais** ao schema `.strict()` em `src/lib/env.ts`
+- [X] T001 Adicionar chaves Turnstile **opcionais** ao schema `.strict()` em `src/lib/env.ts`
       (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` e `TURNSTILE_SECRET_KEY`, ambas opcionais) e à lista
       `KNOWN_KEYS`; registrar no `.env.example` (bloco comentado opcional).
-- [ ] T002 [P] Relaxar CSP em `next.config.ts` (rotulado "EXPLICIT RELAXATION"): adicionar
+- [X] T002 [P] Relaxar CSP em `next.config.ts` (rotulado "EXPLICIT RELAXATION"): adicionar
       `https://challenges.cloudflare.com` a `script-src`, `frame-src`, `connect-src` (e
       `style-src`/`img-src` se o widget exigir).
-- [ ] T003 [P] Adicionar o erro `captcha_failed` (403, `retryable: true`): enum + const em
+- [X] T003 [P] Adicionar o erro `captcha_failed` (403, `retryable: true`): enum + const em
       `src/lib/http-errors.ts`; membro em `safeErrorSchema` (`src/features/story-generation/
       server/schemas.ts`); mapear 403 no `errorForStatus` de `src/features/story-reader/client/
       story-response.ts`; chaves `error.captchaFailed` em `src/features/story-request/locales/
@@ -46,13 +46,13 @@ description: "Feature implementation tasks — Proteção anti-bot do /demo (Clo
 
 **Purpose**: os dois blocos centrais que as histórias consomem (verificador server + widget client).
 
-- [ ] T004 Criar `src/features/story-generation/server/turnstile-verify.ts` (`server-only`):
+- [X] T004 Criar `src/features/story-generation/server/turnstile-verify.ts` (`server-only`):
       `verifyTurnstileToken({ token, secretKey })` chamando
       `POST https://challenges.cloudflare.com/turnstile/v0/siteverify` (form-urlencoded,
       `secret`,`response`,`remoteip`); segue disciplina de rede SSRF/redirect do AGENTS; falhas de
       rede ⇒ `false`/erro tipado (**fail-closed**); sem secret ⇒ desligado. Violação de
       cobertura ≥90% não permitida (módulo de segurança/validação).
-- [ ] T005 Criar `src/features/story-request/components/turnstile.tsx` (`'use client'`): injeta
+- [X] T005 Criar `src/features/story-request/components/turnstile.tsx` (`'use client'`): injeta
       `https://challenges.cloudflare.com/turnstile/v0/api.js` (lazy), renderiza o desafio
       **non-interactive**, expõe o token single-use e estado de erro quando o `window.turnstile`
       não resolve; `reset()` após uso/falha; `aria`/retry acessível. No-op quando a site key não
@@ -73,17 +73,17 @@ localizado retryável.
 
 ### Tests for US1 (escrever primeiro; devem FALHAR)
 
-- [ ] T006 [P] [US1] Teste do widget `tests/unit/turnstile.test.tsx` (mock `window.turnstile`):
+- [X] T006 [P] [US1] Teste do widget `tests/unit/turnstile.test.tsx` (mock `window.turnstile`):
       script injetado; token recebido via callback; widget não carrega ⇒ estado de erro; reset
       após uso.
-- [ ] T007 [P] [US1] Estender `tests/unit/story-request-form.test.tsx`: com site key configurada,
+- [X] T007 [P] [US1] Estender `tests/unit/story-request-form.test.tsx`: com site key configurada,
       enviar o token no `fetch` (header `cf-turnstile-token`); sem token disponível ⇒ submit
       bloqueado (onSubmit não chamado) e `aria-busy`/erro acessível; sem site key ⇒ comportamento
       atual.
 
 ### Implementation for US1
 
-- [ ] T008 [US1] Renderizar `Turnstile` dentro do `src/features/story-request/components/
+- [X] T008 [US1] Renderizar `Turnstile` dentro do `src/features/story-request/components/
       story-request-form.tsx` e, no submit, obter o token (aguardar/exec) e anexá-lo ao header
       `cf-turnstile-token` do `POST /api/stories` em `story-request-app.tsx`; bloquear submit e
       resetar widget se o token não estiver disponível.
@@ -102,16 +102,16 @@ localizado retryável.
 
 ### Tests for US2 (escrever primeiro; devem FALHAR)
 
-- [ ] T009 [P] [US2] Unit `tests/unit/turnstile-verify.test.ts` (mock global `fetch`): sucesso;
+- [X] T009 [P] [US2] Unit `tests/unit/turnstile-verify.test.ts` (mock global `fetch`): sucesso;
       `success:false`; falha de rede ⇒ rejeita (fail-closed); sem secret ⇒ desligado.
-- [ ] T010 [P] [US2] Contrato rota `tests/contract/stories-route.turnstile.test.ts` (handler com
+- [X] T010 [P] [US2] Contrato rota `tests/contract/stories-route.turnstile.test.ts` (handler com
       `enforceTurnstile: true` + seam `turnstile` fake): sem header ⇒ 403 e provider **não**
       invocado; token inválido ⇒ 403; token válido ⇒ 200; `enforceTurnstile: false` ⇒ 200 sem
       token (playground).
 
 ### Implementation for US2
 
-- [ ] T011 [US2] Em `src/app/api/stories/route.ts`, adicionar seam `turnstile` +
+- [X] T011 [US2] Em `src/app/api/stories/route.ts`, adicionar seam `turnstile` +
       `enforceTurnstile` a `StoriesRouteDeps`; antes de gerar, ler header `cf-turnstile-token`,
       verificar (via `turnstile-verify`) e, se inválido/ausente ⇒ `403 captcha_failed`; prover os
       deps reais no `POST` exportado (exigir **somente** quando `resolveGenerationMode() ===
@@ -131,14 +131,14 @@ sem cookie/identidade; proba não persistida) e `/form`/`/reader`/`/demo/reader`
 
 ### Tests for US3
 
-- [ ] T012 [P] [US3] Asserts de privacidade: estender `tests/contract/stories-route.test.ts` e/ou
+- [X] T012 [P] [US3] Asserts de privacidade: estender `tests/contract/stories-route.test.ts` e/ou
       `tests/integration/privacy-boundary.test.tsx` — payload fechado continua rejeitando campo
       extra; `/demo` continua sem cookie/`localStorage`/identificador; **`/demo/reader` permanece
       somente leitura e redireciona ao `/demo` form quando não há história em sessão (FR-009)**;
       token não vaza a logs/observability (`lib/observability.ts` scrub).
-- [ ] T013 [P] [US3] Estender `tests/e2e/security-headers.spec.ts`: CSP inclui
+- [X] T013 [P] [US3] Estender `tests/e2e/security-headers.spec.ts`: CSP inclui
       `challenges.cloudflare.com`; `/demo` preserva os invariantes (sem `__clerk_*`/sessão).
-- [ ] T014 [P] [US3] ADR `docs/adr/0014-cloudflare-turnstile-demo.md`: documentar a **relaxação
+- [X] T014 [P] [US3] ADR `docs/adr/0014-cloudflare-turnstile-demo.md`: documentar a **relaxação
       do "zero contato de terceiros"** da demo (non-interactive sem cookie/identidade), a exceção
       `NEXT_PUBLIC_TURNSTILE_SITE_KEY` (como ADR 0013/Clerk), o relaxamento de CSP e que
       `/form`,`/reader`,`/demo/reader` ficam intactos.
@@ -157,14 +157,14 @@ localizado e nenhuma geração.
 
 ### Tests for US4
 
-- [ ] T015 [US4] Estender `tests/unit/env.test.ts`: sem as chaves, `getEnv()` ok e feature off.
-- [ ] T016 [P] [US4] Estender `tests/contract/stories-route.turnstile.test.ts`: `enforceTurnstile`
+- [X] T015 [US4] Estender `tests/unit/env.test.ts`: sem as chaves, `getEnv()` ok e feature off.
+- [X] T016 [P] [US4] Estender `tests/contract/stories-route.turnstile.test.ts`: `enforceTurnstile`
       com verificação indisponível (fetch rejeita) ⇒ 403 localizado retryável e provider não
       invocado.
 
 ### Implementation for US4
 
-- [ ] T017 [US4] Garantir rotas: `story-request-app.tsx` roteia `captcha_failed` ⇒
+- [X] T017 [US4] Garantir rotas: `story-request-app.tsx` roteia `captcha_failed` ⇒
       chave localizada `story.error.captchaFailed` (catalog já em Setup), e o form permite novo
       desafio/retry (widget resetado).
 
@@ -181,7 +181,7 @@ localizado e nenhuma geração.
 - [ ] T019 [P] Verificar que `/form`,`/reader`,`/demo/reader` não regrediram visualmente
       (`pnpm test:visual`), bundle de JS do `/demo` dentro do orçamento (`pnpm test:performance`),
       `.stories.tsx` do form atualizadas (estados default/loading/error).
-- [ ] T020 Rodar os gates finais após a ÚLTIMA edição: `pnpm format` + `pnpm format:check`,
+- [X] T020 Rodar os gates finais após a ÚLTIMA edição: `pnpm format` + `pnpm format:check`,
       `pnpm lint` (0 warnings), `pnpm typecheck`, `pnpm test:limited`, `pnpm build`.
 
 **Checkpoint**: tudo verde; feature pronta para review/PR.

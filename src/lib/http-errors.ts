@@ -11,6 +11,7 @@ export const errorCodes = [
   "unsupported_locale",
   "unsafe_unrecoverable",
   "rate_limited",
+  "captcha_failed",
   "generation_unavailable",
   "generation_timeout",
 ] as const;
@@ -53,6 +54,13 @@ export const rateLimited: HttpError = {
   status: 429,
   code: "rate_limited",
   messageKey: "story.error.tryAgainLater",
+  retryable: true,
+};
+
+export const captchaFailed: HttpError = {
+  status: 403,
+  code: "captcha_failed",
+  messageKey: "story.error.captchaFailed",
   retryable: true,
 };
 

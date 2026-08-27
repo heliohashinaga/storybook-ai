@@ -70,6 +70,18 @@ test("pages load without CSP console violations (default, error, reader)", async
   }
 });
 
+test("CSP allows the Cloudflare Turnstile challenge origin for the demo anti-bot (feature 019)", async ({
+  request,
+}) => {
+  // Always present in the configured policy (ADR 0014 — labeled relaxation). The
+  // widget's script/iframe/assets must load from challenges.cloudflare.com.
+  const headers = await collectHeaders(request);
+  const csp = headers["content-security-policy"];
+  expect(csp).toContain("https://challenges.cloudflare.com");
+  // The frame in which the challenge renders must be allowed too.
+  expect(csp).toMatch(/frame-src[^;]*challenges\.cloudflare\.com/);
+});
+
 test("spec 015 surfaces keep the full security header set (login gate, demo, form, auth API)", async ({
   request,
 }) => {

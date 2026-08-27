@@ -96,6 +96,15 @@ const envSchema = z
     CLERK_SIGN_UP_URL: z.string().min(1).optional(),
     CLERK_AFTER_SIGN_IN_URL: z.string().min(1).optional(),
     CLERK_AFTER_SIGN_UP_URL: z.string().min(1).optional(),
+    /**
+     * Cloudflare Turnstile demo anti-bot (feature 019). Both optional: absent
+     * keys disable the feature (demo behaves as today). `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
+     * is a **publishable** (non-secret) key exposed to the browser by design —
+     * an explicit exception to the "no NEXT_PUBLIC_*" rule (ADR 0014), like
+     * Clerk's publishable key (ADR 0013). `TURNSTILE_SECRET_KEY` is server-only.
+     */
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
+    TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
   })
   .strict();
 
@@ -158,6 +167,9 @@ const KNOWN_KEYS = [
   "CLERK_SIGN_UP_URL",
   "CLERK_AFTER_SIGN_IN_URL",
   "CLERK_AFTER_SIGN_UP_URL",
+  // Cloudflare Turnstile demo anti-bot (feature 019) — optional
+  "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
+  "TURNSTILE_SECRET_KEY",
   // removed legacy vars (rejected by .strict() under D5-C: no compat)
   "OPENROUTER_TEXT_MODEL",
   "OPENROUTER_IMAGE_MODEL",

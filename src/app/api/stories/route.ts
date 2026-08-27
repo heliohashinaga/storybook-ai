@@ -11,6 +11,12 @@ import {
 } from "../../../features/story-generation/server/schemas";
 import type { StoryGenerationProvider } from "../../../features/story-generation/server/story-generation-provider";
 import {
+  createTurnstileVerifier,
+  TURNSTILE_TOKEN_HEADER,
+  type TurnstileVerifier,
+} from "../../../features/story-generation/server/turnstile-verify";
+import {
+  captchaFailed,
   invalidInput,
   rateLimited,
   toErrorJson,
@@ -39,6 +45,7 @@ const STATUS_BY_CODE: Record<HttpErrorCode, number> = {
   unsupported_locale: 422,
   unsafe_unrecoverable: 422,
   rate_limited: 429,
+  captcha_failed: 403,
   generation_unavailable: 502,
   generation_timeout: 504,
 };
@@ -56,6 +63,15 @@ export interface StoriesRouteDeps {
    * client-forgeable and ignored (audit PR #2).
    */
   trustForwardedFor: boolean;
+  /**
+   * Demo anti-bot gate (feature 019). When `enforceTurnstile` is true (demo
+   * mode) and the verifier is `configured`, a valid single-use proof in the
+   * `cf-turnstile-token` header is required before generation; otherwise the
+   * request is refused with `403 captcha_failed` and the provider is never
+   * invoked.
+   */
+  turnstile?: TurnstileVerifier;
+  enforceTurnstile?: boolean;
 }
 
 function json(status: number, body: unknown, extraHeaders: Record<string, string> = {}) {
@@ -76,6 +92,18 @@ function isUnsupportedLocalePayload(payload: unknown): boolean {
 /** Wire status for a typed generation error code, falling back to 502. */
 function statusForError(code: string): number {
   return STATUS_BY_CODE[code as HttpErrorCode] ?? 502;
+}
+
+/**
+ * Demo anti-bot gate (US2). Returns a 403 `captcha_failed` Response when the
+ * demo path requires a proof and the one supplied is missing/invalid, else
+ * `null` to proceed. Keeps the handler within the complexity budget.
+ */
+async function gateTurnstile(request: Request, deps: StoriesRouteDeps): Promise<Response | null> {
+  if (!deps.enforceTurnstile || !deps.turnstile?.configured) return null;
+  const token = request.headers.get(TURNSTILE_TOKEN_HEADER);
+  const verified = token ? await deps.turnstile.verify(token) : false;
+  return verified ? null : json(403, toErrorJson(captchaFailed));
 }
 
 export function createStoriesHandler(deps: StoriesRouteDeps) {
@@ -112,6 +140,12 @@ export function createStoriesHandler(deps: StoriesRouteDeps) {
     }
 
     const { ageBand, locale, theme, sceneCount } = parsed.data;
+
+    // Demo anti-bot gate (US2): refuse BEFORE any generation when a valid proof
+    // is required but missing/invalid. The provider is never called here.
+    const gate = await gateTurnstile(request, deps);
+    if (gate) return gate;
+
     const result = await generateStory({
       input: {
         ageBand,
@@ -142,5 +176,12 @@ const demoRuntime = createRuntimeForMode("demo");
 export async function POST(request: Request): Promise<Response> {
   const mode = resolveGenerationMode(await isAuthenticated());
   const runtime = mode === "playground" ? realRuntime : demoRuntime;
-  return createStoriesHandler(runtime)(request);
+  return createStoriesHandler({
+    ...runtime,
+    // Anti-bot gate is enforced on the anonymous demo path only, and only when
+    // the server secret is configured (feature 019). Reads the optional secret
+    // directly (mirrors AI_NARRATION_ENABLED) so fake/CI never forces getEnv().
+    turnstile: createTurnstileVerifier(process.env.TURNSTILE_SECRET_KEY),
+    enforceTurnstile: mode === "demo",
+  })(request);
 }

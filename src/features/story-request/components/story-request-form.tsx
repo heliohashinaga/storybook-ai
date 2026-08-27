@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "../../../components/ui/alert";
 import { Button } from "../../../components/ui/button";
 import { useLocaleContext } from "../../../i18n/locale-provider";
 import { ThemeSelector } from "./theme-selector";
 import { deriveAgeBand, type AgeBand } from "../client/age-band";
+import { Turnstile } from "./turnstile";
+import { isTurnstileSiteKeyConfigured } from "./turnstile-config";
 import {
   MAX_SCENES,
   MIN_SCENES,
@@ -46,10 +48,15 @@ interface StoryRequestFormProps {
   defaultAge?: number;
   /**
    * Invoked with the anonymized request (ageBand/locale/theme/sceneCount — the
-   * exact payload) plus the exact age kept in memory only for session reuse
-   * (T050). The age is never part of the payload sent to the API.
+   * exact wire payload) plus the exact age kept in memory only for session reuse
+   * (T050), and the Turnstile proof when the anti-bot widget is configured. The
+   * age never goes to the API; the proof travels in a header, not the body.
    */
-  onSubmit: (request: GenerateStoryRequest, age: number) => Promise<SubmitResult>;
+  onSubmit: (
+    request: GenerateStoryRequest,
+    age: number,
+    turnstileToken?: string
+  ) => Promise<SubmitResult>;
   onSuccess?: () => void;
   /** Localized retry `messageKey` (without the `story.error.` prefix) to seed
    *  the submit error when the app remounts the idle form after a failure. */
@@ -89,6 +96,21 @@ export function StoryRequestForm({
   const submitting = status === "submitting";
   const disabled = submitting;
 
+  // Turnstile (feature 019). No-op when the site key is unset (feature off).
+  const turnstileEnabled = isTurnstileSiteKeyConfigured();
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
+  const onTokenChange = useCallback((token: string) => {
+    setTurnstileToken(token);
+    if (token) setTurnstileError(false);
+  }, []);
+  const onTurnstileError = useCallback((errored: boolean) => {
+    setTurnstileError(errored);
+    if (errored) setTurnstileToken("");
+  }, []);
+  const bumpReset = useCallback(() => setResetKey((k) => k + 1), []);
+
   // WCAG 3.3.1 / G194: after a failed generation, move keyboard focus to the
   // submit-error region so assistive tech lands on the failure message.
   useEffect(() => {
@@ -100,14 +122,24 @@ export function StoryRequestForm({
     if (submitting) return;
 
     const numericAge = Number(age);
-    if (!Number.isInteger(numericAge) || numericAge < MIN_AGE || numericAge > MAX_AGE) {
-      setAgeError(t("form.age.errorRange"));
-      ageInputRef.current?.focus();
+    // Single gate for client-side validation + the anti-bot proof (US4/US1
+    // negation): without a proof we never submit.
+    const gate = evaluateGate(numericAge, turnstileEnabled, turnstileToken);
+    if (!gate.ok) {
+      if (gate.kind === "age") {
+        setAgeError(t("form.age.errorRange"));
+        ageInputRef.current?.focus();
+      } else {
+        setSubmitError(t("error.captchaFailed"));
+        setTurnstileError(true);
+        bumpReset();
+      }
       return;
     }
 
     setAgeError(null);
     setSubmitError(null);
+
     setStatus("submitting");
 
     const result = await onSubmit(
@@ -117,7 +149,8 @@ export function StoryRequestForm({
         theme,
         sceneCount,
       },
-      numericAge
+      numericAge,
+      turnstileEnabled ? turnstileToken : undefined
     );
 
     if (result.ok) {
@@ -263,16 +296,72 @@ export function StoryRequestForm({
         </div>
       ) : null}
 
+      <SubmitControls
+        turnstileEnabled={turnstileEnabled}
+        turnstileError={turnstileError}
+        onTokenChange={onTokenChange}
+        onTurnstileError={onTurnstileError}
+        resetKey={resetKey}
+        disabled={disabled}
+        submitting={submitting}
+        submitLabel={t("form.submit")}
+        submittingLabel={t("form.submitting")}
+      />
+    </form>
+  );
+}
+
+/** Localized submit gate: age validity + anti-bot proof (feature 019). Keeps the
+ *  handler's cyclomatic complexity in budget. */
+type SubmitGate = { ok: true } | { ok: false; kind: "age" | "captcha" };
+function evaluateGate(age: number, turnstileEnabled: boolean, token: string): SubmitGate {
+  if (!Number.isInteger(age) || age < MIN_AGE || age > MAX_AGE) return { ok: false, kind: "age" };
+  if (turnstileEnabled && !token) return { ok: false, kind: "captcha" };
+  return { ok: true };
+}
+
+interface SubmitControlsProps {
+  turnstileEnabled: boolean;
+  turnstileError: boolean;
+  onTokenChange: (token: string) => void;
+  onTurnstileError: (errored: boolean) => void;
+  resetKey: number;
+  disabled: boolean;
+  submitting: boolean;
+  submitLabel: string;
+  submittingLabel: string;
+}
+
+/** Submit region (feature 019): the optional anti-bot widget and the submit
+ *  button. Extracted so the form keeps its complexity budget and never touches
+ *  the submit-error ref (which stays inline in the form). */
+function SubmitControls(p: SubmitControlsProps) {
+  return (
+    <>
+      {p.turnstileEnabled ? (
+        <div
+          className="flex justify-center"
+          aria-live="polite"
+          aria-busy={p.turnstileError || undefined}
+        >
+          <Turnstile
+            onTokenChange={p.onTokenChange}
+            onError={p.onTurnstileError}
+            resetKey={p.resetKey}
+          />
+        </div>
+      ) : null}
+
       <Button
         type="submit"
         size="md"
-        loading={submitting}
+        loading={p.submitting}
         className="w-full !rounded-3xl sm:px-lg sm:py-md"
       >
         <SparklesIcon className="size-5" />
-        {submitting ? t("form.submitting") : t("form.submit")}
+        {p.submitting ? p.submittingLabel : p.submitLabel}
       </Button>
-    </form>
+    </>
   );
 }
 

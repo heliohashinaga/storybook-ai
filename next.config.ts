@@ -19,6 +19,13 @@ const cspScriptSrc = isProduction
 // `failed_to_load_clerk_js`.
 const clerkOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
 
+// EXPLICIT RELAXATION (signed off, ADR 0014 — no unlabeled loosening): the demo
+// anti-bot widget (Cloudflare Turnstile, feature 019) loads its JS + challenge
+// iframe/styles/images from `challenges.cloudflare.com`. Without these origins
+// on script/frame/connect/style/img/worker-src the widget silently fails on the
+// (already third-party-contacting) demo path.
+const turnstileOrigins = "https://challenges.cloudflare.com";
+
 // HTTP security headers (audit §8 / PR #4). Defense-in-depth for an anonymous,
 // static+JSON app with no client secrets. Calibrated so the CSP does NOT break
 // the reader: it renders data: URIs (provider images) and next/font inlines
@@ -37,22 +44,22 @@ const securityHeaders: { key: string; value: string }[] = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      cspScriptSrc + " " + clerkOrigins, // Next inline; + Clerk JS runtime (accounts.dev / .accounts)
-      "style-src 'self' 'unsafe-inline' " + clerkOrigins, // next/font + legit inline styles + Clerk CSS
+      cspScriptSrc + " " + clerkOrigins + " " + turnstileOrigins, // Next inline; Clerk JS; + Turnstile widget
+      "style-src 'self' 'unsafe-inline' " + clerkOrigins + " " + turnstileOrigins, // + Turnstile inline styles
       // RELAXATION (signed off): Clerk serves OAuth provider logos (Google "G",
       // etc.) from its image CDN `https://img.clerk.com`, not the FAPI accounts
       // domain — without it, img-src blocks the logo and the button renders
       // icon-less. Scoped to img-src only.
-      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com", // reader data: images + Clerk avatars + Clerk provider logos
+      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com " + turnstileOrigins, // + Turnstile assets
       "font-src 'self' data:",
-      "connect-src 'self' data: " + clerkOrigins, // self API + @react-pdf WASM + Clerk API
+      "connect-src 'self' data: " + clerkOrigins + " " + turnstileOrigins, // + Turnstile siteverify/script
       // RELAXATION (signed off): the AI read-aloud client plays transient audio
       // via a blob: URL, and Chromium resolves media blobs under `media-src`.
       // Without it, default-src 'self' blocks the blob and the <audio> element
       // reports "no supported source". Scoped to media only.
       "media-src 'self' blob:",
-      "worker-src 'self' blob: " + clerkOrigins, // @react-pdf worker + Clerk worker
-      "frame-src 'self' " + clerkOrigins, // Clerk embeds (captcha/iframes) if used
+      "worker-src 'self' blob: " + clerkOrigins + " " + turnstileOrigins, // @react-pdf worker + Clerk + Turnstile worker
+      "frame-src 'self' " + clerkOrigins + " " + turnstileOrigins, // Clerk embeds + Turnstile challenge iframe
       "frame-ancestors 'none'", // anti-clickjacking
       "base-uri 'none'",
       "form-action 'self'",

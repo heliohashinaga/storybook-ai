@@ -39,6 +39,7 @@
       "unsupportedLocale": "Idioma não suportado. Escolha português ou inglês.",
       "safeAlternativeUnavailable": "Não foi possível gerar uma história segura. Tente de novo.",
       "tryAgainLater": "Muitas solicitações. Aguarde e tente de novo.",
+      "captchaFailed": "Não foi possível completar a verificação de segurança. Tente de novo.",
       "generationUnavailable": "Gerador de histórias indisponível. Tente de novo.",
       "generationTimeout": "A geração da história demorou demais. Tente de novo."
     },
