@@ -90,3 +90,11 @@ Turnstile + Clerk bot-protection + convenções do AGENTS.md/constitution.
   de teste da Cloudflare** (`1x000...AA` always-passes; `2x...AB` always-blocks) só em validação
   manual (quickstart), nunca no CI.
 - **Rationale**: zero chamadas live / chaves reais em testes (AGENTS + Constitution II).
+
+## 10. Single-use / replay (resolução da análise 019)
+
+- **Decision**: o enforcement de **single-use e expiração** (FR-005) é garantido pelo **serviço
+  externo** — o `siteverify` rejeita tokens já consumidos e expirados. O app **não** mantém store
+  local de replay: ele apenas encaminha a prova recebida ao `siteverify` e age sobre `success`.
+- **Rationale**: não duplicar estado efêmero nem persistir tokens; a semântica single-use é do
+  provedor (token curto e descartável). Isso também reforça a privacidade (nada é retido).

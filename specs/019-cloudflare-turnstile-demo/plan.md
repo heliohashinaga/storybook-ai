@@ -73,13 +73,14 @@ real em testes.
 - Nada (feature additive).
 
 ### Adicionar
-- `src/features/demo/server/turnstile-verify.ts` (`server-only`) — verificação `siteverify`.
-  (Alternativa de localização: `story-generation/server`; decidir em implementação p/ manter o
-  `server-only` + cobertura ≥90%.)
+- `src/features/story-generation/server/turnstile-verify.ts` (`server-only`) — verificação
+  `siteverify`. **Caminho fixo** (resolução da análise 019): junto aos demais módulos server
+  usados pela rota, mantém `server-only` + regra de cobertura ≥90% de módulo de segurança.
 - `src/features/story-request/components/turnstile.tsx` (`'use client'`) — injeta o script,
   renderiza o desafio não-interativo e expõe o token (single-use) ao submit.
-- Testes: `tests/unit/turnstile-verify.test.ts`, `tests/unit/turnstile.test.tsx`; estender
-  `tests/contract/stories-route.test.ts` (modo demo) e `tests/e2e/security-headers.spec.ts`.
+- Testes: `tests/unit/turnstile-verify.test.ts`, `tests/unit/turnstile.test.tsx` ; criação
+  (novo arquivo dedicado) `tests/contract/stories-route.turnstile.test.ts` (modo demo — sem
+  acoplar o enforcement ao teste do handler base) e `tests/e2e/security-headers.spec.ts`.
 
 ### Reescrever / tocar
 - `src/features/story-request/components/story-request-form.tsx`: renderizar o widget e, no

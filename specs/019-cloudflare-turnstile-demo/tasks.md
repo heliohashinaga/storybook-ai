@@ -133,8 +133,9 @@ sem cookie/identidade; proba não persistida) e `/form`/`/reader`/`/demo/reader`
 
 - [ ] T012 [P] [US3] Asserts de privacidade: estender `tests/contract/stories-route.test.ts` e/ou
       `tests/integration/privacy-boundary.test.tsx` — payload fechado continua rejeitando campo
-      extra; `/demo` continua sem cookie/`localStorage`/identificador; token não vaza a logs/
-      observability (`lib/observability.ts` scrub).
+      extra; `/demo` continua sem cookie/`localStorage`/identificador; **`/demo/reader` permanece
+      somente leitura e redireciona ao `/demo` form quando não há história em sessão (FR-009)**;
+      token não vaza a logs/observability (`lib/observability.ts` scrub).
 - [ ] T013 [P] [US3] Estender `tests/e2e/security-headers.spec.ts`: CSP inclui
       `challenges.cloudflare.com`; `/demo` preserva os invariantes (sem `__clerk_*`/sessão).
 - [ ] T014 [P] [US3] ADR `docs/adr/0014-cloudflare-turnstile-demo.md`: documentar a **relaxação

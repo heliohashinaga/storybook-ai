@@ -19,6 +19,10 @@ configurada. Modo playground (autenticado): **não** exigido. Sem configuração
 O corpo da requisição permanece o enum fechado `ageBand|locale|theme|sceneCount` (Zod `.strict()`)
 — a prova **não** amplia o corpo.
 
+**Nota (single-use/replay)**: a semântica de **uso único e expiração** é garantida pelo serviço
+externo (`siteverify` rejeita token já consumido/expirado); o app **não** mantém store local de
+replay — apenas encaminha a prova e age sobre `success`.
+
 ### Novo erro
 
 | HTTP | `code`           | `retryable` | Significado                                                      |
