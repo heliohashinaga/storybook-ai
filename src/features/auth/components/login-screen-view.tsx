@@ -95,15 +95,20 @@ export function LoginScreenView() {
 }
 
 /** Right-aligned session kebab, placed like the app header (top-right of the
- *  page) so it lines up with the kebab on `/form` and `/demo`. Mirrors the
- *  shell `<header>` insets (px-3 py-4 / sm:px-6 sm:py-5 / lg:px-12). `z-40`
- *  keeps it above the centered hero card. */
+ *  centered `max-w-7xl` container) so it lines up with the kebab on `/form`
+ *  and `/demo` at every width — not just flush to the viewport edge. Mirrors
+ *  the shell `<header>` insets (px-3 py-4 / sm:px-6 sm:py-5 / lg:px-12).
+ *  `z-40` keeps it above the centered hero card. */
 function ScreenKebab({ label }: { label: string }) {
   return (
-    <div className="absolute right-3 top-4 z-40 sm:right-6 sm:top-5 lg:right-12">
-      <TopNavMenu label={label}>
-        <NavMenuContents />
-      </TopNavMenu>
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex justify-center">
+      <div className="w-full max-w-7xl px-3 pt-4 sm:px-6 sm:pt-5 lg:px-12">
+        <div className="flex justify-end">
+          <TopNavMenu label={label}>
+            <NavMenuContents />
+          </TopNavMenu>
+        </div>
+      </div>
     </div>
   );
 }
