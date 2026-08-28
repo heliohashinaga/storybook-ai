@@ -24,12 +24,21 @@ const cspScriptSrc = isProduction
   : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"; // dev-only
 
 // EXPLICIT RELAXATION (signed off, per AGENTS.md — no unlabeled loosening):
-// Clerk's client SDK loads its JS runtime + CSS and talks to its API from the
-// Clerk accounts domain. Dev instances serve `*.clerk.accounts.dev`; production
-// serves `*.clerk.accounts`. A custom Clerk domain would need to be added here
-// too. Without these the <SignIn>/<SignUp> components fail with
-// `failed_to_load_clerk_js`.
-const clerkOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
+// Clerk's client SDK loads its JS runtime + CSS and talks to its Frontend API
+// (FAPI) from the Clerk accounts domain. Dev instances serve `*.clerk.accounts.dev`;
+// production serves `*.clerk.accounts`. A custom Clerk domain (spec 018 / ADR 0013)
+// is served from the app's own origin: with production keys, `clerkMiddleware`
+// auto-proxies the FAPI/clerk-js through `'self'` (already CSP-allowed). A
+// separately-hosted auth subdomain (`CLERK_PROXY_URL`) is added explicitly
+// below for completeness. Without these origins the <SignIn>/<SignUp>
+// components fail with `failed_to_load_clerk_js`.
+const clerkManagedOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
+const clerkProxyOrigin = process.env.CLERK_PROXY_URL
+  ? new URL(process.env.CLERK_PROXY_URL).origin
+  : "";
+const clerkOrigins = (
+  clerkManagedOrigins + (clerkProxyOrigin ? ` ${clerkProxyOrigin}` : "")
+).trim();
 
 // EXPLICIT RELAXATION (signed off, ADR 0014 — no unlabeled loosening): the demo
 // anti-bot widget (Cloudflare Turnstile, feature 019) loads its JS + challenge
