@@ -50,6 +50,7 @@ export default defineConfig({
         "**/features/story-generation/server/generate-story.ts": MODULE_THRESHOLD,
         "**/features/story-request/client/story-preferences-schema.ts": MODULE_THRESHOLD,
         "**/features/story-request/client/age-band.ts": MODULE_THRESHOLD,
+        "**/features/story-generation/server/turnstile-verify.ts": MODULE_THRESHOLD,
       },
     },
   },

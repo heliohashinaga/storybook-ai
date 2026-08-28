@@ -25,6 +25,12 @@ const withLocalizedI18n = (locale: "pt-BR" | "en") => {
   return Decorator;
 };
 
+/** Reset the simulated challenge env so it never leaks across stories. */
+function clearTurnstileEnv() {
+  delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  delete window.turnstile;
+}
+
 const meta: Meta<typeof StoryRequestForm> = {
   title: "StoryRequest/Form",
   component: StoryRequestForm,
@@ -34,6 +40,7 @@ const meta: Meta<typeof StoryRequestForm> = {
     defaultTheme: "courage",
     onSubmit: async () => ({ ok: true }),
   },
+  afterEach: clearTurnstileEnv,
 };
 
 export default meta;
@@ -203,5 +210,44 @@ export const MobileDensity: Story = {
     // The form itself introduces no horizontal overflow at this width.
     const form = canvasElement.querySelector("form") as HTMLElement;
     expect(form.scrollWidth).toBeLessThanOrEqual(form.clientWidth + 1);
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Feature 019 — anti-bot gate states (Cloudflare Turnstile on the demo path).
+// ---------------------------------------------------------------------------
+
+function setTurnstileEnabled() {
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "1x00000000000000000000AA";
+  window.turnstile = { render: () => "w-mock", reset: () => {}, remove: () => {} };
+}
+
+/** The widget mounts when the feature is configured (default/loading state). */
+const withAntiBot = (StoryComponent: () => React.JSX.Element) => {
+  setTurnstileEnabled();
+  return <StoryComponent />;
+};
+
+/** Without a site key the widget is absent (opt-out) and submit proceeds. */
+const withAntiBotOff = (StoryComponent: () => React.JSX.Element) => {
+  clearTurnstileEnv();
+  return <StoryComponent />;
+};
+
+/** Anti-bot gate ON: the challenge widget region is rendered. */
+export const AntiBotEnabled: Story = {
+  decorators: [withAntiBot],
+  args: { turnstileEnabled: true },
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy();
+  },
+};
+
+/** Anti-bot gate OFF (opt-out): no widget, request stays a plain form. */
+export const AntiBotDisabled: Story = {
+  decorators: [withAntiBotOff],
+  args: { turnstileEnabled: false },
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeNull();
   },
 };

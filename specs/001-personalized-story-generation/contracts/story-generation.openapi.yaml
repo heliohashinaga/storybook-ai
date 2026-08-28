@@ -19,6 +19,14 @@ paths:
         regenerates one time if the first candidate is unsafe; then returns only the approved story
         and its optimized scene illustrations. The response must not be cached or logged with
         request content.
+      parameters:
+        - name: cf-turnstile-token
+          in: header
+          required: false
+          description: "Single-use anti-bot proof (Cloudflare Turnstile). Required on the **demo** path when the feature is configured; ignored on the authenticated playground. Travels in a header so the body stays the closed enum."
+          schema:
+            type: string
+            minLength: 1
       requestBody:
         required: true
         content:
@@ -104,6 +112,20 @@ paths:
               example:
                 code: rate_limited
                 messageKey: story.error.tryAgainLater
+                retryable: true
+        '403':
+          description: >-
+            Demo anti-bot gate refused (feature 019). The request was denied BEFORE any
+            generation because it carried no valid single-use proof (missing/invalid/expired/
+            replayed token), or the verifier was unreachable (fail-closed). The generator is
+            never invoked for a rejected request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerationError'
+              example:
+                code: captcha_failed
+                messageKey: story.error.captchaFailed
                 retryable: true
         '502':
           description: A required generation provider did not return a valid result.
@@ -226,6 +248,7 @@ components:
             - unsupported_locale
             - unsafe_unrecoverable
             - rate_limited
+            - captcha_failed
             - generation_unavailable
             - generation_timeout
         messageKey:

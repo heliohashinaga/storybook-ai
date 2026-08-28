@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
@@ -11,7 +11,11 @@ import { getMessages } from "../../src/i18n/config";
 
 function renderForm(
   props: {
-    onSubmit?: (request: GenerateStoryRequest) => Promise<SubmitResult>;
+    onSubmit?: (
+      request: GenerateStoryRequest,
+      age?: number,
+      turnstileToken?: string
+    ) => Promise<SubmitResult>;
     onSuccess?: () => void;
   } = {}
 ) {
@@ -254,5 +258,84 @@ describe("StoryRequestForm — submission states", () => {
 
     expect(onSubmit).toHaveBeenCalledTimes(1);
     act(() => release!());
+  });
+});
+
+describe("StoryRequestForm — Turnstile gate (feature 019)", () => {
+  beforeEach(() => {
+    delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    delete window.turnstile;
+  });
+  afterEach(() => {
+    delete process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+    delete window.turnstile;
+  });
+
+  it("submits the single-use token when the widget resolves it", async () => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "1x-site";
+    window.turnstile = {
+      render: vi.fn((_el, o) => {
+        o.callback?.("tok1");
+        return "w";
+      }),
+      reset: vi.fn(),
+      remove: vi.fn(),
+    };
+    const onSubmit = vi.fn(
+      async (
+        _request: GenerateStoryRequest,
+        _age?: number,
+        _token?: string
+      ): Promise<SubmitResult> => {
+        void _request;
+        void _age;
+        void _token;
+        return { ok: true };
+      }
+    );
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+    fireEvent.change(ageSlider(), { target: { value: "5" } });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    // The proof travels to the app (which puts it in the header), not the body.
+    expect(onSubmit.mock.calls[0]?.[2]).toBe("tok1");
+  });
+
+  it("blocks submission without a solved token and shows a localized error", async () => {
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY = "1x-site";
+    // Widget renders but never resolves a token.
+    window.turnstile = { render: vi.fn(() => "w"), reset: vi.fn(), remove: vi.fn() };
+    const onSubmit = vi.fn(async (): Promise<SubmitResult> => ({ ok: true }));
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+    fireEvent.change(ageSlider(), { target: { value: "5" } });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(
+      await screen.findByText(/não foi possível completar a verificação de segurança/i)
+    ).toBeInTheDocument();
+  });
+
+  it("does not require a token when the feature is off", async () => {
+    const onSubmit = vi.fn(
+      async (
+        _request: GenerateStoryRequest,
+        _age?: number,
+        _token?: string
+      ): Promise<SubmitResult> => {
+        void _request;
+        void _age;
+        void _token;
+        return { ok: true };
+      }
+    );
+    const user = userEvent.setup();
+    renderForm({ onSubmit });
+    fireEvent.change(ageSlider(), { target: { value: "5" } });
+    await user.click(screen.getByRole("button", { name: /criar história/i }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledTimes(1));
+    expect(onSubmit.mock.calls[0]?.[2]).toBeUndefined();
   });
 });

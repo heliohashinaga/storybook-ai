@@ -128,8 +128,13 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     renderTopNav();
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
     // `SignOutButton` is lazily imported via `next/dynamic` (kept out of the
-    // initial bundle), so await the async chunk before asserting.
-    expect(await screen.findByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
+    // initial bundle), so await the async chunk before asserting. Bump the
+    // timeout: under a heavy full-suite run the dynamic chunk can take longer
+    // than the 1000ms default to resolve, which is a load-timing flake, not a
+    // real failure.
+    expect(
+      await screen.findByRole("menuitem", { name: /sair/i }, { timeout: 5000 })
+    ).toBeInTheDocument();
     delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
   });
 

@@ -28,6 +28,8 @@
     "test:performance": "sh scripts/run-with-chromium.sh playwright test tests/performance",
     "postinstall": "sh scripts/install-hooks.sh",
     "build": "next build",
+    "analyze": "ANALYZE=true next build --webpack",
+    "analyze:tp": "next build --experimental-analyze",
     "test:limited": "vitest run --pool threads --maxWorkers 2",
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
@@ -47,6 +49,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^9.39.5",
+    "@next/bundle-analyzer": "^16.3.3",
     "@playwright/test": "^1.62.1",
     "@storybook/addon-a11y": "10.5.10",
     "@storybook/nextjs": "10.5.10",

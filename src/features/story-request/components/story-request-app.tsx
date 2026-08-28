@@ -70,13 +70,21 @@ function FormScreen({ isDemo, fakeProgress }: { isDemo: boolean; fakeProgress: b
     return () => clearInterval(id);
   }, [submitting, fakeProgress]);
 
-  async function handleSubmit(request: GenerateStoryRequest, age?: number): Promise<SubmitResult> {
+  async function handleSubmit(
+    request: GenerateStoryRequest,
+    age?: number,
+    turnstileToken?: string
+  ): Promise<SubmitResult> {
     setElapsed(0);
     setLastError(null);
     begin();
+    // The proof travels in a header (never in the closed body enum) and only when
+    // the anti-bot widget is configured (feature 019).
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (turnstileToken) headers["cf-turnstile-token"] = turnstileToken;
     const response = await fetch("/api/stories", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(request),
     });
     const result = await parseStoryResponse(response);

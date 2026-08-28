@@ -287,4 +287,26 @@ describe("clerk env (spec 018 / ADR 0013)", () => {
     const result = parseEnv({ ...validEnv, AUTH_ALLOWLIST_EMAILS: "a@b.com" });
     expect(result.success).toBe(false);
   });
+
+  it("accepts Turnstile keys when present and treats them as optional (feature 019)", async () => {
+    const { parseEnv } = await loadEnv();
+    // Absent => feature off, boots fine.
+    const without = parseEnv({ ...validEnv });
+    expect(without.success).toBe(true);
+    if (without.success) {
+      expect(without.data.NEXT_PUBLIC_TURNSTILE_SITE_KEY).toBeUndefined();
+      expect(without.data.TURNSTILE_SECRET_KEY).toBeUndefined();
+    }
+    // Present => parsed.
+    const withKeys = parseEnv({
+      ...validEnv,
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "1x_site",
+      TURNSTILE_SECRET_KEY: "sk_turnstile",
+    });
+    expect(withKeys.success).toBe(true);
+    if (withKeys.success) {
+      expect(withKeys.data.NEXT_PUBLIC_TURNSTILE_SITE_KEY).toBe("1x_site");
+      expect(withKeys.data.TURNSTILE_SECRET_KEY).toBe("sk_turnstile");
+    }
+  });
 });

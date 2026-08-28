@@ -39,6 +39,7 @@
       "unsupportedLocale": "Language not supported. Choose Portuguese or English.",
       "safeAlternativeUnavailable": "Couldn't generate a safe story. Try again.",
       "tryAgainLater": "Too many requests. Wait a moment and retry.",
+      "captchaFailed": "Couldn't complete the security check. Try again.",
       "generationUnavailable": "Story generator unavailable. Try again.",
       "generationTimeout": "Story generation took too long. Try again."
     },

@@ -130,6 +130,7 @@ export const safeErrorSchema = z
       "unsupported_locale",
       "unsafe_unrecoverable",
       "rate_limited",
+      "captcha_failed",
       "generation_unavailable",
       "generation_timeout",
     ]),

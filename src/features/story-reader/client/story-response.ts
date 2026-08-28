@@ -37,6 +37,12 @@ function errorForStatus(status: number): SafeError {
       };
     case 429:
       return { code: "rate_limited", messageKey: "story.error.tryAgainLater", retryable: true };
+    case 403:
+      return {
+        code: "captcha_failed",
+        messageKey: "story.error.captchaFailed",
+        retryable: true,
+      };
     case 504:
       return {
         code: "generation_timeout",

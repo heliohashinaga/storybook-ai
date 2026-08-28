@@ -1,40 +1,23 @@
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TtsRuntime } from "../../src/features/story-read-aloud/server/tts-runtime";
 import { TtsProviderError } from "../../src/features/story-read-aloud/server/tts-provider";
 import { InMemoryRateLimiter } from "../../src/lib/rate-limit";
+import {
+  createNarrateHandler,
+  NARRATE_TEXT_MAX,
+} from "../../src/app/api/narrate/create-narrate-handler";
 
 /**
  * `POST /api/narrate` route tests (spec 004, T011/T023).
  *
- * The route module instantiates the real TTS runtime at load time, which reads
- * the validated server env (`src/lib/env.ts`), so the required OpenRouter
- * provider vars are stubbed before the dynamic import. All assertions exercise
- * the exported `createNarrateHandler` seam with an injected fake runtime —
- * never a live TTS service.
+ * All assertions exercise the `createNarrateHandler` seam with an injected fake
+ * runtime — never a live TTS service. The handler is pure (no module-level
+ * runtime boot, no server env required), so the route module is not loaded here.
  *
  * Privacy invariants asserted here: the endpoint accepts ONLY `sceneText` +
  * `locale`; a payload smuggling an identifier (e.g. `name`) is rejected before
  * the runtime is invoked; every response carries `Cache-Control: no-store`.
  */
-
-/** Required env vars so the module-level runtime boots in tests. */
-const REQUIRED_ENV: Record<string, string> = {
-  OPENROUTER_API_KEY: "test-key",
-};
-
-let route: typeof import("../../src/app/api/narrate/route");
-
-beforeAll(async () => {
-  for (const [key, value] of Object.entries(REQUIRED_ENV)) {
-    vi.stubEnv(key, value);
-  }
-  vi.resetModules();
-  route = await import("../../src/app/api/narrate/route");
-});
-
-afterAll(() => {
-  vi.unstubAllEnvs();
-});
 
 /** Builds a fake runtime, returning the mock so tests can assert the call. */
 function makeRuntime(overrides: Partial<TtsRuntime> = {}) {
@@ -47,7 +30,7 @@ function makeRuntime(overrides: Partial<TtsRuntime> = {}) {
 
 /** Builds a handler wired with a high-cap anonymous rate limiter + salt. */
 function makeHandler(runtime: TtsRuntime) {
-  return route.createNarrateHandler({
+  return createNarrateHandler({
     runtime,
     rateLimiter: new InMemoryRateLimiter({
       limit: 1_000_000,
@@ -62,7 +45,7 @@ function makeHandler(runtime: TtsRuntime) {
 
 /** Builds a handler with a low (e.g. 1-request) anonymous rate limit + salt. */
 function makeLimitedHandler(runtime: TtsRuntime, limit: number) {
-  return route.createNarrateHandler({
+  return createNarrateHandler({
     runtime,
     rateLimiter: new InMemoryRateLimiter({
       limit,
@@ -73,10 +56,7 @@ function makeLimitedHandler(runtime: TtsRuntime, limit: number) {
   });
 }
 
-function post(
-  handler: ReturnType<typeof route.createNarrateHandler>,
-  body: unknown
-): Promise<Response> {
+function post(handler: ReturnType<typeof createNarrateHandler>, body: unknown): Promise<Response> {
   return handler(
     new Request("http://localhost/api/narrate", {
       method: "POST",
@@ -86,7 +66,7 @@ function post(
   );
 }
 
-function rawPost(handler: ReturnType<typeof route.createNarrateHandler>, body: string | null) {
+function rawPost(handler: ReturnType<typeof createNarrateHandler>, body: string | null) {
   return handler(
     new Request("http://localhost/api/narrate", {
       method: "POST",
@@ -225,7 +205,7 @@ describe("POST /api/narrate — route", () => {
       mode: "ai",
     });
     const handler = makeHandler(runtime);
-    const max = route.NARRATE_TEXT_MAX;
+    const max = NARRATE_TEXT_MAX;
 
     const atMax = await post(handler, { sceneText: "a".repeat(max), locale: "pt-BR" });
     expect(atMax.status).toBe(200);

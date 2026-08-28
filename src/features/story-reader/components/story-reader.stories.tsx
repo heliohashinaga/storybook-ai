@@ -188,8 +188,10 @@ export const ReadAloud: Story = {
       onerror = null;
       constructor(public text: string) {}
     };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).SpeechSynthesisUtterance = utteranceClass;
+    const utteranceCtor = utteranceClass as unknown as typeof window.SpeechSynthesisUtterance;
+    (
+      window as unknown as { SpeechSynthesisUtterance: typeof window.SpeechSynthesisUtterance }
+    ).SpeechSynthesisUtterance = utteranceCtor;
     Object.defineProperty(window, "speechSynthesis", {
       configurable: true,
       writable: true,

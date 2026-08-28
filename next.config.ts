@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+// Bundle analyzer. Next 16 builds with Turbopack by default, but
+// `@next/bundle-analyzer` hooks the **webpack** config, so analysis requires a
+// webpack build (`next build --webpack`, see the `analyze` script). The default
+// Turbopack production build is untouched because the plugin is a no-op unless
+// `ANALYZE=true`. `analyzerMode: "static"` writes report HTML files and exits
+// instead of launching a browser (headless/CI friendly).
+const withAnalysis = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  analyzerMode: "static",
+});
 
 const isProduction = process.env.NODE_ENV === "production";
 // React in dev mode uses eval() for debugging (callstack reconstruction / hot
@@ -18,6 +30,13 @@ const cspScriptSrc = isProduction
 // too. Without these the <SignIn>/<SignUp> components fail with
 // `failed_to_load_clerk_js`.
 const clerkOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
+
+// EXPLICIT RELAXATION (signed off, ADR 0014 — no unlabeled loosening): the demo
+// anti-bot widget (Cloudflare Turnstile, feature 019) loads its JS + challenge
+// iframe/styles/images from `challenges.cloudflare.com`. Without these origins
+// on script/frame/connect/style/img/worker-src the widget silently fails on the
+// (already third-party-contacting) demo path.
+const turnstileOrigins = "https://challenges.cloudflare.com";
 
 // HTTP security headers (audit §8 / PR #4). Defense-in-depth for an anonymous,
 // static+JSON app with no client secrets. Calibrated so the CSP does NOT break
@@ -37,22 +56,22 @@ const securityHeaders: { key: string; value: string }[] = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      cspScriptSrc + " " + clerkOrigins, // Next inline; + Clerk JS runtime (accounts.dev / .accounts)
-      "style-src 'self' 'unsafe-inline' " + clerkOrigins, // next/font + legit inline styles + Clerk CSS
+      cspScriptSrc + " " + clerkOrigins + " " + turnstileOrigins, // Next inline; Clerk JS; + Turnstile widget
+      "style-src 'self' 'unsafe-inline' " + clerkOrigins + " " + turnstileOrigins, // + Turnstile inline styles
       // RELAXATION (signed off): Clerk serves OAuth provider logos (Google "G",
       // etc.) from its image CDN `https://img.clerk.com`, not the FAPI accounts
       // domain — without it, img-src blocks the logo and the button renders
       // icon-less. Scoped to img-src only.
-      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com", // reader data: images + Clerk avatars + Clerk provider logos
+      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com " + turnstileOrigins, // + Turnstile assets
       "font-src 'self' data:",
-      "connect-src 'self' data: " + clerkOrigins, // self API + @react-pdf WASM + Clerk API
+      "connect-src 'self' data: " + clerkOrigins + " " + turnstileOrigins, // + Turnstile siteverify/script
       // RELAXATION (signed off): the AI read-aloud client plays transient audio
       // via a blob: URL, and Chromium resolves media blobs under `media-src`.
       // Without it, default-src 'self' blocks the blob and the <audio> element
       // reports "no supported source". Scoped to media only.
       "media-src 'self' blob:",
-      "worker-src 'self' blob: " + clerkOrigins, // @react-pdf worker + Clerk worker
-      "frame-src 'self' " + clerkOrigins, // Clerk embeds (captcha/iframes) if used
+      "worker-src 'self' blob: " + clerkOrigins + " " + turnstileOrigins, // @react-pdf worker + Clerk + Turnstile worker
+      "frame-src 'self' " + clerkOrigins + " " + turnstileOrigins, // Clerk embeds + Turnstile challenge iframe
       "frame-ancestors 'none'", // anti-clickjacking
       "base-uri 'none'",
       "form-action 'self'",
@@ -104,4 +123,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withAnalysis(withNextIntl(nextConfig));

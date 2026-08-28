@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createStoriesHandler, type StoriesRouteDeps } from "../../src/app/api/stories/route";
+import {
+  createStoriesHandler,
+  type StoriesRouteDeps,
+} from "../../src/app/api/stories/create-stories-handler";
 import { createFakeProvider } from "../fixtures/story-generation/provider-fixtures";
 import { InMemoryRateLimiter } from "../../src/lib/rate-limit";
 import { storyResponseSchema } from "../../src/features/story-generation/server/schemas";
