@@ -26,8 +26,8 @@ CLERK_AFTER_SIGN_UP_URL=/form
 1. **ADR 0013** + emenda no AGENTS.md (feito na branch).
 2. **Deps**: remover `next-auth`; adicionar `@clerk/nextjs`, `@clerk/clerk-react`.
 3. **Env**: remover `AUTH_*`, adicionar `CLERK_*` (`src/lib/env.ts`, `.env.example`, `.env.local`).
-4. **Middleware** `src/middleware.ts` com `publicRoutes` para `/`, `/api/stories`, `/api/narrate`;
-   matcher **exclui `/demo`** e **inclui `/api/:path*`**.
+4. **Proxy** `src/proxy.ts` (ex-`src/middleware.ts`; renomeado no Next.js 16) com `publicRoutes`
+   para `/`, `/api/stories`, `/api/narrate`; matcher **exclui `/demo`** e **inclui `/api/:path*`**.
 5. **Provider**: `ClerkProvider` só em `(playground)` e `/` — **não** no root/demo.
 6. **session.ts**: reimplementar `isAuthenticated`/`requireSession` sobre `auth()` do Clerk (com
    stub demo-only).
