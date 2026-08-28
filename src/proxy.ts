@@ -20,8 +20,28 @@ const isClerkConfigured = Boolean(
   process.env.CLERK_SECRET_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 );
 
+/**
+ * Custom Clerk domain (spec 018 / ADR 0013). With **production** (`pk_live_`)
+ * keys on a non-Clerk host, `@clerk/nextjs` automatically proxies the Clerk
+ * Frontend API and clerk-js through the app's own origin (`frontendApiProxy`
+ * auto-detect) — no explicit wiring required. Dev (`pk_test_`) keys do *not*
+ * auto-proxy, which is what caused the dev-browser handshake churn at the
+ * production domain. Both knobs below are optional, server-only, and leave
+ * the current/auto behavior untouched when unset:
+ *
+ * - `CLERK_PROXY_URL`: explicit Frontend API base for the rarer dual-domain
+ *   setup (a separate auth subdomain). Passed to `clerkMiddleware({ proxyUrl })`.
+ * - `CLERK_FRONTEND_API_PROXY=1`: force-enable the Frontend API proxy
+ *   explicitly (e.g. to test custom-domain auth with a development key).
+ */
+const forceFrontendApiProxy = process.env.CLERK_FRONTEND_API_PROXY === "1";
+const proxyUrl = process.env.CLERK_PROXY_URL || undefined;
+
 export default isClerkConfigured
-  ? clerkMiddleware()
+  ? clerkMiddleware({
+      ...(forceFrontendApiProxy ? { frontendApiProxy: { enabled: true } } : {}),
+      ...(proxyUrl ? { proxyUrl } : {}),
+    })
   : function proxy() {
       return NextResponse.next();
     };
