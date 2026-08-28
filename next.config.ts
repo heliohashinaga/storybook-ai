@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import withBundleAnalyzer from "@next/bundle-analyzer";
 
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
+
+// Bundle analyzer. Next 16 builds with Turbopack by default, but
+// `@next/bundle-analyzer` hooks the **webpack** config, so analysis requires a
+// webpack build (`next build --webpack`, see the `analyze` script). The default
+// Turbopack production build is untouched because the plugin is a no-op unless
+// `ANALYZE=true`. `analyzerMode: "static"` writes report HTML files and exits
+// instead of launching a browser (headless/CI friendly).
+const withAnalysis = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+  analyzerMode: "static",
+});
 
 const isProduction = process.env.NODE_ENV === "production";
 // React in dev mode uses eval() for debugging (callstack reconstruction / hot
@@ -111,4 +123,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withAnalysis(withNextIntl(nextConfig));
