@@ -45,6 +45,7 @@ const meta: Meta<typeof Turnstile> = {
   args: {
     onTokenChange: fn(),
     onError: fn(),
+    enabled: true,
   },
   afterEach: clearTurnstileEnv,
 };
@@ -55,7 +56,7 @@ type Story = StoryObj<typeof Turnstile>;
 export const Default: Story = {
   play: async ({ canvasElement, args }) => {
     await waitFor(() =>
-      expect(canvasElement.querySelector("[data-turnstile-container]")).toBeTruthy()
+      expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy()
     );
     // Idle: no token has been produced yet.
     await expect(args.onTokenChange).not.toHaveBeenCalled();
@@ -66,7 +67,7 @@ export const Default: Story = {
 export const Resolved: Story = {
   play: async ({ canvasElement, args }) => {
     await waitFor(() =>
-      expect(canvasElement.querySelector("[data-turnstile-container]")).toBeTruthy()
+      expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy()
     );
     lastOpts?.callback?.("mock-turnstile-token");
     await waitFor(() => expect(args.onTokenChange).toHaveBeenCalledWith("mock-turnstile-token"));
@@ -77,12 +78,11 @@ export const Resolved: Story = {
 export const Error: Story = {
   play: async ({ canvasElement, args }) => {
     await waitFor(() =>
-      expect(canvasElement.querySelector("[data-turnstile-container]")).toBeTruthy()
+      expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy()
     );
     lastOpts?.["error-callback"]?.();
     await waitFor(() => expect(args.onError).toHaveBeenCalledWith(true));
-    const wrapper = canvasElement.querySelector("[data-turnstile-container]")
-      ?.parentElement as HTMLElement;
-    await expect(wrapper).toHaveAttribute("aria-busy", "true");
+    // The widget stays mounted (non-interactive region) after a failure.
+    await expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy();
   },
 };

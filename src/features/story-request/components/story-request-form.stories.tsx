@@ -237,15 +237,17 @@ const withAntiBotOff = (StoryComponent: () => React.JSX.Element) => {
 /** Anti-bot gate ON: the challenge widget region is rendered. */
 export const AntiBotEnabled: Story = {
   decorators: [withAntiBot],
+  args: { turnstileEnabled: true },
   play: async ({ canvasElement }) => {
-    await expect(canvasElement.querySelector("[data-turnstile-container]")).toBeTruthy();
+    await expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeTruthy();
   },
 };
 
 /** Anti-bot gate OFF (opt-out): no widget, request stays a plain form. */
 export const AntiBotDisabled: Story = {
   decorators: [withAntiBotOff],
+  args: { turnstileEnabled: false },
   play: async ({ canvasElement }) => {
-    await expect(canvasElement.querySelector("[data-turnstile-container]")).toBeNull();
+    await expect(canvasElement.querySelector('[data-testid="turnstile-widget"]')).toBeNull();
   },
 };

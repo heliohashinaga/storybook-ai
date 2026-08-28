@@ -44,14 +44,19 @@ interface TurnstileProps {
   onError: (errored: boolean) => void;
   /** Incrementing counter that forces a widget reset (new token after a failed submit). */
   resetKey: number;
+  /** Force the widget on/off. Defaults to the build-time site-key config so the
+   *  app keeps its env-driven behaviour; stories pass it explicitly because
+   *  `NEXT_PUBLIC_*` is inlined at build time and can't be toggled at runtime. */
+  enabled?: boolean;
 }
 
-export function Turnstile({ onTokenChange, onError, resetKey }: TurnstileProps) {
+export function Turnstile({ onTokenChange, onError, resetKey, enabled }: TurnstileProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const active = enabled ?? isTurnstileSiteKeyConfigured();
 
   // Render the widget once the site key + script are ready.
   useEffect(() => {
-    if (!isTurnstileSiteKeyConfigured()) return;
+    if (!active) return;
     const container = containerRef.current;
     if (!container) return;
 
@@ -110,18 +115,18 @@ export function Turnstile({ onTokenChange, onError, resetKey }: TurnstileProps) 
         }
       }
     };
-  }, [onTokenChange, onError]);
+  }, [onTokenChange, onError, active]);
 
   // Force a reset when the parent asks (e.g. after a blocked submit).
   useEffect(() => {
-    if (!isTurnstileSiteKeyConfigured() || !containerRef.current || !window.turnstile) return;
+    if (!active || !containerRef.current || !window.turnstile) return;
     try {
       window.turnstile.reset(containerRef.current);
     } catch {
       /* ignore */
     }
-  }, [resetKey]);
+  }, [resetKey, active]);
 
-  if (!isTurnstileSiteKeyConfigured()) return null;
+  if (!active) return null;
   return <div ref={containerRef} data-testid="turnstile-widget" aria-hidden="true" />;
 }

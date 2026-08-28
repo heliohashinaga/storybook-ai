@@ -61,6 +61,10 @@ interface StoryRequestFormProps {
   /** Localized retry `messageKey` (without the `story.error.` prefix) to seed
    *  the submit error when the app remounts the idle form after a failure. */
   initialError?: string;
+  /** Force the anti-bot widget on/off. Defaults to the build-time site-key
+   *  config; stories pass it explicitly because `NEXT_PUBLIC_*` is inlined at
+   *  build time and can't be toggled at runtime in Storybook. */
+  turnstileEnabled?: boolean;
 }
 
 export function StoryRequestForm({
@@ -70,6 +74,7 @@ export function StoryRequestForm({
   onSubmit,
   onSuccess,
   initialError,
+  turnstileEnabled: turnstileEnabledProp,
 }: StoryRequestFormProps) {
   const t = useTranslations("story");
   const { locale: appLocale } = useLocaleContext();
@@ -97,7 +102,9 @@ export function StoryRequestForm({
   const disabled = submitting;
 
   // Turnstile (feature 019). No-op when the site key is unset (feature off).
-  const turnstileEnabled = isTurnstileSiteKeyConfigured();
+  // An explicit `turnstileEnabled` prop overrides the env-derived default so
+  // stories can exercise both states deterministically.
+  const turnstileEnabled = turnstileEnabledProp ?? isTurnstileSiteKeyConfigured();
   const [turnstileToken, setTurnstileToken] = useState("");
   const [turnstileError, setTurnstileError] = useState(false);
   const [resetKey, setResetKey] = useState(0);
@@ -356,6 +363,7 @@ function SubmitControls(p: SubmitControlsProps) {
           aria-busy={p.turnstileError || undefined}
         >
           <Turnstile
+            enabled={p.turnstileEnabled}
             onTokenChange={p.onTokenChange}
             onError={p.onTurnstileError}
             resetKey={p.resetKey}
