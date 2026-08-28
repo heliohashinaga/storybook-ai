@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createStoriesHandler } from "../../src/app/api/stories/route";
+import { createStoriesHandler } from "../../src/app/api/stories/create-stories-handler";
 import { InMemoryRateLimiter } from "../../src/lib/rate-limit";
 import type {
   GeneratedStoryCandidate,
