@@ -332,12 +332,23 @@ interface SubmitControlsProps {
   submittingLabel: string;
 }
 
-/** Submit region (feature 019): the optional anti-bot widget and the submit
- *  button. Extracted so the form keeps its complexity budget and never touches
- *  the submit-error ref (which stays inline in the form). */
+/** Submit region (feature 019): the submit button and the optional anti-bot
+ *  widget (placed below the button). Extracted so the form keeps its complexity
+ *  budget and never touches the submit-error ref (which stays inline in the
+ *  form). */
 function SubmitControls(p: SubmitControlsProps) {
   return (
     <>
+      <Button
+        type="submit"
+        size="md"
+        loading={p.submitting}
+        className="w-full !rounded-3xl sm:px-lg sm:py-md"
+      >
+        <SparklesIcon className="size-5" />
+        {p.submitting ? p.submittingLabel : p.submitLabel}
+      </Button>
+
       {p.turnstileEnabled ? (
         <div
           className="flex justify-center"
@@ -351,16 +362,6 @@ function SubmitControls(p: SubmitControlsProps) {
           />
         </div>
       ) : null}
-
-      <Button
-        type="submit"
-        size="md"
-        loading={p.submitting}
-        className="w-full !rounded-3xl sm:px-lg sm:py-md"
-      >
-        <SparklesIcon className="size-5" />
-        {p.submitting ? p.submittingLabel : p.submitLabel}
-      </Button>
     </>
   );
 }
