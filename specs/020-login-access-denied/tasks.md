@@ -129,7 +129,8 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
       (sem Clerk) e estado default **não** contém texto de "acesso negado"/acesso restrito — prova
       de que o override não acende em estado não-permissional.
 - [ ] T010 [P] [US3] Smoke e2e opcional em `tests/e2e/` (Playwright): rota `/` (deploy demo) renderiza
-      painel demo sem acesso negado; demo (`/demo`) gera história fake (regressão spec 015/018).
+      painel demo sem acesso negado; demo (`/demo`) gera história fake (regressão da demo —
+      espec 015/018, incluída a barreira anti-bot da geração, spec 019/ADR 0014).
 
 **Checkpoint**: os três stories funcionam; MVP e incrementos validados.
 

@@ -40,22 +40,27 @@ história.
 
 ---
 
-### User Story 2 - Login de conta recusada não revela se a conta existe (Priority: P2)
+### User Story 2 - Assinatura anti-enumeração: respostas genéricas e indistinguíveis (Priority: P2)
 
-Uma pessoa já com conta (cadastrada), mas que perdeu a permissão de acesso, tenta entrar. O
-sistema recusa o login e mostra a mensagem localizada de acesso negado, **sem** revelar se a
-conta/e-mail existe (anti-enumeração), e sem expor qual conta foi recusada.
+Uma pessoa tenta entrar com credenciais que não autorizam acesso (e-mail fora da permissão ou
+inexistente). O sistema responde de forma **genérica e indistinguível** — sem revelar se a
+conta/e-mail existe (anti-enumeração) e sem expor qual conta foi recusada. Em modo _invite-only_,
+usuários já cadastrados (convidados) continuam conseguindo entrar; não há fluxo de "conta
+revogada" — a garantia desta story é a **neutralidade** da resposta, não uma mensagem específica
+(ver research R-02).
 
-**Why this priority**: Preserva a privacidade e dificulta a descoberta de contas válidas, mantendo
-uma mensagem útil suficiente para o usuário legítimo entender que não tem permissão.
+**Why this priority**: Preserva a privacidade e dificulta a descoberta de contas válidas, sem
+acrescentar override na assinatura — a resposta padrão genérica do provedor (erro de credenciais)
+já satisfaz a anti-enumeração.
 
-**Independent Test**: Tentar entrar com um e-mail fora da permissão → mensagem localizada neutra
-de acesso negado, idêntica para contas existentes e inexistentes.
+**Independent Test**: Tentar entrar com um e-mail fora da permissão e com um e-mail inexistente →
+respostas **idênticas e genéricas** (erro padrão de credenciais), sem diferenciação.
 
 **Acceptance Scenarios**:
 
-1. **Given** um usuário cujo acesso foi revogado, **When** ele tenta entrar na tela de login,
-   **Then** ele vê a mensagem localizada de acesso negado, genérica e sem mencionar o motivo.
+1. **Given** um usuário tenta entrar com credenciais que não autorizam acesso, **When** ele envia o
+   login, **Then** a resposta é **genérica** (erro padrão de credenciais do provedor, não a mensagem
+   de acesso negado) e não menciona o motivo nem revela se a conta existe.
 2. **Given** um e-mail **inexistente** na tela de login, **When** ele tenta entrar, **Then** a
    resposta é **neutra/genérica** — indistinguível da de um e-mail existente porém sem permissão
    (anti-enumeração).
