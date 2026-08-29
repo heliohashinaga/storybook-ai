@@ -96,8 +96,6 @@ const envSchema = z
     CLERK_SIGN_UP_URL: z.string().min(1).optional(),
     CLERK_AFTER_SIGN_IN_URL: z.string().min(1).optional(),
     CLERK_AFTER_SIGN_UP_URL: z.string().min(1).optional(),
-    CLERK_PROXY_URL: z.string().min(1).optional(),
-    CLERK_FRONTEND_API_PROXY: z.enum(["1"]).optional(),
     /**
      * Cloudflare Turnstile demo anti-bot (feature 019). Both optional: absent
      * keys disable the feature (demo behaves as today). `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
@@ -169,8 +167,6 @@ const KNOWN_KEYS = [
   "CLERK_SIGN_UP_URL",
   "CLERK_AFTER_SIGN_IN_URL",
   "CLERK_AFTER_SIGN_UP_URL",
-  "CLERK_PROXY_URL",
-  "CLERK_FRONTEND_API_PROXY",
   // Cloudflare Turnstile demo anti-bot (feature 019) — optional
   "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
   "TURNSTILE_SECRET_KEY",
