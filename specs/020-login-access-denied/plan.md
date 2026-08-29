@@ -11,11 +11,11 @@ anônima e a privacidade/anti-enumeração) + `research.md` (R-01: override de l
 
 Quando um usuário **sem permissão** é recusado no login/cadastro (autoCadastro _invite-only_ do
 Clerk), a tela `/` mostra a mensagem **localizada e genérica** de acesso negado — reaproveitando a
-string `login.accessDenied` de `src/features/auth/locales/{pt-BR,en}.json` — em vez de um erro
-genérico/vazio do Clerk. O mecanismo é um **override de `LocalizationResource`**: estendemos
-`clerkLocalizationFor(locale)` (`login-screen-view.tsx`) para sobrescrever as chaves de permissão
-do Clerk (`unstable__errors.not_allowed_access` e
-`unstable__errors.organization_not_found_or_unauthorized`) com a cópia localizada do app.
+string `login.accessDenied` de `src/features/auth/locales/{pt-BR,en}.json` — em vez da tela padrão
+"Acesso restrito" do Clerk. O mecanismo é um **override de `LocalizationResource`**: estendemos
+`clerkLocalizationFor(locale)` (`login-screen-view.tsx`, via builder puro `buildClerkLocalization`)
+para sobrescrever **`signUp.restrictedAccess.title`** (a tela terminal do sign-up restrito,
+validada nos docs do Clerk / pacote instalado) com a cópia localizada do app.
 **Nenhum** banner custom, **nenhum** bundle novo, **nenhum** cookie/rota de API alterado — a demo
 anônima e o playground autenticado permanecem intactos. A recusa fica anti-enumerável
 (indistinguível entre conta-sem-permissão e e-mail inexistente) e nunca expõe identificador.
@@ -85,12 +85,12 @@ src/
 ├── i18n/                         # catálogos next-intl (pt-BR + en)
 ├── features/auth/
 │   ├── locales/{pt-BR,en}.json   # login.accessDenied / login.signInError (já presentes; reaproveitadas)
-│   ├── client/clerk-localization.ts       # tipo `ClerkLocalization` (inalterado)
+│   ├── client/clerk-localization.ts       # [EDITAR] + builder puro `buildClerkLocalization` (override unstable__errors)
+│   ├── client/clerk-localization.test.ts # (novo) teste hermético do builder (co-localizado)
 │   ├── client/clerk-provider.tsx          # `ClerkProviderGate` (inalterado)
-│   ├── components/login-screen-view.tsx   # [EDITAR] clerkLocalizationFor → override unstable__errors
+│   ├── components/login-screen-view.tsx   # [EDITAR] `clerkLocalizationFor` delega a `buildClerkLocalization`
 │   └── components/login-screen.stories.tsx# [EDITAR] story login (pt-BR + en) após override
 tests/
-├── unit/                                # teste hermético do override (novo)
 ├── component/                           # (conforme padrão do repo)
 └── e2e/                                 # (playwright; opcional para este fluxo)
 ```
@@ -104,14 +104,18 @@ estrutura feature-based do repo (`src/features/auth/`). Nenhuma árvore nova; na
 - Nada (feature additive).
 
 ### Adicionar / Editar
-- **Editar** `src/features/auth/components/login-screen-view.tsx`: em `clerkLocalizationFor(locale)`,
-  além do override de `signIn.start`, adicionar o **override top-level** de
-  `unstable__errors.not_allowed_access` e `unstable__errors.organization_not_found_or_unauthorized`
-  → `useTranslations("login")("accessDenied")` (cópias pt-BR/en). Espalhamento **defensivo**
-  (spread sobre `base.unstable__errors`) para jamais quebrar se a chave sumir.
-- **Novo** teste unitário (hermético) de `clerkLocalizationFor`: mapeia as chaves para
-  `accessDenied` nas duas línguas; invariante de privacidade (nenhuma cópia contém
-  e-mail/identificador); erro não-permissional NÃO mapeia para `accessDenied`.
+- **Adicionar** `buildClerkLocalization(locale: 'pt-BR' | 'en', accessDenied: string): ClerkLocalization`
+  em `src/features/auth/client/clerk-localization.ts` — função **pura**, **spread defensivo** sobre o
+  `base` (nunca quebra se uma chave sumir), que sobrescreve **`signUp.restrictedAccess.title`** com
+  `accessDenied` (e mantém o blank de `signIn.start.title/subtitle`).
+- **Editar** `src/features/auth/components/login-screen-view.tsx`: `clerkLocalizationFor(locale)` passa a
+  **delegar** a `buildClerkLocalization(locale, useTranslations("login")("accessDenied"))`; remover a lógica
+  local duplicada de override (mantendo apenas o uso do builder).
+- **Novo** teste unitário (hermético) co-localizado de `buildClerkLocalization`
+  (`src/features/auth/client/clerk-localization.test.ts`): mapeia `signUp.restrictedAccess.title` para
+  `accessDenied` nas duas línguas; invariante de privacidade (nenhuma cópia contém e-mail/identificador);
+  **não** altera outras chaves de erro (ex.: `signIn`/credenciais) — preserva anti-enumeração; mantém o
+  blank de `signIn.start`.
 - **Editar** `src/features/auth/components/login-screen.stories.tsx`: manter/cobrir o frame em
   pt-BR + en (o override não muda o frame; story já cobre fallback demo). Adicionar assert de
   invariante se conveniente.
@@ -124,9 +128,10 @@ Sem violações da Constitution — coluna não preenchida.
 
 ## Risks / Open items
 
-- Chave `unstable__errors.not_allowed_access` do Clerk pode mudar/renomear em versão futura →
-  mitigado por spread defensivo + teste unitário que falha se a chave sumir na versão instalada.
-- A parcela de **assinatura** recusada por permissão (`organization_not_found_or_unauthorized`)
-  depende do Clerk emitir esse erro no fluxo de login; se o Clerk só emitir para organizações, o
-  override cobre o caso de assinatura e o `not_allowed_access` cobre o cadastro — ambos mapeados
-  para a mesma cópia genérica. Revisar no `tasks.md`.
+- Chave `signUp.restrictedAccess.title` do Clerk pode mudar/renomear em versão futura → mitigado
+  por **spread defensivo** (nunca quebra se a chave sumir) + teste unitário que falha se a chave
+  não existir mais na versão instalada.
+- A tela restrita só é exibida quando o modo é **invite-only/restricted** no painel do Clerk; se o
+  app rodar em modo aberto, não há recusa a mostrar — comportamento correto. Anti-enumeração da
+  assinatura é garantida pelo **default genérico** do Clerk (nenhum override de `signIn`/
+  `unstable__errors`/organização) — R-02.

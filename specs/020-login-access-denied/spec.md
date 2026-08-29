@@ -105,7 +105,8 @@ nenhum erro espúrio de "acesso negado" aparece no caminho feliz.
 - **FR-002**: A mensagem de acesso negado NÃO DEVE revelar **nenhum identificador** (e-mail, nome,
   id) nem o motivo detalhado da recusa (anti-enumeração e privacidade).
 - **FR-003**: A resposta NÃO DEVE diferenciar um e-mail existente-sem-permissão de um e-mail
-  inexistente (anti-enumeração).
+  inexistente — FR-003 é o **teste operacional** de FR-002 (a mesma cópia neutra de acesso negado
+  cobre ambos os casos).
 - **FR-004**: O usuário recusado DEVE continuar podendo acessar a demo anônima (rota pública, sem
   conta, zero cookies).
 - **FR-005**: As mensagens de acesso negado DEVERÃO estar disponíveis nos catálogos de i18n
@@ -113,7 +114,9 @@ nenhum erro espúrio de "acesso negado" aparece no caminho feliz.
 - **FR-006**: Em um deploy somente-demo (autenticação não configurada), NÃO DEVE ser exibida
   nenhuma mensagem de acesso negado — apenas o painel da demo anônima.
 - **FR-007**: Nenhuma informação de identidade (e-mail/nome) DEVE ser enviada aos provedores de
-  LLM, logada ou persistida por causa desta mensagem.
+  LLM, logada ou persistida por causa desta mensagem. **Guard/fora-de-escopo para esta feature**: a
+  tela de login (`/`) não invoca provedores de LLM; mantida como verificação defensiva (pass de
+  privacidade T013), não como task de implementação.
 
 ### Key Entities
 
@@ -135,9 +138,9 @@ Esta feature **não introduz persistência nem novas entidades**. Não há banco
 
 ## Assumptions
 
-- O controle de permissão usa **autoCadastro _invite-only_** (painel do provedor de autenticação),
-  não allowlist paga — o gating permanece no provedor, fora do código (continuação de spec 018 /
-  ADR 0013).
+- O controle de permissão usa **autoCadastro _invite-only_** — modo **restricted** do Clerk
+  (painel do provedor de autenticação), não allowlist paga — o gating permanece no provedor, fora
+  do código (continuação de spec 018 / ADR 0013).
 - A mensagem de acesso negado **genérica** (sem motivo em detalhe) é a escolha correta para
   privacidade e anti-enumeração.
 - A demo anônima (`/demo`) e o playground autenticado (`/form`, `/reader`) são preservados e

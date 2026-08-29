@@ -6,20 +6,21 @@ localização do Clerk e as cópias localizadas do app — dados **efêmeros e e
 
 ## Map (não-persistido; tabela de decisão estática)
 
-| Chave Clerk (topo de `LocalizationResource`) | Origem | Destino (cópia do app) | Quando aplica |
-|----------------------------------------------|--------|-------------------------|---------------|
-| `unstable__errors.not_allowed_access` | Clerk `ptBR`/`enUS` | `login.accessDenied` (pt-BR + en) | Cadastro recusado (_invite-only_) |
-| `unstable__errors.organization_not_found_or_unauthorized` | Clerk default | `login.accessDenied` | Conta sem permissão na assinatura (genérico/anti-enumeração) |
-| falhas não-relacionadas (credenciais, rede, captcha) | Clerk default | `login.signInError` / default Clerk | Erro transiente — **não** acesso negado |
+| Chave Clerk (dentro de `signUp`) | Origem | Destino (cópia do app) | Quando aplica |
+|----------------------------------|--------|-------------------------|---------------|
+| `signUp.restrictedAccess.title` | Clerk `ptBR`/`enUS` | `login.accessDenied` (pt-BR + en) | Tela terminal de sign-up restrito (_invite-only_) — usuário não convidado |
+| `signUp.restrictedAccess.subtitle` (opcional) | Clerk `ptBR`/`enUS` | default localizado (genérico) — sem override no MVP | Mesma tela restrita |
+| erros de assinatura (credenciais, rede) | Clerk default | `login.signInError` / default Clerk | Transiente — **nunca** acesso negado |
 
 ## Validation rules (herdadas da spec)
 
 - `accessDenied` e `signInError` NÃO contêm identificador (FR-002 / FR-003).
 - `accessDenied` é **neutra** — indistinguível entre conta existente-sem-permissão e e-mail
   inexistente (US2/anti-enumeração).
-- Override **estrita** só nas chaves de permissão (`not_allowed_access`,
-  `organization_not_found_or_unauthorized`); jamais desenhar "acesso negado" em erro não-permissional
-  (R-03).
+- Override **estrita**: apenas `signUp.restrictedAccess` (title e, opcionalmente, subtitle); outras
+  chaves de erro (`signIn`/credenciais/`unstable__errors`) permanecem **intactas** — jamais desenhar
+  "acesso negado" em erro não-permissional (R-02/R-03). Nenhum override de chave de organizações
+  (o app não usa organizações — fora de escopo).
 - Mensagens presentes nos catálogos `pt-BR` e `en` (FR-005); sem string hardcoded (FR-005).
 
 ## State (transições)

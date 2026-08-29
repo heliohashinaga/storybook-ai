@@ -31,10 +31,10 @@ Web app (Single): `src/` na raiz; testes **co-localizados** (`src/**/*.test.ts(x
       `@clerk/localizations` ^4.15.6 já presentes no `package.json`) e que as strings
       `login.accessDenied`/`login.signInError` existem em `src/features/auth/locales/pt-BR.json`
       e `src/features/auth/locales/en.json` (reaproveitadas, sem duplicar).
-- [ ] T002 [P] Confirmar que `unstable__errors.not_allowed_access` e
-      `unstable__errors.organization_not_found_or_unauthorized` existem como chaves **top-level**
-      em `node_modules/@clerk/localizations/dist/pt-BR.mjs` e `en-US.mjs` (não aninhadas em
-      `signUp`); documentar o shape verificado em `contracts/localization-override.md`.
+- [ ] T002 [P] Confirmar que a chave **`signUp.restrictedAccess`** (title/subtitle/actionLink)
+      existe aninhada em `signUp` em `node_modules/@clerk/localizations/dist/pt-BR.mjs` e
+      `en-US.mjs` (validado em research R-01); documentar o shape verificado em
+      `contracts/localization-override.md`.
 
 ---
 
@@ -48,19 +48,20 @@ Web app (Single): `src/` na raiz; testes **co-localizados** (`src/**/*.test.ts(x
 
 - [ ] T003 Escrever teste unitário (falhando) em `src/features/auth/client/clerk-localization.test.ts`:
       dado `locale='pt-BR'` e `locale='en'`, `buildClerkLocalization(locale, accessDenied)` deve
-      (a) mapear `unstable__errors.not_allowed_access` e
-      `unstable__errors.organization_not_found_or_unauthorized` para a cópia `accessDenied` do app;
-      (b) **não** mapear erros não-permissionais (ex.: `form_code_incorrect`) para `accessDenied`;
+      (a) sobrescrever **`signUp.restrictedAccess.title`** com a cópia `accessDenied` do app;
+      (b) **não** alterar outras chaves de erro (ex.: `signIn`/credenciais/`unstable__errors`) —
+      preserva a anti-enumeração do default genérico do Clerk;
       (c) manter `signIn.start.title/subtitle` vazios (regressão do atual); (d) preservar as demais
-      chaves do `base` (shape invisível → comparação de objeto país).
+      chaves do `base` (comparação **profunda/par a par** com o `base` espalhado).
 
 ### Implementation
 
 - [ ] T004 Implementar `buildClerkLocalization(locale: 'pt-BR' | 'en', accessDenied: string):
       ClerkLocalization` em `src/features/auth/client/clerk-localization.ts` — função pura,
-      **spread defensivo** sobre `enUS`/`ptBR` e sobre `unstable__errors` (nunca quebra se a chave
-      sumir), resolvendo `not_allowed_access` e `organization_not_found_or_unauthorized` →
-      `accessDenied`, e mantendo o blank de `signIn.start`. **Sem `any`.**
+      **spread defensivo** sobre o `base` `enUS`/`ptBR` (nunca quebra se uma chave sumir),
+      sobrescrevendo **`signUp.restrictedAccess.title`** → `accessDenied`, e mantendo o blank de
+      `signIn.start`. **Somente** a tela restrita é alterada; demais chaves de erro intactas.
+      **Sem `any`.**
 
 **Checkpoint**: builder testado e verde; base pronta para as user stories.
 
@@ -99,9 +100,10 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 ### Tests for User Story 2 (estender o builder)
 
 - [ ] T007 [US2] Estender `src/features/auth/client/clerk-localization.test.ts`: assert de
-      **neutralidade** (occupação de acesso negado para `organization_not_found_or_unauthorized` é
-      identicamente `accessDenied`, não distinguível por código de erro) e **privacidade** (nenhuma
-      cópia resultante contém padrão de e-mail/identificador — regex simples).
+      **neutralidade** (o `base` de erros de assinatura/`unstable__errors` permanece **intacto** —
+      `buildClerkLocalization` não toca chaves de credenciais/desconhecidos, preservando respostas
+      genéricas e indistinguíveis) e **privacidade** (a cópia `accessDenied` não contém padrão de
+      e-mail/identificador — regex simples).
 
 ### Implementation for User Story 2
 
@@ -137,14 +139,17 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 
 **Purpose**: documentação, qualidade e gates.
 
-- [ ] T011 [P] Documentação: registrar o override (message localizado de acesso negado via
-      `unstable__errors.not_allowed_access`) no `specs/020-login-access-denied/quickstart.md` e
-      `contracts/localization-override.md` (já existem — revisar coerência com a implementação); sem
-      conflito com spec 018 (não adicionar roles; apenas mensagem).
+- [ ] T011 [P] Documentação: registrar o override (mensagem localizada de acesso negado via
+      `signUp.restrictedAccess.title`) no `specs/020-login-access-denied/quickstart.md` e
+      `contracts/localization-override.md` (já existem — revisar coerência com a implementação e
+      com a validação da chave em research R-01); sem conflito com spec 018 (não adicionar roles;
+      apenas mensagem).
 - [ ] T012 Rodar **gates finais** após a última edição: `pnpm lint` (0 warnings),
       `pnpm format:check` (rodar `pnpm format` nos arquivos editados), `pnpm typecheck`,
       `pnpm test -- --run src/features/auth`, e validar `pnpm test:coverage:check` (regras ≥90% de
-      segurança/validation/orchestration — o builder de auth é módulo sensível).
+      segurança/validation/orchestration — o builder de auth é módulo sensível). Como sanity check
+      de performance (meta do plano), conferir que o bundle da rota `/` não cresceu (override reusa
+      clerk-js já lazy) — ex.: `pnpm build` sem alerta de tamanho novo relevante.
 - [ ] T013 [P] Pass de segurança/privacidade: revisar diff para ausência de `NEXT_PUBLIC_*` novo,
       ausência de e-mail/identificador nas cópias, e `Cache-Control: no-store` das APIs intacto
       (nenhuma rota de API tocada).

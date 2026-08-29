@@ -22,9 +22,9 @@ pnpm lint && pnpm format:check && pnpm typecheck
 ```
 
 **Esperado**:
-- `clerkLocalizationFor({ locale: 'pt-BR' })` e `({ locale: 'en' })` mapeiam
-  `unstable__errors.not_allowed_access` e `organization_not_found_or_unauthorized` para
-  `login.accessDenied`, com as cópias pt-BR/en corretas.
+- `buildClerkLocalization({ locale: 'pt-BR' })` e `({ locale: 'en' })` sobrescrevem
+  `signUp.restrictedAccess.title` para `login.accessDenied`, com as cópias pt-BR/en corretas, e
+  **não** alteram outras chaves de erro (anti-enumeração preservada).
 - Invariante: nenhuma cópia resultante contém e-mail/identificador.
 - Story de `LoginScreenView` cobre o frame login; a11y (contraste) passa.
 

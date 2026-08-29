@@ -12,24 +12,24 @@ os testes tenham uma referência única.
 ## Fronteira (input → output)
 
 ```
-Clerk emite erro de permissão no fluxo <SignIn>/<SignUp> (restricted/invite-only)
-  → clerkLocalizationFor(locale) resolve a cópia localizada do app
-  → ClerkProvider (localization) renderiza a mensagem localizada dentro do UI do Clerk
+Usuário não convidado tenta cadastro em modo <SignUp> restrito (invite-only) no fluxo </>/<SignIn>
+  → Clerk renderiza a tela terminal "Restricted access" (signUp.restrictedAccess)
+  → buildClerkLocalization(locale, accessDenied) sobrescreve signUp.restrictedAccess.title
+  → ClerkProvider (localization) exibe a cópia localizada do app
 ```
 
 ### Mapeamento de chaves
 
-| Chave Clerk (`LocalizationResource`, nível topo) | Cópia app (next-intl `login.*`) | pt-BR | en |
+| Chave Clerk (dentro de `signUp`) | Cópia app (next-intl `login.*`) | pt-BR | en |
 |---|---|---|---|
-| `unstable__errors.not_allowed_access` | `login.accessDenied` | "Esta conta não pode entrar aqui." | "This account can't sign in here." |
-| `unstable__errors.organization_not_found_or_unauthorized` | `login.accessDenied` | idem | idem |
+| `signUp.restrictedAccess.title` | `login.accessDenied` | "Esta conta não pode entrar aqui." | "This account can't sign in here." |
+| `signUp.restrictedAccess.subtitle` (opcional) | default localizado (genérico) | idem default | idem default |
 
 ### Regras do contrato
 
-1. **Exclusividade**: `unstable__errors.not_allowed_access` e
-   `organization_not_found_or_unauthorized` **sempre** resolvem para `login.accessDenied` (genérica,
-   sem identificador). Erros não-permissionais **nunca** mapeiam para `accessDenied` → usam
-   `login.signInError` ou o default do Clerk.
+1. **Exclusividade**: somente `signUp.restrictedAccess.title` (e opcionalmente `subtitle`) é
+   sobrescrito. Erros não-permissionais **nunca** mapeiam para `accessDenied` → usam
+   `login.signInError` ou o default do Clerk. Nenhum override de `unstable__errors`/organização.
 2. **Neutralidade**: a mensagem final é indistinguível entre conta existente-sem-permissão e e-mail
    inexistente (anti-enumeração).
 3. **Identidade**: nenhuma das cópias contém e-mail/nome/id (privacidade).
