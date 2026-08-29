@@ -20,36 +20,12 @@ const isClerkConfigured = Boolean(
   process.env.CLERK_SECRET_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 );
 
-/**
- * Custom Clerk Frontend API domain (spec 018 / ADR 0013). Two supported models:
- *
- * - **Clerk-hosted custom domain** (chosen for this app: `clerk.hashinaga.dev`, a
- *   separate subdomain served by Clerk). The publishable key is bound to that
- *   domain and clerk-js/FAPI traffic goes straight to it (cross-origin cookie
- *   handshake). Set `CLERK_PROXY_URL=<scheme>://<domain>` so the server resolver
- *   targets it and the CSP (next.config.ts) allows loading the client runtime.
- * - **App-origin auto-proxy**: with production (`pk_live_`) keys on a non-Clerk
- *   host, `@clerk/nextjs` can auto-proxy the Frontend API/clerk-js through the
- *   app's own origin (`frontendApiProxy` auto-detect). Dev (`pk_test_`) keys do
- *   *not* auto-proxy, which caused the earlier dev-browser handshake churn.
- *
- * Both env knobs are optional, server-only, and leave current/auto behavior
- * untouched when unset:
- *
- * - `CLERK_PROXY_URL`: the Clerk Frontend API base URL (Clerk-hosted custom
- *   domain, or a self-hosted proxy). Passed to `clerkMiddleware({ proxyUrl })`;
- *   also feed the CSP origin in next.config.ts.
- * - `CLERK_FRONTEND_API_PROXY=1`: force-enable the app-origin Frontend API proxy
- *   (mainly for same-origin dev-key/testing scenarios).
- */
-const forceFrontendApiProxy = process.env.CLERK_FRONTEND_API_PROXY === "1";
-const proxyUrl = process.env.CLERK_PROXY_URL || undefined;
+// The Frontend API proxy (spec 018 / ADR 0013) was removed: Clerk's
+// recommended production path is a CNAME custom-domain so FAPI/clerk-js load
+// from a domain we control (first-party), with no app-side proxy wiring.
 
 export default isClerkConfigured
-  ? clerkMiddleware({
-      ...(forceFrontendApiProxy ? { frontendApiProxy: { enabled: true } } : {}),
-      ...(proxyUrl ? { proxyUrl } : {}),
-    })
+  ? clerkMiddleware()
   : function proxy() {
       return NextResponse.next();
     };
