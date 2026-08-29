@@ -21,18 +21,26 @@ const isClerkConfigured = Boolean(
 );
 
 /**
- * Custom Clerk domain (spec 018 / ADR 0013). With **production** (`pk_live_`)
- * keys on a non-Clerk host, `@clerk/nextjs` automatically proxies the Clerk
- * Frontend API and clerk-js through the app's own origin (`frontendApiProxy`
- * auto-detect) — no explicit wiring required. Dev (`pk_test_`) keys do *not*
- * auto-proxy, which is what caused the dev-browser handshake churn at the
- * production domain. Both knobs below are optional, server-only, and leave
- * the current/auto behavior untouched when unset:
+ * Custom Clerk Frontend API domain (spec 018 / ADR 0013). Two supported models:
  *
- * - `CLERK_PROXY_URL`: explicit Frontend API base for the rarer dual-domain
- *   setup (a separate auth subdomain). Passed to `clerkMiddleware({ proxyUrl })`.
- * - `CLERK_FRONTEND_API_PROXY=1`: force-enable the Frontend API proxy
- *   explicitly (e.g. to test custom-domain auth with a development key).
+ * - **Clerk-hosted custom domain** (chosen for this app: `clerk.hashinaga.dev`, a
+ *   separate subdomain served by Clerk). The publishable key is bound to that
+ *   domain and clerk-js/FAPI traffic goes straight to it (cross-origin cookie
+ *   handshake). Set `CLERK_PROXY_URL=<scheme>://<domain>` so the server resolver
+ *   targets it and the CSP (next.config.ts) allows loading the client runtime.
+ * - **App-origin auto-proxy**: with production (`pk_live_`) keys on a non-Clerk
+ *   host, `@clerk/nextjs` can auto-proxy the Frontend API/clerk-js through the
+ *   app's own origin (`frontendApiProxy` auto-detect). Dev (`pk_test_`) keys do
+ *   *not* auto-proxy, which caused the earlier dev-browser handshake churn.
+ *
+ * Both env knobs are optional, server-only, and leave current/auto behavior
+ * untouched when unset:
+ *
+ * - `CLERK_PROXY_URL`: the Clerk Frontend API base URL (Clerk-hosted custom
+ *   domain, or a self-hosted proxy). Passed to `clerkMiddleware({ proxyUrl })`;
+ *   also feed the CSP origin in next.config.ts.
+ * - `CLERK_FRONTEND_API_PROXY=1`: force-enable the app-origin Frontend API proxy
+ *   (mainly for same-origin dev-key/testing scenarios).
  */
 const forceFrontendApiProxy = process.env.CLERK_FRONTEND_API_PROXY === "1";
 const proxyUrl = process.env.CLERK_PROXY_URL || undefined;
