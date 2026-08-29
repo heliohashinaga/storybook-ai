@@ -26,12 +26,12 @@ const cspScriptSrc = isProduction
 // EXPLICIT RELAXATION (signed off, per AGENTS.md — no unlabeled loosening):
 // Clerk's client SDK loads its JS runtime + CSS and talks to its Frontend API
 // (FAPI) from the Clerk accounts domain. Dev instances serve `*.clerk.accounts.dev`;
-// production serves `*.clerk.accounts`. A custom Clerk domain (spec 018 / ADR 0013)
-// is served from the app's own origin: with production keys, `clerkMiddleware`
-// auto-proxies the FAPI/clerk-js through `'self'` (already CSP-allowed). A
-// separately-hosted auth subdomain (`CLERK_PROXY_URL`) is added explicitly
-// below for completeness. Without these origins the <SignIn>/<SignUp>
-// components fail with `failed_to_load_clerk_js`.
+// production serves `*.clerk.accounts`. With a dedicated Clerk Frontend API
+// custom domain (spec 018 / ADR 0013, e.g. `clerk.hashinaga.dev`), clerk-js and
+// the cross-origin cookie handshake live on that origin — it must be CSP-allowed
+// or <SignIn>/<SignUp> fail with `failed_to_load_clerk_js` / blocked FAPI calls.
+// The custom-domain origin (CLERK_PROXY_URL) is added below; `'self'` covers the
+// app-origin auto-proxy model. Without these origins the auth UI breaks.
 const clerkManagedOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
 const clerkProxyOrigin = process.env.CLERK_PROXY_URL
   ? new URL(process.env.CLERK_PROXY_URL).origin
