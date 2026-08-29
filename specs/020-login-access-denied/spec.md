@@ -11,6 +11,12 @@ não tem permissão de acesso (conta/cadastro recusado no autoCadastro _invite-o
 as strings `accessDenied`/`signInError` já presentes nos catálogos de i18n (pt-BR e en) e
 preservando a demo anônima e a privacidade (não revelar se a conta existe, não expor identificador).
 
+## Clarifications
+
+### Session 2026-08-21
+
+- Q: Além do título da tela de acesso restrito, personalizar também o subtítulo? → A: **Não** — sobrescrever apenas `signUp.restrictedAccess.title` com `login.accessDenied`; manter o subtítulo localizado padrão do Clerk (genérico e privacy-safe), sem nova string i18n.
+
 ## User Scenarios & Testing
 
 ### User Story 1 - Cadastro recusado com mensagem clara de acesso negado (Priority: P1)
@@ -31,8 +37,8 @@ história.
 **Acceptance Scenarios**:
 
 1. **Given** um usuário **não convidado** na tela de login, **When** ele tenta se cadastrar,
-   **Then** o cadastro é recusado e ele vê uma mensagem localizada de acesso negado ("Esta conta
-   não pode entrar aqui") sem expor o motivo detalhado.
+   **Then** o cadastro é recusado e ele vê uma mensagem localizada de acesso negado no **título** da
+   tela de acesso restrito do Clerk ("Esta conta não pode entrar aqui") sem expor o motivo detalhado.
 2. **Given** a mensagem de acesso negado exibida, **When** o usuário busca continuar usando o
    produto, **Then** ele ainda consegue acessar a demo anônima (rota pública, sem conta).
 3. **Given** a mensagem de acesso negado exibida, **When** o usuário procura a conta/e-mail
@@ -152,3 +158,6 @@ Esta feature **não introduz persistência nem novas entidades**. Não há banco
   isolados como hoje (spec 018 / ADR 0013); esta feature não altera a separação de cookies.
 - As strings `accessDenied`/`signInError` existentes são a base; é permitido ajustá-las
   pontualmente desde que continuem localizadas e sem identificador.
+- O override de acesso negado incide **somente** no **título** (`signUp.restrictedAccess.title` →
+  `login.accessDenied`); o subtítulo permanece o **default localizado do Clerk** (genérico e
+  privacy-safe). Escopo-alvo dos testes de aceite: o título.
