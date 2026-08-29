@@ -40,6 +40,10 @@ export const Default: Story = {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { level: 1 })).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
+    // Feature 020 guard: on the anonymous demo path (no Clerk), no access-
+    // denied / restricted message may appear (FR-006 / US3 regression guard).
+    await expect(canvas.queryByText(/acesso negado/i)).not.toBeInTheDocument();
+    await expect(canvas.queryByText(/acesso restrito/i)).not.toBeInTheDocument();
   },
 };
 

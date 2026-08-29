@@ -27,11 +27,11 @@ Web app (Single): `src/` na raiz; testes **co-localizados** (`src/**/*.test.ts(x
 
 **Purpose**: Confirmar pré-requisitos e ancorar o ponto de override do Clerk.
 
-- [ ] T001 Verificar que **nenhuma dependência nova** é necessária (`@clerk/nextjs` ^7.8.1,
+- [x] T001 Verificar que **nenhuma dependência nova** é necessária (`@clerk/nextjs` ^7.8.1,
       `@clerk/localizations` ^4.15.6 já presentes no `package.json`) e que as strings
       `login.accessDenied`/`login.signInError` existem em `src/features/auth/locales/pt-BR.json`
       e `src/features/auth/locales/en.json` (reaproveitadas, sem duplicar).
-- [ ] T002 [P] Confirmar que a chave **`signUp.restrictedAccess`** (title/subtitle/actionLink)
+- [x] T002 [P] Confirmar que a chave **`signUp.restrictedAccess`** (title/subtitle/actionLink)
       existe aninhada em `signUp` em `node_modules/@clerk/localizations/dist/pt-BR.mjs` e
       `en-US.mjs` (validado em research R-01); documentar o shape verificado em
       `contracts/localization-override.md`.
@@ -46,7 +46,7 @@ Web app (Single): `src/` na raiz; testes **co-localizados** (`src/**/*.test.ts(x
 
 ### Tests (test-first — escrever ANTES, devem FALHAR)
 
-- [ ] T003 Escrever teste unitário (falhando) em `src/features/auth/client/clerk-localization.test.ts`:
+- [x] T003 Escrever teste unitário (falhando) em `src/features/auth/client/clerk-localization.test.ts`:
       dado `locale='pt-BR'` e `locale='en'`, `buildClerkLocalization(locale, accessDenied)` deve
       (a) sobrescrever **`signUp.restrictedAccess.title`** com a cópia `accessDenied` do app;
       (b) **não** alterar outras chaves de erro (ex.: `signIn`/credenciais/`unstable__errors`) —
@@ -56,7 +56,7 @@ Web app (Single): `src/` na raiz; testes **co-localizados** (`src/**/*.test.ts(x
 
 ### Implementation
 
-- [ ] T004 Implementar `buildClerkLocalization(locale: 'pt-BR' | 'en', accessDenied: string):
+- [x] T004 Implementar `buildClerkLocalization(locale: 'pt-BR' | 'en', accessDenied: string):
       ClerkLocalization` em `src/features/auth/client/clerk-localization.ts` — função pura,
       **spread defensivo** sobre o `base` `enUS`/`ptBR` (nunca quebra se uma chave sumir),
       sobrescrevendo **`signUp.restrictedAccess.title`** → `accessDenied`, e mantendo o blank de
@@ -77,11 +77,11 @@ here." (en), sem expor e-mail.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Refatorar `clerkLocalizationFor` em `src/features/auth/components/login-screen-view.tsx`
+- [x] T005 [P] [US1] Refatorar `clerkLocalizationFor` em `src/features/auth/components/login-screen-view.tsx`
       para delegar a `buildClerkLocalization` (importado de `../client/clerk-localization`), passando
       `useTranslations("login")("accessDenied")` como cópia; remover a lógica local duplicada de
       override (mantendo apenas o uso do builder).
-- [ ] T006 [P] [US1] Atualizar `src/features/auth/components/login-screen.stories.tsx`: garantir que o
+- [x] T006 [P] [US1] Atualizar `src/features/auth/components/login-screen.stories.tsx`: garantir que o
       frame de `LoginScreenView` renderiza o fallback demo (sem Clerk) sem mensagem de acesso negado,
       em pt-BR e en (guard de regressão do frame).
 
@@ -99,7 +99,7 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 
 ### Tests for User Story 2 (estender o builder)
 
-- [ ] T007 [US2] Estender `src/features/auth/client/clerk-localization.test.ts`: assert de
+- [x] T007 [US2] Estender `src/features/auth/client/clerk-localization.test.ts`: assert de
       **neutralidade** (o `base` de erros de assinatura/`unstable__errors` permanece **intacto** —
       `buildClerkLocalization` não toca chaves de credenciais/desconhecidos, preservando respostas
       genéricas e indistinguíveis) e **privacidade** (a cópia `accessDenied` não contém padrão de
@@ -107,7 +107,7 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] Confirmar/garantir que erros **não-permissionais** (credenciais erradas, rede,
+- [x] T008 [US2] Confirmar/garantir que erros **não-permissionais** (credenciais erradas, rede,
       captcha) resolvem para `login.signInError`/default do Clerk — **nunca** `accessDenied`
       (verificação no `login-screen-view.tsx`; ajustar `buildClerkLocalization` somente se o teste
       T007 falhar).
@@ -125,7 +125,7 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 
 ### Implementation for User Story 3
 
-- [ ] T009 [US3] Adicionar teste de componente no story/`*.test.tsx`: `LoginScreenView` em modo demo
+- [x] T009 [US3] Adicionar teste de componente no story/`*.test.tsx`: `LoginScreenView` em modo demo
       (sem Clerk) e estado default **não** contém texto de "acesso negado"/acesso restrito — prova
       de que o override não acende em estado não-permissional.
 - [ ] T010 [P] [US3] Smoke e2e opcional em `tests/e2e/` (Playwright): rota `/` (deploy demo) renderiza
@@ -140,18 +140,18 @@ privacidade); manual: login com e-mail inexistente vs sem-permissão → respost
 
 **Purpose**: documentação, qualidade e gates.
 
-- [ ] T011 [P] Documentação: registrar o override (mensagem localizada de acesso negado via
+- [x] T011 [P] Documentação: registrar o override (mensagem localizada de acesso negado via
       `signUp.restrictedAccess.title`) no `specs/020-login-access-denied/quickstart.md` e
       `contracts/localization-override.md` (já existem — revisar coerência com a implementação e
       com a validação da chave em research R-01); sem conflito com spec 018 (não adicionar roles;
       apenas mensagem).
-- [ ] T012 Rodar **gates finais** após a última edição: `pnpm lint` (0 warnings),
+- [x] T012 Rodar **gates finais** após a última edição: `pnpm lint` (0 warnings),
       `pnpm format:check` (rodar `pnpm format` nos arquivos editados), `pnpm typecheck`,
       `pnpm test -- --run src/features/auth`, e validar `pnpm test:coverage:check` (regras ≥90% de
       segurança/validation/orchestration — o builder de auth é módulo sensível). Como sanity check
       de performance (meta do plano), conferir que o bundle da rota `/` não cresceu (override reusa
       clerk-js já lazy) — ex.: `pnpm build` sem alerta de tamanho novo relevante.
-- [ ] T013 [P] Pass de segurança/privacidade: revisar diff para ausência de `NEXT_PUBLIC_*` novo,
+- [x] T013 [P] Pass de segurança/privacidade: revisar diff para ausência de `NEXT_PUBLIC_*` novo,
       ausência de e-mail/identificador nas cópias, e `Cache-Control: no-store` das APIs intacto
       (nenhuma rota de API tocada).
 

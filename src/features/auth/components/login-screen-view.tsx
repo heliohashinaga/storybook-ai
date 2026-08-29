@@ -2,7 +2,6 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import dynamic from "next/dynamic";
-import { enUS, ptBR } from "@clerk/localizations";
 
 /**
  * Clerk's `<SignIn>` statically imports clerk-js (~400 KiB). It is dynamically
@@ -25,7 +24,7 @@ const SignIn = dynamic(() => import("@clerk/nextjs").then((m) => m.SignIn), {
     </div>
   ),
 });
-import type { ClerkLocalization } from "../client/clerk-localization";
+import { buildClerkLocalization, type ClerkLocalization } from "../client/clerk-localization";
 import { ClerkProviderGate } from "../client/clerk-provider";
 import { NavMenuContents } from "../../shell/components/nav-menu-contents";
 import { TopNavMenu } from "../../shell/components/top-nav-menu";
@@ -34,28 +33,6 @@ import { StarField } from "./star-field";
 
 /** True when Clerk keys are present (playground enabled). */
 const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
-/** Map the active locale to a Clerk localization resource.
- *
- *  The app's own hero (brand + tagline) already renders above the `<SignIn>`,
- *  so Clerk's default header (`title`/`subtitle`, e.g. "Sign in to
- *  Storybook AI" / "Welcome back! Please sign in to continue") is redundant.
- *  We blank those two strings out to avoid the duplication (decision: option B
- *  — remove, not re-copy). */
-function clerkLocalizationFor(locale: string): ClerkLocalization {
-  const base = locale === "pt-BR" ? ptBR : enUS;
-  const signIn = base.signIn;
-  // enUS/ptBR always ship `signIn`, but the Clerk type marks it optional; guard
-  // so we don't spread `undefined` (and keep the return type intact).
-  if (!signIn) return base;
-  return {
-    ...base,
-    signIn: {
-      ...signIn,
-      start: { ...signIn.start, title: "", subtitle: "" },
-    },
-  };
-}
 
 /**
  * Client login screen (spec 018). Renders the Clerk `<SignIn>` component
@@ -71,7 +48,13 @@ export function LoginScreenView() {
   const tBrand = useTranslations("story.brand");
   const t = useTranslations("login");
   const locale = useLocale();
-  const localization = clerkLocalizationFor(locale);
+  // App-consistent Clerk localization: blanks the default sign-in hero and
+  // surfaces our localized "access denied" copy on the restricted sign-up
+  // screen (feature 020). Only title is overridden; subtitle stays Clerk's.
+  const localization = buildClerkLocalization(
+    locale === "pt-BR" ? "pt-BR" : "en",
+    t("accessDenied")
+  );
 
   return (
     <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-16 pb-12">
