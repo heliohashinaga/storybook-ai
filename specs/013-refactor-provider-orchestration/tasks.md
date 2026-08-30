@@ -97,7 +97,7 @@ via barrel e testada.
   `provider-core/` (factory), nunca no corpo dos adapters.
 - [x] T031 (US3) Remover dead code: confirmar que nenhum import/helper órfão ficou nos adapters após
   a extração (sem imports não usados, sem funções mortas).
-- [x] T032 (US3) Documentação: **verificar/revisar** `docs/adr/adr-0010-provider-orchestration-factory.md`
+- [x] T032 (US3) Documentação: **verificar/revisar** `docs/adr/0010-provider-orchestration-factory.md`
   (já criado e commitado na fase de setup do spec), confirmando que está em sincronia com a
   implementação real da factory única (decisão, consequências e arquivos mencionados), e ajustar
   se necessário — seguindo o template dos ADRs existentes (ex.: `adr-0008-provider-core-extraction.md`).
