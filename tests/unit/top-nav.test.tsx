@@ -127,11 +127,9 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test";
     renderTopNav();
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-    // `SignOutButton` is lazily imported via `next/dynamic` (kept out of the
-    // initial bundle), so await the async chunk before asserting. Bump the
-    // timeout: under a heavy full-suite run the dynamic chunk can take longer
-    // than the 1000ms default to resolve, which is a load-timing flake, not a
-    // real failure.
+    // `SignOutButton` is now a static, eager import — the item renders instantly
+    // with the menu, no chunk round-trip. `findByRole` still guards against any
+    // async; the timeout is generous for slow CI.
     expect(
       await screen.findByRole("menuitem", { name: /sair/i }, { timeout: 5000 })
     ).toBeInTheDocument();

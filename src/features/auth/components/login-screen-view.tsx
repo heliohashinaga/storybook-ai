@@ -102,7 +102,10 @@ function ScreenKebab({ label }: { label: string }) {
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 z-40 flex justify-center">
       <div className="w-full max-w-7xl px-3 pt-4 sm:px-6 sm:pt-5 lg:px-12">
-        <div className="flex justify-end">
+        {/* pointer-events-auto re-enables clicking the kebab trigger + panel;
+            the strip itself stays pointer-events-none so empty surroundings
+            never block the centered hero behind it. */}
+        <div className="pointer-events-auto flex justify-end">
           <TopNavMenu label={label}>
             <NavMenuContents />
           </TopNavMenu>

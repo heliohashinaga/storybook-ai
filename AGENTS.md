@@ -190,14 +190,16 @@ A lightweight git pre-commit hook (`scripts/pre-commit`) runs `lint`, `format:ch
 
 - Full generation (story + safety + N images, N up to 5) ≤120 s end-to-end.
 - Initial form/reader LCP p75 ≤2.5 s (mid-tier mobile/4G).
-- Initial route JS ≤275 KiB gzip (excludes scene images; **lazy-import**
-  `@react-pdf/renderer` only on export — never in the initial bundle, and the
-  Clerk SDK is lazy-loaded on the landing route behind `next/dynamic`). The
-  original 250 KiB ceiling predates the Clerk-on-landing migration (spec 018)
-  and is unreachable on the React 19 + Next 16 + next-intl baseline; the
-  measured floor is ~261 KiB with every heavy lib deferred. The 275 KiB ceiling
-  still fails hard on a heavy-lib regression (a static Clerk re-add ~+340 KiB
-  would blow past it).
+- Initial route JS ≤900 KiB gzip (excludes scene images; **lazy-import**
+  `@react-pdf/renderer` only on export — never in the initial bundle). The Clerk
+  SDK (`@clerk/nextjs`) is **statically imported** by the shared top-nav for the
+  Sign out menu item, which is eager by design (owner decision — keeps the kebab
+  menu fully interactive on the playground routes; see `top-nav.tsx`). Because the
+  top-nav lives in the root layout, clerk-js rides in the initial bundle on every
+  route; the measured production landing floor is ~609 KiB (the bulk being
+  clerk-js). The 900 KiB ceiling keeps a comfortable margin over that floor while
+  still failing hard on a heavy-lib regression (e.g. adding PDF or another vendor
+  SDK statically would blow past it).
 - Scene navigation ≤100 ms p75 after assets load.
 
 ## Definition of Done
