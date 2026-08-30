@@ -107,7 +107,7 @@ modelo, essa divergência é invisível em runtime até quebrar.
 
 ## ADR
 
-- [ADR-0010 — Provider orchestration factory](../../docs/adr/adr-0010-provider-orchestration-factory.md)
+- [ADR-0010 — Provider orchestration factory](../../docs/adr/0010-provider-orchestration-factory.md)
 
 ## Applied Patches
 

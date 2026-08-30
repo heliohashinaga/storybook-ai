@@ -2,21 +2,19 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
 import { ClerkProviderGate } from "../../auth/client/clerk-provider";
+import { SignOutButton } from "./sign-out-button";
+import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
- * `SignOutButton` statically imports `useClerk` from `@clerk/nextjs`, which
- * pulls in the ~400 KiB clerk-js runtime. It is dynamically imported
- * (client-only) so clerk-js stays OUT of the initial `/` bundle and the 250 KiB
- * initial-JS budget holds (AGENTS.md: heavy libs are lazy).
+ * `SignOutButton` is a **static** import (not `next/dynamic`): the item is
+ * available the instant the kebab opens on the playground routes instead of
+ * appearing only after a separate chunk round-trip. It is mounted exclusively
+ * behind `isPlayground && isClerkConfigured` (never on `/` or `/demo`), where
+ * Clerk is already part of the authenticated playground runtime.
  */
-const SignOutButton = dynamic(() => import("./sign-out-button").then((m) => m.SignOutButton), {
-  ssr: false,
-});
-import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
  * Top bar: home brand mark + a kebab (⋮) menu.
