@@ -1,0 +1,32 @@
+# Auto-merge safe Dependabot PRs: wait for all CI checks to pass, then
+# squash-merge. Major version bumps are excluded (manual review).
+# Works without branch protection: the merge only runs after
+# `gh pr checks --watch --fail-fast` exits green on the current HEAD.
+name: Dependabot auto-merge
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+
+jobs:
+  automerge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+
+      - name: Wait for CI and merge (patch/minor only)
+        if: steps.meta.outputs.update-type != 'version-update:semver-major'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr checks "$PR_NUMBER" --watch --fail-fast --interval 30
+          gh pr merge "$PR_NUMBER" --squash --delete-branch
