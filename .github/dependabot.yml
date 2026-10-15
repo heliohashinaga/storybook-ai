@@ -7,3 +7,9 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    # Batch safe bumps (minor+patch) into one PR; majors stay solo so a
+    # breaking release can't hold the rest hostage.
+    groups:
+      minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
