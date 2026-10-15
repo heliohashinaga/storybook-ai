@@ -1,0 +1,15 @@
+diff --git a/dist/_browser-chunks/chunk-MPD4I4WS.js b/dist/_browser-chunks/chunk-MPD4I4WS.js
+index 20122916aeb7a7842ee42e5d725debb3fadcdd15..77248e9e151e5e196c63b65946cbd7fb6758d1c6 100644
+--- a/dist/_browser-chunks/chunk-MPD4I4WS.js
++++ b/dist/_browser-chunks/chunk-MPD4I4WS.js
+@@ -114,6 +114,10 @@ var getParallelRoutes = (segmentsList) => {
+           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+           // @ts-ignore Only available in Next.js >= v15.1.1
+           parentTree: tree,
++          // Next.js 16.4 support: useRouter() reads
++          // layout?.parentRenderTree.data.bfcacheId (gesture-transition id).
++          // TODO: drop when @storybook/nextjs ships this natively.
++          parentRenderTree: { data: { bfcacheId: 0 } },
+           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+           // @ts-ignore Only available in Next.js >= v15.1.1
+           parentCacheNode: newLazyCacheNode,
