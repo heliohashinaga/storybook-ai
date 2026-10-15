@@ -34,7 +34,7 @@
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2"
   },
   "dependencies": {
-    "@clerk/localizations": "^4.15.6",
+    "@clerk/localizations": "^4.23.0",
     "@clerk/nextjs": "^7.9.14",
     "@react-pdf/renderer": "^4.6.1",
     "next": "^16.3.3",
