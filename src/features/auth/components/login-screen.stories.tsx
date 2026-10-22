@@ -30,28 +30,39 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 /**
- * Renders the app login frame. The Clerk `<SignIn>` (Google + e-mail/senha) is
- * mounted by the component only when Clerk is configured; in a storybook build
- * without Clerk keys it falls back to the demo-only panel. We assert the app
- * wrapper that exists in both modes (heading + "explore the demo" entry).
+ * Renders the app porteiro frame (ADR 0015). The shared-password form is
+ * mounted by the component only when the gatekeeper is configured; in a
+ * storybook build without gatekeeper vars it falls back to the demo-only
+ * panel. We assert the app wrapper that exists in both modes (heading +
+ * "explore the demo" entry).
  */
 export const Default: Story = {
+  args: { gateConfigured: true },
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    await expect(canvas.getByLabelText(/senha/i)).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
-    // Feature 020 guard: on the anonymous demo path (no Clerk), no access-
-    // denied / restricted message may appear (FR-006 / US3 regression guard).
-    await expect(canvas.queryByText(/acesso negado/i)).not.toBeInTheDocument();
-    await expect(canvas.queryByText(/acesso restrito/i)).not.toBeInTheDocument();
+  },
+};
+
+export const DemoOnly: Story = {
+  args: { gateConfigured: false },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    await expect(canvas.queryByLabelText(/senha/i)).not.toBeInTheDocument();
+    await expect(canvas.getByRole("link", { name: /explorar a demo/i })).toBeInTheDocument();
   },
 };
 
 export const English: Story = {
+  args: { gateConfigured: true },
   decorators: [withLocalizedI18n("en")],
   play: async ({ canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    await expect(canvas.getByLabelText(/password/i)).toBeInTheDocument();
     await expect(canvas.getByRole("link", { name: /explore the demo/i })).toBeInTheDocument();
   },
 };

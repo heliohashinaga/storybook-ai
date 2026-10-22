@@ -1,35 +1,31 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { auth } from "@clerk/nextjs/server";
+import { isAuthenticated } from "../features/auth/server/session";
 import { LoginScreenView } from "../features/auth/components/login-screen-view";
 
-// The login gate is rendered on demand (never statically prerendered) so the
-// Clerk provider is mounted at request time and the anonymous demo path never
-// touches a session cookie (spec 018 / ADR 0013).
+// The porteiro gate renders on demand (never statically prerendered) so the
+// session check runs at request time and the anonymous demo path never touches
+// a session cookie (ADR 0015).
 export const dynamic = "force-dynamic";
 
+/** True when the gatekeeper is configured (playground enabled). */
+function isGateConfigured(): boolean {
+  return Boolean(process.env.GATEKEEPER_SECRET && process.env.PLAYGROUND_PASSWORD_HASH);
+}
+
 /**
- * `/` — login screen (spec 018). Server redirects an authenticated visitor
- * straight to the playground; anonymous visitors get the Clerk `<SignIn>` (Google
- * + e-mail/senha) plus the always-available Demo entry point (anonymous, zero
- * cookies). Demo-only deploys (no `CLERK_SECRET_KEY`) skip `auth()` gracefully
- * and render the demo-only panel with no Clerk provider/cookie. `LoginScreenView`
- * mounts its own `ClerkProviderGate` internally (it needs `useLocale` for
- * localization), so this page must not wrap it again.
+ * `/` — porteiro do playground (ADR 0015). The server redirects an
+ * authenticated visitor straight to the playground; anonymous visitors get the
+ * shared-password screen plus the always-available Demo entry point
+ * (anonymous, zero cookies). Demo-only deploys (no gatekeeper vars) render
+ * the demo-only panel with no session and no cookie.
  */
 export default async function HomePage() {
-  let userId: string | null = null;
-  try {
-    const session = await auth();
-    userId = session.userId;
-  } catch {
-    userId = null;
-  }
-  if (userId) redirect("/form");
+  if (await isAuthenticated()) redirect("/form");
 
   return (
     <Suspense>
-      <LoginScreenView />
+      <LoginScreenView gateConfigured={isGateConfigured()} />
     </Suspense>
   );
 }

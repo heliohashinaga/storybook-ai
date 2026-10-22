@@ -3,13 +3,11 @@
     "title": "Storybook AI",
     "heading": "Storybook AI",
     "tagline": "Crie histórias mágicas com IA.",
-    "google": "Continuar com o Google",
-    "github": "Continuar com o GitHub",
-    "or": "OU",
+    "password": "Senha do playground",
+    "submit": "Entrar",
+    "invalidCredentials": "Senha incorreta. Tente de novo.",
     "demo": "Explorar a Demo",
-    "noCredentials": "Acesso ainda não configurado. Explore a demo.",
-    "signInError": "Não deu para entrar. Tente de novo ou use outra conta.",
-    "accessDenied": "Esta conta não pode entrar aqui."
+    "noCredentials": "O acesso ao playground ainda não foi configurado. Explore a demo."
   },
   "auth": {
     "nav": {

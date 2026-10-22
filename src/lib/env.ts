@@ -82,26 +82,25 @@ const envSchema = z
     MODEL_MAX_ATTEMPTS: z.coerce.number().int().positive().optional(),
     PIPELINE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
     /**
-     * Auth/Clerk configuration (spec 018 / ADR 0013). All optional: demo-only
-     * deploys run with none of them and the Clerk middleware/provider are
-     * mounted conditionally (stub) so the app boots without auth. `CLERK_SECRET_KEY`
-     * is server-only; `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is the publishable key
-     * (non-secret, exposed to the browser by design — exceção à regra "no
-     * NEXT_PUBLIC_*" do AGENTS.md, registrada no ADR 0013). The remaining keys
-     * are redirect/URL configs consumed by `@clerk/nextjs`.
+     * Gatekeeper (porteiro) do playground — senha única compartilhada.
+     * Ambos opcionais: deploy demo-only roda sem eles e o porteiro fica
+     * desabilitado (demo 100% anônima). `GATEKEEPER_SECRET` assina o JWT
+     * httpOnly (HS256, mínimo 32 chars); `PLAYGROUND_PASSWORD_HASH` é o
+     * hex SHA-256 da senha (`printf %s "$PW" | sha256sum`). Nenhum vai ao
+     * cliente; lidos só via `getEnv()` / `process.env` no servidor.
      */
-    CLERK_SECRET_KEY: z.string().min(1).optional(),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
-    CLERK_SIGN_IN_URL: z.string().min(1).optional(),
-    CLERK_SIGN_UP_URL: z.string().min(1).optional(),
-    CLERK_AFTER_SIGN_IN_URL: z.string().min(1).optional(),
-    CLERK_AFTER_SIGN_UP_URL: z.string().min(1).optional(),
+    GATEKEEPER_SECRET: z.string().min(32).optional(),
+    PLAYGROUND_PASSWORD_HASH: z
+      .string()
+      .regex(/^[0-9a-f]{64}$/i)
+      .optional(),
     /**
-     * Cloudflare Turnstile demo anti-bot (feature 019). Both optional: absent
-     * keys disable the feature (demo behaves as today). `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-     * is a **publishable** (non-secret) key exposed to the browser by design —
-     * an explicit exception to the "no NEXT_PUBLIC_*" rule (ADR 0014), like
-     * Clerk's publishable key (ADR 0013). `TURNSTILE_SECRET_KEY` is server-only.
+     * Cloudflare Turnstile demo anti-bot (feature 019). Both keys are
+     * optional: absent keys disable the feature (demo behaves as today).
+     * `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is a **publishable** (non-secret) key
+     * exposed to the browser by design — an explicit exception to the "no
+     * NEXT_PUBLIC_*" rule (ADR 0014), like Turnstile site key (ADR 0014).
+     * `TURNSTILE_SECRET_KEY` is server-only.
      */
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
     TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
@@ -160,17 +159,13 @@ const KNOWN_KEYS = [
   "MODEL_TIMEOUT_MS",
   "MODEL_MAX_ATTEMPTS",
   "PIPELINE_TIMEOUT_MS",
-  // auth/Clerk (spec 018) — optional; demo-only sem CLERK_SECRET_KEY
-  "CLERK_SECRET_KEY",
-  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-  "CLERK_SIGN_IN_URL",
-  "CLERK_SIGN_UP_URL",
-  "CLERK_AFTER_SIGN_IN_URL",
-  "CLERK_AFTER_SIGN_UP_URL",
+  // gatekeeper do playground (porteiro senha única) — opcional; demo-only sem chaves
+  "GATEKEEPER_SECRET",
+  "PLAYGROUND_PASSWORD_HASH",
   // Cloudflare Turnstile demo anti-bot (feature 019) — optional
   "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
   "TURNSTILE_SECRET_KEY",
-  // removed legacy vars (rejected by .strict() under D5-C: no compat)
+  // removed legacy vars (rejected by `.strict()` under D5-C: no compat)
   "OPENROUTER_TEXT_MODEL",
   "OPENROUTER_IMAGE_MODEL",
   "OPENROUTER_MODERATION_MODEL",
@@ -197,5 +192,5 @@ export function getEnv(): ServerEnv {
     throw new Error("Server environment is missing required provider configuration.");
   }
   cached = parsed.data;
-  return cached;
+  return parsed.data;
 }

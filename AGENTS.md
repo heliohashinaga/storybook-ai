@@ -28,6 +28,14 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   (`courage | friendship | kindness | curiosity | perseverance | empathy`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
   cache. Exact age and generated stories live in React in-memory state only.
+  **RATIFIED EXCEPTION (ADR 0015, revoga 0012/0013):** um cookie de sessão do
+  porteiro (`__Host-gatekeeper`, JWT HS256 com `{ gate: true }`, httpOnly,
+  SameSite=Lax, Secure, TTL 24h) é permitido **só** no playground (`/form`,
+  `/reader`) para gatar a geração LLM real. Sem identidade (sem e-mail/nome/sub
+  de usuário), nada persistido/logado/exposto ao cliente/enviado a providers;
+  the authenticated playground path (`/form`, `/reader`) to gate real-LLM
+  generation. The demo path (`/`, `/demo`) stays 100% cookie-less; story payloads
+  remain `ageBand|locale|theme|sceneCount`.
   **RATIFIED EXCEPTION (ADR 0012, spec 015):** one httpOnly JWT session cookie
   (`authjs.session-token`, SameSite=Lax, Secure, TTL 24h) is allowed **only** on
   the authenticated playground path (`/form`, `/reader`) to gate real-LLM

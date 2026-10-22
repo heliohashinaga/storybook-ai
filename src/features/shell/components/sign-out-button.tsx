@@ -1,25 +1,28 @@
 "use client";
 
-import { useClerk } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { TopNavMenu } from "./top-nav-menu";
 
 /**
- * Sign-out action for the kebab menu. Lives as its own client component so the
- * `useClerk()` hook is only ever called *inside* a `ClerkProvider` — it must be
- * rendered exclusively where the playground provider is mounted (spec 018 /
- * ADR 0013). The caller gates rendering on `isClerkConfigured`, so the demo
- * path never mounts it (no provider, no session to sign out of).
+ * Sign-out action for the kebab menu. Ends the gatekeeper session via
+ * `POST /api/gate/logout` and returns to the porteiro (`/`). It is rendered
+ * exclusively on the configured playground routes — the demo path has no
+ * session to end (ADR 0015). No provider or auth SDK needed.
  */
 export function SignOutButton() {
   const t = useTranslations("auth");
-  const { signOut } = useClerk();
+  const router = useRouter();
 
   return (
     <TopNavMenu.Item
       icon={<LogOutIcon className="size-5" />}
       tone="danger"
-      onPress={() => signOut({ redirectUrl: "/" })}
+      onPress={async () => {
+        await fetch("/api/gate/logout", { method: "POST" });
+        router.push("/");
+        router.refresh();
+      }}
     >
       {t("nav.logout")}
     </TopNavMenu.Item>

@@ -1,40 +1,37 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { GATE_COOKIE_NAME } from "./features/auth/gate-cookie";
 
 /**
- * Auth proxy (spec 018 / ADR 0013).
+ * Porteiro do playground (ADR 0015).
  *
- * Next.js 16 renamed the `middleware` file convention to `proxy`; this file is
- * the migration of the former `src/middleware.ts`. It runs the Clerk proxy on
- * app + API routes, **except** `/demo`: `/demo` stays 100% anonymous (no
- * `__clerk_*` cookie, no session) — it is excluded from the matcher.
- * `/api/:path*` is included so `auth()` resolves inside the `/api/stories`
- * and `/api/narrate` route handlers (mode is derived from the session;
- * anonymous → demo, defense-in-depth).
+ * Guarda **só** as páginas do playground (`/form`, `/reader`): sem cookie de
+ * porteiro → redirect para `/`. A verificação completa do JWT (assinatura +
+ * expiração) acontece no servidor (`requireSession()` / `isAuthenticated()`);
+ * aqui no proxy basta a presença do cookie para o redirect barato — um token
+ * forjado/expirado cai no guard da página ou vira demo na API.
  *
- * Demo-only deploy (no `CLERK_SECRET_KEY`): the proxy is a no-op so the app
- * boots without Clerk and the demo works with zero cookies.
+ * `/demo` e `/` nunca recebem cookie (100% anônimos). As rotas de API
+ * (`/api/stories`, `/api/narrate`) **não** redirecionam: derivam o modo da
+ * sessão por request (autenticado → playground real; anônimo → demo fake).
  */
-
-const isClerkConfigured = Boolean(
-  process.env.CLERK_SECRET_KEY && process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-);
-
-// The Frontend API proxy (spec 018 / ADR 0013) was removed: Clerk's
-// recommended production path is a CNAME custom-domain so FAPI/clerk-js load
-// from a domain we control (first-party), with no app-side proxy wiring.
-
-export default isClerkConfigured
-  ? clerkMiddleware()
-  : function proxy() {
-      return NextResponse.next();
-    };
+export default function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isPlaygroundPage =
+    pathname === "/form" ||
+    pathname.startsWith("/form/") ||
+    pathname === "/reader" ||
+    pathname.startsWith("/reader/");
+  if (!isPlaygroundPage) return NextResponse.next();
+  if (request.cookies.has(GATE_COOKIE_NAME)) return NextResponse.next();
+  const url = request.nextUrl.clone();
+  url.pathname = "/";
+  return NextResponse.redirect(url);
+}
 
 export const config = {
-  // Skip Next internals and static files (unless found in search params) and
-  // exclude `/demo` (anonymous path). Always run on API routes.
+  // Guarda as páginas do playground; pula internos/estáticos e a demo anônima.
   matcher: [
     "/((?!_next|demo|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
   ],
 };

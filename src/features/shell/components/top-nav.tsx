@@ -4,16 +4,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { NavMenuContents } from "./nav-menu-contents";
 import { TopNavMenu } from "./top-nav-menu";
-import { ClerkProviderGate } from "../../auth/client/clerk-provider";
 import { SignOutButton } from "./sign-out-button";
 import { BrandLogo } from "../../../components/ui/brand-logo";
 
 /**
- * `SignOutButton` is a **static** import (not `next/dynamic`): the item is
- * available the instant the kebab opens on the playground routes instead of
- * appearing only after a separate chunk round-trip. It is mounted exclusively
- * behind `isPlayground && isClerkConfigured` (never on `/` or `/demo`), where
- * Clerk is already part of the authenticated playground runtime.
+ * `SignOutButton` ends the gatekeeper session (cookie clear + nav home). It is
+ * mounted exclusively behind `isPlayground` (never on `/` or `/demo`), where
+ * a gatekeeper session may exist to end.
  */
 
 /**
@@ -32,7 +29,7 @@ import { BrandLogo } from "../../../components/ui/brand-logo";
  *
  * All state is in-memory only: language and theme pickers drive
  * `useLocaleContext` / `useColorScheme` and nothing is persisted. `SignOutButton`
- * (mounted only on the configured playground) ends the Clerk session.
+ * (mounted only on the configured playground) ends the gatekeeper session.
  */
 export function TopNav() {
   const t = useTranslations("story.brand");
@@ -48,10 +45,9 @@ export function TopNav() {
   const isDemo = pathname === "/demo" || pathname.startsWith("/demo/");
   const homePath = isDemo ? "/demo" : "/";
   const onHome = pathname === homePath;
-  // Sign out is meaningful only on the protected playground routes and only
-  // when Clerk is configured (the demo path has no session to end).
+  // Sign out is meaningful only on the protected playground routes (the demo
+  // path has no session to end).
   const isPlayground = pathname === "/form" || pathname === "/reader";
-  const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 
   return (
     <header className="mx-auto grid w-full max-w-7xl grid-cols-[1fr_auto] items-center gap-2 px-3 py-4 sm:gap-3 sm:px-6 sm:py-5 lg:px-12">
@@ -72,18 +68,10 @@ export function TopNav() {
           mobile and desktop share the exact same menu experience. */}
       <TopNavMenu label={t("menuLabel")}>
         <NavMenuContents
-          // The top nav lives in the root layout, outside the playground
-          // layout's <ClerkProvider>. Sign out calls `useClerk()`, so it needs
-          // a provider too. We mount a scoped `ClerkProviderGate` just for the
-          // action (never on /demo, which stays cookie/anon-free), consistent
-          // with the app's pattern of conditional providers (ADR 0013).
-          trailing={
-            isPlayground && isClerkConfigured ? (
-              <ClerkProviderGate>
-                <SignOutButton />
-              </ClerkProviderGate>
-            ) : undefined
-          }
+          // The sign-out action needs no provider: it clears the gatekeeper
+          // session cookie via `POST /api/gate/logout` (never on /demo,
+          // which stays cookie/anon-free).
+          trailing={isPlayground ? <SignOutButton /> : undefined}
         />
       </TopNavMenu>
     </header>

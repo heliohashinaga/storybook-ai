@@ -19,17 +19,14 @@ import { switchToPortuguese } from "../e2e/helpers";
 
 const BUDGETS = {
   // Initial route JS: the landing `/` route loads the React 19 + Next 16 runtime,
-  // next-intl, and the (anonymous) login screen. The Clerk SDK (`@clerk/nextjs`)
-  // is now a **static** dependency of the shared top-nav (the Sign out menu item
-  // is eager by design — owner decision to keep the kebab fully interactive on
-  // the playground routes, see `top-nav.tsx`). Because the top-nav lives in the
-  // root layout, clerk-js rides in the initial bundle on every route; the real,
-  // measured production landing floor is ~609 KiB gzip (the bulk being clerk-js).
+  // next-intl, and the (anonymous) porteiro screen. The playground gate adds
+  // zero client JS (ADR 0015: no auth SDK, no `NEXT_PUBLIC_*`, the gatekeeper
+  // cookie is verified server-side), so the floor stays well under the ceiling.
   // `@react-pdf/renderer` remains lazy — export only, asserted below. The 900 KiB
-  // ceiling keeps a comfortable margin over the measured ~609 KiB floor while
-  // still failing hard on a heavy-lib regression (adding PDF or another vendor
-  // SDK statically, e.g. ~+340 KiB, would blow past it).
-  initialJsKib: 900, // ≤ 900 KiB gzip (measured production baseline ~609 KiB — Clerk is static)
+  // ceiling keeps a comfortable margin while still failing hard on a heavy-lib
+  // regression (adding PDF or another vendor SDK statically, e.g. ~+340 KiB,
+  // would blow past it).
+  initialJsKib: 900, // ≤ 900 KiB gzip (porteiro adds zero client JS)
   lcpMs: 2500, // ≤ 2.5s
   sceneNavMsP75: 100, // ≤ 100ms
   generationMs: 120_000, // ≤ 120s

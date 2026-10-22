@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import type { ServerEnv } from "../../src/lib/env";
 
 /** Minimal raw string environment inputs (using the new per-agent schema, spec 006). */
@@ -245,44 +245,48 @@ describe("env server validation", () => {
   });
 });
 
-describe("clerk env (spec 018 / ADR 0013)", () => {
-  const CLERK_KEYS = [
-    "CLERK_SECRET_KEY",
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-    "CLERK_SIGN_IN_URL",
-    "CLERK_SIGN_UP_URL",
-    "CLERK_AFTER_SIGN_IN_URL",
-    "CLERK_AFTER_SIGN_UP_URL",
-  ];
+describe("gatekeeper env (porteiro, ADR 0015)", () => {
+  const GATEKEEPER_KEYS = ["GATEKEEPER_SECRET", "PLAYGROUND_PASSWORD_HASH"];
 
   beforeEach(() => {
-    for (const key of CLERK_KEYS) delete process.env[key];
+    for (const key of GATEKEEPER_KEYS) delete process.env[key];
   });
 
-  it("parses the full CLERK_* set (optional, demo-only without them)", async () => {
-    for (const key of CLERK_KEYS)
-      process.env[key] = key === "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY" ? "pk_test_x" : "sk_test_x";
+  afterEach(() => {
+    for (const key of GATEKEEPER_KEYS) delete process.env[key];
+  });
+
+  it("parses the gatekeeper pair (optional, demo-only without them)", async () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({
       ...validEnv,
-      CLERK_SECRET_KEY: "sk_test_x",
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "pk_test_x",
-      CLERK_SIGN_IN_URL: "/",
-      CLERK_SIGN_UP_URL: "/",
-      CLERK_AFTER_SIGN_IN_URL: "/form",
-      CLERK_AFTER_SIGN_UP_URL: "/form",
+      GATEKEEPER_SECRET: "0123456789abcdef0123456789abcdef",
+      PLAYGROUND_PASSWORD_HASH: "e".repeat(64),
     });
     expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.GATEKEEPER_SECRET).toBe("0123456789abcdef0123456789abcdef");
+      expect(result.data.PLAYGROUND_PASSWORD_HASH).toBe("e".repeat(64));
+    }
   });
 
-  it("derives a demo-only deploy when no CLERK_* is set (gates off)", async () => {
+  it("derives a demo-only deploy when no gatekeeper vars are set (gates off)", async () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({ ...validEnv });
     expect(result.success).toBe(true);
-    if (result.success) expect(result.data.CLERK_SECRET_KEY).toBeUndefined();
+    if (result.success) {
+      expect(result.data.GATEKEEPER_SECRET).toBeUndefined();
+      expect(result.data.PLAYGROUND_PASSWORD_HASH).toBeUndefined();
+    }
   });
 
-  it("rejects stray AUTH_* (no allowlist concept in the Clerk design)", async () => {
+  it("rejects a short gatekeeper secret and a malformed password hash", async () => {
+    const { parseEnv } = await loadEnv();
+    expect(parseEnv({ ...validEnv, GATEKEEPER_SECRET: "short" }).success).toBe(false);
+    expect(parseEnv({ ...validEnv, PLAYGROUND_PASSWORD_HASH: "not-hex" }).success).toBe(false);
+  });
+
+  it("rejects stray AUTH_* (no allowlist concept in the gatekeeper design)", async () => {
     const { parseEnv } = await loadEnv();
     const result = parseEnv({ ...validEnv, AUTH_ALLOWLIST_EMAILS: "a@b.com" });
     expect(result.success).toBe(false);
