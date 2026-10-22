@@ -26,18 +26,19 @@ with illustrations.
 - 🔊 **Read-aloud** of the current scene.
 - 📄 **PDF export**.
 - 🌓 **Dark mode**.
-- 🔐 **Optional login** (Clerk: Google or e-mail + password) that gates the
+- 🔐 **Optional shared-password gate** (porteiro, ADR 0015) guarding the
   real-LLM playground (`/form`, `/reader`) — anonymous visitors can still
   explore via `/demo`.
 
 ## Access & demo
 
-- **`/`** — the **login gate**: sign in with Google or e-mail/password (Clerk),
+- **`/`** — the **password gate**: enter the shared playground password,
   or click **Explore the Demo**.
 - **`/demo`** 🧪 — the anonymous playground (mirrors the form): deterministic
-  fake stories, zero cookies, no login.
-- **`/form` / `/reader`** 🔐 — the authenticated playground: uses the real
-  multi-agent LLM pipeline and requires login.
+  fake stories, zero cookies, no password.
+- **`/form` / `/reader`** 🔐 — the gated playground: uses the real
+  multi-agent LLM pipeline and requires the gatekeeper session (identity-free
+  cookie, 24h).
 
 The demo and playground render the **same** story UI; only the generation
 backend (fake catalog vs. real LLMs) and the session requirement differ.
@@ -131,31 +132,34 @@ different provider/model with the fitting capability.
 | `TTS_RATE_LIMIT_MAX_REQUESTS`   | `30`    | max narration requests / window        |
 | `TTS_RATE_LIMIT_WINDOW_MS`      | `60000` | rate-limit window for narration        |
 
-#### 🔐 Authentication (optional — Clerk)
+#### 🔐 Playground gate (optional — shared password)
 
-Auth is managed by **Clerk** (ADR 0013 / spec 018) via its embedded
-**Clerk Components** (`<SignIn>`), offering **Google** (OAuth) and
-**e-mail + password** sign-in (sign-up is invite-only; email verification and
-password reset are self-service inside Clerk). With no Clerk keys set, the app
-runs in **demo-only** mode: `/` shows the login screen but only **Explore the
-Demo** works (no session, no cookie).
+The playground is guarded by a **shared-password gatekeeper** (ADR 0015):
+`POST /api/gate/login` compares the password against a stored SHA-256 hash
+(constant-time) and, on success, issues an identity-free JWT (`{ gate: true }`,
+HS256, 24h) in the httpOnly cookie `__Host-gatekeeper`. With both vars unset,
+the app runs in **demo-only** mode: `/` shows the password screen but only
+**Explore the Demo** works (no session, no cookie).
 
-| Variable                            | Purpose                                                   |
-| ----------------------------------- | --------------------------------------------------------- |
-| `CLERK_SECRET_KEY`                  | **server-only**; required to enable auth (`sk_test_...`)  |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key (non-secret; exposed to the client) |
-| `CLERK_SIGN_IN_URL`                 | route hosting the embedded `<SignIn>` (default `/`)       |
-| `CLERK_SIGN_UP_URL`                 | route hosting the embedded `<SignUp>` (default `/`)       |
-| `CLERK_AFTER_SIGN_IN_URL`           | post-sign-in redirect (default `/form`)                   |
-| `CLERK_AFTER_SIGN_UP_URL`           | post-sign-up redirect (default `/form`)                   |
+| Variable                   | Purpose                                                          |
+| -------------------------- | ---------------------------------------------------------------- |
+| `GATEKEEPER_SECRET`        | **server-only** JWT signing secret, min 32 chars                 |
+| `PLAYGROUND_PASSWORD_HASH` | **server-only** hex SHA-256 of the password (never the password) |
 
-`CLERK_SECRET_KEY` is read only via `getEnv()` and never reaches the client.
-The session lives in an httpOnly cookie on the playground path only (`/form`,
-`/reader`) — **`/demo` stays 100% cookie-less** — and the app never stores or
-logs any identity; generation payloads remain `ageBand | locale | theme |
-sceneCount`. On a demo-only deploy (no `CLERK_SECRET_KEY`) the Clerk middleware
-and provider become no-ops, so the app boots and `/demo` works with zero
-cookies.
+Generate them (note `printf %s` — no trailing newline):
+
+```bash
+openssl rand -hex 32
+printf %s "your-password" | sha256sum
+```
+
+Both vars are read only via `getEnv()` and never reach the client (no
+`NEXT_PUBLIC_*`, no auth JS in the bundle). The session cookie exists on the
+playground path only (`/form`, `/reader`) — **`/demo` stays 100% cookie-less**
+— and the app never stores or logs any identity; generation payloads remain
+`ageBand | locale | theme | sceneCount`. Sharing access with family means
+sharing the password out-of-band; rotating it means setting a new hash and
+redeploying.
 
 > Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
 > deterministic dev run — no AI calls are made.

@@ -84,7 +84,10 @@ invariants; a regression here is a failed definition of done.
 - **Secrets:** keys are read only via `getEnv()` (`lib/env.ts`, `.strict()`
   whitelist) and injected only in `Authorization: Bearer`; no secret goes to the
   client. Never commit `.env.local`; scrub `apiKey`/`secret`/`token` from
-  observability. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
+  observability. The gatekeeper pair (`GATEKEEPER_SECRET` ≥32 chars,
+  `PLAYGROUND_PASSWORD_HASH` hex SHA-256 via `printf %s "$PW" | sha256sum`)
+  is server-only too — the clear-text password is never stored, committed, or
+  logged. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
   alerts checked (no new high-severity CVEs in the runtime path).
 
 ## Commands
