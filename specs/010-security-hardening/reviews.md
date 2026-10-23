@@ -74,3 +74,34 @@ PR avança; o status `CONCLUÍDO` aqui deve bater com os status em
 - **PR #5 (CodeQL):** workflow verde + 0 alerts novos.
 - **SCA residual (dev-only):** re-checar quando `image-size ≥2.0.3` e
   `elliptic ≥6.6.2` forem publicados; limpar `pnpm audit` completo e Dependabot.
+
+## Rodada SCA 2026-10-23 (`chore/security-overrides`)
+
+Baseline: 29 alertas Dependabot abertos (2 critical, 9 high, 16 moderate,
+2 low) e `pnpm audit` com **35 vulns** (19 high). `pnpm audit --prod` já estava
+limpo — **todo o residual é devDependency**, então nunca entrou no runtime path.
+
+Resolvido por `pnpm.overrides` (`pnpm-workspace.yaml`), sem bump de major no app:
+`axios 1.20.0`, `vite 8.2.4`, `brace-expansion 1.1.21/2.1.7/5.0.12`,
+`follow-redirects 1.16.1`, `postcss-selector-parser 7.1.6`,
+`source-map-js 1.2.2`, `pbkdf2 3.1.7` e `webpack-dev-middleware 7.4.6`
+(este último exige major: 6.x não tem patch; validado com `storybook:test`).
+
+Resultado: **35 → 2** no `pnpm audit` completo, **0 no `--prod`**. Os 2 alertas
+criticals do Dependabot (`storybook`, patch 10.6.2) já estavam obsoletos — a base
+está em 10.6.3 desde o bump do grupo minor/patch; fecham no próximo scan, como
+`@vitest/mocker 5.0.5` (patch 5.0.3).
+
+**Aceitos (dev-only, patch ainda não publicado no registry):**
+
+| Advisory | Pacote | Severidade | Situação |
+| --- | --- | --- | --- |
+| GHSA-vfj7-8cjw-p6xm | `braces` ≤3.0.3 | high | advisory nomeia 3.0.4; última release é 3.0.3 |
+| GHSA-848j-6mx2-7j84 | `elliptic` ≤6.6.1 | low | advisory nomeia 6.6.2; última release é 6.6.1 |
+
+Ambos vêm de cadeia de build/test (micromatch/chokidar e
+`@storybook/nextjs > crypto-browserify`), recebem apenas padrões/inputs nossos e
+não tocam dados de usuário. Revisitar quando as releases saírem.
+
+**Gates:** `pnpm test` 782/782, `storybook:test` 20 suites / 91 testes,
+`typecheck`, `lint`, `format:check` e `build` ✅.

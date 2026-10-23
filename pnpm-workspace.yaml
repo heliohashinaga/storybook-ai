@@ -33,6 +33,22 @@ overrides:
   "js-yaml@4": 4.3.2
   "joi@17": 17.13.8
   "joi@18": 18.2.9
+  # Dependabot fixes (dev tooling only — `pnpm audit --prod` is clean).
+  # Patched versions per GHSA; see "Dependency security" in specs/010-security-hardening.
+  axios: 1.20.0 # GHSA-* (8 advisories)
+  vite: 8.2.4 # GHSA-587h-7wmj-h5pm, -rq7h, -vfpm, -r825, -698v, -9jrq
+  "brace-expansion@1": 1.1.21 # GHSA-q2hr-2g5m-vwhr
+  "brace-expansion@2": 2.1.7 # GHSA-q2hr-2g5m-vwhr
+  "brace-expansion@5": 5.0.12 # GHSA-q2hr-2g5m-vwhr
+  follow-redirects: 1.16.1 # GHSA-q3jh-wrc6-jgq8, -8r9p-f939-6h3c
+  postcss-selector-parser: 7.1.6 # GHSA-rj75-hqrm-r3gf
+  source-map-js: 1.2.2 # GHSA-68fv-2mgg-jv7q
+  webpack-dev-middleware: 7.4.6 # GHSA-g84c-rxfj-3j2c (major: 6.x has no patch)
+  pbkdf2: 3.1.7 # GHSA-477h-4r7f-fvrx
+  # Accepted (dev-only, patch not published yet — the advisories name a version
+  # above the current latest release). Revisit when the releases land:
+  #   GHSA-vfj7-8cjw-p6xm  braces <=3.0.3 (high)   names 3.0.4, latest is 3.0.3
+  #   GHSA-848j-6mx2-7j84  elliptic <=6.6.1 (low)  names 6.6.2, latest is 6.6.1
 
 patchedDependencies:
   '@storybook/nextjs@10.5.10': patches/@storybook__nextjs@10.5.10.patch
