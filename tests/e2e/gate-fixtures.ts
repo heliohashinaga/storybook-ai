@@ -9,10 +9,11 @@
  * keeps the E2E/visual/perf runs on the *production-shaped* (gated) landing page.
  *
  * These are throw-away test credentials — never valid outside a local/CI run.
- * The hash is the `scrypt$<saltHex>$<hashHex>` value for `GATE_E2E_PASSWORD`
+ * The hash is the `scrypt:<saltHex>:<keyHex>` value for `GATE_E2E_PASSWORD`
  * (fixed salt so it is a stable literal; regenerate with `pnpm gate:hash`).
+ * Field separator is `:` because Next expands `$` in `.env` values.
  */
 export const GATE_E2E_SECRET = "e2e-gatekeeper-secret-0123456789abcdef";
 export const GATE_E2E_PASSWORD = "e2e-playground-password";
 export const GATE_E2E_PASSWORD_HASH =
-  "scrypt$00112233445566778899aabbccddeeff$bc2d388e775b9c81d9c987de46f0b6d6cacd8e6ac4e8aaa3e9cfcddfab077f70";
+  "scrypt:00112233445566778899aabbccddeeff:bc2d388e775b9c81d9c987de46f0b6d6cacd8e6ac4e8aaa3e9cfcddfab077f70";

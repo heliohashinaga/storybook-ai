@@ -39,7 +39,7 @@ Substituir o Clerk por **senha única compartilhada + JWT httpOnly**:
 5. Remoção total: `@clerk/nextjs`, `@clerk/localizations`, `ClerkProviderGate`,
    `clerkMiddleware`, rota `sso-callback`, `clerk-localization.ts`, `<SignIn>`,
    chaves `CLERK_*` (env e CSP); entram `GATEKEEPER_SECRET` (≥32 chars) e
-   `PLAYGROUND_PASSWORD_HASH` (`scrypt$<salt>$<key>`, gerado por `pnpm gate:hash`).
+   `PLAYGROUND_PASSWORD_HASH` (`scrypt:<salt>:<key>`, gerado por `pnpm gate:hash`).
 
 ## Consequências
 
@@ -54,7 +54,8 @@ Substituir o Clerk por **senha única compartilhada + JWT httpOnly**:
   O hash é uma **derivação scrypt com salt aleatório**, não um digest rápido:
   quem ler o segredo do deploy não consegue quebrar a senha compartilhada
   offline a custo baixo (revisão pós-CodeQL: o SHA-256 disparava
-  `js/insufficient-password-hash`).
+  `js/insufficient-password-hash`). Separador `:` e não `$`: o Next expande
+  `$` em valores de `.env`, o que truncava o valor para `scrypt` no load.
 - **Bundle:** zero JS de auth no cliente; teto de 900 KiB mantido com margem
   ampla (o floor de ~609 KiB do clerk-js deixa de existir).
 - **Testes:** `gate.test.ts` + `api/gate/route.test.ts` + sessão mockada por

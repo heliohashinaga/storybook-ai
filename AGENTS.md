@@ -93,8 +93,9 @@ invariants; a regression here is a failed definition of done.
   whitelist) and injected only in `Authorization: Bearer`; no secret goes to the
   client. Never commit `.env.local`; scrub `apiKey`/`secret`/`token` from
   observability. The gatekeeper pair (`GATEKEEPER_SECRET` ≥32 chars,
-  `PLAYGROUND_PASSWORD_HASH` = `scrypt$<salt>$<key>` from `pnpm gate:hash` — a
-  random-salt KDF, never a fast hash like SHA-256)
+  `PLAYGROUND_PASSWORD_HASH` = `scrypt:<salt>:<key>` from `pnpm gate:hash` — a
+  random-salt KDF, never a fast hash like SHA-256, and never with a `$`
+  separator because Next expands `$` in `.env` values)
   is server-only too — the clear-text password is never stored, committed, or
   logged. **Never hash a password with a fast digest** (SHA-256/MD5/SHA-1):
   CodeQL's `js/insufficient-password-hash` fails the PR. Compare derivations

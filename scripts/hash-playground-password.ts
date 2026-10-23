@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * Prints (and optionally writes) the `PLAYGROUND_PASSWORD_HASH` value for the
- * playground porteiro (ADR 0015): `scrypt$<saltHex>$<hashHex>`.
+ * playground porteiro (ADR 0015): `scrypt:<saltHex>:<keyHex>`.
  *
  * The hash is a scrypt derivation with a fresh random salt — never a fast hash
  * of the password (a SHA-256 digest would be brute-forceable offline by anyone
@@ -39,7 +39,7 @@ export function derivePasswordHash(
   salt: Buffer = randomBytes(SALT_BYTES)
 ): string {
   const derived = scryptSync(password, salt, KEY_LENGTH, SCRYPT_OPTIONS);
-  return `scrypt$${salt.toString("hex")}$${derived.toString("hex")}`;
+  return `scrypt:${salt.toString("hex")}:${derived.toString("hex")}`;
 }
 
 /**

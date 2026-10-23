@@ -34,7 +34,10 @@ describe("gatekeeper (porteiro, ADR 0015)", () => {
   it("stores a salted scrypt derivation, never a fast hash of the password", async () => {
     const { hashPassword, isPasswordCorrect } = await loadGateWithPassword("correct-horse");
     const stored = process.env.PLAYGROUND_PASSWORD_HASH!;
-    expect(stored).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    expect(stored).toMatch(/^scrypt:[0-9a-f]{32}:[0-9a-f]{64}$/);
+    // No `$`: Next.js expands `$` in .env values, which truncated the old
+    // `scrypt$<salt>$<key>` format to plain `scrypt` at load time.
+    expect(stored).not.toContain("$");
     // Same password + different salt → different derivation (no rainbow tables).
     const otherSalt = await hashPassword("correct-horse");
     expect(otherSalt).not.toBe(await hashPassword("correct-horse"));
@@ -50,7 +53,9 @@ describe("gatekeeper (porteiro, ADR 0015)", () => {
 
   it("stays closed when the stored hash is malformed", async () => {
     const { isPasswordCorrect } = await loadGate();
-    process.env.PLAYGROUND_PASSWORD_HASH = "scrypt$not-hex";
+    process.env.PLAYGROUND_PASSWORD_HASH = "scrypt:not-hex";
+    // Truncated to `scrypt` — exactly what Next's dotenv expansion did to the
+    // retired `$`-separated format.
     expect(await isPasswordCorrect("anything")).toBe(false);
   });
 

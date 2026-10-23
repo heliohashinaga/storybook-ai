@@ -11,12 +11,16 @@ export const PROVIDER_IDS = ["opencode-go", "openrouter"] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
 /**
- * Shape of `PLAYGROUND_PASSWORD_HASH`: `scrypt$<saltHex>$<hashHex>` — a scrypt
+ * Shape of `PLAYGROUND_PASSWORD_HASH`: `scrypt:<saltHex>:<keyHex>` — a scrypt
  * key-derivation output, never a fast hash of the password (ADR 0015). 16-byte
  * salt (32 hex) + 32-byte derived key (64 hex). Single source of truth shared
  * with `features/auth/server/gate.ts`, which does the derivation.
+ *
+ * The separator is `:`, **not** `$`: Next.js runs `.env` values through dotenv
+ * expansion, so a `$`-separated value (`scrypt$<salt>$<key>`) is truncated to
+ * `scrypt` at load time (the `$<salt>` reads as an empty variable reference).
  */
-export const PASSWORD_HASH_PATTERN = /^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/i;
+export const PASSWORD_HASH_PATTERN = /^scrypt:[0-9a-f]{32}:[0-9a-f]{64}$/i;
 
 const envSchema = z
   .object({
@@ -94,8 +98,9 @@ const envSchema = z
      * Ambos opcionais: deploy demo-only roda sem eles e o porteiro fica
      * desabilitado (demo 100% anônima). `GATEKEEPER_SECRET` assina o JWT
      * httpOnly (HS256, mínimo 32 chars); `PLAYGROUND_PASSWORD_HASH` é o
-     * hash scrypt da senha (`scrypt$<salt>$<key>`, gerado com `pnpm gate:hash`)
-     * — nunca um hash rápido de senha. Nenhum vai ao cliente; lidos só via
+     * hash scrypt da senha (`scrypt:<salt>:<key>`, gerado com `pnpm gate:hash`)
+     * — nunca um hash rápido de senha, e sem `$` (a expansão de `.env`
+     * truncaria o valor). Nenhum vai ao cliente; lidos só via
      * `getEnv()` / `process.env` no servidor.
      */
     GATEKEEPER_SECRET: z.string().min(32).optional(),

@@ -19,9 +19,9 @@ describe("derivePasswordHash", () => {
   it("prints the scrypt format the env schema accepts", () => {
     const hash = derivePasswordHash("correct-horse", SALT);
     expect(hash).toBe(
-      "scrypt$00112233445566778899aabbccddeeff$" + hash.split("$")[2]! // stable salt
+      "scrypt:00112233445566778899aabbccddeeff:" + hash.split(":")[2]! // stable salt
     );
-    expect(hash).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    expect(hash).toMatch(/^scrypt:[0-9a-f]{32}:[0-9a-f]{64}$/);
   });
 
   it("uses a fresh random salt per call, so equal passwords differ", () => {
@@ -30,8 +30,12 @@ describe("derivePasswordHash", () => {
     expect(derivePasswordHash("another-password")).not.toBe(first);
   });
 
-  it("keeps the `$` separators literal (no shell/regex expansion)", () => {
-    expect(derivePasswordHash("correct-horse", SALT).split("$")).toHaveLength(3);
+  it("avoids `$` so Next's dotenv expansion cannot truncate the value", () => {
+    // Next expands `$name` inside .env values: a `$`-separated hash is loaded
+    // as plain `scrypt`, silently closing the gate. `:` has no such meaning.
+    const hash = derivePasswordHash("correct-horse", SALT);
+    expect(hash).not.toContain("$");
+    expect(hash.split(":")).toHaveLength(3);
   });
 });
 
@@ -44,12 +48,12 @@ describe("upsertEnvValue", () => {
       "",
     ].join("\n");
 
-    const updated = upsertEnvValue(content, PASSWORD_HASH_KEY, "scrypt$aa$bb");
+    const updated = upsertEnvValue(content, PASSWORD_HASH_KEY, "scrypt:aa:bb");
 
     expect(updated).toBe(
       [
         "OPENROUTER_API_KEY=keep-me",
-        `${PASSWORD_HASH_KEY}=scrypt$aa$bb`,
+        `${PASSWORD_HASH_KEY}=scrypt:aa:bb`,
         "STORIES_TEST_MODE=fake",
         "",
       ].join("\n")
@@ -57,8 +61,8 @@ describe("upsertEnvValue", () => {
   });
 
   it("appends the var when it is absent, with a single trailing newline", () => {
-    const updated = upsertEnvValue("A=1\nB=2\n", PASSWORD_HASH_KEY, "scrypt$aa$bb");
-    expect(updated).toBe(`A=1\nB=2\n${PASSWORD_HASH_KEY}=scrypt$aa$bb\n`);
+    const updated = upsertEnvValue("A=1\nB=2\n", PASSWORD_HASH_KEY, "scrypt:aa:bb");
+    expect(updated).toBe(`A=1\nB=2\n${PASSWORD_HASH_KEY}=scrypt:aa:bb\n`);
   });
 
   it("does not resurrect a commented-out example line", () => {
@@ -76,8 +80,8 @@ describe("upsertEnvValue", () => {
   });
 
   it("handles an empty file", () => {
-    expect(upsertEnvValue("", PASSWORD_HASH_KEY, "scrypt$aa$bb")).toBe(
-      `${PASSWORD_HASH_KEY}=scrypt$aa$bb\n`
+    expect(upsertEnvValue("", PASSWORD_HASH_KEY, "scrypt:aa:bb")).toBe(
+      `${PASSWORD_HASH_KEY}=scrypt:aa:bb\n`
     );
   });
 });

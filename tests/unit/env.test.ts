@@ -258,7 +258,7 @@ describe("gatekeeper env (porteiro, ADR 0015)", () => {
 
   it("parses the gatekeeper pair (optional, demo-only without them)", async () => {
     const { parseEnv } = await loadEnv();
-    const hash = `scrypt$${"a".repeat(32)}$${"b".repeat(64)}`;
+    const hash = `scrypt:${"a".repeat(32)}:${"b".repeat(64)}`;
     const result = parseEnv({
       ...validEnv,
       GATEKEEPER_SECRET: "0123456789abcdef0123456789abcdef",
@@ -296,7 +296,15 @@ describe("gatekeeper env (porteiro, ADR 0015)", () => {
     expect(
       parseEnv({
         ...validEnv,
-        PLAYGROUND_PASSWORD_HASH: `scrypt$${"a".repeat(30)}$${"b".repeat(64)}`,
+        PLAYGROUND_PASSWORD_HASH: `scrypt:${"a".repeat(30)}:${"b".repeat(64)}`,
+      }).success
+    ).toBe(false);
+    // `$`-separated fields are rejected because Next's dotenv expansion loads
+    // them as plain `scrypt` (that format was briefly shipped).
+    expect(
+      parseEnv({
+        ...validEnv,
+        PLAYGROUND_PASSWORD_HASH: `scrypt$${"a".repeat(32)}$${"b".repeat(64)}`,
       }).success
     ).toBe(false);
   });

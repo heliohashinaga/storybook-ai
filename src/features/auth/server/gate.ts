@@ -20,10 +20,13 @@ export const GATE_TOKEN_ISSUER = "storybook-ai-gate";
 /**
  * Password hashing is a **KDF**, not a digest: `PLAYGROUND_PASSWORD_HASH` holds
  * a scrypt derivation of the password with a per-deployment random salt
- * (`scrypt$<saltHex>$<hashHex>`). A fast hash (SHA-256) would let anyone who
+ * (`scrypt:<saltHex>:<keyHex>`). A fast hash (SHA-256) would let anyone who
  * reads the deployment secret brute-force the shared password offline; scrypt
  * makes each guess expensive. Params are fixed here so the stored hash needs no
  * self-describing header.
+ *
+ * Fields are `:`-separated on purpose — a `$` separator is a dotenv variable
+ * reference, so Next.js would load `scrypt$<salt>$<key>` as plain `scrypt`.
  */
 const SCRYPT_KEY_LENGTH = 32;
 const SCRYPT_SALT_BYTES = 16;
@@ -61,7 +64,7 @@ export async function hashPassword(
   salt: Buffer = randomBytes(SCRYPT_SALT_BYTES)
 ): Promise<string> {
   const derived = await deriveKey(password, salt, SCRYPT_KEY_LENGTH);
-  return `scrypt$${salt.toString("hex")}$${derived.toString("hex")}`;
+  return `scrypt:${salt.toString("hex")}:${derived.toString("hex")}`;
 }
 
 /**
@@ -72,7 +75,7 @@ export async function hashPassword(
 export async function isPasswordCorrect(password: string): Promise<boolean> {
   const stored = process.env.PLAYGROUND_PASSWORD_HASH;
   if (!stored || !PASSWORD_HASH_PATTERN.test(stored)) return false;
-  const [, saltHex, expectedHex] = stored.split("$") as [string, string, string];
+  const [, saltHex, expectedHex] = stored.split(":") as [string, string, string];
   const expected = Buffer.from(expectedHex, "hex");
   const derived = await deriveKey(password, Buffer.from(saltHex, "hex"), expected.length);
   if (derived.length !== expected.length) return false;
