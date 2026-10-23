@@ -135,32 +135,41 @@ different provider/model with the fitting capability.
 #### 🔐 Playground gate (optional — shared password)
 
 The playground is guarded by a **shared-password gatekeeper** (ADR 0015):
-`POST /api/gate/login` derives the password with **scrypt** (random salt,
-constant-time comparison against the stored derivation) and, on success, issues
-an identity-free JWT (`{ gate: true }`, HS256, 24h) in the httpOnly cookie
-`__Host-gatekeeper`. With both vars unset,
-the app runs in **demo-only** mode: `/` shows the password screen but only
-**Explore the Demo** works (no session, no cookie).
+`POST /api/gate/login` derives the password with **scrypt** (random
+per-deployment salt, constant-time comparison against the stored derivation)
+and, on success, issues an identity-free JWT (`{ gate: true }`, HS256, 24h) in
+the httpOnly cookie `__Host-gatekeeper`. Set **both** vars to enable the gate;
+with either unset — or a malformed/retired hash — the app runs in **demo-only**
+mode: `/` shows the non-interactive panel that only offers **Explore the Demo**
+(no password field, no session, no cookie).
 
 | Variable                   | Purpose                                                               |
 | -------------------------- | --------------------------------------------------------------------- |
 | `GATEKEEPER_SECRET`        | **server-only** JWT signing secret, min 32 chars                      |
 | `PLAYGROUND_PASSWORD_HASH` | **server-only** `scrypt$<salt>$<key>` derivation (never the password) |
 
-Generate them:
+Generate them (bash — on PowerShell use
+`$env:PLAYGROUND_PASSWORD='…'; pnpm gate:hash`):
 
 ```bash
-openssl rand -hex 32
-PLAYGROUND_PASSWORD='your-password' pnpm gate:hash
+openssl rand -hex 32                                 # GATEKEEPER_SECRET
+PLAYGROUND_PASSWORD='your-password' pnpm gate:hash   # PLAYGROUND_PASSWORD_HASH
 ```
+
+The second command prints one line, `scrypt$<32 hex salt>$<64 hex key>` — paste
+it whole. Each run picks a fresh random salt, so running it twice for the same
+password yields two different (equally valid) hashes. The clear-text password is
+never written to disk or echoed. A bare 64-hex SHA-256 value (the retired scheme)
+is rejected, so regenerate it: the gate stays closed rather than comparing a fast
+digest. Rotating access = new hash + restart/redeploy; rotate
+`GATEKEEPER_SECRET` only when you also want to invalidate live sessions.
 
 Both vars are read only via `getEnv()` and never reach the client (no
 `NEXT_PUBLIC_*`, no auth JS in the bundle). The session cookie exists on the
 playground path only (`/form`, `/reader`) — **`/demo` stays 100% cookie-less**
 — and the app never stores or logs any identity; generation payloads remain
 `ageBand | locale | theme | sceneCount`. Sharing access with family means
-sharing the password out-of-band; rotating it means setting a new hash and
-redeploying.
+sharing the password out-of-band.
 
 > Prefer `STORIES_TEST_MODE=fake` (instead of real keys) for a fully offline,
 > deterministic dev run — no AI calls are made.

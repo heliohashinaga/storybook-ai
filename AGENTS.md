@@ -96,8 +96,14 @@ invariants; a regression here is a failed definition of done.
   `PLAYGROUND_PASSWORD_HASH` = `scrypt$<salt>$<key>` from `pnpm gate:hash` — a
   random-salt KDF, never a fast hash like SHA-256)
   is server-only too — the clear-text password is never stored, committed, or
-  logged. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
-  alerts checked (no new high-severity CVEs in the runtime path).
+  logged. **Never hash a password with a fast digest** (SHA-256/MD5/SHA-1):
+  CodeQL's `js/insufficient-password-hash` fails the PR. Compare derivations
+  through `isPasswordCorrect()` (scrypt + `timingSafeEqual`); generating the
+  stored value is `hashPassword()` / `pnpm gate:hash`, and
+  `PASSWORD_HASH_PATTERN` (`lib/env.ts`) is the single source of truth for the
+  format — do not duplicate the regex. Adding a dependency keeps `pnpm audit`
+  and GitHub Dependabot alerts checked (no new high-severity CVEs in the
+  runtime path).
 
 ## Commands
 
@@ -117,6 +123,7 @@ pnpm storybook:test  # every story (default/loading/error/edge) + a11y checks
 pnpm test:e2e        # Playwright: pt-BR + EN journeys, fake provider
 pnpm test:visual     # approved screenshots, no unintended diff
 pnpm test:performance  # budgets below
+pnpm gate:hash       # print PLAYGROUND_PASSWORD_HASH (scrypt) for a shared password
 pnpm build           # production build must pass
 ```
 
