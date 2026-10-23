@@ -32,7 +32,7 @@
     "analyze:tp": "next build --experimental-analyze",
     "test:limited": "vitest run --pool threads --maxWorkers 2",
     "test:coverage:limited": "vitest run --coverage --pool threads --maxWorkers 2",
-    "gate:hash": "node scripts/hash-playground-password.mjs"
+    "gate:hash": "tsx scripts/hash-playground-password.ts"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.6.1",

@@ -123,7 +123,7 @@ pnpm storybook:test  # every story (default/loading/error/edge) + a11y checks
 pnpm test:e2e        # Playwright: pt-BR + EN journeys, fake provider
 pnpm test:visual     # approved screenshots, no unintended diff
 pnpm test:performance  # budgets below
-pnpm gate:hash       # print PLAYGROUND_PASSWORD_HASH (scrypt) for a shared password
+pnpm gate:hash       # print PLAYGROUND_PASSWORD_HASH (scrypt); add `-- --write` to update .env.local
 pnpm build           # production build must pass
 ```
 

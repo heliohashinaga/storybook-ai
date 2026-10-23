@@ -157,12 +157,16 @@ PLAYGROUND_PASSWORD='your-password' pnpm gate:hash   # PLAYGROUND_PASSWORD_HASH
 ```
 
 The second command prints one line, `scrypt$<32 hex salt>$<64 hex key>` — paste
-it whole. Each run picks a fresh random salt, so running it twice for the same
-password yields two different (equally valid) hashes. The clear-text password is
-never written to disk or echoed. A bare 64-hex SHA-256 value (the retired scheme)
-is rejected, so regenerate it: the gate stays closed rather than comparing a fast
-digest. Rotating access = new hash + restart/redeploy; rotate
-`GATEKEEPER_SECRET` only when you also want to invalidate live sessions.
+it whole. Add `--write` (`PLAYGROUND_PASSWORD='…' pnpm gate:hash -- --write`) to
+update `PLAYGROUND_PASSWORD_HASH` in `.env.local` in place instead: it rewrites
+only that line, keeps the file's line endings and permissions, and warns when
+`GATEKEEPER_SECRET` is missing or too short. Each run picks a fresh random salt,
+so running it twice for the same password yields two different (equally valid)
+hashes. The clear-text password is never written to disk or echoed. A bare 64-hex
+SHA-256 value (the retired scheme) is rejected, so regenerate it: the gate stays
+closed rather than comparing a fast digest. Rotating access = new hash +
+restart/redeploy; rotate `GATEKEEPER_SECRET` only when you also want to
+invalidate live sessions.
 
 Both vars are read only via `getEnv()` and never reach the client (no
 `NEXT_PUBLIC_*`, no auth JS in the bundle). The session cookie exists on the
