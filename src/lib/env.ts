@@ -10,6 +10,14 @@ import { z } from "zod";
 export const PROVIDER_IDS = ["opencode-go", "openrouter"] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
+/**
+ * Shape of `PLAYGROUND_PASSWORD_HASH`: `scrypt$<saltHex>$<hashHex>` — a scrypt
+ * key-derivation output, never a fast hash of the password (ADR 0015). 16-byte
+ * salt (32 hex) + 32-byte derived key (64 hex). Single source of truth shared
+ * with `features/auth/server/gate.ts`, which does the derivation.
+ */
+export const PASSWORD_HASH_PATTERN = /^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/i;
+
 const envSchema = z
   .object({
     OPENROUTER_API_KEY: z.string().min(1),
@@ -86,14 +94,12 @@ const envSchema = z
      * Ambos opcionais: deploy demo-only roda sem eles e o porteiro fica
      * desabilitado (demo 100% anônima). `GATEKEEPER_SECRET` assina o JWT
      * httpOnly (HS256, mínimo 32 chars); `PLAYGROUND_PASSWORD_HASH` é o
-     * hex SHA-256 da senha (`printf %s "$PW" | sha256sum`). Nenhum vai ao
-     * cliente; lidos só via `getEnv()` / `process.env` no servidor.
+     * hash scrypt da senha (`scrypt$<salt>$<key>`, gerado com `pnpm gate:hash`)
+     * — nunca um hash rápido de senha. Nenhum vai ao cliente; lidos só via
+     * `getEnv()` / `process.env` no servidor.
      */
     GATEKEEPER_SECRET: z.string().min(32).optional(),
-    PLAYGROUND_PASSWORD_HASH: z
-      .string()
-      .regex(/^[0-9a-f]{64}$/i)
-      .optional(),
+    PLAYGROUND_PASSWORD_HASH: z.string().regex(PASSWORD_HASH_PATTERN).optional(),
     /**
      * Cloudflare Turnstile demo anti-bot (feature 019). Both keys are
      * optional: absent keys disable the feature (demo behaves as today).

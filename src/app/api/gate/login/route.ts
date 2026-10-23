@@ -34,9 +34,9 @@ function json(status: number, body: unknown, setCookie?: string) {
 /**
  * `POST /api/gate/login` — porteiro do playground (ADR 0015).
  *
- * Aceita **só** `{ password }` (Zod `.strict()`); compara com
- * `PLAYGROUND_PASSWORD_HASH` em tempo constante; em sucesso emite o JWT
- * httpOnly. Erro genérico (sem enumeração) quando a senha está errada ou o
+ * Aceita **só** `{ password }` (Zod `.strict()`); deriva a senha com scrypt e
+ * compara com `PLAYGROUND_PASSWORD_HASH` em tempo constante; em sucesso emite o
+ * JWT httpOnly. Erro genérico (sem enumeração) quando a senha está errada ou o
  * porteiro não está configurado. `Cache-Control: no-store` sempre.
  */
 export async function POST(request: Request): Promise<Response> {
@@ -62,7 +62,7 @@ export async function POST(request: Request): Promise<Response> {
   const parsed = loginSchema.safeParse(payload);
   if (!parsed.success) return json(400, { code: "invalid_input" });
 
-  if (!isPasswordCorrect(parsed.data.password)) {
+  if (!(await isPasswordCorrect(parsed.data.password))) {
     return json(401, { code: "invalid_credentials" });
   }
 

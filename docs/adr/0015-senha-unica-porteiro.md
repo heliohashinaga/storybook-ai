@@ -26,8 +26,9 @@ auto-cadastro invite-only + reset de senha self-service. O dono confirmou em
 Substituir o Clerk por **senha única compartilhada + JWT httpOnly**:
 
 1. `POST /api/gate/login` (`{ password }`, Zod `.strict()`, rate-limit
-   10/10min por IP) compara com `PLAYGROUND_PASSWORD_HASH` (hex SHA-256) em
-   tempo constante; sucesso emite JWT HS256 (`GATEKEEPER_SECRET`, 24h).
+   10/10min por IP) deriva a senha com **scrypt** (salt aleatório, comparação
+   em tempo constante) contra `PLAYGROUND_PASSWORD_HASH`; sucesso emite JWT
+   HS256 (`GATEKEEPER_SECRET`, 24h).
 2. Cookie `__Host-gatekeeper` (`HttpOnly`, `Secure`, `SameSite=Lax`, `Path=/`,
    `Max-Age=86400`). Carrega só `{ gate: true }` — sem identidade.
 3. `POST /api/gate/logout` apaga o cookie (idempotente, 200 + `no-store`).
@@ -38,7 +39,7 @@ Substituir o Clerk por **senha única compartilhada + JWT httpOnly**:
 5. Remoção total: `@clerk/nextjs`, `@clerk/localizations`, `ClerkProviderGate`,
    `clerkMiddleware`, rota `sso-callback`, `clerk-localization.ts`, `<SignIn>`,
    chaves `CLERK_*` (env e CSP); entram `GATEKEEPER_SECRET` (≥32 chars) e
-   `PLAYGROUND_PASSWORD_HASH` (`printf %s "$PW" | sha256sum`).
+   `PLAYGROUND_PASSWORD_HASH` (`scrypt$<salt>$<key>`, gerado por `pnpm gate:hash`).
 
 ## Consequências
 
@@ -50,6 +51,10 @@ Substituir o Clerk por **senha única compartilhada + JWT httpOnly**:
   `ageBand|locale|theme|sceneCount`; `no-store` em todas as respostas do gate.
 - **Segurança:** brute-force contido pelo rate-limit do login + erro genérico
   (sem enumeração); segredo e hash só no servidor (`getEnv()`/`.strict()`).
+  O hash é uma **derivação scrypt com salt aleatório**, não um digest rápido:
+  quem ler o segredo do deploy não consegue quebrar a senha compartilhada
+  offline a custo baixo (revisão pós-CodeQL: o SHA-256 disparava
+  `js/insufficient-password-hash`).
 - **Bundle:** zero JS de auth no cliente; teto de 900 KiB mantido com margem
   ampla (o floor de ~609 KiB do clerk-js deixa de existir).
 - **Testes:** `gate.test.ts` + `api/gate/route.test.ts` + sessão mockada por

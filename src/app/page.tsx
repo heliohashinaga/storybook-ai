@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { PASSWORD_HASH_PATTERN } from "../lib/env";
 import { isAuthenticated } from "../features/auth/server/session";
 import { LoginScreenView } from "../features/auth/components/login-screen-view";
 
@@ -8,9 +9,16 @@ import { LoginScreenView } from "../features/auth/components/login-screen-view";
 // a session cookie (ADR 0015).
 export const dynamic = "force-dynamic";
 
-/** True when the gatekeeper is configured (playground enabled). */
+/**
+ * True when the gatekeeper is configured (playground enabled). A malformed or
+ * retired hash (e.g. the old SHA-256 format) counts as *not* configured, so a
+ * mis-migrated deployment shows the demo-only panel instead of a password form
+ * that could never succeed.
+ */
 function isGateConfigured(): boolean {
-  return Boolean(process.env.GATEKEEPER_SECRET && process.env.PLAYGROUND_PASSWORD_HASH);
+  const secret = process.env.GATEKEEPER_SECRET;
+  const hash = process.env.PLAYGROUND_PASSWORD_HASH;
+  return Boolean(secret && secret.length >= 32 && hash && PASSWORD_HASH_PATTERN.test(hash));
 }
 
 /**

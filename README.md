@@ -135,22 +135,23 @@ different provider/model with the fitting capability.
 #### 🔐 Playground gate (optional — shared password)
 
 The playground is guarded by a **shared-password gatekeeper** (ADR 0015):
-`POST /api/gate/login` compares the password against a stored SHA-256 hash
-(constant-time) and, on success, issues an identity-free JWT (`{ gate: true }`,
-HS256, 24h) in the httpOnly cookie `__Host-gatekeeper`. With both vars unset,
+`POST /api/gate/login` derives the password with **scrypt** (random salt,
+constant-time comparison against the stored derivation) and, on success, issues
+an identity-free JWT (`{ gate: true }`, HS256, 24h) in the httpOnly cookie
+`__Host-gatekeeper`. With both vars unset,
 the app runs in **demo-only** mode: `/` shows the password screen but only
 **Explore the Demo** works (no session, no cookie).
 
-| Variable                   | Purpose                                                          |
-| -------------------------- | ---------------------------------------------------------------- |
-| `GATEKEEPER_SECRET`        | **server-only** JWT signing secret, min 32 chars                 |
-| `PLAYGROUND_PASSWORD_HASH` | **server-only** hex SHA-256 of the password (never the password) |
+| Variable                   | Purpose                                                               |
+| -------------------------- | --------------------------------------------------------------------- |
+| `GATEKEEPER_SECRET`        | **server-only** JWT signing secret, min 32 chars                      |
+| `PLAYGROUND_PASSWORD_HASH` | **server-only** `scrypt$<salt>$<key>` derivation (never the password) |
 
-Generate them (note `printf %s` — no trailing newline):
+Generate them:
 
 ```bash
 openssl rand -hex 32
-printf %s "your-password" | sha256sum
+PLAYGROUND_PASSWORD='your-password' pnpm gate:hash
 ```
 
 Both vars are read only via `getEnv()` and never reach the client (no

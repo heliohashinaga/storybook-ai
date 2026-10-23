@@ -1,8 +1,9 @@
 // @vitest-environment node
-import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const SECRET = "test-gatekeeper-secret-0123456789abcdef";
+/** Fixed salt so the stored-hash fixtures are deterministic (test seam). */
+const SALT = Buffer.from("00112233445566778899aabbccddeeff", "hex");
 
 async function loadGate() {
   process.env.GATEKEEPER_SECRET = SECRET;
@@ -10,25 +11,47 @@ async function loadGate() {
   return import("./gate");
 }
 
+/** Loads the gate with `password` configured as PLAYGROUND_PASSWORD_HASH. */
+async function loadGateWithPassword(password: string) {
+  const gate = await loadGate();
+  process.env.PLAYGROUND_PASSWORD_HASH = await gate.hashPassword(password, SALT);
+  return gate;
+}
+
 describe("gatekeeper (porteiro, ADR 0015)", () => {
   beforeEach(() => {
     process.env.GATEKEEPER_SECRET = SECRET;
-    process.env.PLAYGROUND_PASSWORD_HASH = createHash("sha256")
-      .update("correct-horse", "utf8")
-      .digest("hex");
+    delete process.env.PLAYGROUND_PASSWORD_HASH;
     vi.resetModules();
   });
 
   it("accepts the correct password and rejects a wrong one", async () => {
-    const { isPasswordCorrect } = await loadGate();
-    expect(isPasswordCorrect("correct-horse")).toBe(true);
-    expect(isPasswordCorrect("wrong")).toBe(false);
+    const { isPasswordCorrect } = await loadGateWithPassword("correct-horse");
+    expect(await isPasswordCorrect("correct-horse")).toBe(true);
+    expect(await isPasswordCorrect("wrong")).toBe(false);
+  });
+
+  it("stores a salted scrypt derivation, never a fast hash of the password", async () => {
+    const { hashPassword, isPasswordCorrect } = await loadGateWithPassword("correct-horse");
+    const stored = process.env.PLAYGROUND_PASSWORD_HASH!;
+    expect(stored).toMatch(/^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+    // Same password + different salt → different derivation (no rainbow tables).
+    const otherSalt = await hashPassword("correct-horse");
+    expect(otherSalt).not.toBe(await hashPassword("correct-horse"));
+    // A hash written by the retired SHA-256 scheme no longer opens the gate.
+    process.env.PLAYGROUND_PASSWORD_HASH = "e".repeat(64);
+    expect(await isPasswordCorrect("correct-horse")).toBe(false);
   });
 
   it("stays closed when no password hash is configured (demo-only)", async () => {
-    delete process.env.PLAYGROUND_PASSWORD_HASH;
     const { isPasswordCorrect } = await loadGate();
-    expect(isPasswordCorrect("anything")).toBe(false);
+    expect(await isPasswordCorrect("anything")).toBe(false);
+  });
+
+  it("stays closed when the stored hash is malformed", async () => {
+    const { isPasswordCorrect } = await loadGate();
+    process.env.PLAYGROUND_PASSWORD_HASH = "scrypt$not-hex";
+    expect(await isPasswordCorrect("anything")).toBe(false);
   });
 
   it("round-trips a gate token and rejects tampered/foreign tokens", async () => {

@@ -258,15 +258,16 @@ describe("gatekeeper env (porteiro, ADR 0015)", () => {
 
   it("parses the gatekeeper pair (optional, demo-only without them)", async () => {
     const { parseEnv } = await loadEnv();
+    const hash = `scrypt$${"a".repeat(32)}$${"b".repeat(64)}`;
     const result = parseEnv({
       ...validEnv,
       GATEKEEPER_SECRET: "0123456789abcdef0123456789abcdef",
-      PLAYGROUND_PASSWORD_HASH: "e".repeat(64),
+      PLAYGROUND_PASSWORD_HASH: hash,
     });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.GATEKEEPER_SECRET).toBe("0123456789abcdef0123456789abcdef");
-      expect(result.data.PLAYGROUND_PASSWORD_HASH).toBe("e".repeat(64));
+      expect(result.data.PLAYGROUND_PASSWORD_HASH).toBe(hash);
     }
   });
 
@@ -284,6 +285,20 @@ describe("gatekeeper env (porteiro, ADR 0015)", () => {
     const { parseEnv } = await loadEnv();
     expect(parseEnv({ ...validEnv, GATEKEEPER_SECRET: "short" }).success).toBe(false);
     expect(parseEnv({ ...validEnv, PLAYGROUND_PASSWORD_HASH: "not-hex" }).success).toBe(false);
+  });
+
+  it("rejects the retired SHA-256 hash format (migrate with `pnpm gate:hash`)", async () => {
+    const { parseEnv } = await loadEnv();
+    // A fast digest of the password is no longer accepted: fail fast at boot
+    // instead of silently leaving the porteiro closed.
+    expect(parseEnv({ ...validEnv, PLAYGROUND_PASSWORD_HASH: "e".repeat(64) }).success).toBe(false);
+    // Right scheme, wrong salt/key length.
+    expect(
+      parseEnv({
+        ...validEnv,
+        PLAYGROUND_PASSWORD_HASH: `scrypt$${"a".repeat(30)}$${"b".repeat(64)}`,
+      }).success
+    ).toBe(false);
   });
 
   it("rejects stray AUTH_* (no allowlist concept in the gatekeeper design)", async () => {

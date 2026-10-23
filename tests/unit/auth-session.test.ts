@@ -1,5 +1,4 @@
 // @vitest-environment node
-import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -13,8 +12,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 
 const SECRET = "test-gatekeeper-secret-0123456789abcdef";
-const PASSWORD = "correct-horse";
-const PASSWORD_HASH = createHash("sha256").update(PASSWORD, "utf8").digest("hex");
 
 const redirectMock = vi.hoisted(() => vi.fn());
 const cookieGetMock = vi.hoisted(() => vi.fn());
@@ -22,9 +19,13 @@ const cookieGetMock = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: cookieGetMock }) }));
 
+/**
+ * Loads the session module against a configured gatekeeper. Only the JWT
+ * signing secret is required here: these tests exercise token verification, not
+ * password verification (covered by `gate.test.ts` / `api/gate/route.test.ts`).
+ */
 async function loadSession() {
   process.env.GATEKEEPER_SECRET = SECRET;
-  process.env.PLAYGROUND_PASSWORD_HASH = PASSWORD_HASH;
   vi.resetModules();
   const session = await import("../../src/features/auth/server/session");
   const gate = await import("../../src/features/auth/server/gate");

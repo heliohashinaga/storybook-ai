@@ -93,7 +93,8 @@ invariants; a regression here is a failed definition of done.
   whitelist) and injected only in `Authorization: Bearer`; no secret goes to the
   client. Never commit `.env.local`; scrub `apiKey`/`secret`/`token` from
   observability. The gatekeeper pair (`GATEKEEPER_SECRET` ≥32 chars,
-  `PLAYGROUND_PASSWORD_HASH` hex SHA-256 via `printf %s "$PW" | sha256sum`)
+  `PLAYGROUND_PASSWORD_HASH` = `scrypt$<salt>$<key>` from `pnpm gate:hash` — a
+  random-salt KDF, never a fast hash like SHA-256)
   is server-only too — the clear-text password is never stored, committed, or
   logged. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
   alerts checked (no new high-severity CVEs in the runtime path).
@@ -236,7 +237,7 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

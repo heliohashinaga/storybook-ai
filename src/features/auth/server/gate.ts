@@ -1,6 +1,7 @@
 import "server-only";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
+import { PASSWORD_HASH_PATTERN } from "../../../lib/env";
 import { GATE_COOKIE_NAME } from "../gate-cookie";
 
 export { GATE_COOKIE_NAME };
@@ -16,6 +17,31 @@ export { GATE_COOKIE_NAME };
 export const GATE_TOKEN_TTL_SECONDS = 24 * 60 * 60;
 export const GATE_TOKEN_ISSUER = "storybook-ai-gate";
 
+/**
+ * Password hashing is a **KDF**, not a digest: `PLAYGROUND_PASSWORD_HASH` holds
+ * a scrypt derivation of the password with a per-deployment random salt
+ * (`scrypt$<saltHex>$<hashHex>`). A fast hash (SHA-256) would let anyone who
+ * reads the deployment secret brute-force the shared password offline; scrypt
+ * makes each guess expensive. Params are fixed here so the stored hash needs no
+ * self-describing header.
+ */
+const SCRYPT_KEY_LENGTH = 32;
+const SCRYPT_SALT_BYTES = 16;
+const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 } as const;
+
+/**
+ * Promise wrapper around the async `crypto.scrypt` (the callback form keeps the
+ * event loop free — the sync variant would block every request while deriving).
+ */
+function deriveKey(password: string, salt: Buffer, keyLength: number): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scryptCallback(password, salt, keyLength, SCRYPT_OPTIONS, (error, derivedKey) => {
+      if (error) reject(error);
+      else resolve(derivedKey);
+    });
+  });
+}
+
 /** Chave HMAC (HS256) lida do servidor; mínimo 32 chars (256 bits). */
 function gateSecret(): Uint8Array {
   const secret = process.env.GATEKEEPER_SECRET;
@@ -25,24 +51,32 @@ function gateSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-/** SHA-256 hex da senha candidata (comparação nunca vê a senha em claro). */
-export function hashPasswordCandidate(password: string): string {
-  return createHash("sha256").update(password, "utf8").digest("hex");
+/**
+ * Derives the `PLAYGROUND_PASSWORD_HASH` value for `password` (ADR 0015).
+ * `salt` is injectable as a test seam so fixtures are deterministic; production
+ * callers (`pnpm gate:hash`) always get a fresh random salt.
+ */
+export async function hashPassword(
+  password: string,
+  salt: Buffer = randomBytes(SCRYPT_SALT_BYTES)
+): Promise<string> {
+  const derived = await deriveKey(password, salt, SCRYPT_KEY_LENGTH);
+  return `scrypt$${salt.toString("hex")}$${derived.toString("hex")}`;
 }
 
 /**
  * Confere a senha contra `PLAYGROUND_PASSWORD_HASH` com comparação em tempo
  * constante. Retorna false quando o hash não está configurado (porteiro
- * desabilitado — deploy demo-only) em vez de lançar.
+ * desabilitado — deploy demo-only) ou está malformado, em vez de lançar.
  */
-export function isPasswordCorrect(password: string): boolean {
-  const expectedHex = process.env.PLAYGROUND_PASSWORD_HASH;
-  if (!expectedHex || !/^[0-9a-f]{64}$/i.test(expectedHex)) return false;
-  const actualHex = hashPasswordCandidate(password);
-  const actual = Buffer.from(actualHex, "hex");
-  const expected = Buffer.from(expectedHex.toLowerCase(), "hex");
-  if (actual.length !== expected.length) return false;
-  return timingSafeEqual(actual, expected);
+export async function isPasswordCorrect(password: string): Promise<boolean> {
+  const stored = process.env.PLAYGROUND_PASSWORD_HASH;
+  if (!stored || !PASSWORD_HASH_PATTERN.test(stored)) return false;
+  const [, saltHex, expectedHex] = stored.split("$") as [string, string, string];
+  const expected = Buffer.from(expectedHex, "hex");
+  const derived = await deriveKey(password, Buffer.from(saltHex, "hex"), expected.length);
+  if (derived.length !== expected.length) return false;
+  return timingSafeEqual(derived, expected);
 }
 
 /** Emite o JWT do porteiro (HS256, TTL 24h). */

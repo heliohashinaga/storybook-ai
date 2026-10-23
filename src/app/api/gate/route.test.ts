@@ -1,17 +1,16 @@
 // @vitest-environment node
-import { createHash } from "node:crypto";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { hashPassword } from "../../../features/auth/server/gate";
 import { POST as loginPOST } from "./login/route";
 import { POST as logoutPOST } from "./logout/route";
 
-function sha(password: string): string {
-  return createHash("sha256").update(password, "utf8").digest("hex");
-}
+/** Fixed salt keeps the configured-hash fixture deterministic (test seam). */
+const SALT = Buffer.from("00112233445566778899aabbccddeeff", "hex");
 
 describe("POST /api/gate/login", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     process.env.GATEKEEPER_SECRET = "test-gatekeeper-secret-0123456789abcdef";
-    process.env.PLAYGROUND_PASSWORD_HASH = sha("open-sesame");
+    process.env.PLAYGROUND_PASSWORD_HASH = await hashPassword("open-sesame", SALT);
     vi.resetModules();
   });
 
