@@ -1,13 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { CLERK_SESSION_COOKIE_NAME } from "./helpers";
+import { GATE_SESSION_COOKIE_NAME } from "./helpers";
 
 /**
  * Demo path is cookie-free (spec 015, T039).
  *
  * The demo surface (`/demo`, `/demo/reader`) is the anonymous-by-design path:
  * it must never set any cookie — in particular it must not receive the
- * `authjs.session-token` session cookie, and the login gate `/` sets no cookie
- * while the visitor stays anonymous. Asserted both on the HTTP response
+ * gatekeeper session cookie, and the porteiro gate `/` sets no cookie while
+ * the visitor stays anonymous. Asserted both on the HTTP response
  * headers and on the browser context state.
  */
 
@@ -38,8 +38,8 @@ test("browsing the demo leaves the browser context cookie-free", async ({ page, 
   await expect(page).toHaveURL(/\/demo\/reader$/);
   await expect(page.getByLabel("Your story")).toBeVisible();
 
-  // Still zero cookies — including no auth session cookie.
+  // Still zero cookies — including no gatekeeper session cookie.
   const cookies = await context.cookies();
   expect(cookies).toEqual([]);
-  expect(cookies.some((c) => c.name === CLERK_SESSION_COOKIE_NAME)).toBe(false);
+  expect(cookies.some((c) => c.name === GATE_SESSION_COOKIE_NAME)).toBe(false);
 });

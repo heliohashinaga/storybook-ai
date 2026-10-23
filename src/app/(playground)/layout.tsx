@@ -1,17 +1,19 @@
-import { ClerkProviderGate } from "../../features/auth/client/clerk-provider";
+import type { ReactNode } from "react";
+import { requireSession } from "../../features/auth/server/session";
 
-// Authenticated playground routes are rendered on demand so the Clerk provider
-// is present at request time; the anonymous demo path never mounts it (spec 018
-// / ADR 0013).
+// Authenticated playground routes are rendered on demand so the gatekeeper
+// session is verified at request time; the anonymous demo path never touches
+// it (ADR 0015).
 export const dynamic = "force-dynamic";
 
 /**
- * Playground route group (`(playground)`): `/form` and `/reader`. The Clerk
- * provider is mounted here and **only** here — the anonymous demo path
- * (`/`, `/demo`) never mounts it and never touches a session cookie (spec 018 /
- * ADR 0013). On a demo-only deploy (no Clerk keys) it renders children without
- * a provider, so the demo stays cookie/anonymity-free.
+ * Playground route group (`(playground)`): `/form` and `/reader`. The
+ * gatekeeper guard runs here and **only** here — the anonymous demo path
+ * (`/`, `/demo`) never sees a session cookie. On a demo-only deploy (no
+ * gatekeeper vars) every visitor redirects to `/`, so the demo stays
+ * cookie/anonymity-free.
  */
-export default function PlaygroundLayout({ children }: { children: React.ReactNode }) {
-  return <ClerkProviderGate>{children}</ClerkProviderGate>;
+export default async function PlaygroundLayout({ children }: { children: ReactNode }) {
+  await requireSession();
+  return <>{children}</>;
 }

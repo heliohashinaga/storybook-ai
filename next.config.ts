@@ -23,13 +23,6 @@ const cspScriptSrc = isProduction
   ? "script-src 'self' 'unsafe-inline'" // Next bootstrap; strict, no eval
   : "script-src 'self' 'unsafe-inline' 'unsafe-eval'"; // dev-only
 
-// EXPLICIT RELAXATION (signed off, per AGENTS.md — no unlabeled loosening):
-// Clerk's client SDK loads its JS runtime + CSS and talks to its Frontend API
-// (FAPI) from the Clerk accounts domain. Dev instances serve `*.clerk.accounts.dev`;
-// production serves `*.clerk.accounts`. Without these origins the
-// <SignIn>/<SignUp> components fail with `failed_to_load_clerk_js`.
-const clerkOrigins = "https://*.clerk.accounts.dev https://*.clerk.accounts";
-
 // EXPLICIT RELAXATION (signed off, ADR 0014 — no unlabeled loosening): the demo
 // anti-bot widget (Cloudflare Turnstile, feature 019) loads its JS + challenge
 // iframe/styles/images from `challenges.cloudflare.com`. Without these origins
@@ -55,22 +48,18 @@ const securityHeaders: { key: string; value: string }[] = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      cspScriptSrc + " " + clerkOrigins + " " + turnstileOrigins, // Next inline; Clerk JS; + Turnstile widget
-      "style-src 'self' 'unsafe-inline' " + clerkOrigins + " " + turnstileOrigins, // + Turnstile inline styles
-      // RELAXATION (signed off): Clerk serves OAuth provider logos (Google "G",
-      // etc.) from its image CDN `https://img.clerk.com`, not the FAPI accounts
-      // domain — without it, img-src blocks the logo and the button renders
-      // icon-less. Scoped to img-src only.
-      "img-src 'self' data: " + clerkOrigins + " https://img.clerk.com " + turnstileOrigins, // + Turnstile assets
+      cspScriptSrc + " " + turnstileOrigins, // Next inline; + Turnstile widget
+      "style-src 'self' 'unsafe-inline' " + turnstileOrigins, // + Turnstile inline styles
+      "img-src 'self' data: " + turnstileOrigins, // + Turnstile assets
       "font-src 'self' data:",
-      "connect-src 'self' data: " + clerkOrigins + " " + turnstileOrigins, // + Turnstile siteverify/script
+      "connect-src 'self' data: " + turnstileOrigins, // + Turnstile siteverify/script
       // RELAXATION (signed off): the AI read-aloud client plays transient audio
       // via a blob: URL, and Chromium resolves media blobs under `media-src`.
       // Without it, default-src 'self' blocks the blob and the <audio> element
       // reports "no supported source". Scoped to media only.
       "media-src 'self' blob:",
-      "worker-src 'self' blob: " + clerkOrigins + " " + turnstileOrigins, // @react-pdf worker + Clerk + Turnstile worker
-      "frame-src 'self' " + clerkOrigins + " " + turnstileOrigins, // Clerk embeds + Turnstile challenge iframe
+      "worker-src 'self' blob: " + turnstileOrigins, // @react-pdf worker + Turnstile worker
+      "frame-src 'self' " + turnstileOrigins, // Turnstile challenge iframe
       "frame-ancestors 'none'", // anti-clickjacking
       "base-uri 'none'",
       "form-action 'self'",
@@ -101,17 +90,6 @@ const nextConfig: NextConfig = {
   // single server entry point. Enforce the server-only boundary so provider /
   // SDK / sharp modules can never leak into client bundles.
   serverExternalPackages: ["sharp", "openai"],
-  env: {
-    // Clerk routing URLs (spec 018). Defaults match the embedded <SignIn>/<SignUp>
-    // on `/` and the post-auth playground `/form`. Without these, Clerk falls back
-    // to its hosted Account Portal (`*.clerk.accounts.dev`), pulling users off
-    // our anonymous-by-design `/` login screen. Overridable via real env /
-    // .env.local (which takes precedence over this block).
-    CLERK_SIGN_IN_URL: "/",
-    CLERK_SIGN_UP_URL: "/",
-    CLERK_AFTER_SIGN_IN_URL: "/form",
-    CLERK_AFTER_SIGN_UP_URL: "/form",
-  },
   async headers() {
     return [
       {

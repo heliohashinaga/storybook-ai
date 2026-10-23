@@ -28,6 +28,14 @@ names in the scripts section below and `specs/001-personalized-story-generation/
   (`courage | friendship | kindness | curiosity | perseverance | empathy`).
 - **No persistence:** no cookies, localStorage, indexDB, durable storage, or story
   cache. Exact age and generated stories live in React in-memory state only.
+  **RATIFIED EXCEPTION (ADR 0015, revoga 0012/0013):** um cookie de sessão do
+  porteiro (`__Host-gatekeeper`, JWT HS256 com `{ gate: true }`, httpOnly,
+  SameSite=Lax, Secure, TTL 24h) é permitido **só** no playground (`/form`,
+  `/reader`) para gatar a geração LLM real. Sem identidade (sem e-mail/nome/sub
+  de usuário), nada persistido/logado/exposto ao cliente/enviado a providers;
+  the authenticated playground path (`/form`, `/reader`) to gate real-LLM
+  generation. The demo path (`/`, `/demo`) stays 100% cookie-less; story payloads
+  remain `ageBand|locale|theme|sceneCount`.
   **RATIFIED EXCEPTION (ADR 0012, spec 015):** one httpOnly JWT session cookie
   (`authjs.session-token`, SameSite=Lax, Secure, TTL 24h) is allowed **only** on
   the authenticated playground path (`/form`, `/reader`) to gate real-LLM
@@ -84,8 +92,19 @@ invariants; a regression here is a failed definition of done.
 - **Secrets:** keys are read only via `getEnv()` (`lib/env.ts`, `.strict()`
   whitelist) and injected only in `Authorization: Bearer`; no secret goes to the
   client. Never commit `.env.local`; scrub `apiKey`/`secret`/`token` from
-  observability. Adding a dependency keeps `pnpm audit` and GitHub Dependabot
-  alerts checked (no new high-severity CVEs in the runtime path).
+  observability. The gatekeeper pair (`GATEKEEPER_SECRET` ≥32 chars,
+  `PLAYGROUND_PASSWORD_HASH` = `scrypt:<salt>:<key>` from `pnpm gate:hash` — a
+  random-salt KDF, never a fast hash like SHA-256, and never with a `$`
+  separator because Next expands `$` in `.env` values)
+  is server-only too — the clear-text password is never stored, committed, or
+  logged. **Never hash a password with a fast digest** (SHA-256/MD5/SHA-1):
+  CodeQL's `js/insufficient-password-hash` fails the PR. Compare derivations
+  through `isPasswordCorrect()` (scrypt + `timingSafeEqual`); generating the
+  stored value is `hashPassword()` / `pnpm gate:hash`, and
+  `PASSWORD_HASH_PATTERN` (`lib/env.ts`) is the single source of truth for the
+  format — do not duplicate the regex. Adding a dependency keeps `pnpm audit`
+  and GitHub Dependabot alerts checked (no new high-severity CVEs in the
+  runtime path).
 
 ## Commands
 
@@ -105,6 +124,7 @@ pnpm storybook:test  # every story (default/loading/error/edge) + a11y checks
 pnpm test:e2e        # Playwright: pt-BR + EN journeys, fake provider
 pnpm test:visual     # approved screenshots, no unintended diff
 pnpm test:performance  # budgets below
+pnpm gate:hash       # print PLAYGROUND_PASSWORD_HASH (scrypt); add `-- --write` to update .env.local
 pnpm build           # production build must pass
 ```
 
@@ -225,7 +245,7 @@ Commit messages: `:memo:`/gitmoji + Conventional Commits, e.g.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
-# This is NOT the Next.js you know
+## This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
 

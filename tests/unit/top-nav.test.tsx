@@ -24,16 +24,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navState.push }),
 }));
 
-// TopNav calls `useClerk()` for sign-out; the playground always mounts a
-// ClerkProvider at runtime, but this isolated unit test doesn't, so we stub
-// the hook AND make `ClerkProvider` a pass-through (the kebab wraps its sign
-// out action in a scoped ClerkProviderGate). Stubbing avoids booting real
-// Clerk JS in JSDOM; we only assert TopNav's behavior.
-vi.mock("@clerk/nextjs", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@clerk/nextjs")>()),
-  useClerk: () => ({ signOut: vi.fn() }),
-  ClerkProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+// Sign out ends the gatekeeper session via `POST /api/gate/logout` — no
+// provider or auth SDK involved (ADR 0015), so no mocking is needed here;
+// we only assert TopNav's behavior.
+const fetchMock = vi.fn();
 
 function renderTopNav() {
   return render(
@@ -43,7 +37,14 @@ function renderTopNav() {
   );
 }
 
+beforeEachSetup();
+function beforeEachSetup() {
+  vi.stubGlobal("fetch", fetchMock);
+}
+
 afterEach(() => {
+  vi.unstubAllGlobals();
+  fetchMock.mockReset();
   navState.push.mockClear();
   document.documentElement.classList.remove("light", "dark");
 });
@@ -121,19 +122,25 @@ describe("TopNav — kebab menu (all breakpoints)", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows a sign-out action on the playground route when Clerk is configured", async () => {
+  it("shows a sign-out action on the playground route", async () => {
     navState.setPath("/reader");
-    // Sign out only mounts when Clerk is configured (anonymous demo has none).
-    process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test";
     renderTopNav();
     fireEvent.click(screen.getByRole("button", { name: "Menu" }));
-    // `SignOutButton` is now a static, eager import — the item renders instantly
+    // `SignOutButton` is a static, eager import — the item renders instantly
     // with the menu, no chunk round-trip. `findByRole` still guards against any
     // async; the timeout is generous for slow CI.
     expect(
       await screen.findByRole("menuitem", { name: /sair/i }, { timeout: 5000 })
     ).toBeInTheDocument();
-    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  });
+
+  it("shows no sign-out action on the anonymous demo path", () => {
+    navState.setPath("/demo");
+    renderTopNav();
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+
+    expect(screen.getByRole("menu")).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: /sair/i })).not.toBeInTheDocument();
   });
 
   it("closes the kebab menu when pressing Escape", () => {

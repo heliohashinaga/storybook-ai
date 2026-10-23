@@ -10,6 +10,18 @@ import { z } from "zod";
 export const PROVIDER_IDS = ["opencode-go", "openrouter"] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
+/**
+ * Shape of `PLAYGROUND_PASSWORD_HASH`: `scrypt:<saltHex>:<keyHex>` — a scrypt
+ * key-derivation output, never a fast hash of the password (ADR 0015). 16-byte
+ * salt (32 hex) + 32-byte derived key (64 hex). Single source of truth shared
+ * with `features/auth/server/gate.ts`, which does the derivation.
+ *
+ * The separator is `:`, **not** `$`: Next.js runs `.env` values through dotenv
+ * expansion, so a `$`-separated value (`scrypt$<salt>$<key>`) is truncated to
+ * `scrypt` at load time (the `$<salt>` reads as an empty variable reference).
+ */
+export const PASSWORD_HASH_PATTERN = /^scrypt:[0-9a-f]{32}:[0-9a-f]{64}$/i;
+
 const envSchema = z
   .object({
     OPENROUTER_API_KEY: z.string().min(1),
@@ -82,26 +94,24 @@ const envSchema = z
     MODEL_MAX_ATTEMPTS: z.coerce.number().int().positive().optional(),
     PIPELINE_TIMEOUT_MS: z.coerce.number().int().positive().optional(),
     /**
-     * Auth/Clerk configuration (spec 018 / ADR 0013). All optional: demo-only
-     * deploys run with none of them and the Clerk middleware/provider are
-     * mounted conditionally (stub) so the app boots without auth. `CLERK_SECRET_KEY`
-     * is server-only; `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is the publishable key
-     * (non-secret, exposed to the browser by design — exceção à regra "no
-     * NEXT_PUBLIC_*" do AGENTS.md, registrada no ADR 0013). The remaining keys
-     * are redirect/URL configs consumed by `@clerk/nextjs`.
+     * Gatekeeper (porteiro) do playground — senha única compartilhada.
+     * Ambos opcionais: deploy demo-only roda sem eles e o porteiro fica
+     * desabilitado (demo 100% anônima). `GATEKEEPER_SECRET` assina o JWT
+     * httpOnly (HS256, mínimo 32 chars); `PLAYGROUND_PASSWORD_HASH` é o
+     * hash scrypt da senha (`scrypt:<salt>:<key>`, gerado com `pnpm gate:hash`)
+     * — nunca um hash rápido de senha, e sem `$` (a expansão de `.env`
+     * truncaria o valor). Nenhum vai ao cliente; lidos só via
+     * `getEnv()` / `process.env` no servidor.
      */
-    CLERK_SECRET_KEY: z.string().min(1).optional(),
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1).optional(),
-    CLERK_SIGN_IN_URL: z.string().min(1).optional(),
-    CLERK_SIGN_UP_URL: z.string().min(1).optional(),
-    CLERK_AFTER_SIGN_IN_URL: z.string().min(1).optional(),
-    CLERK_AFTER_SIGN_UP_URL: z.string().min(1).optional(),
+    GATEKEEPER_SECRET: z.string().min(32).optional(),
+    PLAYGROUND_PASSWORD_HASH: z.string().regex(PASSWORD_HASH_PATTERN).optional(),
     /**
-     * Cloudflare Turnstile demo anti-bot (feature 019). Both optional: absent
-     * keys disable the feature (demo behaves as today). `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
-     * is a **publishable** (non-secret) key exposed to the browser by design —
-     * an explicit exception to the "no NEXT_PUBLIC_*" rule (ADR 0014), like
-     * Clerk's publishable key (ADR 0013). `TURNSTILE_SECRET_KEY` is server-only.
+     * Cloudflare Turnstile demo anti-bot (feature 019). Both keys are
+     * optional: absent keys disable the feature (demo behaves as today).
+     * `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is a **publishable** (non-secret) key
+     * exposed to the browser by design — an explicit exception to the "no
+     * NEXT_PUBLIC_*" rule (ADR 0014), like Turnstile site key (ADR 0014).
+     * `TURNSTILE_SECRET_KEY` is server-only.
      */
     NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1).optional(),
     TURNSTILE_SECRET_KEY: z.string().min(1).optional(),
@@ -160,17 +170,13 @@ const KNOWN_KEYS = [
   "MODEL_TIMEOUT_MS",
   "MODEL_MAX_ATTEMPTS",
   "PIPELINE_TIMEOUT_MS",
-  // auth/Clerk (spec 018) — optional; demo-only sem CLERK_SECRET_KEY
-  "CLERK_SECRET_KEY",
-  "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-  "CLERK_SIGN_IN_URL",
-  "CLERK_SIGN_UP_URL",
-  "CLERK_AFTER_SIGN_IN_URL",
-  "CLERK_AFTER_SIGN_UP_URL",
+  // gatekeeper do playground (porteiro senha única) — opcional; demo-only sem chaves
+  "GATEKEEPER_SECRET",
+  "PLAYGROUND_PASSWORD_HASH",
   // Cloudflare Turnstile demo anti-bot (feature 019) — optional
   "NEXT_PUBLIC_TURNSTILE_SITE_KEY",
   "TURNSTILE_SECRET_KEY",
-  // removed legacy vars (rejected by .strict() under D5-C: no compat)
+  // removed legacy vars (rejected by `.strict()` under D5-C: no compat)
   "OPENROUTER_TEXT_MODEL",
   "OPENROUTER_IMAGE_MODEL",
   "OPENROUTER_MODERATION_MODEL",
@@ -197,5 +203,5 @@ export function getEnv(): ServerEnv {
     throw new Error("Server environment is missing required provider configuration.");
   }
   cached = parsed.data;
-  return cached;
+  return parsed.data;
 }

@@ -1,94 +1,45 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
-import dynamic from "next/dynamic";
-
-/**
- * Clerk's `<SignIn>` statically imports clerk-js (~400 KiB). It is dynamically
- * imported (client-only) so it stays out of the initial `/` bundle and the 250
- * KiB initial-JS budget is respected (AGENTS.md: heavy libs are lazy). A small
- * spinner fills the reserved slot while the chunk loads.
- */
-const SignIn = dynamic(() => import("@clerk/nextjs").then((m) => m.SignIn), {
-  ssr: false,
-  loading: () => (
-    <div
-      className="flex h-20 w-full items-center justify-center"
-      role="status"
-      aria-label="Loading sign in"
-    >
-      <span
-        className="size-6 animate-spin rounded-full border-2 border-current border-t-transparent"
-        aria-hidden="true"
-      />
-    </div>
-  ),
-});
-import { buildClerkLocalization, type ClerkLocalization } from "../client/clerk-localization";
-import { ClerkProviderGate } from "../client/clerk-provider";
+import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { NavMenuContents } from "../../shell/components/nav-menu-contents";
 import { TopNavMenu } from "../../shell/components/top-nav-menu";
 import { BrandLogo } from "../../../components/ui/brand-logo";
 import { StarField } from "./star-field";
 
-/** True when Clerk keys are present (playground enabled). */
-const isClerkConfigured = Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
-
 /**
- * Client login screen (spec 018). Renders the Clerk `<SignIn>` component
- * (Google + e-mail/senha, plus sign-up and forgot-password handled by Clerk),
- * wrapped by the app's visual frame (StarField, brand, top-right kebab menu).
+ * Client porteiro screen (ADR 0015). Renders the shared-password form plus the
+ * always-available Demo entry point, wrapped by the app's visual frame
+ * (StarField, brand, top-right kebab).
  *
- * Demo-only deploy (no `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`): no Clerk provider
- * is mounted, so we render only the anonymous demo panel (zero cookies). The
- * kebab's Sign out action is only mounted inside the provider (configured
- * mode), never on the anonymous demo path.
+ * Demo-only deploy (no gatekeeper vars server-side): the server renders this
+ * component with `gateConfigured={false}`, so only the anonymous demo panel is
+ * shown (zero cookies). The password itself is never stored, logged, or sent
+ * anywhere except `POST /api/gate/login`; a wrong password yields the same
+ * generic error as a disabled gate (no enumeration).
  */
-export function LoginScreenView() {
+export function LoginScreenView({ gateConfigured }: { gateConfigured: boolean }) {
   const tBrand = useTranslations("story.brand");
   const t = useTranslations("login");
-  const locale = useLocale();
-  // App-consistent Clerk localization: blanks the default sign-in hero and
-  // surfaces our localized "access denied" copy on the restricted sign-up
-  // screen (feature 020). Only title is overridden; subtitle stays Clerk's.
-  const localization = buildClerkLocalization(
-    locale === "pt-BR" ? "pt-BR" : "en",
-    t("accessDenied")
-  );
 
   return (
     <main className="relative flex min-h-[calc(100dvh-4rem)] items-center justify-center overflow-hidden px-4 pt-16 pb-12">
       {/* Decorative star field behind the login hero. */}
       <StarField />
 
-      {isClerkConfigured ? (
-        <>
-          {/* Right-aligned kebab (compact, icon-only trigger): lang/theme only.
-              No Sign out here — on the login gate you're starting a session, not
-              ending one; signing out only makes sense in the app header (top-nav),
-              which renders it inside its own scoped provider. */}
-          <ScreenKebab label={tBrand("menuLabel")} />
-          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            {/* Clerk's provider + `<SignIn>` mount via a lazy slot so the hero
-                above paints immediately and clerk-js stays out of the initial
-                bundle (250 KiB budget). `routing="hash"` avoids requiring `/`
-                to be a catch-all (Clerk navigates via hash). No custom `appearance`:
-                Clerk's default theme is used (ADR 0013 accepts the internal style
-                divergence) and avoids breaking Clerk's own primary-button CSS. */}
-            <ClerkSignInSlot localization={localization} />
-
-            <DemoLink locale={locale} label={t("demo")} />
-          </ScreenHero>
-        </>
-      ) : (
-        <>
-          {/* Anonymous demo path: kebab without Sign out (no provider). */}
-          <ScreenKebab label={tBrand("menuLabel")} />
-          <ScreenHero heading={t("heading")} tagline={t("tagline")}>
-            <DemoPanel locale={locale} demoLabel={t("demo")} note={t("noCredentials")} />
-          </ScreenHero>
-        </>
-      )}
+      <ScreenKebab label={tBrand("menuLabel")} />
+      <ScreenHero heading={t("heading")} tagline={t("tagline")}>
+        {gateConfigured ? (
+          <PasswordPanel
+            passwordLabel={t("password")}
+            submitLabel={t("submit")}
+            demoLabel={t("demo")}
+          />
+        ) : (
+          <DemoPanel demoLabel={t("demo")} note={t("noCredentials")} />
+        )}
+      </ScreenHero>
     </main>
   );
 }
@@ -139,14 +90,99 @@ function ScreenHero({
   );
 }
 
+/** Shared-password form. On success the server sets the httpOnly gatekeeper
+ *  cookie and the client navigates into the playground; on failure a generic,
+ *  localized error is announced (no enumeration of "wrong" vs "disabled"). */
+function PasswordPanel({
+  passwordLabel,
+  submitLabel,
+  demoLabel,
+}: {
+  passwordLabel: string;
+  submitLabel: string;
+  demoLabel: string;
+}) {
+  const t = useTranslations("login");
+  const router = useRouter();
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) return;
+    setPending(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/gate/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (response.ok) {
+        router.push("/form");
+        router.refresh();
+        return;
+      }
+      setError(t("invalidCredentials"));
+    } catch {
+      setError(t("invalidCredentials"));
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <section
+      aria-label={submitLabel}
+      className="space-y-4 rounded-3xl border border-border bg-card p-5"
+    >
+      <form onSubmit={onSubmit} className="space-y-4">
+        <div className="space-y-2 text-left">
+          <label htmlFor="gatekeeper-password" className="text-sm font-semibold text-foreground">
+            {passwordLabel}
+          </label>
+          <input
+            id="gatekeeper-password"
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            maxLength={200}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? "gatekeeper-error" : undefined}
+            disabled={pending}
+            className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+          />
+        </div>
+        {error ? (
+          <p id="gatekeeper-error" role="alert" className="text-sm font-semibold text-destructive">
+            {error}
+          </p>
+        ) : null}
+        <button
+          type="submit"
+          disabled={pending}
+          aria-busy={pending}
+          className="w-full rounded-2xl bg-primary px-4 py-3 text-base font-bold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:opacity-60"
+        >
+          {submitLabel}
+        </button>
+      </form>
+      <DemoLink label={demoLabel} />
+    </section>
+  );
+}
+
 /** The "Explore the Demo" entry link (client-side nav into `/demo`).
     A prominent text link (bold + underlined), not a button, so it draws
-    attention beside the Clerk sign-in without competing as a second CTA. */
-function DemoLink({ locale, label }: { locale: string; label: string }) {
+    attention without competing as a second CTA. */
+function DemoLink({ label }: { label: string }) {
   return (
     <a
       href="/demo"
-      lang={locale}
       className="text-base font-bold text-primary underline underline-offset-4 transition-colors hover:text-primary/80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       {label}
@@ -154,16 +190,8 @@ function DemoLink({ locale, label }: { locale: string; label: string }) {
   );
 }
 
-/** Anonymous demo-only entry card (zero Clerk keys). */
-function DemoPanel({
-  locale,
-  demoLabel,
-  note,
-}: {
-  locale: string;
-  demoLabel: string;
-  note: string;
-}) {
+/** Anonymous demo-only entry card (zero gatekeeper config). */
+function DemoPanel({ demoLabel, note }: { demoLabel: string; note: string }) {
   return (
     <section
       aria-label={demoLabel}
@@ -172,20 +200,8 @@ function DemoPanel({
       <p role="note" className="text-center text-sm text-muted-foreground">
         {note}
       </p>
-      <DemoLink locale={locale} label={demoLabel} />
+      <DemoLink label={demoLabel} />
     </section>
-  );
-}
-
-/** Lazily mounts the Clerk provider + `<SignIn>`. The surrounding hero paints
- *  immediately; only this slot waits for the clerk-js chunk (budget guard). */
-function ClerkSignInSlot({ localization }: { localization: ClerkLocalization }) {
-  return (
-    <ClerkProviderGate localization={localization}>
-      <div className="flex min-h-[20rem] w-full justify-center">
-        <SignIn routing="hash" />
-      </div>
-    </ClerkProviderGate>
   );
 }
 

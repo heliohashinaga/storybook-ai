@@ -7,7 +7,8 @@ import { expect, type Page } from "@playwright/test";
  * must explicitly switch to pt-BR first. Two independent controls exist:
  *   - the header kebab ("Menu") holds a `LangToggle` that switches the whole
  *     UI locale (stable label "Português (Brasil)" in both locales). The
- *     header actions are collapsed behind the kebab on every breakpoint;
+ *     header actions are collapsed behind the kebab on every breakpoint, so
+ *     open it and pick the language.
  *   - the form's story-locale selector drives the generation payload
  *     (`locale`), independent of the UI locale.
  * A pt-BR journey needs BOTH switched, so the reader assertions (pt-BR labels)
@@ -31,10 +32,11 @@ export async function switchToPortuguese(page: Page): Promise<void> {
 }
 
 /**
- * Session cookie name Clerk sets once authenticated (spec 018 / ADR 0013). Used by
- * the demo privacy checks to assert the anonymous demo never establishes a session.
+ * Session cookie the gatekeeper sets once the password is accepted (ADR 0015).
+ * Used by the demo privacy checks to assert the anonymous demo never
+ * establishes a session.
  */
-export const CLERK_SESSION_COOKIE_NAME = "__clerk_session";
+export const GATE_SESSION_COOKIE_NAME = "__Host-gatekeeper";
 
 const ALLOWED_KEYS = ["ageBand", "locale", "theme", "sceneCount"] as const;
 
@@ -64,7 +66,7 @@ export function assertPrivacyContract(payload: StoryPayload): void {
 export async function captureStoryCalls(page: Page): Promise<StoryPayload[]> {
   const payloads: StoryPayload[] = [];
 
-  // Safety net: abort any request to a live AI / non-local host.
+  // Safety net: abort any request to a live AI / non-host host.
   await page.route(/^https?:\/\/(?!localhost|127\.0\.0\.1|\[::1\])/i, (route) =>
     route.abort("failed")
   );

@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { GATE_E2E_PASSWORD_HASH, GATE_E2E_SECRET } from "./tests/e2e/gate-fixtures";
 
 const PORT = 3000;
 // Shared, user-level cache (outside any git worktree) so browsers install and
@@ -112,6 +113,13 @@ export default defineConfig({
     // STORIES_TEST_MODE in their environment; default here is the fake.
     env: {
       ...(process.env.STORIES_TEST_MODE ? {} : { STORIES_TEST_MODE: "fake" }),
+      // The porteiro (shared-password gate) is configured here so the browser
+      // suites exercise the production-shaped landing page (gate enabled) —
+      // CI has no `.env.local`, so without this the app rendered the demo-only
+      // panel and the gate/password journey could never be asserted. Values are
+      // throw-away test credentials from `tests/e2e/gate-fixtures.ts`.
+      GATEKEEPER_SECRET: process.env.GATEKEEPER_SECRET ?? GATE_E2E_SECRET,
+      PLAYGROUND_PASSWORD_HASH: process.env.PLAYGROUND_PASSWORD_HASH ?? GATE_E2E_PASSWORD_HASH,
       // Auth.js must trust and rotate the suite's own origin: the specs drive
       // the browser against 127.0.0.1, so a localhost AUTH_URL (as in
       // .env.local) breaks cookie/CSRF host matching (MissingCSRF redirects)
